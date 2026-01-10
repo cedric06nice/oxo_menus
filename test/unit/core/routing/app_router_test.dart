@@ -7,16 +7,24 @@ import 'package:oxo_menus/core/routing/app_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
+import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
+class MockMenuRepository extends Mock implements MenuRepository {}
 
 void main() {
   late MockAuthRepository mockAuthRepository;
+  late MockMenuRepository mockMenuRepository;
 
   setUp(() {
     mockAuthRepository = MockAuthRepository();
+    mockMenuRepository = MockMenuRepository();
+
+    // Default behavior for menu repository (return empty list)
+    when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
+        .thenAnswer((_) async => const Success([]));
   });
 
   group('AppRouter - Route Configuration', () {
@@ -28,6 +36,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -58,6 +67,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -90,6 +100,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -126,6 +137,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -162,6 +174,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -198,6 +211,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -230,6 +244,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -267,6 +282,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -305,6 +321,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -342,6 +359,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -380,6 +398,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -416,6 +435,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -446,6 +466,7 @@ void main() {
         ProviderScope(
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {

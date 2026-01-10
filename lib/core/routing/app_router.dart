@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/presentation/pages/login/login_page.dart';
+import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 
 /// App router configuration using go_router
@@ -63,12 +64,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/menus',
         name: 'menus',
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(title: const Text('Menus')),
-          body: const Center(
-            child: Text('Menu List - Coming Soon'),
-          ),
-        ),
+        builder: (context, state) => const MenuListPage(),
         routes: [
           GoRoute(
             path: ':id',
