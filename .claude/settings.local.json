@@ -5,7 +5,11 @@
       "Bash(flutter pub get:*)",
       "Bash(flutter test:*)",
       "Bash(flutter pub run build_runner build:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(while read f)",
+      "Bash(do basename \"$f\")",
+      "Bash(done)"
     ]
   }
 }
