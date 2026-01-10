@@ -1,8 +1,76 @@
+import 'package:directus_api_manager/directus_api_manager.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
+import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 
 /// Maps exceptions from data layer (Directus, network, etc.) to domain errors
 DomainError mapDirectusError(dynamic error) {
-  // Handle Directus exceptions
+  // Handle DirectusApiError from directus_api_manager package
+  if (error is DirectusApiError) {
+    final code = error.errorCodeFromJson ?? 'UNKNOWN';
+    final message = error.messageFromBody ?? error.toString();
+
+    switch (code) {
+      case 'INVALID_CREDENTIALS':
+      case 'INVALID_PAYLOAD':
+        return InvalidCredentialsError(message);
+
+      case 'TOKEN_EXPIRED':
+        return TokenExpiredError(message);
+
+      case 'FORBIDDEN':
+        return UnauthorizedError(message);
+
+      case 'NOT_FOUND':
+      case 'RECORD_NOT_FOUND':
+        return NotFoundError(message);
+
+      case 'INVALID_QUERY':
+      case 'RECORD_NOT_UNIQUE':
+      case 'INVALID_FOREIGN_KEY':
+        return ValidationError(message);
+
+      default:
+        return ServerError(message);
+    }
+  }
+
+  // Handle our custom DirectusException (from DirectusDataSource)
+  if (error is DirectusException) {
+    final code = error.code;
+    final message = error.message;
+
+    switch (code) {
+      case 'INVALID_CREDENTIALS':
+      case 'INVALID_PAYLOAD':
+        return InvalidCredentialsError(message);
+
+      case 'TOKEN_EXPIRED':
+        return TokenExpiredError(message);
+
+      case 'FORBIDDEN':
+      case 'NOT_AUTHENTICATED':
+        return UnauthorizedError(message);
+
+      case 'NOT_FOUND':
+        return NotFoundError(message);
+
+      case 'INVALID_QUERY':
+      case 'RECORD_NOT_UNIQUE':
+      case 'INVALID_FOREIGN_KEY':
+        return ValidationError(message);
+
+      case 'CREATE_FAILED':
+      case 'UPDATE_FAILED':
+      case 'DELETE_FAILED':
+      case 'LOGIN_ERROR':
+        return ServerError(message);
+
+      default:
+        return UnknownError(message);
+    }
+  }
+
+  // Handle Directus exceptions (legacy/fallback using duck typing)
   if (_isDirectusException(error)) {
     final code = _getExceptionCode(error);
     final message = _getExceptionMessage(error);

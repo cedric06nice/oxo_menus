@@ -1,34 +1,91 @@
-/// Wrapper for Directus backend communication
-///
-/// NOTE: This is a simplified interface. The actual integration with
-/// directus_api_manager package will be implemented in a future iteration.
-/// For now, this provides the interface needed by repository implementations.
-class DirectusDataSource {
-  final String baseUrl;
+import 'package:directus_api_manager/directus_api_manager.dart';
 
-  DirectusDataSource({required this.baseUrl});
+/// Generic DirectusItem implementation for collections without custom models
+///
+/// This allows us to work with any Directus collection using the generic
+/// DirectusItem interface without needing to create custom model classes.
+class GenericDirectusItem extends DirectusItem {
+  GenericDirectusItem(super.rawReceivedData);
+  GenericDirectusItem.newItem() : super.newItem();
+  GenericDirectusItem.withId(super.id) : super.withId();
+}
+
+/// Wrapper for Directus backend communication using directus_api_manager package
+///
+/// This class adapts the directus_api_manager's DirectusApiManager to our repository
+/// interface, providing a clean abstraction for CRUD operations and authentication.
+///
+/// Uses the adapter pattern to convert between our Map<String, dynamic> interface
+/// and directus_api_manager's GenericDirectusItem objects.
+class DirectusDataSource {
+  final DirectusApiManager _apiManager;
+
+  DirectusDataSource({required String baseUrl})
+      : _apiManager = DirectusApiManager(baseURL: baseUrl);
 
   // ===== Authentication Methods =====
 
   /// Login with email and password
+  ///
+  /// Returns the full login response including user data and tokens
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
   }) async {
-    // TODO: Implement actual Directus authentication
-    throw UnimplementedError('Directus authentication not yet implemented');
+    final result = await _apiManager.loginDirectusUser(
+      email,
+      password,
+    );
+
+    switch (result.type) {
+      case DirectusLoginResultType.success:
+        // Get current user data
+        final user = await _apiManager.currentDirectusUser();
+        final userData = user?.getRawData() ?? {};
+
+        return {
+          'user': userData,
+          'access_token': _apiManager.accessToken,
+          'refresh_token': _apiManager.refreshToken,
+        };
+
+      case DirectusLoginResultType.invalidCredentials:
+        throw DirectusException(
+          code: 'INVALID_CREDENTIALS',
+          message: 'Invalid email or password',
+        );
+
+      case DirectusLoginResultType.invalidOTP:
+        throw DirectusException(
+          code: 'INVALID_OTP',
+          message: 'OTP required or invalid',
+        );
+
+      case DirectusLoginResultType.error:
+        throw DirectusException(
+          code: 'LOGIN_ERROR',
+          message: result.message ?? 'Login failed',
+        );
+    }
   }
 
   /// Logout the current user
   Future<void> logout() async {
-    // TODO: Implement actual Directus logout
-    throw UnimplementedError('Directus logout not yet implemented');
+    await _apiManager.logoutDirectusUser();
   }
 
   /// Get the current authenticated user
   Future<Map<String, dynamic>> getCurrentUser() async {
-    // TODO: Implement actual Directus getCurrentUser
-    throw UnimplementedError('Directus getCurrentUser not yet implemented');
+    final user = await _apiManager.currentDirectusUser();
+
+    if (user == null) {
+      throw DirectusException(
+        code: 'NOT_AUTHENTICATED',
+        message: 'No authenticated user',
+      );
+    }
+
+    return user.getRawData();
   }
 
   // ===== CRUD Operations =====
@@ -39,8 +96,19 @@ class DirectusDataSource {
     String id, {
     List<String>? fields,
   }) async {
-    // TODO: Implement actual Directus getItem
-    throw UnimplementedError('Directus getItem not yet implemented');
+    final item = await _apiManager.getSpecificItem<GenericDirectusItem>(
+      id: id,
+      fields: fields?.join(','),
+    );
+
+    if (item == null) {
+      throw DirectusException(
+        code: 'NOT_FOUND',
+        message: 'Item not found',
+      );
+    }
+
+    return item.getRawData();
   }
 
   /// Get multiple items from a collection
@@ -52,8 +120,34 @@ class DirectusDataSource {
     int? limit,
     int? offset,
   }) async {
-    // TODO: Implement actual Directus getItems
-    throw UnimplementedError('Directus getItems not yet implemented');
+    // Convert our filter format to directus_api_manager filter format
+    Filter? directusFilter;
+    if (filter != null) {
+      directusFilter = _convertFilterToDirectusFilter(filter);
+    }
+
+    // Convert sort strings to SortProperty objects
+    List<SortProperty>? sortProperties;
+    if (sort != null) {
+      sortProperties = sort.map((sortStr) {
+        final isDescending = sortStr.startsWith('-');
+        final fieldName = isDescending ? sortStr.substring(1) : sortStr;
+        return SortProperty(
+          fieldName,
+          ascending: !isDescending,
+        );
+      }).toList();
+    }
+
+    final items = await _apiManager.findListOfItems<GenericDirectusItem>(
+      filter: directusFilter,
+      fields: fields?.join(','),
+      sortBy: sortProperties,
+      limit: limit,
+      offset: offset,
+    );
+
+    return items.map((item) => item.getRawData()).toList();
   }
 
   /// Create a new item in a collection
@@ -61,8 +155,25 @@ class DirectusDataSource {
     String collection,
     Map<String, dynamic> data,
   ) async {
-    // TODO: Implement actual Directus createItem
-    throw UnimplementedError('Directus createItem not yet implemented');
+    final item = GenericDirectusItem.newItem();
+
+    // Set all properties from data
+    for (final entry in data.entries) {
+      item.setValue(entry.value, forKey: entry.key);
+    }
+
+    final result = await _apiManager.createNewItem<GenericDirectusItem>(
+      objectToCreate: item,
+    );
+
+    if (!result.isSuccess || result.createdItem == null) {
+      throw DirectusException(
+        code: 'CREATE_FAILED',
+        message: result.error?.messageFromBody ?? 'Failed to create item',
+      );
+    }
+
+    return result.createdItem!.getRawData();
   }
 
   /// Update an existing item in a collection
@@ -71,14 +182,213 @@ class DirectusDataSource {
     String id,
     Map<String, dynamic> data,
   ) async {
-    // TODO: Implement actual Directus updateItem
-    throw UnimplementedError('Directus updateItem not yet implemented');
+    // First fetch the item to get its current state
+    final item = await _apiManager.getSpecificItem<GenericDirectusItem>(id: id);
+
+    if (item == null) {
+      throw DirectusException(
+        code: 'NOT_FOUND',
+        message: 'Item not found',
+      );
+    }
+
+    // Update properties
+    for (final entry in data.entries) {
+      item.setValue(entry.value, forKey: entry.key);
+    }
+
+    final updated = await _apiManager.updateItem<GenericDirectusItem>(
+      objectToUpdate: item,
+    );
+
+    return updated.getRawData();
   }
 
   /// Delete an item from a collection
   Future<void> deleteItem(String collection, String id) async {
-    // TODO: Implement actual Directus deleteItem
-    throw UnimplementedError('Directus deleteItem not yet implemented');
+    final success = await _apiManager.deleteItem<GenericDirectusItem>(
+      objectId: id,
+    );
+
+    if (!success) {
+      throw DirectusException(
+        code: 'DELETE_FAILED',
+        message: 'Failed to delete item',
+      );
+    }
+  }
+
+  // ===== Helper Methods =====
+
+  /// Convert our filter format to directus_api_manager Filter format
+  ///
+  /// Our format: {'field': {'_operator': value}}
+  /// Example: {'menu_id': {'_eq': 'menu-1'}}
+  Filter? _convertFilterToDirectusFilter(Map<String, dynamic> filter) {
+    final filters = <Filter>[];
+
+    for (final entry in filter.entries) {
+      final fieldName = entry.key;
+      final filterValue = entry.value;
+
+      if (filterValue is Map<String, dynamic>) {
+        for (final operatorEntry in filterValue.entries) {
+          final operator = operatorEntry.key;
+          final value = operatorEntry.value;
+
+          final propertyFilter = _createPropertyFilter(
+            fieldName,
+            operator,
+            value,
+          );
+
+          if (propertyFilter != null) {
+            filters.add(propertyFilter);
+          }
+        }
+      }
+    }
+
+    if (filters.isEmpty) {
+      return null;
+    }
+
+    // If multiple filters, combine with AND
+    if (filters.length == 1) {
+      return filters.first;
+    }
+
+    return LogicalOperatorFilter(
+      operator: LogicalOperator.and,
+      children: filters,
+    );
+  }
+
+  /// Create a PropertyFilter from field name, operator, and value
+  PropertyFilter? _createPropertyFilter(
+    String fieldName,
+    String operator,
+    dynamic value,
+  ) {
+    switch (operator) {
+      case '_eq':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.equals,
+          value: value,
+        );
+      case '_neq':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.notEqual,
+          value: value,
+        );
+      case '_lt':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.lessThan,
+          value: value,
+        );
+      case '_lte':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.lessThanOrEqual,
+          value: value,
+        );
+      case '_gt':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.greaterThan,
+          value: value,
+        );
+      case '_gte':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.greaterThanOrEqual,
+          value: value,
+        );
+      case '_in':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.oneOf,
+          value: value,
+        );
+      case '_nin':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.notOneOf,
+          value: value,
+        );
+      case '_null':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.isNull,
+          value: null,
+        );
+      case '_nnull':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.isNotNull,
+          value: null,
+        );
+      case '_contains':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.contains,
+          value: value,
+        );
+      case '_ncontains':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.notContains,
+          value: value,
+        );
+      case '_starts_with':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.startWith,
+          value: value,
+        );
+      case '_nstarts_with':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.notStartWith,
+          value: value,
+        );
+      case '_ends_with':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.endWith,
+          value: value,
+        );
+      case '_nends_with':
+        return PropertyFilter(
+          field: fieldName,
+          operator: FilterOperator.notEndWith,
+          value: value,
+        );
+      case '_between':
+        if (value is List && value.length == 2) {
+          return PropertyFilter(
+            field: fieldName,
+            operator: FilterOperator.between,
+            value: value,
+          );
+        }
+        return null;
+      case '_nbetween':
+        if (value is List && value.length == 2) {
+          return PropertyFilter(
+            field: fieldName,
+            operator: FilterOperator.notBetween,
+            value: value,
+          );
+        }
+        return null;
+      default:
+        // Unsupported operator
+        return null;
+    }
   }
 
   // ===== Collection Constants =====
@@ -87,4 +397,15 @@ class DirectusDataSource {
   static const String containerCollection = 'container';
   static const String columnCollection = 'column';
   static const String widgetCollection = 'widget';
+}
+
+/// Custom exception class for Directus errors
+class DirectusException implements Exception {
+  final String code;
+  final String message;
+
+  DirectusException({required this.code, required this.message});
+
+  @override
+  String toString() => 'DirectusException: $code - $message';
 }
