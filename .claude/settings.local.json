@@ -4,7 +4,8 @@
       "Bash(tree:*)",
       "Bash(flutter pub get:*)",
       "Bash(flutter test:*)",
-      "Bash(flutter pub run build_runner build:*)"
+      "Bash(flutter pub run build_runner build:*)",
+      "Bash(grep:*)"
     ]
   }
 }
