@@ -5,9 +5,9 @@ part 'user.g.dart';
 
 /// Represents a user (admin or regular).
 @freezed
-class User with _$User {
+abstract class User with _$User {
   const User._();
-  
+
   const factory User({
     required String id,
     required String email,

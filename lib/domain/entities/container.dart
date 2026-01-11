@@ -5,7 +5,7 @@ part 'container.g.dart';
 
 /// Represents a section/container on a page (horizontal grouping of columns).
 @freezed
-class Container with _$Container {
+abstract class Container with _$Container {
   const Container._();
 
   const factory Container({
@@ -24,7 +24,7 @@ class Container with _$Container {
 
 /// Layout configuration for a container
 @freezed
-class LayoutConfig with _$LayoutConfig {
+abstract class LayoutConfig with _$LayoutConfig {
   const LayoutConfig._();
 
   const factory LayoutConfig({

@@ -5,7 +5,7 @@ part 'user_dto.g.dart';
 
 /// Data Transfer Object for User matching Directus users
 @freezed
-class UserDto with _$UserDto {
+abstract class UserDto with _$UserDto {
   const UserDto._();
   const factory UserDto({
     required String id,

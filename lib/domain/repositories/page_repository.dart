@@ -28,7 +28,9 @@ abstract class PageRepository {
 
 /// Input for creating a page
 @freezed
-class CreatePageInput with _$CreatePageInput {
+abstract class CreatePageInput with _$CreatePageInput {
+  const CreatePageInput._();
+
   const factory CreatePageInput({
     required String menuId,
     required String name,
@@ -38,7 +40,9 @@ class CreatePageInput with _$CreatePageInput {
 
 /// Input for updating a page
 @freezed
-class UpdatePageInput with _$UpdatePageInput {
+abstract class UpdatePageInput with _$UpdatePageInput {
+  const UpdatePageInput._();
+
   const factory UpdatePageInput({
     required String id,
     String? name,

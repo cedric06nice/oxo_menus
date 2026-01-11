@@ -37,7 +37,9 @@ abstract class WidgetRepository {
 
 /// Input for creating a widget instance
 @freezed
-class CreateWidgetInput with _$CreateWidgetInput {
+abstract class CreateWidgetInput with _$CreateWidgetInput {
+  const CreateWidgetInput._();
+
   const factory CreateWidgetInput({
     required String columnId,
     required String type,
@@ -50,7 +52,9 @@ class CreateWidgetInput with _$CreateWidgetInput {
 
 /// Input for updating a widget instance
 @freezed
-class UpdateWidgetInput with _$UpdateWidgetInput {
+abstract class UpdateWidgetInput with _$UpdateWidgetInput {
+  const UpdateWidgetInput._();
+
   const factory UpdateWidgetInput({
     required String id,
     String? type,

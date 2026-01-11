@@ -32,7 +32,7 @@ sealed class AuthState with _$AuthState {
 /// Authentication state notifier
 ///
 /// Manages authentication state and provides methods for login/logout
-class AuthNotifier extends StateNotifier<AuthState> {
+abstract class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
 
   AuthNotifier(this._authRepository) : super(const AuthState.initial()) {

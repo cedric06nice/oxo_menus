@@ -15,7 +15,7 @@ import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 part 'fetch_menu_tree_usecase.freezed.dart';
 
 /// Use case to fetch a complete menu tree with all hierarchical data
-class FetchMenuTreeUseCase {
+abstract class FetchMenuTreeUseCase {
   final MenuRepository menuRepository;
   final PageRepository pageRepository;
   final ContainerRepository containerRepository;
@@ -107,7 +107,9 @@ class FetchMenuTreeUseCase {
 
 /// Complete menu tree with all hierarchical data
 @freezed
-class MenuTree with _$MenuTree {
+abstract class MenuTree with _$MenuTree {
+  const MenuTree._();
+
   const factory MenuTree({
     required Menu menu,
     required List<PageWithContainers> pages,
@@ -116,7 +118,9 @@ class MenuTree with _$MenuTree {
 
 /// Page with its containers
 @freezed
-class PageWithContainers with _$PageWithContainers {
+abstract class PageWithContainers with _$PageWithContainers {
+  const PageWithContainers._();
+
   const factory PageWithContainers({
     required Page page,
     required List<ContainerWithColumns> containers,
@@ -125,7 +129,9 @@ class PageWithContainers with _$PageWithContainers {
 
 /// Container with its columns
 @freezed
-class ContainerWithColumns with _$ContainerWithColumns {
+abstract class ContainerWithColumns with _$ContainerWithColumns {
+  const ContainerWithColumns._();
+
   const factory ContainerWithColumns({
     required Container container,
     required List<ColumnWithWidgets> columns,
@@ -134,7 +140,9 @@ class ContainerWithColumns with _$ContainerWithColumns {
 
 /// Column with its widgets
 @freezed
-class ColumnWithWidgets with _$ColumnWithWidgets {
+abstract class ColumnWithWidgets with _$ColumnWithWidgets {
+  const ColumnWithWidgets._();
+
   const factory ColumnWithWidgets({
     required Column column,
     required List<WidgetInstance> widgets,

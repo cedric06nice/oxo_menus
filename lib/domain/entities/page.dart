@@ -5,7 +5,7 @@ part 'page.g.dart';
 
 /// Represents a page within a menu.
 @freezed
-class Page with _$Page {
+abstract class Page with _$Page {
   const Page._();
 
   const factory Page({

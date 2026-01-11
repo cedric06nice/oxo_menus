@@ -7,25 +7,25 @@ part of 'column.dart';
 // **************************************************************************
 
 _Column _$ColumnFromJson(Map<String, dynamic> json) => _Column(
-      id: json['id'] as String,
-      containerId: json['containerId'] as String,
-      index: (json['index'] as num).toInt(),
-      flex: (json['flex'] as num?)?.toInt(),
-      width: (json['width'] as num?)?.toDouble(),
-      dateCreated: json['dateCreated'] == null
-          ? null
-          : DateTime.parse(json['dateCreated'] as String),
-      dateUpdated: json['dateUpdated'] == null
-          ? null
-          : DateTime.parse(json['dateUpdated'] as String),
-    );
+  id: json['id'] as String,
+  containerId: json['containerId'] as String,
+  index: (json['index'] as num).toInt(),
+  flex: (json['flex'] as num?)?.toInt(),
+  width: (json['width'] as num?)?.toDouble(),
+  dateCreated: json['dateCreated'] == null
+      ? null
+      : DateTime.parse(json['dateCreated'] as String),
+  dateUpdated: json['dateUpdated'] == null
+      ? null
+      : DateTime.parse(json['dateUpdated'] as String),
+);
 
 Map<String, dynamic> _$ColumnToJson(_Column instance) => <String, dynamic>{
-      'id': instance.id,
-      'containerId': instance.containerId,
-      'index': instance.index,
-      'flex': instance.flex,
-      'width': instance.width,
-      'dateCreated': instance.dateCreated?.toIso8601String(),
-      'dateUpdated': instance.dateUpdated?.toIso8601String(),
-    };
+  'id': instance.id,
+  'containerId': instance.containerId,
+  'index': instance.index,
+  'flex': instance.flex,
+  'width': instance.width,
+  'dateCreated': instance.dateCreated?.toIso8601String(),
+  'dateUpdated': instance.dateUpdated?.toIso8601String(),
+};

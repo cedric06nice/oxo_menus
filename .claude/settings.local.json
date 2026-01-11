@@ -19,7 +19,8 @@
       "Bash(lcov:*)",
       "Bash(flutter build:*)",
       "Bash(flutter pub:*)",
-      "Bash(dart run build_runner:*)"
+      "Bash(dart run build_runner:*)",
+      "Bash(git restore:*)"
     ]
   }
 }

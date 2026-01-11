@@ -39,13 +39,13 @@ Map<String, dynamic> _$WidgetInstanceToJson(_WidgetInstance instance) =>
     };
 
 _WidgetStyle _$WidgetStyleFromJson(Map<String, dynamic> json) => _WidgetStyle(
-      fontFamily: json['fontFamily'] as String?,
-      fontSize: (json['fontSize'] as num?)?.toDouble(),
-      color: json['color'] as String?,
-      backgroundColor: json['backgroundColor'] as String?,
-      border: json['border'] as String?,
-      padding: (json['padding'] as num?)?.toDouble(),
-    );
+  fontFamily: json['fontFamily'] as String?,
+  fontSize: (json['fontSize'] as num?)?.toDouble(),
+  color: json['color'] as String?,
+  backgroundColor: json['backgroundColor'] as String?,
+  border: json['border'] as String?,
+  padding: (json['padding'] as num?)?.toDouble(),
+);
 
 Map<String, dynamic> _$WidgetStyleToJson(_WidgetStyle instance) =>
     <String, dynamic>{

@@ -25,7 +25,9 @@ abstract class MenuRepository {
 
 /// Input for creating a menu
 @freezed
-class CreateMenuInput with _$CreateMenuInput {
+abstract class CreateMenuInput with _$CreateMenuInput {
+  const CreateMenuInput._();
+
   const factory CreateMenuInput({
     required String name,
     required String version,
@@ -38,7 +40,9 @@ class CreateMenuInput with _$CreateMenuInput {
 
 /// Input for updating a menu
 @freezed
-class UpdateMenuInput with _$UpdateMenuInput {
+abstract class UpdateMenuInput with _$UpdateMenuInput {
+  const UpdateMenuInput._();
+
   const factory UpdateMenuInput({
     required String id,
     String? name,

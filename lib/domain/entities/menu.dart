@@ -5,7 +5,7 @@ part 'menu.g.dart';
 
 /// Represents a menu template (created by admin) or menu instance (used by regular user).
 @freezed
-class Menu with _$Menu {
+abstract class Menu with _$Menu {
   const Menu._();
 
   const factory Menu({
@@ -37,7 +37,7 @@ enum MenuStatus {
 
 /// Style configuration for a menu
 @freezed
-class StyleConfig with _$StyleConfig {
+abstract class StyleConfig with _$StyleConfig {
   const StyleConfig._();
 
   const factory StyleConfig({
@@ -59,7 +59,7 @@ class StyleConfig with _$StyleConfig {
 
 /// Page size configuration
 @freezed
-class PageSize with _$PageSize {
+abstract class PageSize with _$PageSize {
   const PageSize._();
 
   const factory PageSize({

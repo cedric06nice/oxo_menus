@@ -35,7 +35,9 @@ abstract class ContainerRepository {
 
 /// Input for creating a container
 @freezed
-class CreateContainerInput with _$CreateContainerInput {
+abstract class CreateContainerInput with _$CreateContainerInput {
+  const CreateContainerInput._();
+
   const factory CreateContainerInput({
     required String pageId,
     required int index,
@@ -46,7 +48,9 @@ class CreateContainerInput with _$CreateContainerInput {
 
 /// Input for updating a container
 @freezed
-class UpdateContainerInput with _$UpdateContainerInput {
+abstract class UpdateContainerInput with _$UpdateContainerInput {
+  const UpdateContainerInput._();
+
   const factory UpdateContainerInput({
     required String id,
     String? name,

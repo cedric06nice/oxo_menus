@@ -12,7 +12,7 @@ part 'menu_list_provider.freezed.dart';
 ///
 /// Represents the state of the menu list screen
 @freezed
-class MenuListState with _$MenuListState {
+abstract class MenuListState with _$MenuListState {
   const factory MenuListState({
     @Default([]) List<Menu> menus,
     @Default(false) bool isLoading,
@@ -23,7 +23,7 @@ class MenuListState with _$MenuListState {
 /// Menu list state notifier
 ///
 /// Manages the menu list state and provides methods for loading and deleting menus
-class MenuListNotifier extends StateNotifier<MenuListState> {
+abstract class MenuListNotifier extends StateNotifier<MenuListState> {
   final MenuRepository _menuRepository;
 
   MenuListNotifier(this._menuRepository) : super(const MenuListState());

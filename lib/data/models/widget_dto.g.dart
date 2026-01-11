@@ -7,20 +7,20 @@ part of 'widget_dto.dart';
 // **************************************************************************
 
 _WidgetDto _$WidgetDtoFromJson(Map<String, dynamic> json) => _WidgetDto(
-      id: json['id'] as String,
-      dateCreated: json['date_created'] == null
-          ? null
-          : DateTime.parse(json['date_created'] as String),
-      dateUpdated: json['date_updated'] == null
-          ? null
-          : DateTime.parse(json['date_updated'] as String),
-      columnId: json['column_id'] as String,
-      type: json['type'] as String,
-      version: json['version'] as String,
-      index: (json['index'] as num).toInt(),
-      props: json['props'] as Map<String, dynamic>,
-      styleJson: json['style_json'] as Map<String, dynamic>?,
-    );
+  id: json['id'] as String,
+  dateCreated: json['date_created'] == null
+      ? null
+      : DateTime.parse(json['date_created'] as String),
+  dateUpdated: json['date_updated'] == null
+      ? null
+      : DateTime.parse(json['date_updated'] as String),
+  columnId: json['column_id'] as String,
+  type: json['type'] as String,
+  version: json['version'] as String,
+  index: (json['index'] as num).toInt(),
+  props: json['props'] as Map<String, dynamic>,
+  styleJson: json['style_json'] as Map<String, dynamic>?,
+);
 
 Map<String, dynamic> _$WidgetDtoToJson(_WidgetDto instance) =>
     <String, dynamic>{

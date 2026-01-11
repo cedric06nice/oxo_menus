@@ -14,1544 +14,901 @@ T _$identity<T>(T value) => value;
 
 /// @nodoc
 mixin _$Menu {
-  String get id;
-  String get name;
-  MenuStatus get status;
-  String get version;
-  DateTime? get dateCreated;
-  DateTime? get dateUpdated;
-  String? get userCreated;
-  String? get userUpdated;
-  StyleConfig? get styleConfig;
-  PageSize? get pageSize;
-  String? get area;
 
-  /// Create a copy of Menu
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  $MenuCopyWith<Menu> get copyWith =>
-      _$MenuCopyWithImpl<Menu>(this as Menu, _$identity);
+ String get id; String get name; MenuStatus get status; String get version; DateTime? get dateCreated; DateTime? get dateUpdated; String? get userCreated; String? get userUpdated; StyleConfig? get styleConfig; PageSize? get pageSize; String? get area;
+/// Create a copy of Menu
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$MenuCopyWith<Menu> get copyWith => _$MenuCopyWithImpl<Menu>(this as Menu, _$identity);
 
   /// Serializes this Menu to a JSON map.
   Map<String, dynamic> toJson();
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is Menu &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.status, status) || other.status == status) &&
-            (identical(other.version, version) || other.version == version) &&
-            (identical(other.dateCreated, dateCreated) ||
-                other.dateCreated == dateCreated) &&
-            (identical(other.dateUpdated, dateUpdated) ||
-                other.dateUpdated == dateUpdated) &&
-            (identical(other.userCreated, userCreated) ||
-                other.userCreated == userCreated) &&
-            (identical(other.userUpdated, userUpdated) ||
-                other.userUpdated == userUpdated) &&
-            (identical(other.styleConfig, styleConfig) ||
-                other.styleConfig == styleConfig) &&
-            (identical(other.pageSize, pageSize) ||
-                other.pageSize == pageSize) &&
-            (identical(other.area, area) || other.area == area));
-  }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      name,
-      status,
-      version,
-      dateCreated,
-      dateUpdated,
-      userCreated,
-      userUpdated,
-      styleConfig,
-      pageSize,
-      area);
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Menu&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.version, version) || other.version == version)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated)&&(identical(other.userCreated, userCreated) || other.userCreated == userCreated)&&(identical(other.userUpdated, userUpdated) || other.userUpdated == userUpdated)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.area, area) || other.area == area));
+}
 
-  @override
-  String toString() {
-    return 'Menu(id: $id, name: $name, status: $status, version: $version, dateCreated: $dateCreated, dateUpdated: $dateUpdated, userCreated: $userCreated, userUpdated: $userUpdated, styleConfig: $styleConfig, pageSize: $pageSize, area: $area)';
-  }
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,name,status,version,dateCreated,dateUpdated,userCreated,userUpdated,styleConfig,pageSize,area);
+
+@override
+String toString() {
+  return 'Menu(id: $id, name: $name, status: $status, version: $version, dateCreated: $dateCreated, dateUpdated: $dateUpdated, userCreated: $userCreated, userUpdated: $userUpdated, styleConfig: $styleConfig, pageSize: $pageSize, area: $area)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class $MenuCopyWith<$Res> {
-  factory $MenuCopyWith(Menu value, $Res Function(Menu) _then) =
-      _$MenuCopyWithImpl;
-  @useResult
-  $Res call(
-      {String id,
-      String name,
-      MenuStatus status,
-      String version,
-      DateTime? dateCreated,
-      DateTime? dateUpdated,
-      String? userCreated,
-      String? userUpdated,
-      StyleConfig? styleConfig,
-      PageSize? pageSize,
-      String? area});
+abstract mixin class $MenuCopyWith<$Res>  {
+  factory $MenuCopyWith(Menu value, $Res Function(Menu) _then) = _$MenuCopyWithImpl;
+@useResult
+$Res call({
+ String id, String name, MenuStatus status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, String? area
+});
 
-  $StyleConfigCopyWith<$Res>? get styleConfig;
-  $PageSizeCopyWith<$Res>? get pageSize;
+
+$StyleConfigCopyWith<$Res>? get styleConfig;$PageSizeCopyWith<$Res>? get pageSize;
+
 }
-
 /// @nodoc
-class _$MenuCopyWithImpl<$Res> implements $MenuCopyWith<$Res> {
+class _$MenuCopyWithImpl<$Res>
+    implements $MenuCopyWith<$Res> {
   _$MenuCopyWithImpl(this._self, this._then);
 
   final Menu _self;
   final $Res Function(Menu) _then;
 
-  /// Create a copy of Menu
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? name = null,
-    Object? status = null,
-    Object? version = null,
-    Object? dateCreated = freezed,
-    Object? dateUpdated = freezed,
-    Object? userCreated = freezed,
-    Object? userUpdated = freezed,
-    Object? styleConfig = freezed,
-    Object? pageSize = freezed,
-    Object? area = freezed,
-  }) {
-    return _then(_self.copyWith(
-      id: null == id
-          ? _self.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _self.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      status: null == status
-          ? _self.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as MenuStatus,
-      version: null == version
-          ? _self.version
-          : version // ignore: cast_nullable_to_non_nullable
-              as String,
-      dateCreated: freezed == dateCreated
-          ? _self.dateCreated
-          : dateCreated // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      dateUpdated: freezed == dateUpdated
-          ? _self.dateUpdated
-          : dateUpdated // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      userCreated: freezed == userCreated
-          ? _self.userCreated
-          : userCreated // ignore: cast_nullable_to_non_nullable
-              as String?,
-      userUpdated: freezed == userUpdated
-          ? _self.userUpdated
-          : userUpdated // ignore: cast_nullable_to_non_nullable
-              as String?,
-      styleConfig: freezed == styleConfig
-          ? _self.styleConfig
-          : styleConfig // ignore: cast_nullable_to_non_nullable
-              as StyleConfig?,
-      pageSize: freezed == pageSize
-          ? _self.pageSize
-          : pageSize // ignore: cast_nullable_to_non_nullable
-              as PageSize?,
-      area: freezed == area
-          ? _self.area
-          : area // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
-
-  /// Create a copy of Menu
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $StyleConfigCopyWith<$Res>? get styleConfig {
-    if (_self.styleConfig == null) {
-      return null;
-    }
-
-    return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
-      return _then(_self.copyWith(styleConfig: value));
-    });
-  }
-
-  /// Create a copy of Menu
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $PageSizeCopyWith<$Res>? get pageSize {
-    if (_self.pageSize == null) {
-      return null;
-    }
-
-    return $PageSizeCopyWith<$Res>(_self.pageSize!, (value) {
-      return _then(_self.copyWith(pageSize: value));
-    });
-  }
+/// Create a copy of Menu
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? status = null,Object? version = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,Object? userCreated = freezed,Object? userUpdated = freezed,Object? styleConfig = freezed,Object? pageSize = freezed,Object? area = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as MenuStatus,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as String,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
+as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
+as DateTime?,userCreated: freezed == userCreated ? _self.userCreated : userCreated // ignore: cast_nullable_to_non_nullable
+as String?,userUpdated: freezed == userUpdated ? _self.userUpdated : userUpdated // ignore: cast_nullable_to_non_nullable
+as String?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
+as StyleConfig?,pageSize: freezed == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
+as PageSize?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
+/// Create a copy of Menu
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StyleConfigCopyWith<$Res>? get styleConfig {
+    if (_self.styleConfig == null) {
+    return null;
+  }
+
+  return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
+    return _then(_self.copyWith(styleConfig: value));
+  });
+}/// Create a copy of Menu
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PageSizeCopyWith<$Res>? get pageSize {
+    if (_self.pageSize == null) {
+    return null;
+  }
+
+  return $PageSizeCopyWith<$Res>(_self.pageSize!, (value) {
+    return _then(_self.copyWith(pageSize: value));
+  });
+}
+}
+
 
 /// Adds pattern-matching-related methods to [Menu].
 extension MenuPatterns on Menu {
-  /// A variant of `map` that fallback to returning `orElse`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(_Menu value)? $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _Menu() when $default != null:
-        return $default(_that);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _Menu value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _Menu() when $default != null:
+return $default(_that);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// Callbacks receives the raw object, upcasted.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case final Subclass2 value:
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(_Menu value) $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Menu():
-        return $default(_that);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _Menu value)  $default,){
+final _that = this;
+switch (_that) {
+case _Menu():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `map` that fallback to returning `null`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>(
-    TResult? Function(_Menu value)? $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Menu() when $default != null:
-        return $default(_that);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _Menu value)?  $default,){
+final _that = this;
+switch (_that) {
+case _Menu() when $default != null:
+return $default(_that);case _:
+  return null;
 
-  /// A variant of `when` that fallback to an `orElse` callback.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            String id,
-            String name,
-            MenuStatus status,
-            String version,
-            DateTime? dateCreated,
-            DateTime? dateUpdated,
-            String? userCreated,
-            String? userUpdated,
-            StyleConfig? styleConfig,
-            PageSize? pageSize,
-            String? area)?
-        $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _Menu() when $default != null:
-        return $default(
-            _that.id,
-            _that.name,
-            _that.status,
-            _that.version,
-            _that.dateCreated,
-            _that.dateUpdated,
-            _that.userCreated,
-            _that.userUpdated,
-            _that.styleConfig,
-            _that.pageSize,
-            _that.area);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  MenuStatus status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _Menu() when $default != null:
+return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// As opposed to `map`, this offers destructuring.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case Subclass2(:final field2):
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(
-            String id,
-            String name,
-            MenuStatus status,
-            String version,
-            DateTime? dateCreated,
-            DateTime? dateUpdated,
-            String? userCreated,
-            String? userUpdated,
-            StyleConfig? styleConfig,
-            PageSize? pageSize,
-            String? area)
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Menu():
-        return $default(
-            _that.id,
-            _that.name,
-            _that.status,
-            _that.version,
-            _that.dateCreated,
-            _that.dateUpdated,
-            _that.userCreated,
-            _that.userUpdated,
-            _that.styleConfig,
-            _that.pageSize,
-            _that.area);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  MenuStatus status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area)  $default,) {final _that = this;
+switch (_that) {
+case _Menu():
+return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `when` that fallback to returning `null`
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(
-            String id,
-            String name,
-            MenuStatus status,
-            String version,
-            DateTime? dateCreated,
-            DateTime? dateUpdated,
-            String? userCreated,
-            String? userUpdated,
-            StyleConfig? styleConfig,
-            PageSize? pageSize,
-            String? area)?
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Menu() when $default != null:
-        return $default(
-            _that.id,
-            _that.name,
-            _that.status,
-            _that.version,
-            _that.dateCreated,
-            _that.dateUpdated,
-            _that.userCreated,
-            _that.userUpdated,
-            _that.styleConfig,
-            _that.pageSize,
-            _that.area);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  MenuStatus status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area)?  $default,) {final _that = this;
+switch (_that) {
+case _Menu() when $default != null:
+return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
+
 class _Menu extends Menu {
-  const _Menu(
-      {required this.id,
-      required this.name,
-      required this.status,
-      required this.version,
-      this.dateCreated,
-      this.dateUpdated,
-      this.userCreated,
-      this.userUpdated,
-      this.styleConfig,
-      this.pageSize,
-      this.area})
-      : super._();
+  const _Menu({required this.id, required this.name, required this.status, required this.version, this.dateCreated, this.dateUpdated, this.userCreated, this.userUpdated, this.styleConfig, this.pageSize, this.area}): super._();
   factory _Menu.fromJson(Map<String, dynamic> json) => _$MenuFromJson(json);
 
-  @override
-  final String id;
-  @override
-  final String name;
-  @override
-  final MenuStatus status;
-  @override
-  final String version;
-  @override
-  final DateTime? dateCreated;
-  @override
-  final DateTime? dateUpdated;
-  @override
-  final String? userCreated;
-  @override
-  final String? userUpdated;
-  @override
-  final StyleConfig? styleConfig;
-  @override
-  final PageSize? pageSize;
-  @override
-  final String? area;
+@override final  String id;
+@override final  String name;
+@override final  MenuStatus status;
+@override final  String version;
+@override final  DateTime? dateCreated;
+@override final  DateTime? dateUpdated;
+@override final  String? userCreated;
+@override final  String? userUpdated;
+@override final  StyleConfig? styleConfig;
+@override final  PageSize? pageSize;
+@override final  String? area;
 
-  /// Create a copy of Menu
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  _$MenuCopyWith<_Menu> get copyWith =>
-      __$MenuCopyWithImpl<_Menu>(this, _$identity);
+/// Create a copy of Menu
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$MenuCopyWith<_Menu> get copyWith => __$MenuCopyWithImpl<_Menu>(this, _$identity);
 
-  @override
-  Map<String, dynamic> toJson() {
-    return _$MenuToJson(
-      this,
-    );
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$MenuToJson(this, );
+}
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _Menu &&
-            (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.status, status) || other.status == status) &&
-            (identical(other.version, version) || other.version == version) &&
-            (identical(other.dateCreated, dateCreated) ||
-                other.dateCreated == dateCreated) &&
-            (identical(other.dateUpdated, dateUpdated) ||
-                other.dateUpdated == dateUpdated) &&
-            (identical(other.userCreated, userCreated) ||
-                other.userCreated == userCreated) &&
-            (identical(other.userUpdated, userUpdated) ||
-                other.userUpdated == userUpdated) &&
-            (identical(other.styleConfig, styleConfig) ||
-                other.styleConfig == styleConfig) &&
-            (identical(other.pageSize, pageSize) ||
-                other.pageSize == pageSize) &&
-            (identical(other.area, area) || other.area == area));
-  }
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Menu&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.version, version) || other.version == version)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated)&&(identical(other.userCreated, userCreated) || other.userCreated == userCreated)&&(identical(other.userUpdated, userUpdated) || other.userUpdated == userUpdated)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.area, area) || other.area == area));
+}
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      name,
-      status,
-      version,
-      dateCreated,
-      dateUpdated,
-      userCreated,
-      userUpdated,
-      styleConfig,
-      pageSize,
-      area);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,name,status,version,dateCreated,dateUpdated,userCreated,userUpdated,styleConfig,pageSize,area);
 
-  @override
-  String toString() {
-    return 'Menu(id: $id, name: $name, status: $status, version: $version, dateCreated: $dateCreated, dateUpdated: $dateUpdated, userCreated: $userCreated, userUpdated: $userUpdated, styleConfig: $styleConfig, pageSize: $pageSize, area: $area)';
-  }
+@override
+String toString() {
+  return 'Menu(id: $id, name: $name, status: $status, version: $version, dateCreated: $dateCreated, dateUpdated: $dateUpdated, userCreated: $userCreated, userUpdated: $userUpdated, styleConfig: $styleConfig, pageSize: $pageSize, area: $area)';
+}
+
+
 }
 
 /// @nodoc
 abstract mixin class _$MenuCopyWith<$Res> implements $MenuCopyWith<$Res> {
-  factory _$MenuCopyWith(_Menu value, $Res Function(_Menu) _then) =
-      __$MenuCopyWithImpl;
-  @override
-  @useResult
-  $Res call(
-      {String id,
-      String name,
-      MenuStatus status,
-      String version,
-      DateTime? dateCreated,
-      DateTime? dateUpdated,
-      String? userCreated,
-      String? userUpdated,
-      StyleConfig? styleConfig,
-      PageSize? pageSize,
-      String? area});
+  factory _$MenuCopyWith(_Menu value, $Res Function(_Menu) _then) = __$MenuCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String name, MenuStatus status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, String? area
+});
 
-  @override
-  $StyleConfigCopyWith<$Res>? get styleConfig;
-  @override
-  $PageSizeCopyWith<$Res>? get pageSize;
+
+@override $StyleConfigCopyWith<$Res>? get styleConfig;@override $PageSizeCopyWith<$Res>? get pageSize;
+
 }
-
 /// @nodoc
-class __$MenuCopyWithImpl<$Res> implements _$MenuCopyWith<$Res> {
+class __$MenuCopyWithImpl<$Res>
+    implements _$MenuCopyWith<$Res> {
   __$MenuCopyWithImpl(this._self, this._then);
 
   final _Menu _self;
   final $Res Function(_Menu) _then;
 
-  /// Create a copy of Menu
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $Res call({
-    Object? id = null,
-    Object? name = null,
-    Object? status = null,
-    Object? version = null,
-    Object? dateCreated = freezed,
-    Object? dateUpdated = freezed,
-    Object? userCreated = freezed,
-    Object? userUpdated = freezed,
-    Object? styleConfig = freezed,
-    Object? pageSize = freezed,
-    Object? area = freezed,
-  }) {
-    return _then(_Menu(
-      id: null == id
-          ? _self.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _self.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      status: null == status
-          ? _self.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as MenuStatus,
-      version: null == version
-          ? _self.version
-          : version // ignore: cast_nullable_to_non_nullable
-              as String,
-      dateCreated: freezed == dateCreated
-          ? _self.dateCreated
-          : dateCreated // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      dateUpdated: freezed == dateUpdated
-          ? _self.dateUpdated
-          : dateUpdated // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      userCreated: freezed == userCreated
-          ? _self.userCreated
-          : userCreated // ignore: cast_nullable_to_non_nullable
-              as String?,
-      userUpdated: freezed == userUpdated
-          ? _self.userUpdated
-          : userUpdated // ignore: cast_nullable_to_non_nullable
-              as String?,
-      styleConfig: freezed == styleConfig
-          ? _self.styleConfig
-          : styleConfig // ignore: cast_nullable_to_non_nullable
-              as StyleConfig?,
-      pageSize: freezed == pageSize
-          ? _self.pageSize
-          : pageSize // ignore: cast_nullable_to_non_nullable
-              as PageSize?,
-      area: freezed == area
-          ? _self.area
-          : area // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
-  }
-
-  /// Create a copy of Menu
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $StyleConfigCopyWith<$Res>? get styleConfig {
-    if (_self.styleConfig == null) {
-      return null;
-    }
-
-    return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
-      return _then(_self.copyWith(styleConfig: value));
-    });
-  }
-
-  /// Create a copy of Menu
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $PageSizeCopyWith<$Res>? get pageSize {
-    if (_self.pageSize == null) {
-      return null;
-    }
-
-    return $PageSizeCopyWith<$Res>(_self.pageSize!, (value) {
-      return _then(_self.copyWith(pageSize: value));
-    });
-  }
+/// Create a copy of Menu
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? status = null,Object? version = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,Object? userCreated = freezed,Object? userUpdated = freezed,Object? styleConfig = freezed,Object? pageSize = freezed,Object? area = freezed,}) {
+  return _then(_Menu(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as MenuStatus,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as String,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
+as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
+as DateTime?,userCreated: freezed == userCreated ? _self.userCreated : userCreated // ignore: cast_nullable_to_non_nullable
+as String?,userUpdated: freezed == userUpdated ? _self.userUpdated : userUpdated // ignore: cast_nullable_to_non_nullable
+as String?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
+as StyleConfig?,pageSize: freezed == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
+as PageSize?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
 }
+
+/// Create a copy of Menu
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StyleConfigCopyWith<$Res>? get styleConfig {
+    if (_self.styleConfig == null) {
+    return null;
+  }
+
+  return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
+    return _then(_self.copyWith(styleConfig: value));
+  });
+}/// Create a copy of Menu
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PageSizeCopyWith<$Res>? get pageSize {
+    if (_self.pageSize == null) {
+    return null;
+  }
+
+  return $PageSizeCopyWith<$Res>(_self.pageSize!, (value) {
+    return _then(_self.copyWith(pageSize: value));
+  });
+}
+}
+
 
 /// @nodoc
 mixin _$StyleConfig {
-  String? get fontFamily;
-  double? get fontSize;
-  String? get primaryColor;
-  String? get secondaryColor;
-  String? get backgroundColor;
-  double? get marginTop;
-  double? get marginBottom;
-  double? get marginLeft;
-  double? get marginRight;
-  double? get padding;
 
-  /// Create a copy of StyleConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  $StyleConfigCopyWith<StyleConfig> get copyWith =>
-      _$StyleConfigCopyWithImpl<StyleConfig>(this as StyleConfig, _$identity);
+ String? get fontFamily; double? get fontSize; String? get primaryColor; String? get secondaryColor; String? get backgroundColor; double? get marginTop; double? get marginBottom; double? get marginLeft; double? get marginRight; double? get padding;
+/// Create a copy of StyleConfig
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$StyleConfigCopyWith<StyleConfig> get copyWith => _$StyleConfigCopyWithImpl<StyleConfig>(this as StyleConfig, _$identity);
 
   /// Serializes this StyleConfig to a JSON map.
   Map<String, dynamic> toJson();
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is StyleConfig &&
-            (identical(other.fontFamily, fontFamily) ||
-                other.fontFamily == fontFamily) &&
-            (identical(other.fontSize, fontSize) ||
-                other.fontSize == fontSize) &&
-            (identical(other.primaryColor, primaryColor) ||
-                other.primaryColor == primaryColor) &&
-            (identical(other.secondaryColor, secondaryColor) ||
-                other.secondaryColor == secondaryColor) &&
-            (identical(other.backgroundColor, backgroundColor) ||
-                other.backgroundColor == backgroundColor) &&
-            (identical(other.marginTop, marginTop) ||
-                other.marginTop == marginTop) &&
-            (identical(other.marginBottom, marginBottom) ||
-                other.marginBottom == marginBottom) &&
-            (identical(other.marginLeft, marginLeft) ||
-                other.marginLeft == marginLeft) &&
-            (identical(other.marginRight, marginRight) ||
-                other.marginRight == marginRight) &&
-            (identical(other.padding, padding) || other.padding == padding));
-  }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      fontFamily,
-      fontSize,
-      primaryColor,
-      secondaryColor,
-      backgroundColor,
-      marginTop,
-      marginBottom,
-      marginLeft,
-      marginRight,
-      padding);
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StyleConfig&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.secondaryColor, secondaryColor) || other.secondaryColor == secondaryColor)&&(identical(other.backgroundColor, backgroundColor) || other.backgroundColor == backgroundColor)&&(identical(other.marginTop, marginTop) || other.marginTop == marginTop)&&(identical(other.marginBottom, marginBottom) || other.marginBottom == marginBottom)&&(identical(other.marginLeft, marginLeft) || other.marginLeft == marginLeft)&&(identical(other.marginRight, marginRight) || other.marginRight == marginRight)&&(identical(other.padding, padding) || other.padding == padding));
+}
 
-  @override
-  String toString() {
-    return 'StyleConfig(fontFamily: $fontFamily, fontSize: $fontSize, primaryColor: $primaryColor, secondaryColor: $secondaryColor, backgroundColor: $backgroundColor, marginTop: $marginTop, marginBottom: $marginBottom, marginLeft: $marginLeft, marginRight: $marginRight, padding: $padding)';
-  }
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,fontFamily,fontSize,primaryColor,secondaryColor,backgroundColor,marginTop,marginBottom,marginLeft,marginRight,padding);
+
+@override
+String toString() {
+  return 'StyleConfig(fontFamily: $fontFamily, fontSize: $fontSize, primaryColor: $primaryColor, secondaryColor: $secondaryColor, backgroundColor: $backgroundColor, marginTop: $marginTop, marginBottom: $marginBottom, marginLeft: $marginLeft, marginRight: $marginRight, padding: $padding)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class $StyleConfigCopyWith<$Res> {
-  factory $StyleConfigCopyWith(
-          StyleConfig value, $Res Function(StyleConfig) _then) =
-      _$StyleConfigCopyWithImpl;
-  @useResult
-  $Res call(
-      {String? fontFamily,
-      double? fontSize,
-      String? primaryColor,
-      String? secondaryColor,
-      String? backgroundColor,
-      double? marginTop,
-      double? marginBottom,
-      double? marginLeft,
-      double? marginRight,
-      double? padding});
-}
+abstract mixin class $StyleConfigCopyWith<$Res>  {
+  factory $StyleConfigCopyWith(StyleConfig value, $Res Function(StyleConfig) _then) = _$StyleConfigCopyWithImpl;
+@useResult
+$Res call({
+ String? fontFamily, double? fontSize, String? primaryColor, String? secondaryColor, String? backgroundColor, double? marginTop, double? marginBottom, double? marginLeft, double? marginRight, double? padding
+});
 
+
+
+
+}
 /// @nodoc
-class _$StyleConfigCopyWithImpl<$Res> implements $StyleConfigCopyWith<$Res> {
+class _$StyleConfigCopyWithImpl<$Res>
+    implements $StyleConfigCopyWith<$Res> {
   _$StyleConfigCopyWithImpl(this._self, this._then);
 
   final StyleConfig _self;
   final $Res Function(StyleConfig) _then;
 
-  /// Create a copy of StyleConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? fontFamily = freezed,
-    Object? fontSize = freezed,
-    Object? primaryColor = freezed,
-    Object? secondaryColor = freezed,
-    Object? backgroundColor = freezed,
-    Object? marginTop = freezed,
-    Object? marginBottom = freezed,
-    Object? marginLeft = freezed,
-    Object? marginRight = freezed,
-    Object? padding = freezed,
-  }) {
-    return _then(_self.copyWith(
-      fontFamily: freezed == fontFamily
-          ? _self.fontFamily
-          : fontFamily // ignore: cast_nullable_to_non_nullable
-              as String?,
-      fontSize: freezed == fontSize
-          ? _self.fontSize
-          : fontSize // ignore: cast_nullable_to_non_nullable
-              as double?,
-      primaryColor: freezed == primaryColor
-          ? _self.primaryColor
-          : primaryColor // ignore: cast_nullable_to_non_nullable
-              as String?,
-      secondaryColor: freezed == secondaryColor
-          ? _self.secondaryColor
-          : secondaryColor // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backgroundColor: freezed == backgroundColor
-          ? _self.backgroundColor
-          : backgroundColor // ignore: cast_nullable_to_non_nullable
-              as String?,
-      marginTop: freezed == marginTop
-          ? _self.marginTop
-          : marginTop // ignore: cast_nullable_to_non_nullable
-              as double?,
-      marginBottom: freezed == marginBottom
-          ? _self.marginBottom
-          : marginBottom // ignore: cast_nullable_to_non_nullable
-              as double?,
-      marginLeft: freezed == marginLeft
-          ? _self.marginLeft
-          : marginLeft // ignore: cast_nullable_to_non_nullable
-              as double?,
-      marginRight: freezed == marginRight
-          ? _self.marginRight
-          : marginRight // ignore: cast_nullable_to_non_nullable
-              as double?,
-      padding: freezed == padding
-          ? _self.padding
-          : padding // ignore: cast_nullable_to_non_nullable
-              as double?,
-    ));
-  }
+/// Create a copy of StyleConfig
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? fontFamily = freezed,Object? fontSize = freezed,Object? primaryColor = freezed,Object? secondaryColor = freezed,Object? backgroundColor = freezed,Object? marginTop = freezed,Object? marginBottom = freezed,Object? marginLeft = freezed,Object? marginRight = freezed,Object? padding = freezed,}) {
+  return _then(_self.copyWith(
+fontFamily: freezed == fontFamily ? _self.fontFamily : fontFamily // ignore: cast_nullable_to_non_nullable
+as String?,fontSize: freezed == fontSize ? _self.fontSize : fontSize // ignore: cast_nullable_to_non_nullable
+as double?,primaryColor: freezed == primaryColor ? _self.primaryColor : primaryColor // ignore: cast_nullable_to_non_nullable
+as String?,secondaryColor: freezed == secondaryColor ? _self.secondaryColor : secondaryColor // ignore: cast_nullable_to_non_nullable
+as String?,backgroundColor: freezed == backgroundColor ? _self.backgroundColor : backgroundColor // ignore: cast_nullable_to_non_nullable
+as String?,marginTop: freezed == marginTop ? _self.marginTop : marginTop // ignore: cast_nullable_to_non_nullable
+as double?,marginBottom: freezed == marginBottom ? _self.marginBottom : marginBottom // ignore: cast_nullable_to_non_nullable
+as double?,marginLeft: freezed == marginLeft ? _self.marginLeft : marginLeft // ignore: cast_nullable_to_non_nullable
+as double?,marginRight: freezed == marginRight ? _self.marginRight : marginRight // ignore: cast_nullable_to_non_nullable
+as double?,padding: freezed == padding ? _self.padding : padding // ignore: cast_nullable_to_non_nullable
+as double?,
+  ));
 }
+
+}
+
 
 /// Adds pattern-matching-related methods to [StyleConfig].
 extension StyleConfigPatterns on StyleConfig {
-  /// A variant of `map` that fallback to returning `orElse`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(_StyleConfig value)? $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _StyleConfig() when $default != null:
-        return $default(_that);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _StyleConfig value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _StyleConfig() when $default != null:
+return $default(_that);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// Callbacks receives the raw object, upcasted.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case final Subclass2 value:
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(_StyleConfig value) $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _StyleConfig():
-        return $default(_that);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _StyleConfig value)  $default,){
+final _that = this;
+switch (_that) {
+case _StyleConfig():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `map` that fallback to returning `null`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>(
-    TResult? Function(_StyleConfig value)? $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _StyleConfig() when $default != null:
-        return $default(_that);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _StyleConfig value)?  $default,){
+final _that = this;
+switch (_that) {
+case _StyleConfig() when $default != null:
+return $default(_that);case _:
+  return null;
 
-  /// A variant of `when` that fallback to an `orElse` callback.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            String? fontFamily,
-            double? fontSize,
-            String? primaryColor,
-            String? secondaryColor,
-            String? backgroundColor,
-            double? marginTop,
-            double? marginBottom,
-            double? marginLeft,
-            double? marginRight,
-            double? padding)?
-        $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _StyleConfig() when $default != null:
-        return $default(
-            _that.fontFamily,
-            _that.fontSize,
-            _that.primaryColor,
-            _that.secondaryColor,
-            _that.backgroundColor,
-            _that.marginTop,
-            _that.marginBottom,
-            _that.marginLeft,
-            _that.marginRight,
-            _that.padding);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? fontFamily,  double? fontSize,  String? primaryColor,  String? secondaryColor,  String? backgroundColor,  double? marginTop,  double? marginBottom,  double? marginLeft,  double? marginRight,  double? padding)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _StyleConfig() when $default != null:
+return $default(_that.fontFamily,_that.fontSize,_that.primaryColor,_that.secondaryColor,_that.backgroundColor,_that.marginTop,_that.marginBottom,_that.marginLeft,_that.marginRight,_that.padding);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// As opposed to `map`, this offers destructuring.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case Subclass2(:final field2):
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(
-            String? fontFamily,
-            double? fontSize,
-            String? primaryColor,
-            String? secondaryColor,
-            String? backgroundColor,
-            double? marginTop,
-            double? marginBottom,
-            double? marginLeft,
-            double? marginRight,
-            double? padding)
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _StyleConfig():
-        return $default(
-            _that.fontFamily,
-            _that.fontSize,
-            _that.primaryColor,
-            _that.secondaryColor,
-            _that.backgroundColor,
-            _that.marginTop,
-            _that.marginBottom,
-            _that.marginLeft,
-            _that.marginRight,
-            _that.padding);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? fontFamily,  double? fontSize,  String? primaryColor,  String? secondaryColor,  String? backgroundColor,  double? marginTop,  double? marginBottom,  double? marginLeft,  double? marginRight,  double? padding)  $default,) {final _that = this;
+switch (_that) {
+case _StyleConfig():
+return $default(_that.fontFamily,_that.fontSize,_that.primaryColor,_that.secondaryColor,_that.backgroundColor,_that.marginTop,_that.marginBottom,_that.marginLeft,_that.marginRight,_that.padding);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `when` that fallback to returning `null`
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(
-            String? fontFamily,
-            double? fontSize,
-            String? primaryColor,
-            String? secondaryColor,
-            String? backgroundColor,
-            double? marginTop,
-            double? marginBottom,
-            double? marginLeft,
-            double? marginRight,
-            double? padding)?
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _StyleConfig() when $default != null:
-        return $default(
-            _that.fontFamily,
-            _that.fontSize,
-            _that.primaryColor,
-            _that.secondaryColor,
-            _that.backgroundColor,
-            _that.marginTop,
-            _that.marginBottom,
-            _that.marginLeft,
-            _that.marginRight,
-            _that.padding);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? fontFamily,  double? fontSize,  String? primaryColor,  String? secondaryColor,  String? backgroundColor,  double? marginTop,  double? marginBottom,  double? marginLeft,  double? marginRight,  double? padding)?  $default,) {final _that = this;
+switch (_that) {
+case _StyleConfig() when $default != null:
+return $default(_that.fontFamily,_that.fontSize,_that.primaryColor,_that.secondaryColor,_that.backgroundColor,_that.marginTop,_that.marginBottom,_that.marginLeft,_that.marginRight,_that.padding);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
+
 class _StyleConfig extends StyleConfig {
-  const _StyleConfig(
-      {this.fontFamily,
-      this.fontSize,
-      this.primaryColor,
-      this.secondaryColor,
-      this.backgroundColor,
-      this.marginTop,
-      this.marginBottom,
-      this.marginLeft,
-      this.marginRight,
-      this.padding})
-      : super._();
-  factory _StyleConfig.fromJson(Map<String, dynamic> json) =>
-      _$StyleConfigFromJson(json);
+  const _StyleConfig({this.fontFamily, this.fontSize, this.primaryColor, this.secondaryColor, this.backgroundColor, this.marginTop, this.marginBottom, this.marginLeft, this.marginRight, this.padding}): super._();
+  factory _StyleConfig.fromJson(Map<String, dynamic> json) => _$StyleConfigFromJson(json);
 
-  @override
-  final String? fontFamily;
-  @override
-  final double? fontSize;
-  @override
-  final String? primaryColor;
-  @override
-  final String? secondaryColor;
-  @override
-  final String? backgroundColor;
-  @override
-  final double? marginTop;
-  @override
-  final double? marginBottom;
-  @override
-  final double? marginLeft;
-  @override
-  final double? marginRight;
-  @override
-  final double? padding;
+@override final  String? fontFamily;
+@override final  double? fontSize;
+@override final  String? primaryColor;
+@override final  String? secondaryColor;
+@override final  String? backgroundColor;
+@override final  double? marginTop;
+@override final  double? marginBottom;
+@override final  double? marginLeft;
+@override final  double? marginRight;
+@override final  double? padding;
 
-  /// Create a copy of StyleConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  _$StyleConfigCopyWith<_StyleConfig> get copyWith =>
-      __$StyleConfigCopyWithImpl<_StyleConfig>(this, _$identity);
+/// Create a copy of StyleConfig
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$StyleConfigCopyWith<_StyleConfig> get copyWith => __$StyleConfigCopyWithImpl<_StyleConfig>(this, _$identity);
 
-  @override
-  Map<String, dynamic> toJson() {
-    return _$StyleConfigToJson(
-      this,
-    );
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$StyleConfigToJson(this, );
+}
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _StyleConfig &&
-            (identical(other.fontFamily, fontFamily) ||
-                other.fontFamily == fontFamily) &&
-            (identical(other.fontSize, fontSize) ||
-                other.fontSize == fontSize) &&
-            (identical(other.primaryColor, primaryColor) ||
-                other.primaryColor == primaryColor) &&
-            (identical(other.secondaryColor, secondaryColor) ||
-                other.secondaryColor == secondaryColor) &&
-            (identical(other.backgroundColor, backgroundColor) ||
-                other.backgroundColor == backgroundColor) &&
-            (identical(other.marginTop, marginTop) ||
-                other.marginTop == marginTop) &&
-            (identical(other.marginBottom, marginBottom) ||
-                other.marginBottom == marginBottom) &&
-            (identical(other.marginLeft, marginLeft) ||
-                other.marginLeft == marginLeft) &&
-            (identical(other.marginRight, marginRight) ||
-                other.marginRight == marginRight) &&
-            (identical(other.padding, padding) || other.padding == padding));
-  }
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StyleConfig&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.secondaryColor, secondaryColor) || other.secondaryColor == secondaryColor)&&(identical(other.backgroundColor, backgroundColor) || other.backgroundColor == backgroundColor)&&(identical(other.marginTop, marginTop) || other.marginTop == marginTop)&&(identical(other.marginBottom, marginBottom) || other.marginBottom == marginBottom)&&(identical(other.marginLeft, marginLeft) || other.marginLeft == marginLeft)&&(identical(other.marginRight, marginRight) || other.marginRight == marginRight)&&(identical(other.padding, padding) || other.padding == padding));
+}
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      fontFamily,
-      fontSize,
-      primaryColor,
-      secondaryColor,
-      backgroundColor,
-      marginTop,
-      marginBottom,
-      marginLeft,
-      marginRight,
-      padding);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,fontFamily,fontSize,primaryColor,secondaryColor,backgroundColor,marginTop,marginBottom,marginLeft,marginRight,padding);
 
-  @override
-  String toString() {
-    return 'StyleConfig(fontFamily: $fontFamily, fontSize: $fontSize, primaryColor: $primaryColor, secondaryColor: $secondaryColor, backgroundColor: $backgroundColor, marginTop: $marginTop, marginBottom: $marginBottom, marginLeft: $marginLeft, marginRight: $marginRight, padding: $padding)';
-  }
+@override
+String toString() {
+  return 'StyleConfig(fontFamily: $fontFamily, fontSize: $fontSize, primaryColor: $primaryColor, secondaryColor: $secondaryColor, backgroundColor: $backgroundColor, marginTop: $marginTop, marginBottom: $marginBottom, marginLeft: $marginLeft, marginRight: $marginRight, padding: $padding)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class _$StyleConfigCopyWith<$Res>
-    implements $StyleConfigCopyWith<$Res> {
-  factory _$StyleConfigCopyWith(
-          _StyleConfig value, $Res Function(_StyleConfig) _then) =
-      __$StyleConfigCopyWithImpl;
-  @override
-  @useResult
-  $Res call(
-      {String? fontFamily,
-      double? fontSize,
-      String? primaryColor,
-      String? secondaryColor,
-      String? backgroundColor,
-      double? marginTop,
-      double? marginBottom,
-      double? marginLeft,
-      double? marginRight,
-      double? padding});
-}
+abstract mixin class _$StyleConfigCopyWith<$Res> implements $StyleConfigCopyWith<$Res> {
+  factory _$StyleConfigCopyWith(_StyleConfig value, $Res Function(_StyleConfig) _then) = __$StyleConfigCopyWithImpl;
+@override @useResult
+$Res call({
+ String? fontFamily, double? fontSize, String? primaryColor, String? secondaryColor, String? backgroundColor, double? marginTop, double? marginBottom, double? marginLeft, double? marginRight, double? padding
+});
 
+
+
+
+}
 /// @nodoc
-class __$StyleConfigCopyWithImpl<$Res> implements _$StyleConfigCopyWith<$Res> {
+class __$StyleConfigCopyWithImpl<$Res>
+    implements _$StyleConfigCopyWith<$Res> {
   __$StyleConfigCopyWithImpl(this._self, this._then);
 
   final _StyleConfig _self;
   final $Res Function(_StyleConfig) _then;
 
-  /// Create a copy of StyleConfig
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $Res call({
-    Object? fontFamily = freezed,
-    Object? fontSize = freezed,
-    Object? primaryColor = freezed,
-    Object? secondaryColor = freezed,
-    Object? backgroundColor = freezed,
-    Object? marginTop = freezed,
-    Object? marginBottom = freezed,
-    Object? marginLeft = freezed,
-    Object? marginRight = freezed,
-    Object? padding = freezed,
-  }) {
-    return _then(_StyleConfig(
-      fontFamily: freezed == fontFamily
-          ? _self.fontFamily
-          : fontFamily // ignore: cast_nullable_to_non_nullable
-              as String?,
-      fontSize: freezed == fontSize
-          ? _self.fontSize
-          : fontSize // ignore: cast_nullable_to_non_nullable
-              as double?,
-      primaryColor: freezed == primaryColor
-          ? _self.primaryColor
-          : primaryColor // ignore: cast_nullable_to_non_nullable
-              as String?,
-      secondaryColor: freezed == secondaryColor
-          ? _self.secondaryColor
-          : secondaryColor // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backgroundColor: freezed == backgroundColor
-          ? _self.backgroundColor
-          : backgroundColor // ignore: cast_nullable_to_non_nullable
-              as String?,
-      marginTop: freezed == marginTop
-          ? _self.marginTop
-          : marginTop // ignore: cast_nullable_to_non_nullable
-              as double?,
-      marginBottom: freezed == marginBottom
-          ? _self.marginBottom
-          : marginBottom // ignore: cast_nullable_to_non_nullable
-              as double?,
-      marginLeft: freezed == marginLeft
-          ? _self.marginLeft
-          : marginLeft // ignore: cast_nullable_to_non_nullable
-              as double?,
-      marginRight: freezed == marginRight
-          ? _self.marginRight
-          : marginRight // ignore: cast_nullable_to_non_nullable
-              as double?,
-      padding: freezed == padding
-          ? _self.padding
-          : padding // ignore: cast_nullable_to_non_nullable
-              as double?,
-    ));
-  }
+/// Create a copy of StyleConfig
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? fontFamily = freezed,Object? fontSize = freezed,Object? primaryColor = freezed,Object? secondaryColor = freezed,Object? backgroundColor = freezed,Object? marginTop = freezed,Object? marginBottom = freezed,Object? marginLeft = freezed,Object? marginRight = freezed,Object? padding = freezed,}) {
+  return _then(_StyleConfig(
+fontFamily: freezed == fontFamily ? _self.fontFamily : fontFamily // ignore: cast_nullable_to_non_nullable
+as String?,fontSize: freezed == fontSize ? _self.fontSize : fontSize // ignore: cast_nullable_to_non_nullable
+as double?,primaryColor: freezed == primaryColor ? _self.primaryColor : primaryColor // ignore: cast_nullable_to_non_nullable
+as String?,secondaryColor: freezed == secondaryColor ? _self.secondaryColor : secondaryColor // ignore: cast_nullable_to_non_nullable
+as String?,backgroundColor: freezed == backgroundColor ? _self.backgroundColor : backgroundColor // ignore: cast_nullable_to_non_nullable
+as String?,marginTop: freezed == marginTop ? _self.marginTop : marginTop // ignore: cast_nullable_to_non_nullable
+as double?,marginBottom: freezed == marginBottom ? _self.marginBottom : marginBottom // ignore: cast_nullable_to_non_nullable
+as double?,marginLeft: freezed == marginLeft ? _self.marginLeft : marginLeft // ignore: cast_nullable_to_non_nullable
+as double?,marginRight: freezed == marginRight ? _self.marginRight : marginRight // ignore: cast_nullable_to_non_nullable
+as double?,padding: freezed == padding ? _self.padding : padding // ignore: cast_nullable_to_non_nullable
+as double?,
+  ));
 }
+
+
+}
+
 
 /// @nodoc
 mixin _$PageSize {
-  String get name;
-  double get width;
-  double get height;
 
-  /// Create a copy of PageSize
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  $PageSizeCopyWith<PageSize> get copyWith =>
-      _$PageSizeCopyWithImpl<PageSize>(this as PageSize, _$identity);
+ String get name; double get width; double get height;
+/// Create a copy of PageSize
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PageSizeCopyWith<PageSize> get copyWith => _$PageSizeCopyWithImpl<PageSize>(this as PageSize, _$identity);
 
   /// Serializes this PageSize to a JSON map.
   Map<String, dynamic> toJson();
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is PageSize &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.width, width) || other.width == width) &&
-            (identical(other.height, height) || other.height == height));
-  }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, name, width, height);
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PageSize&&(identical(other.name, name) || other.name == name)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+}
 
-  @override
-  String toString() {
-    return 'PageSize(name: $name, width: $width, height: $height)';
-  }
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,name,width,height);
+
+@override
+String toString() {
+  return 'PageSize(name: $name, width: $width, height: $height)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class $PageSizeCopyWith<$Res> {
-  factory $PageSizeCopyWith(PageSize value, $Res Function(PageSize) _then) =
-      _$PageSizeCopyWithImpl;
-  @useResult
-  $Res call({String name, double width, double height});
-}
+abstract mixin class $PageSizeCopyWith<$Res>  {
+  factory $PageSizeCopyWith(PageSize value, $Res Function(PageSize) _then) = _$PageSizeCopyWithImpl;
+@useResult
+$Res call({
+ String name, double width, double height
+});
 
+
+
+
+}
 /// @nodoc
-class _$PageSizeCopyWithImpl<$Res> implements $PageSizeCopyWith<$Res> {
+class _$PageSizeCopyWithImpl<$Res>
+    implements $PageSizeCopyWith<$Res> {
   _$PageSizeCopyWithImpl(this._self, this._then);
 
   final PageSize _self;
   final $Res Function(PageSize) _then;
 
-  /// Create a copy of PageSize
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? name = null,
-    Object? width = null,
-    Object? height = null,
-  }) {
-    return _then(_self.copyWith(
-      name: null == name
-          ? _self.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      width: null == width
-          ? _self.width
-          : width // ignore: cast_nullable_to_non_nullable
-              as double,
-      height: null == height
-          ? _self.height
-          : height // ignore: cast_nullable_to_non_nullable
-              as double,
-    ));
-  }
+/// Create a copy of PageSize
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? width = null,Object? height = null,}) {
+  return _then(_self.copyWith(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
+as double,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
 }
+
+}
+
 
 /// Adds pattern-matching-related methods to [PageSize].
 extension PageSizePatterns on PageSize {
-  /// A variant of `map` that fallback to returning `orElse`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(_PageSize value)? $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _PageSize() when $default != null:
-        return $default(_that);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PageSize value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PageSize() when $default != null:
+return $default(_that);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// Callbacks receives the raw object, upcasted.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case final Subclass2 value:
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(_PageSize value) $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _PageSize():
-        return $default(_that);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PageSize value)  $default,){
+final _that = this;
+switch (_that) {
+case _PageSize():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `map` that fallback to returning `null`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>(
-    TResult? Function(_PageSize value)? $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _PageSize() when $default != null:
-        return $default(_that);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PageSize value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PageSize() when $default != null:
+return $default(_that);case _:
+  return null;
 
-  /// A variant of `when` that fallback to an `orElse` callback.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(String name, double width, double height)? $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _PageSize() when $default != null:
-        return $default(_that.name, _that.width, _that.height);
-      case _:
-        return orElse();
-    }
-  }
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  double width,  double height)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PageSize() when $default != null:
+return $default(_that.name,_that.width,_that.height);case _:
+  return orElse();
 
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// As opposed to `map`, this offers destructuring.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case Subclass2(:final field2):
-  ///     return ...;
-  /// }
-  /// ```
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(String name, double width, double height) $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _PageSize():
-        return $default(_that.name, _that.width, _that.height);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  double width,  double height)  $default,) {final _that = this;
+switch (_that) {
+case _PageSize():
+return $default(_that.name,_that.width,_that.height);case _:
+  throw StateError('Unexpected subclass');
 
-  /// A variant of `when` that fallback to returning `null`
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(String name, double width, double height)? $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _PageSize() when $default != null:
-        return $default(_that.name, _that.width, _that.height);
-      case _:
-        return null;
-    }
-  }
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  double width,  double height)?  $default,) {final _that = this;
+switch (_that) {
+case _PageSize() when $default != null:
+return $default(_that.name,_that.width,_that.height);case _:
+  return null;
+
+}
+}
+
 }
 
 /// @nodoc
 @JsonSerializable()
+
 class _PageSize extends PageSize {
-  const _PageSize(
-      {required this.name, required this.width, required this.height})
-      : super._();
-  factory _PageSize.fromJson(Map<String, dynamic> json) =>
-      _$PageSizeFromJson(json);
+  const _PageSize({required this.name, required this.width, required this.height}): super._();
+  factory _PageSize.fromJson(Map<String, dynamic> json) => _$PageSizeFromJson(json);
 
-  @override
-  final String name;
-  @override
-  final double width;
-  @override
-  final double height;
+@override final  String name;
+@override final  double width;
+@override final  double height;
 
-  /// Create a copy of PageSize
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  _$PageSizeCopyWith<_PageSize> get copyWith =>
-      __$PageSizeCopyWithImpl<_PageSize>(this, _$identity);
+/// Create a copy of PageSize
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PageSizeCopyWith<_PageSize> get copyWith => __$PageSizeCopyWithImpl<_PageSize>(this, _$identity);
 
-  @override
-  Map<String, dynamic> toJson() {
-    return _$PageSizeToJson(
-      this,
-    );
-  }
+@override
+Map<String, dynamic> toJson() {
+  return _$PageSizeToJson(this, );
+}
 
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _PageSize &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.width, width) || other.width == width) &&
-            (identical(other.height, height) || other.height == height));
-  }
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PageSize&&(identical(other.name, name) || other.name == name)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+}
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @override
-  int get hashCode => Object.hash(runtimeType, name, width, height);
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,name,width,height);
 
-  @override
-  String toString() {
-    return 'PageSize(name: $name, width: $width, height: $height)';
-  }
+@override
+String toString() {
+  return 'PageSize(name: $name, width: $width, height: $height)';
+}
+
+
 }
 
 /// @nodoc
-abstract mixin class _$PageSizeCopyWith<$Res>
-    implements $PageSizeCopyWith<$Res> {
-  factory _$PageSizeCopyWith(_PageSize value, $Res Function(_PageSize) _then) =
-      __$PageSizeCopyWithImpl;
-  @override
-  @useResult
-  $Res call({String name, double width, double height});
-}
+abstract mixin class _$PageSizeCopyWith<$Res> implements $PageSizeCopyWith<$Res> {
+  factory _$PageSizeCopyWith(_PageSize value, $Res Function(_PageSize) _then) = __$PageSizeCopyWithImpl;
+@override @useResult
+$Res call({
+ String name, double width, double height
+});
 
+
+
+
+}
 /// @nodoc
-class __$PageSizeCopyWithImpl<$Res> implements _$PageSizeCopyWith<$Res> {
+class __$PageSizeCopyWithImpl<$Res>
+    implements _$PageSizeCopyWith<$Res> {
   __$PageSizeCopyWithImpl(this._self, this._then);
 
   final _PageSize _self;
   final $Res Function(_PageSize) _then;
 
-  /// Create a copy of PageSize
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $Res call({
-    Object? name = null,
-    Object? width = null,
-    Object? height = null,
-  }) {
-    return _then(_PageSize(
-      name: null == name
-          ? _self.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      width: null == width
-          ? _self.width
-          : width // ignore: cast_nullable_to_non_nullable
-              as double,
-      height: null == height
-          ? _self.height
-          : height // ignore: cast_nullable_to_non_nullable
-              as double,
-    ));
-  }
+/// Create a copy of PageSize
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? width = null,Object? height = null,}) {
+  return _then(_PageSize(
+name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
+as double,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
+as double,
+  ));
+}
+
+
 }
 
 // dart format on

@@ -30,7 +30,9 @@ abstract class ColumnRepository {
 
 /// Input for creating a column
 @freezed
-class CreateColumnInput with _$CreateColumnInput {
+abstract class CreateColumnInput with _$CreateColumnInput {
+  const CreateColumnInput._();
+
   const factory CreateColumnInput({
     required String containerId,
     required int index,
@@ -41,7 +43,9 @@ class CreateColumnInput with _$CreateColumnInput {
 
 /// Input for updating a column
 @freezed
-class UpdateColumnInput with _$UpdateColumnInput {
+abstract class UpdateColumnInput with _$UpdateColumnInput {
+  const UpdateColumnInput._();
+
   const factory UpdateColumnInput({
     required String id,
     int? index,

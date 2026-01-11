@@ -5,7 +5,7 @@ part 'column.g.dart';
 
 /// Represents a column within a container.
 @freezed
-class Column with _$Column {
+abstract class Column with _$Column {
   const Column._();
 
   const factory Column({

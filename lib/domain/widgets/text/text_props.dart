@@ -7,7 +7,7 @@ part 'text_props.g.dart';
 ///
 /// Represents a text block with formatting options.
 @freezed
-class TextProps with _$TextProps {
+abstract class TextProps with _$TextProps {
   const TextProps._();
 
   const factory TextProps({

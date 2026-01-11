@@ -7,20 +7,18 @@ part of 'dish_props.dart';
 // **************************************************************************
 
 _DishProps _$DishPropsFromJson(Map<String, dynamic> json) => _DishProps(
-      name: json['name'] as String,
-      price: (json['price'] as num).toDouble(),
-      description: json['description'] as String?,
-      allergens: (json['allergens'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-      dietary: (json['dietary'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-      showPrice: json['showPrice'] as bool? ?? true,
-      showAllergens: json['showAllergens'] as bool? ?? true,
-    );
+  name: json['name'] as String,
+  price: (json['price'] as num).toDouble(),
+  description: json['description'] as String?,
+  allergens:
+      (json['allergens'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
+  dietary:
+      (json['dietary'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
+  showPrice: json['showPrice'] as bool? ?? true,
+  showAllergens: json['showAllergens'] as bool? ?? true,
+);
 
 Map<String, dynamic> _$DishPropsToJson(_DishProps instance) =>
     <String, dynamic>{

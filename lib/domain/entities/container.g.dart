@@ -7,20 +7,20 @@ part of 'container.dart';
 // **************************************************************************
 
 _Container _$ContainerFromJson(Map<String, dynamic> json) => _Container(
-      id: json['id'] as String,
-      pageId: json['pageId'] as String,
-      index: (json['index'] as num).toInt(),
-      name: json['name'] as String?,
-      layout: json['layout'] == null
-          ? null
-          : LayoutConfig.fromJson(json['layout'] as Map<String, dynamic>),
-      dateCreated: json['dateCreated'] == null
-          ? null
-          : DateTime.parse(json['dateCreated'] as String),
-      dateUpdated: json['dateUpdated'] == null
-          ? null
-          : DateTime.parse(json['dateUpdated'] as String),
-    );
+  id: json['id'] as String,
+  pageId: json['pageId'] as String,
+  index: (json['index'] as num).toInt(),
+  name: json['name'] as String?,
+  layout: json['layout'] == null
+      ? null
+      : LayoutConfig.fromJson(json['layout'] as Map<String, dynamic>),
+  dateCreated: json['dateCreated'] == null
+      ? null
+      : DateTime.parse(json['dateCreated'] as String),
+  dateUpdated: json['dateUpdated'] == null
+      ? null
+      : DateTime.parse(json['dateUpdated'] as String),
+);
 
 Map<String, dynamic> _$ContainerToJson(_Container instance) =>
     <String, dynamic>{

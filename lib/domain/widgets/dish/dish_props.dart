@@ -8,7 +8,7 @@ part 'dish_props.g.dart';
 /// Represents a menu dish with name, price, description, dietary information,
 /// and display preferences.
 @freezed
-class DishProps with _$DishProps {
+abstract class DishProps with _$DishProps {
   const DishProps._();
 
   const factory DishProps({
