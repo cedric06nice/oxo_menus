@@ -1,5 +1,5 @@
-import 'package:riverpod/riverpod.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
@@ -32,7 +32,7 @@ sealed class AuthState with _$AuthState {
 /// Authentication state notifier
 ///
 /// Manages authentication state and provides methods for login/logout
-abstract class AuthNotifier extends StateNotifier<AuthState> {
+class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
 
   AuthNotifier(this._authRepository) : super(const AuthState.initial()) {

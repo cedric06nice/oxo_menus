@@ -15,7 +15,7 @@ import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 part 'fetch_menu_tree_usecase.freezed.dart';
 
 /// Use case to fetch a complete menu tree with all hierarchical data
-abstract class FetchMenuTreeUseCase {
+class FetchMenuTreeUseCase {
   final MenuRepository menuRepository;
   final PageRepository pageRepository;
   final ContainerRepository containerRepository;

@@ -1,5 +1,4 @@
-import 'package:riverpod/riverpod.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
@@ -23,7 +22,7 @@ abstract class MenuListState with _$MenuListState {
 /// Menu list state notifier
 ///
 /// Manages the menu list state and provides methods for loading and deleting menus
-abstract class MenuListNotifier extends StateNotifier<MenuListState> {
+class MenuListNotifier extends StateNotifier<MenuListState> {
   final MenuRepository _menuRepository;
 
   MenuListNotifier(this._menuRepository) : super(const MenuListState());
