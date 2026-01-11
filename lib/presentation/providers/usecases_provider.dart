@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
+import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 /// Fetch menu tree use case provider
@@ -24,4 +25,21 @@ final fetchMenuTreeUseCaseProvider = Provider<FetchMenuTreeUseCase>((ref) {
     columnRepository: ref.watch(columnRepositoryProvider),
     widgetRepository: ref.watch(widgetRepositoryProvider),
   );
+});
+
+/// Generate PDF use case provider
+///
+/// Provides the GeneratePdfUseCase for generating PDF documents from menu trees.
+///
+/// Example usage:
+/// ```dart
+/// final useCase = ref.read(generatePdfUseCaseProvider);
+/// final result = await useCase.execute(menuTree);
+/// result.fold(
+///   onSuccess: (pdfBytes) => savePdfFile(pdfBytes),
+///   onFailure: (error) => print('Error: ${error.message}'),
+/// );
+/// ```
+final generatePdfUseCaseProvider = Provider<GeneratePdfUseCase>((ref) {
+  return const GeneratePdfUseCase();
 });
