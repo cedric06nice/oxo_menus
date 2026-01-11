@@ -6,7 +6,7 @@ part of 'menu.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$MenuImpl _$$MenuImplFromJson(Map<String, dynamic> json) => _$MenuImpl(
+_Menu _$MenuFromJson(Map<String, dynamic> json) => _Menu(
       id: json['id'] as String,
       name: json['name'] as String,
       status: $enumDecode(_$MenuStatusEnumMap, json['status']),
@@ -28,8 +28,7 @@ _$MenuImpl _$$MenuImplFromJson(Map<String, dynamic> json) => _$MenuImpl(
       area: json['area'] as String?,
     );
 
-Map<String, dynamic> _$$MenuImplToJson(_$MenuImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$MenuToJson(_Menu instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'status': _$MenuStatusEnumMap[instance.status]!,
@@ -49,8 +48,7 @@ const _$MenuStatusEnumMap = {
   MenuStatus.archived: 'archived',
 };
 
-_$StyleConfigImpl _$$StyleConfigImplFromJson(Map<String, dynamic> json) =>
-    _$StyleConfigImpl(
+_StyleConfig _$StyleConfigFromJson(Map<String, dynamic> json) => _StyleConfig(
       fontFamily: json['fontFamily'] as String?,
       fontSize: (json['fontSize'] as num?)?.toDouble(),
       primaryColor: json['primaryColor'] as String?,
@@ -63,7 +61,7 @@ _$StyleConfigImpl _$$StyleConfigImplFromJson(Map<String, dynamic> json) =>
       padding: (json['padding'] as num?)?.toDouble(),
     );
 
-Map<String, dynamic> _$$StyleConfigImplToJson(_$StyleConfigImpl instance) =>
+Map<String, dynamic> _$StyleConfigToJson(_StyleConfig instance) =>
     <String, dynamic>{
       'fontFamily': instance.fontFamily,
       'fontSize': instance.fontSize,
@@ -77,15 +75,13 @@ Map<String, dynamic> _$$StyleConfigImplToJson(_$StyleConfigImpl instance) =>
       'padding': instance.padding,
     };
 
-_$PageSizeImpl _$$PageSizeImplFromJson(Map<String, dynamic> json) =>
-    _$PageSizeImpl(
+_PageSize _$PageSizeFromJson(Map<String, dynamic> json) => _PageSize(
       name: json['name'] as String,
       width: (json['width'] as num).toDouble(),
       height: (json['height'] as num).toDouble(),
     );
 
-Map<String, dynamic> _$$PageSizeImplToJson(_$PageSizeImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$PageSizeToJson(_PageSize instance) => <String, dynamic>{
       'name': instance.name,
       'width': instance.width,
       'height': instance.height,

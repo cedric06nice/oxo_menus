@@ -17,7 +17,9 @@
       "Bash(xargs ls:*)",
       "Bash(dart fix:*)",
       "Bash(lcov:*)",
-      "Bash(flutter build:*)"
+      "Bash(flutter build:*)",
+      "Bash(flutter pub:*)",
+      "Bash(dart run build_runner:*)"
     ]
   }
 }

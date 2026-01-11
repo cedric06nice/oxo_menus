@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,93 +9,61 @@ part of 'column_repository.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$CreateColumnInput {
-  String get containerId => throw _privateConstructorUsedError;
-  int get index => throw _privateConstructorUsedError;
-  int? get flex => throw _privateConstructorUsedError;
-  double? get width => throw _privateConstructorUsedError;
+  String get containerId;
+  int get index;
+  int? get flex;
+  double? get width;
 
   /// Create a copy of CreateColumnInput
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $CreateColumnInputCopyWith<CreateColumnInput> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $CreateColumnInputCopyWith<$Res> {
-  factory $CreateColumnInputCopyWith(
-          CreateColumnInput value, $Res Function(CreateColumnInput) then) =
-      _$CreateColumnInputCopyWithImpl<$Res, CreateColumnInput>;
-  @useResult
-  $Res call({String containerId, int index, int? flex, double? width});
-}
-
-/// @nodoc
-class _$CreateColumnInputCopyWithImpl<$Res, $Val extends CreateColumnInput>
-    implements $CreateColumnInputCopyWith<$Res> {
-  _$CreateColumnInputCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of CreateColumnInput
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
+  $CreateColumnInputCopyWith<CreateColumnInput> get copyWith =>
+      _$CreateColumnInputCopyWithImpl<CreateColumnInput>(
+          this as CreateColumnInput, _$identity);
+
   @override
-  $Res call({
-    Object? containerId = null,
-    Object? index = null,
-    Object? flex = freezed,
-    Object? width = freezed,
-  }) {
-    return _then(_value.copyWith(
-      containerId: null == containerId
-          ? _value.containerId
-          : containerId // ignore: cast_nullable_to_non_nullable
-              as String,
-      index: null == index
-          ? _value.index
-          : index // ignore: cast_nullable_to_non_nullable
-              as int,
-      flex: freezed == flex
-          ? _value.flex
-          : flex // ignore: cast_nullable_to_non_nullable
-              as int?,
-      width: freezed == width
-          ? _value.width
-          : width // ignore: cast_nullable_to_non_nullable
-              as double?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is CreateColumnInput &&
+            (identical(other.containerId, containerId) ||
+                other.containerId == containerId) &&
+            (identical(other.index, index) || other.index == index) &&
+            (identical(other.flex, flex) || other.flex == flex) &&
+            (identical(other.width, width) || other.width == width));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, containerId, index, flex, width);
+
+  @override
+  String toString() {
+    return 'CreateColumnInput(containerId: $containerId, index: $index, flex: $flex, width: $width)';
   }
 }
 
 /// @nodoc
-abstract class _$$CreateColumnInputImplCopyWith<$Res>
-    implements $CreateColumnInputCopyWith<$Res> {
-  factory _$$CreateColumnInputImplCopyWith(_$CreateColumnInputImpl value,
-          $Res Function(_$CreateColumnInputImpl) then) =
-      __$$CreateColumnInputImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $CreateColumnInputCopyWith<$Res> {
+  factory $CreateColumnInputCopyWith(
+          CreateColumnInput value, $Res Function(CreateColumnInput) _then) =
+      _$CreateColumnInputCopyWithImpl;
   @useResult
   $Res call({String containerId, int index, int? flex, double? width});
 }
 
 /// @nodoc
-class __$$CreateColumnInputImplCopyWithImpl<$Res>
-    extends _$CreateColumnInputCopyWithImpl<$Res, _$CreateColumnInputImpl>
-    implements _$$CreateColumnInputImplCopyWith<$Res> {
-  __$$CreateColumnInputImplCopyWithImpl(_$CreateColumnInputImpl _value,
-      $Res Function(_$CreateColumnInputImpl) _then)
-      : super(_value, _then);
+class _$CreateColumnInputCopyWithImpl<$Res>
+    implements $CreateColumnInputCopyWith<$Res> {
+  _$CreateColumnInputCopyWithImpl(this._self, this._then);
+
+  final CreateColumnInput _self;
+  final $Res Function(CreateColumnInput) _then;
 
   /// Create a copy of CreateColumnInput
   /// with the given fields replaced by the non-null parameter values.
@@ -107,31 +75,194 @@ class __$$CreateColumnInputImplCopyWithImpl<$Res>
     Object? flex = freezed,
     Object? width = freezed,
   }) {
-    return _then(_$CreateColumnInputImpl(
+    return _then(_self.copyWith(
       containerId: null == containerId
-          ? _value.containerId
+          ? _self.containerId
           : containerId // ignore: cast_nullable_to_non_nullable
               as String,
       index: null == index
-          ? _value.index
+          ? _self.index
           : index // ignore: cast_nullable_to_non_nullable
               as int,
       flex: freezed == flex
-          ? _value.flex
+          ? _self.flex
           : flex // ignore: cast_nullable_to_non_nullable
               as int?,
       width: freezed == width
-          ? _value.width
+          ? _self.width
           : width // ignore: cast_nullable_to_non_nullable
               as double?,
     ));
   }
 }
 
+/// Adds pattern-matching-related methods to [CreateColumnInput].
+extension CreateColumnInputPatterns on CreateColumnInput {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_CreateColumnInput value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _CreateColumnInput() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_CreateColumnInput value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreateColumnInput():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_CreateColumnInput value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreateColumnInput() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(String containerId, int index, int? flex, double? width)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _CreateColumnInput() when $default != null:
+        return $default(
+            _that.containerId, _that.index, _that.flex, _that.width);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(String containerId, int index, int? flex, double? width)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreateColumnInput():
+        return $default(
+            _that.containerId, _that.index, _that.flex, _that.width);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(String containerId, int index, int? flex, double? width)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreateColumnInput() when $default != null:
+        return $default(
+            _that.containerId, _that.index, _that.flex, _that.width);
+      case _:
+        return null;
+    }
+  }
+}
+
 /// @nodoc
 
-class _$CreateColumnInputImpl implements _CreateColumnInput {
-  const _$CreateColumnInputImpl(
+class _CreateColumnInput implements CreateColumnInput {
+  const _CreateColumnInput(
       {required this.containerId, required this.index, this.flex, this.width});
 
   @override
@@ -143,16 +274,19 @@ class _$CreateColumnInputImpl implements _CreateColumnInput {
   @override
   final double? width;
 
+  /// Create a copy of CreateColumnInput
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'CreateColumnInput(containerId: $containerId, index: $index, flex: $flex, width: $width)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$CreateColumnInputCopyWith<_CreateColumnInput> get copyWith =>
+      __$CreateColumnInputCopyWithImpl<_CreateColumnInput>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$CreateColumnInputImpl &&
+            other is _CreateColumnInput &&
             (identical(other.containerId, containerId) ||
                 other.containerId == containerId) &&
             (identical(other.index, index) || other.index == index) &&
@@ -163,148 +297,56 @@ class _$CreateColumnInputImpl implements _CreateColumnInput {
   @override
   int get hashCode => Object.hash(runtimeType, containerId, index, flex, width);
 
-  /// Create a copy of CreateColumnInput
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$CreateColumnInputImplCopyWith<_$CreateColumnInputImpl> get copyWith =>
-      __$$CreateColumnInputImplCopyWithImpl<_$CreateColumnInputImpl>(
-          this, _$identity);
-}
-
-abstract class _CreateColumnInput implements CreateColumnInput {
-  const factory _CreateColumnInput(
-      {required final String containerId,
-      required final int index,
-      final int? flex,
-      final double? width}) = _$CreateColumnInputImpl;
-
-  @override
-  String get containerId;
-  @override
-  int get index;
-  @override
-  int? get flex;
-  @override
-  double? get width;
-
-  /// Create a copy of CreateColumnInput
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CreateColumnInputImplCopyWith<_$CreateColumnInputImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-mixin _$UpdateColumnInput {
-  String get id => throw _privateConstructorUsedError;
-  int? get index => throw _privateConstructorUsedError;
-  int? get flex => throw _privateConstructorUsedError;
-  double? get width => throw _privateConstructorUsedError;
-
-  /// Create a copy of UpdateColumnInput
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $UpdateColumnInputCopyWith<UpdateColumnInput> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $UpdateColumnInputCopyWith<$Res> {
-  factory $UpdateColumnInputCopyWith(
-          UpdateColumnInput value, $Res Function(UpdateColumnInput) then) =
-      _$UpdateColumnInputCopyWithImpl<$Res, UpdateColumnInput>;
-  @useResult
-  $Res call({String id, int? index, int? flex, double? width});
-}
-
-/// @nodoc
-class _$UpdateColumnInputCopyWithImpl<$Res, $Val extends UpdateColumnInput>
-    implements $UpdateColumnInputCopyWith<$Res> {
-  _$UpdateColumnInputCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of UpdateColumnInput
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? index = freezed,
-    Object? flex = freezed,
-    Object? width = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      index: freezed == index
-          ? _value.index
-          : index // ignore: cast_nullable_to_non_nullable
-              as int?,
-      flex: freezed == flex
-          ? _value.flex
-          : flex // ignore: cast_nullable_to_non_nullable
-              as int?,
-      width: freezed == width
-          ? _value.width
-          : width // ignore: cast_nullable_to_non_nullable
-              as double?,
-    ) as $Val);
+  String toString() {
+    return 'CreateColumnInput(containerId: $containerId, index: $index, flex: $flex, width: $width)';
   }
 }
 
 /// @nodoc
-abstract class _$$UpdateColumnInputImplCopyWith<$Res>
-    implements $UpdateColumnInputCopyWith<$Res> {
-  factory _$$UpdateColumnInputImplCopyWith(_$UpdateColumnInputImpl value,
-          $Res Function(_$UpdateColumnInputImpl) then) =
-      __$$UpdateColumnInputImplCopyWithImpl<$Res>;
+abstract mixin class _$CreateColumnInputCopyWith<$Res>
+    implements $CreateColumnInputCopyWith<$Res> {
+  factory _$CreateColumnInputCopyWith(
+          _CreateColumnInput value, $Res Function(_CreateColumnInput) _then) =
+      __$CreateColumnInputCopyWithImpl;
   @override
   @useResult
-  $Res call({String id, int? index, int? flex, double? width});
+  $Res call({String containerId, int index, int? flex, double? width});
 }
 
 /// @nodoc
-class __$$UpdateColumnInputImplCopyWithImpl<$Res>
-    extends _$UpdateColumnInputCopyWithImpl<$Res, _$UpdateColumnInputImpl>
-    implements _$$UpdateColumnInputImplCopyWith<$Res> {
-  __$$UpdateColumnInputImplCopyWithImpl(_$UpdateColumnInputImpl _value,
-      $Res Function(_$UpdateColumnInputImpl) _then)
-      : super(_value, _then);
+class __$CreateColumnInputCopyWithImpl<$Res>
+    implements _$CreateColumnInputCopyWith<$Res> {
+  __$CreateColumnInputCopyWithImpl(this._self, this._then);
 
-  /// Create a copy of UpdateColumnInput
+  final _CreateColumnInput _self;
+  final $Res Function(_CreateColumnInput) _then;
+
+  /// Create a copy of CreateColumnInput
   /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
   @override
+  @pragma('vm:prefer-inline')
   $Res call({
-    Object? id = null,
-    Object? index = freezed,
+    Object? containerId = null,
+    Object? index = null,
     Object? flex = freezed,
     Object? width = freezed,
   }) {
-    return _then(_$UpdateColumnInputImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
+    return _then(_CreateColumnInput(
+      containerId: null == containerId
+          ? _self.containerId
+          : containerId // ignore: cast_nullable_to_non_nullable
               as String,
-      index: freezed == index
-          ? _value.index
+      index: null == index
+          ? _self.index
           : index // ignore: cast_nullable_to_non_nullable
-              as int?,
+              as int,
       flex: freezed == flex
-          ? _value.flex
+          ? _self.flex
           : flex // ignore: cast_nullable_to_non_nullable
               as int?,
       width: freezed == width
-          ? _value.width
+          ? _self.width
           : width // ignore: cast_nullable_to_non_nullable
               as double?,
     ));
@@ -312,9 +354,251 @@ class __$$UpdateColumnInputImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
+mixin _$UpdateColumnInput {
+  String get id;
+  int? get index;
+  int? get flex;
+  double? get width;
 
-class _$UpdateColumnInputImpl implements _UpdateColumnInput {
-  const _$UpdateColumnInputImpl(
+  /// Create a copy of UpdateColumnInput
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $UpdateColumnInputCopyWith<UpdateColumnInput> get copyWith =>
+      _$UpdateColumnInputCopyWithImpl<UpdateColumnInput>(
+          this as UpdateColumnInput, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is UpdateColumnInput &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.index, index) || other.index == index) &&
+            (identical(other.flex, flex) || other.flex == flex) &&
+            (identical(other.width, width) || other.width == width));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, id, index, flex, width);
+
+  @override
+  String toString() {
+    return 'UpdateColumnInput(id: $id, index: $index, flex: $flex, width: $width)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $UpdateColumnInputCopyWith<$Res> {
+  factory $UpdateColumnInputCopyWith(
+          UpdateColumnInput value, $Res Function(UpdateColumnInput) _then) =
+      _$UpdateColumnInputCopyWithImpl;
+  @useResult
+  $Res call({String id, int? index, int? flex, double? width});
+}
+
+/// @nodoc
+class _$UpdateColumnInputCopyWithImpl<$Res>
+    implements $UpdateColumnInputCopyWith<$Res> {
+  _$UpdateColumnInputCopyWithImpl(this._self, this._then);
+
+  final UpdateColumnInput _self;
+  final $Res Function(UpdateColumnInput) _then;
+
+  /// Create a copy of UpdateColumnInput
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? index = freezed,
+    Object? flex = freezed,
+    Object? width = freezed,
+  }) {
+    return _then(_self.copyWith(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      index: freezed == index
+          ? _self.index
+          : index // ignore: cast_nullable_to_non_nullable
+              as int?,
+      flex: freezed == flex
+          ? _self.flex
+          : flex // ignore: cast_nullable_to_non_nullable
+              as int?,
+      width: freezed == width
+          ? _self.width
+          : width // ignore: cast_nullable_to_non_nullable
+              as double?,
+    ));
+  }
+}
+
+/// Adds pattern-matching-related methods to [UpdateColumnInput].
+extension UpdateColumnInputPatterns on UpdateColumnInput {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_UpdateColumnInput value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateColumnInput() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_UpdateColumnInput value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateColumnInput():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_UpdateColumnInput value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateColumnInput() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(String id, int? index, int? flex, double? width)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateColumnInput() when $default != null:
+        return $default(_that.id, _that.index, _that.flex, _that.width);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(String id, int? index, int? flex, double? width) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateColumnInput():
+        return $default(_that.id, _that.index, _that.flex, _that.width);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(String id, int? index, int? flex, double? width)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateColumnInput() when $default != null:
+        return $default(_that.id, _that.index, _that.flex, _that.width);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+
+class _UpdateColumnInput implements UpdateColumnInput {
+  const _UpdateColumnInput(
       {required this.id, this.index, this.flex, this.width});
 
   @override
@@ -326,16 +610,19 @@ class _$UpdateColumnInputImpl implements _UpdateColumnInput {
   @override
   final double? width;
 
+  /// Create a copy of UpdateColumnInput
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'UpdateColumnInput(id: $id, index: $index, flex: $flex, width: $width)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$UpdateColumnInputCopyWith<_UpdateColumnInput> get copyWith =>
+      __$UpdateColumnInputCopyWithImpl<_UpdateColumnInput>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$UpdateColumnInputImpl &&
+            other is _UpdateColumnInput &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.index, index) || other.index == index) &&
             (identical(other.flex, flex) || other.flex == flex) &&
@@ -345,36 +632,60 @@ class _$UpdateColumnInputImpl implements _UpdateColumnInput {
   @override
   int get hashCode => Object.hash(runtimeType, id, index, flex, width);
 
+  @override
+  String toString() {
+    return 'UpdateColumnInput(id: $id, index: $index, flex: $flex, width: $width)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$UpdateColumnInputCopyWith<$Res>
+    implements $UpdateColumnInputCopyWith<$Res> {
+  factory _$UpdateColumnInputCopyWith(
+          _UpdateColumnInput value, $Res Function(_UpdateColumnInput) _then) =
+      __$UpdateColumnInputCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String id, int? index, int? flex, double? width});
+}
+
+/// @nodoc
+class __$UpdateColumnInputCopyWithImpl<$Res>
+    implements _$UpdateColumnInputCopyWith<$Res> {
+  __$UpdateColumnInputCopyWithImpl(this._self, this._then);
+
+  final _UpdateColumnInput _self;
+  final $Res Function(_UpdateColumnInput) _then;
+
   /// Create a copy of UpdateColumnInput
   /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$UpdateColumnInputImplCopyWith<_$UpdateColumnInputImpl> get copyWith =>
-      __$$UpdateColumnInputImplCopyWithImpl<_$UpdateColumnInputImpl>(
-          this, _$identity);
+  $Res call({
+    Object? id = null,
+    Object? index = freezed,
+    Object? flex = freezed,
+    Object? width = freezed,
+  }) {
+    return _then(_UpdateColumnInput(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      index: freezed == index
+          ? _self.index
+          : index // ignore: cast_nullable_to_non_nullable
+              as int?,
+      flex: freezed == flex
+          ? _self.flex
+          : flex // ignore: cast_nullable_to_non_nullable
+              as int?,
+      width: freezed == width
+          ? _self.width
+          : width // ignore: cast_nullable_to_non_nullable
+              as double?,
+    ));
+  }
 }
 
-abstract class _UpdateColumnInput implements UpdateColumnInput {
-  const factory _UpdateColumnInput(
-      {required final String id,
-      final int? index,
-      final int? flex,
-      final double? width}) = _$UpdateColumnInputImpl;
-
-  @override
-  String get id;
-  @override
-  int? get index;
-  @override
-  int? get flex;
-  @override
-  double? get width;
-
-  /// Create a copy of UpdateColumnInput
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$UpdateColumnInputImplCopyWith<_$UpdateColumnInputImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+// dart format on

@@ -6,6 +6,7 @@ part 'container_dto.g.dart';
 /// Data Transfer Object for Container matching Directus 'container' collection schema
 @freezed
 class ContainerDto with _$ContainerDto {
+  const ContainerDto._();
   const factory ContainerDto({
     required String id,
     @JsonKey(name: 'date_created') DateTime? dateCreated,

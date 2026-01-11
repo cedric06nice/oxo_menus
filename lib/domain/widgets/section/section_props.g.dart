@@ -6,14 +6,14 @@ part of 'section_props.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SectionPropsImpl _$$SectionPropsImplFromJson(Map<String, dynamic> json) =>
-    _$SectionPropsImpl(
+_SectionProps _$SectionPropsFromJson(Map<String, dynamic> json) =>
+    _SectionProps(
       title: json['title'] as String,
       uppercase: json['uppercase'] as bool? ?? false,
       showDivider: json['showDivider'] as bool? ?? true,
     );
 
-Map<String, dynamic> _$$SectionPropsImplToJson(_$SectionPropsImpl instance) =>
+Map<String, dynamic> _$SectionPropsToJson(_SectionProps instance) =>
     <String, dynamic>{
       'title': instance.title,
       'uppercase': instance.uppercase,

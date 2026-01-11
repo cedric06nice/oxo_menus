@@ -6,8 +6,8 @@ part of 'container_dto.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ContainerDtoImpl _$$ContainerDtoImplFromJson(Map<String, dynamic> json) =>
-    _$ContainerDtoImpl(
+_ContainerDto _$ContainerDtoFromJson(Map<String, dynamic> json) =>
+    _ContainerDto(
       id: json['id'] as String,
       dateCreated: json['date_created'] == null
           ? null
@@ -21,7 +21,7 @@ _$ContainerDtoImpl _$$ContainerDtoImplFromJson(Map<String, dynamic> json) =>
       layoutJson: json['layout_json'] as Map<String, dynamic>?,
     );
 
-Map<String, dynamic> _$$ContainerDtoImplToJson(_$ContainerDtoImpl instance) =>
+Map<String, dynamic> _$ContainerDtoToJson(_ContainerDto instance) =>
     <String, dynamic>{
       'id': instance.id,
       'date_created': instance.dateCreated?.toIso8601String(),

@@ -6,7 +6,7 @@ part of 'column.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ColumnImpl _$$ColumnImplFromJson(Map<String, dynamic> json) => _$ColumnImpl(
+_Column _$ColumnFromJson(Map<String, dynamic> json) => _Column(
       id: json['id'] as String,
       containerId: json['containerId'] as String,
       index: (json['index'] as num).toInt(),
@@ -20,8 +20,7 @@ _$ColumnImpl _$$ColumnImplFromJson(Map<String, dynamic> json) => _$ColumnImpl(
           : DateTime.parse(json['dateUpdated'] as String),
     );
 
-Map<String, dynamic> _$$ColumnImplToJson(_$ColumnImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$ColumnToJson(_Column instance) => <String, dynamic>{
       'id': instance.id,
       'containerId': instance.containerId,
       'index': instance.index,

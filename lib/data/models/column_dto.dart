@@ -6,6 +6,7 @@ part 'column_dto.g.dart';
 /// Data Transfer Object for Column matching Directus 'column' collection schema
 @freezed
 class ColumnDto with _$ColumnDto {
+  const ColumnDto._();
   const factory ColumnDto({
     required String id,
     @JsonKey(name: 'date_created') DateTime? dateCreated,

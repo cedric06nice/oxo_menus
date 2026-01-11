@@ -6,8 +6,7 @@ part of 'column_dto.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ColumnDtoImpl _$$ColumnDtoImplFromJson(Map<String, dynamic> json) =>
-    _$ColumnDtoImpl(
+_ColumnDto _$ColumnDtoFromJson(Map<String, dynamic> json) => _ColumnDto(
       id: json['id'] as String,
       dateCreated: json['date_created'] == null
           ? null
@@ -21,7 +20,7 @@ _$ColumnDtoImpl _$$ColumnDtoImplFromJson(Map<String, dynamic> json) =>
       width: (json['width'] as num?)?.toDouble(),
     );
 
-Map<String, dynamic> _$$ColumnDtoImplToJson(_$ColumnDtoImpl instance) =>
+Map<String, dynamic> _$ColumnDtoToJson(_ColumnDto instance) =>
     <String, dynamic>{
       'id': instance.id,
       'date_created': instance.dateCreated?.toIso8601String(),

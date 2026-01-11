@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,107 +9,61 @@ part of 'page_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-PageDto _$PageDtoFromJson(Map<String, dynamic> json) {
-  return _PageDto.fromJson(json);
-}
 
 /// @nodoc
 mixin _$PageDto {
-  String get id => throw _privateConstructorUsedError;
+  String get id;
   @JsonKey(name: 'date_created')
-  DateTime? get dateCreated => throw _privateConstructorUsedError;
+  DateTime? get dateCreated;
   @JsonKey(name: 'date_updated')
-  DateTime? get dateUpdated => throw _privateConstructorUsedError;
+  DateTime? get dateUpdated;
   @JsonKey(name: 'menu_id')
-  String get menuId => throw _privateConstructorUsedError;
-  String get name => throw _privateConstructorUsedError;
-  int get index => throw _privateConstructorUsedError;
-
-  /// Serializes this PageDto to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  String get menuId;
+  String get name;
+  int get index;
 
   /// Create a copy of PageDto
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $PageDtoCopyWith<PageDto> get copyWith => throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $PageDtoCopyWith<$Res> {
-  factory $PageDtoCopyWith(PageDto value, $Res Function(PageDto) then) =
-      _$PageDtoCopyWithImpl<$Res, PageDto>;
-  @useResult
-  $Res call(
-      {String id,
-      @JsonKey(name: 'date_created') DateTime? dateCreated,
-      @JsonKey(name: 'date_updated') DateTime? dateUpdated,
-      @JsonKey(name: 'menu_id') String menuId,
-      String name,
-      int index});
-}
-
-/// @nodoc
-class _$PageDtoCopyWithImpl<$Res, $Val extends PageDto>
-    implements $PageDtoCopyWith<$Res> {
-  _$PageDtoCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of PageDto
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
+  $PageDtoCopyWith<PageDto> get copyWith =>
+      _$PageDtoCopyWithImpl<PageDto>(this as PageDto, _$identity);
+
+  /// Serializes this PageDto to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? id = null,
-    Object? dateCreated = freezed,
-    Object? dateUpdated = freezed,
-    Object? menuId = null,
-    Object? name = null,
-    Object? index = null,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      dateCreated: freezed == dateCreated
-          ? _value.dateCreated
-          : dateCreated // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      dateUpdated: freezed == dateUpdated
-          ? _value.dateUpdated
-          : dateUpdated // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      menuId: null == menuId
-          ? _value.menuId
-          : menuId // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      index: null == index
-          ? _value.index
-          : index // ignore: cast_nullable_to_non_nullable
-              as int,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PageDto &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.dateCreated, dateCreated) ||
+                other.dateCreated == dateCreated) &&
+            (identical(other.dateUpdated, dateUpdated) ||
+                other.dateUpdated == dateUpdated) &&
+            (identical(other.menuId, menuId) || other.menuId == menuId) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.index, index) || other.index == index));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, id, dateCreated, dateUpdated, menuId, name, index);
+
+  @override
+  String toString() {
+    return 'PageDto(id: $id, dateCreated: $dateCreated, dateUpdated: $dateUpdated, menuId: $menuId, name: $name, index: $index)';
   }
 }
 
 /// @nodoc
-abstract class _$$PageDtoImplCopyWith<$Res> implements $PageDtoCopyWith<$Res> {
-  factory _$$PageDtoImplCopyWith(
-          _$PageDtoImpl value, $Res Function(_$PageDtoImpl) then) =
-      __$$PageDtoImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $PageDtoCopyWith<$Res> {
+  factory $PageDtoCopyWith(PageDto value, $Res Function(PageDto) _then) =
+      _$PageDtoCopyWithImpl;
   @useResult
   $Res call(
       {String id,
@@ -121,12 +75,11 @@ abstract class _$$PageDtoImplCopyWith<$Res> implements $PageDtoCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$PageDtoImplCopyWithImpl<$Res>
-    extends _$PageDtoCopyWithImpl<$Res, _$PageDtoImpl>
-    implements _$$PageDtoImplCopyWith<$Res> {
-  __$$PageDtoImplCopyWithImpl(
-      _$PageDtoImpl _value, $Res Function(_$PageDtoImpl) _then)
-      : super(_value, _then);
+class _$PageDtoCopyWithImpl<$Res> implements $PageDtoCopyWith<$Res> {
+  _$PageDtoCopyWithImpl(this._self, this._then);
+
+  final PageDto _self;
+  final $Res Function(PageDto) _then;
 
   /// Create a copy of PageDto
   /// with the given fields replaced by the non-null parameter values.
@@ -140,48 +93,229 @@ class __$$PageDtoImplCopyWithImpl<$Res>
     Object? name = null,
     Object? index = null,
   }) {
-    return _then(_$PageDtoImpl(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
       dateCreated: freezed == dateCreated
-          ? _value.dateCreated
+          ? _self.dateCreated
           : dateCreated // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       dateUpdated: freezed == dateUpdated
-          ? _value.dateUpdated
+          ? _self.dateUpdated
           : dateUpdated // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       menuId: null == menuId
-          ? _value.menuId
+          ? _self.menuId
           : menuId // ignore: cast_nullable_to_non_nullable
               as String,
       name: null == name
-          ? _value.name
+          ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
       index: null == index
-          ? _value.index
+          ? _self.index
           : index // ignore: cast_nullable_to_non_nullable
               as int,
     ));
   }
 }
 
+/// Adds pattern-matching-related methods to [PageDto].
+extension PageDtoPatterns on PageDto {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_PageDto value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _PageDto() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_PageDto value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PageDto():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_PageDto value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PageDto() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(
+            String id,
+            @JsonKey(name: 'date_created') DateTime? dateCreated,
+            @JsonKey(name: 'date_updated') DateTime? dateUpdated,
+            @JsonKey(name: 'menu_id') String menuId,
+            String name,
+            int index)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _PageDto() when $default != null:
+        return $default(_that.id, _that.dateCreated, _that.dateUpdated,
+            _that.menuId, _that.name, _that.index);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(
+            String id,
+            @JsonKey(name: 'date_created') DateTime? dateCreated,
+            @JsonKey(name: 'date_updated') DateTime? dateUpdated,
+            @JsonKey(name: 'menu_id') String menuId,
+            String name,
+            int index)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PageDto():
+        return $default(_that.id, _that.dateCreated, _that.dateUpdated,
+            _that.menuId, _that.name, _that.index);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(
+            String id,
+            @JsonKey(name: 'date_created') DateTime? dateCreated,
+            @JsonKey(name: 'date_updated') DateTime? dateUpdated,
+            @JsonKey(name: 'menu_id') String menuId,
+            String name,
+            int index)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PageDto() when $default != null:
+        return $default(_that.id, _that.dateCreated, _that.dateUpdated,
+            _that.menuId, _that.name, _that.index);
+      case _:
+        return null;
+    }
+  }
+}
+
 /// @nodoc
 @JsonSerializable()
-class _$PageDtoImpl implements _PageDto {
-  const _$PageDtoImpl(
+class _PageDto extends PageDto {
+  const _PageDto(
       {required this.id,
       @JsonKey(name: 'date_created') this.dateCreated,
       @JsonKey(name: 'date_updated') this.dateUpdated,
       @JsonKey(name: 'menu_id') required this.menuId,
       required this.name,
-      required this.index});
-
-  factory _$PageDtoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$PageDtoImplFromJson(json);
+      required this.index})
+      : super._();
+  factory _PageDto.fromJson(Map<String, dynamic> json) =>
+      _$PageDtoFromJson(json);
 
   @override
   final String id;
@@ -199,16 +333,26 @@ class _$PageDtoImpl implements _PageDto {
   @override
   final int index;
 
+  /// Create a copy of PageDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'PageDto(id: $id, dateCreated: $dateCreated, dateUpdated: $dateUpdated, menuId: $menuId, name: $name, index: $index)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$PageDtoCopyWith<_PageDto> get copyWith =>
+      __$PageDtoCopyWithImpl<_PageDto>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$PageDtoToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PageDtoImpl &&
+            other is _PageDto &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.dateCreated, dateCreated) ||
                 other.dateCreated == dateCreated) &&
@@ -224,53 +368,73 @@ class _$PageDtoImpl implements _PageDto {
   int get hashCode => Object.hash(
       runtimeType, id, dateCreated, dateUpdated, menuId, name, index);
 
-  /// Create a copy of PageDto
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$PageDtoImplCopyWith<_$PageDtoImpl> get copyWith =>
-      __$$PageDtoImplCopyWithImpl<_$PageDtoImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$PageDtoImplToJson(
-      this,
-    );
+  String toString() {
+    return 'PageDto(id: $id, dateCreated: $dateCreated, dateUpdated: $dateUpdated, menuId: $menuId, name: $name, index: $index)';
   }
 }
 
-abstract class _PageDto implements PageDto {
-  const factory _PageDto(
-      {required final String id,
-      @JsonKey(name: 'date_created') final DateTime? dateCreated,
-      @JsonKey(name: 'date_updated') final DateTime? dateUpdated,
-      @JsonKey(name: 'menu_id') required final String menuId,
-      required final String name,
-      required final int index}) = _$PageDtoImpl;
+/// @nodoc
+abstract mixin class _$PageDtoCopyWith<$Res> implements $PageDtoCopyWith<$Res> {
+  factory _$PageDtoCopyWith(_PageDto value, $Res Function(_PageDto) _then) =
+      __$PageDtoCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {String id,
+      @JsonKey(name: 'date_created') DateTime? dateCreated,
+      @JsonKey(name: 'date_updated') DateTime? dateUpdated,
+      @JsonKey(name: 'menu_id') String menuId,
+      String name,
+      int index});
+}
 
-  factory _PageDto.fromJson(Map<String, dynamic> json) = _$PageDtoImpl.fromJson;
+/// @nodoc
+class __$PageDtoCopyWithImpl<$Res> implements _$PageDtoCopyWith<$Res> {
+  __$PageDtoCopyWithImpl(this._self, this._then);
 
-  @override
-  String get id;
-  @override
-  @JsonKey(name: 'date_created')
-  DateTime? get dateCreated;
-  @override
-  @JsonKey(name: 'date_updated')
-  DateTime? get dateUpdated;
-  @override
-  @JsonKey(name: 'menu_id')
-  String get menuId;
-  @override
-  String get name;
-  @override
-  int get index;
+  final _PageDto _self;
+  final $Res Function(_PageDto) _then;
 
   /// Create a copy of PageDto
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$PageDtoImplCopyWith<_$PageDtoImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? dateCreated = freezed,
+    Object? dateUpdated = freezed,
+    Object? menuId = null,
+    Object? name = null,
+    Object? index = null,
+  }) {
+    return _then(_PageDto(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      dateCreated: freezed == dateCreated
+          ? _self.dateCreated
+          : dateCreated // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      dateUpdated: freezed == dateUpdated
+          ? _self.dateUpdated
+          : dateUpdated // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      menuId: null == menuId
+          ? _self.menuId
+          : menuId // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _self.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      index: null == index
+          ? _self.index
+          : index // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
 }
+
+// dart format on

@@ -6,6 +6,8 @@ part 'widget_instance.g.dart';
 /// Represents a widget instance placed in a column.
 @freezed
 class WidgetInstance with _$WidgetInstance {
+  const WidgetInstance._();
+  
   const factory WidgetInstance({
     required String id,
     required String columnId,
@@ -25,6 +27,8 @@ class WidgetInstance with _$WidgetInstance {
 /// Widget-specific styling overrides
 @freezed
 class WidgetStyle with _$WidgetStyle {
+  const WidgetStyle._();
+  
   const factory WidgetStyle({
     String? fontFamily,
     double? fontSize,

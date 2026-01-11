@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,27 +9,44 @@ part of 'fetch_menu_tree_usecase.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$MenuTree {
-  Menu get menu => throw _privateConstructorUsedError;
-  List<PageWithContainers> get pages => throw _privateConstructorUsedError;
+  Menu get menu;
+  List<PageWithContainers> get pages;
 
   /// Create a copy of MenuTree
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $MenuTreeCopyWith<MenuTree> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$MenuTreeCopyWithImpl<MenuTree>(this as MenuTree, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is MenuTree &&
+            (identical(other.menu, menu) || other.menu == menu) &&
+            const DeepCollectionEquality().equals(other.pages, pages));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, menu, const DeepCollectionEquality().hash(pages));
+
+  @override
+  String toString() {
+    return 'MenuTree(menu: $menu, pages: $pages)';
+  }
 }
 
 /// @nodoc
-abstract class $MenuTreeCopyWith<$Res> {
-  factory $MenuTreeCopyWith(MenuTree value, $Res Function(MenuTree) then) =
-      _$MenuTreeCopyWithImpl<$Res, MenuTree>;
+abstract mixin class $MenuTreeCopyWith<$Res> {
+  factory $MenuTreeCopyWith(MenuTree value, $Res Function(MenuTree) _then) =
+      _$MenuTreeCopyWithImpl;
   @useResult
   $Res call({Menu menu, List<PageWithContainers> pages});
 
@@ -37,14 +54,11 @@ abstract class $MenuTreeCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$MenuTreeCopyWithImpl<$Res, $Val extends MenuTree>
-    implements $MenuTreeCopyWith<$Res> {
-  _$MenuTreeCopyWithImpl(this._value, this._then);
+class _$MenuTreeCopyWithImpl<$Res> implements $MenuTreeCopyWith<$Res> {
+  _$MenuTreeCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final MenuTree _self;
+  final $Res Function(MenuTree) _then;
 
   /// Create a copy of MenuTree
   /// with the given fields replaced by the non-null parameter values.
@@ -54,16 +68,16 @@ class _$MenuTreeCopyWithImpl<$Res, $Val extends MenuTree>
     Object? menu = null,
     Object? pages = null,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       menu: null == menu
-          ? _value.menu
+          ? _self.menu
           : menu // ignore: cast_nullable_to_non_nullable
               as Menu,
       pages: null == pages
-          ? _value.pages
+          ? _self.pages
           : pages // ignore: cast_nullable_to_non_nullable
               as List<PageWithContainers>,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of MenuTree
@@ -71,59 +85,173 @@ class _$MenuTreeCopyWithImpl<$Res, $Val extends MenuTree>
   @override
   @pragma('vm:prefer-inline')
   $MenuCopyWith<$Res> get menu {
-    return $MenuCopyWith<$Res>(_value.menu, (value) {
-      return _then(_value.copyWith(menu: value) as $Val);
+    return $MenuCopyWith<$Res>(_self.menu, (value) {
+      return _then(_self.copyWith(menu: value));
     });
   }
 }
 
-/// @nodoc
-abstract class _$$MenuTreeImplCopyWith<$Res>
-    implements $MenuTreeCopyWith<$Res> {
-  factory _$$MenuTreeImplCopyWith(
-          _$MenuTreeImpl value, $Res Function(_$MenuTreeImpl) then) =
-      __$$MenuTreeImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({Menu menu, List<PageWithContainers> pages});
+/// Adds pattern-matching-related methods to [MenuTree].
+extension MenuTreePatterns on MenuTree {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
 
-  @override
-  $MenuCopyWith<$Res> get menu;
-}
-
-/// @nodoc
-class __$$MenuTreeImplCopyWithImpl<$Res>
-    extends _$MenuTreeCopyWithImpl<$Res, _$MenuTreeImpl>
-    implements _$$MenuTreeImplCopyWith<$Res> {
-  __$$MenuTreeImplCopyWithImpl(
-      _$MenuTreeImpl _value, $Res Function(_$MenuTreeImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of MenuTree
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? menu = null,
-    Object? pages = null,
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_MenuTree value)? $default, {
+    required TResult orElse(),
   }) {
-    return _then(_$MenuTreeImpl(
-      menu: null == menu
-          ? _value.menu
-          : menu // ignore: cast_nullable_to_non_nullable
-              as Menu,
-      pages: null == pages
-          ? _value._pages
-          : pages // ignore: cast_nullable_to_non_nullable
-              as List<PageWithContainers>,
-    ));
+    final _that = this;
+    switch (_that) {
+      case _MenuTree() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_MenuTree value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _MenuTree():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_MenuTree value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _MenuTree() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(Menu menu, List<PageWithContainers> pages)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _MenuTree() when $default != null:
+        return $default(_that.menu, _that.pages);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(Menu menu, List<PageWithContainers> pages) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _MenuTree():
+        return $default(_that.menu, _that.pages);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(Menu menu, List<PageWithContainers> pages)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _MenuTree() when $default != null:
+        return $default(_that.menu, _that.pages);
+      case _:
+        return null;
+    }
   }
 }
 
 /// @nodoc
 
-class _$MenuTreeImpl implements _MenuTree {
-  const _$MenuTreeImpl(
+class _MenuTree implements MenuTree {
+  const _MenuTree(
       {required this.menu, required final List<PageWithContainers> pages})
       : _pages = pages;
 
@@ -137,16 +265,19 @@ class _$MenuTreeImpl implements _MenuTree {
     return EqualUnmodifiableListView(_pages);
   }
 
+  /// Create a copy of MenuTree
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'MenuTree(menu: $menu, pages: $pages)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$MenuTreeCopyWith<_MenuTree> get copyWith =>
+      __$MenuTreeCopyWithImpl<_MenuTree>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$MenuTreeImpl &&
+            other is _MenuTree &&
             (identical(other.menu, menu) || other.menu == menu) &&
             const DeepCollectionEquality().equals(other._pages, _pages));
   }
@@ -155,51 +286,101 @@ class _$MenuTreeImpl implements _MenuTree {
   int get hashCode => Object.hash(
       runtimeType, menu, const DeepCollectionEquality().hash(_pages));
 
-  /// Create a copy of MenuTree
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$MenuTreeImplCopyWith<_$MenuTreeImpl> get copyWith =>
-      __$$MenuTreeImplCopyWithImpl<_$MenuTreeImpl>(this, _$identity);
+  String toString() {
+    return 'MenuTree(menu: $menu, pages: $pages)';
+  }
 }
 
-abstract class _MenuTree implements MenuTree {
-  const factory _MenuTree(
-      {required final Menu menu,
-      required final List<PageWithContainers> pages}) = _$MenuTreeImpl;
+/// @nodoc
+abstract mixin class _$MenuTreeCopyWith<$Res>
+    implements $MenuTreeCopyWith<$Res> {
+  factory _$MenuTreeCopyWith(_MenuTree value, $Res Function(_MenuTree) _then) =
+      __$MenuTreeCopyWithImpl;
+  @override
+  @useResult
+  $Res call({Menu menu, List<PageWithContainers> pages});
 
   @override
-  Menu get menu;
-  @override
-  List<PageWithContainers> get pages;
+  $MenuCopyWith<$Res> get menu;
+}
+
+/// @nodoc
+class __$MenuTreeCopyWithImpl<$Res> implements _$MenuTreeCopyWith<$Res> {
+  __$MenuTreeCopyWithImpl(this._self, this._then);
+
+  final _MenuTree _self;
+  final $Res Function(_MenuTree) _then;
 
   /// Create a copy of MenuTree
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$MenuTreeImplCopyWith<_$MenuTreeImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? menu = null,
+    Object? pages = null,
+  }) {
+    return _then(_MenuTree(
+      menu: null == menu
+          ? _self.menu
+          : menu // ignore: cast_nullable_to_non_nullable
+              as Menu,
+      pages: null == pages
+          ? _self._pages
+          : pages // ignore: cast_nullable_to_non_nullable
+              as List<PageWithContainers>,
+    ));
+  }
+
+  /// Create a copy of MenuTree
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $MenuCopyWith<$Res> get menu {
+    return $MenuCopyWith<$Res>(_self.menu, (value) {
+      return _then(_self.copyWith(menu: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$PageWithContainers {
-  Page get page => throw _privateConstructorUsedError;
-  List<ContainerWithColumns> get containers =>
-      throw _privateConstructorUsedError;
+  Page get page;
+  List<ContainerWithColumns> get containers;
 
   /// Create a copy of PageWithContainers
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $PageWithContainersCopyWith<PageWithContainers> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$PageWithContainersCopyWithImpl<PageWithContainers>(
+          this as PageWithContainers, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is PageWithContainers &&
+            (identical(other.page, page) || other.page == page) &&
+            const DeepCollectionEquality()
+                .equals(other.containers, containers));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, page, const DeepCollectionEquality().hash(containers));
+
+  @override
+  String toString() {
+    return 'PageWithContainers(page: $page, containers: $containers)';
+  }
 }
 
 /// @nodoc
-abstract class $PageWithContainersCopyWith<$Res> {
+abstract mixin class $PageWithContainersCopyWith<$Res> {
   factory $PageWithContainersCopyWith(
-          PageWithContainers value, $Res Function(PageWithContainers) then) =
-      _$PageWithContainersCopyWithImpl<$Res, PageWithContainers>;
+          PageWithContainers value, $Res Function(PageWithContainers) _then) =
+      _$PageWithContainersCopyWithImpl;
   @useResult
   $Res call({Page page, List<ContainerWithColumns> containers});
 
@@ -207,14 +388,12 @@ abstract class $PageWithContainersCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$PageWithContainersCopyWithImpl<$Res, $Val extends PageWithContainers>
+class _$PageWithContainersCopyWithImpl<$Res>
     implements $PageWithContainersCopyWith<$Res> {
-  _$PageWithContainersCopyWithImpl(this._value, this._then);
+  _$PageWithContainersCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final PageWithContainers _self;
+  final $Res Function(PageWithContainers) _then;
 
   /// Create a copy of PageWithContainers
   /// with the given fields replaced by the non-null parameter values.
@@ -224,16 +403,16 @@ class _$PageWithContainersCopyWithImpl<$Res, $Val extends PageWithContainers>
     Object? page = null,
     Object? containers = null,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       page: null == page
-          ? _value.page
+          ? _self.page
           : page // ignore: cast_nullable_to_non_nullable
               as Page,
       containers: null == containers
-          ? _value.containers
+          ? _self.containers
           : containers // ignore: cast_nullable_to_non_nullable
               as List<ContainerWithColumns>,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of PageWithContainers
@@ -241,59 +420,175 @@ class _$PageWithContainersCopyWithImpl<$Res, $Val extends PageWithContainers>
   @override
   @pragma('vm:prefer-inline')
   $PageCopyWith<$Res> get page {
-    return $PageCopyWith<$Res>(_value.page, (value) {
-      return _then(_value.copyWith(page: value) as $Val);
+    return $PageCopyWith<$Res>(_self.page, (value) {
+      return _then(_self.copyWith(page: value));
     });
   }
 }
 
-/// @nodoc
-abstract class _$$PageWithContainersImplCopyWith<$Res>
-    implements $PageWithContainersCopyWith<$Res> {
-  factory _$$PageWithContainersImplCopyWith(_$PageWithContainersImpl value,
-          $Res Function(_$PageWithContainersImpl) then) =
-      __$$PageWithContainersImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({Page page, List<ContainerWithColumns> containers});
+/// Adds pattern-matching-related methods to [PageWithContainers].
+extension PageWithContainersPatterns on PageWithContainers {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
 
-  @override
-  $PageCopyWith<$Res> get page;
-}
-
-/// @nodoc
-class __$$PageWithContainersImplCopyWithImpl<$Res>
-    extends _$PageWithContainersCopyWithImpl<$Res, _$PageWithContainersImpl>
-    implements _$$PageWithContainersImplCopyWith<$Res> {
-  __$$PageWithContainersImplCopyWithImpl(_$PageWithContainersImpl _value,
-      $Res Function(_$PageWithContainersImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of PageWithContainers
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? page = null,
-    Object? containers = null,
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_PageWithContainers value)? $default, {
+    required TResult orElse(),
   }) {
-    return _then(_$PageWithContainersImpl(
-      page: null == page
-          ? _value.page
-          : page // ignore: cast_nullable_to_non_nullable
-              as Page,
-      containers: null == containers
-          ? _value._containers
-          : containers // ignore: cast_nullable_to_non_nullable
-              as List<ContainerWithColumns>,
-    ));
+    final _that = this;
+    switch (_that) {
+      case _PageWithContainers() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_PageWithContainers value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PageWithContainers():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_PageWithContainers value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PageWithContainers() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(Page page, List<ContainerWithColumns> containers)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _PageWithContainers() when $default != null:
+        return $default(_that.page, _that.containers);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(Page page, List<ContainerWithColumns> containers) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PageWithContainers():
+        return $default(_that.page, _that.containers);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(Page page, List<ContainerWithColumns> containers)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _PageWithContainers() when $default != null:
+        return $default(_that.page, _that.containers);
+      case _:
+        return null;
+    }
   }
 }
 
 /// @nodoc
 
-class _$PageWithContainersImpl implements _PageWithContainers {
-  const _$PageWithContainersImpl(
+class _PageWithContainers implements PageWithContainers {
+  const _PageWithContainers(
       {required this.page,
       required final List<ContainerWithColumns> containers})
       : _containers = containers;
@@ -308,16 +603,19 @@ class _$PageWithContainersImpl implements _PageWithContainers {
     return EqualUnmodifiableListView(_containers);
   }
 
+  /// Create a copy of PageWithContainers
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'PageWithContainers(page: $page, containers: $containers)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$PageWithContainersCopyWith<_PageWithContainers> get copyWith =>
+      __$PageWithContainersCopyWithImpl<_PageWithContainers>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$PageWithContainersImpl &&
+            other is _PageWithContainers &&
             (identical(other.page, page) || other.page == page) &&
             const DeepCollectionEquality()
                 .equals(other._containers, _containers));
@@ -327,52 +625,103 @@ class _$PageWithContainersImpl implements _PageWithContainers {
   int get hashCode => Object.hash(
       runtimeType, page, const DeepCollectionEquality().hash(_containers));
 
-  /// Create a copy of PageWithContainers
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$PageWithContainersImplCopyWith<_$PageWithContainersImpl> get copyWith =>
-      __$$PageWithContainersImplCopyWithImpl<_$PageWithContainersImpl>(
-          this, _$identity);
+  String toString() {
+    return 'PageWithContainers(page: $page, containers: $containers)';
+  }
 }
 
-abstract class _PageWithContainers implements PageWithContainers {
-  const factory _PageWithContainers(
-          {required final Page page,
-          required final List<ContainerWithColumns> containers}) =
-      _$PageWithContainersImpl;
+/// @nodoc
+abstract mixin class _$PageWithContainersCopyWith<$Res>
+    implements $PageWithContainersCopyWith<$Res> {
+  factory _$PageWithContainersCopyWith(
+          _PageWithContainers value, $Res Function(_PageWithContainers) _then) =
+      __$PageWithContainersCopyWithImpl;
+  @override
+  @useResult
+  $Res call({Page page, List<ContainerWithColumns> containers});
 
   @override
-  Page get page;
-  @override
-  List<ContainerWithColumns> get containers;
+  $PageCopyWith<$Res> get page;
+}
+
+/// @nodoc
+class __$PageWithContainersCopyWithImpl<$Res>
+    implements _$PageWithContainersCopyWith<$Res> {
+  __$PageWithContainersCopyWithImpl(this._self, this._then);
+
+  final _PageWithContainers _self;
+  final $Res Function(_PageWithContainers) _then;
 
   /// Create a copy of PageWithContainers
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$PageWithContainersImplCopyWith<_$PageWithContainersImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? page = null,
+    Object? containers = null,
+  }) {
+    return _then(_PageWithContainers(
+      page: null == page
+          ? _self.page
+          : page // ignore: cast_nullable_to_non_nullable
+              as Page,
+      containers: null == containers
+          ? _self._containers
+          : containers // ignore: cast_nullable_to_non_nullable
+              as List<ContainerWithColumns>,
+    ));
+  }
+
+  /// Create a copy of PageWithContainers
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PageCopyWith<$Res> get page {
+    return $PageCopyWith<$Res>(_self.page, (value) {
+      return _then(_self.copyWith(page: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$ContainerWithColumns {
-  Container get container => throw _privateConstructorUsedError;
-  List<ColumnWithWidgets> get columns => throw _privateConstructorUsedError;
+  Container get container;
+  List<ColumnWithWidgets> get columns;
 
   /// Create a copy of ContainerWithColumns
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $ContainerWithColumnsCopyWith<ContainerWithColumns> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$ContainerWithColumnsCopyWithImpl<ContainerWithColumns>(
+          this as ContainerWithColumns, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ContainerWithColumns &&
+            (identical(other.container, container) ||
+                other.container == container) &&
+            const DeepCollectionEquality().equals(other.columns, columns));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, container, const DeepCollectionEquality().hash(columns));
+
+  @override
+  String toString() {
+    return 'ContainerWithColumns(container: $container, columns: $columns)';
+  }
 }
 
 /// @nodoc
-abstract class $ContainerWithColumnsCopyWith<$Res> {
+abstract mixin class $ContainerWithColumnsCopyWith<$Res> {
   factory $ContainerWithColumnsCopyWith(ContainerWithColumns value,
-          $Res Function(ContainerWithColumns) then) =
-      _$ContainerWithColumnsCopyWithImpl<$Res, ContainerWithColumns>;
+          $Res Function(ContainerWithColumns) _then) =
+      _$ContainerWithColumnsCopyWithImpl;
   @useResult
   $Res call({Container container, List<ColumnWithWidgets> columns});
 
@@ -380,15 +729,12 @@ abstract class $ContainerWithColumnsCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$ContainerWithColumnsCopyWithImpl<$Res,
-        $Val extends ContainerWithColumns>
+class _$ContainerWithColumnsCopyWithImpl<$Res>
     implements $ContainerWithColumnsCopyWith<$Res> {
-  _$ContainerWithColumnsCopyWithImpl(this._value, this._then);
+  _$ContainerWithColumnsCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final ContainerWithColumns _self;
+  final $Res Function(ContainerWithColumns) _then;
 
   /// Create a copy of ContainerWithColumns
   /// with the given fields replaced by the non-null parameter values.
@@ -398,16 +744,16 @@ class _$ContainerWithColumnsCopyWithImpl<$Res,
     Object? container = null,
     Object? columns = null,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       container: null == container
-          ? _value.container
+          ? _self.container
           : container // ignore: cast_nullable_to_non_nullable
               as Container,
       columns: null == columns
-          ? _value.columns
+          ? _self.columns
           : columns // ignore: cast_nullable_to_non_nullable
               as List<ColumnWithWidgets>,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of ContainerWithColumns
@@ -415,59 +761,176 @@ class _$ContainerWithColumnsCopyWithImpl<$Res,
   @override
   @pragma('vm:prefer-inline')
   $ContainerCopyWith<$Res> get container {
-    return $ContainerCopyWith<$Res>(_value.container, (value) {
-      return _then(_value.copyWith(container: value) as $Val);
+    return $ContainerCopyWith<$Res>(_self.container, (value) {
+      return _then(_self.copyWith(container: value));
     });
   }
 }
 
-/// @nodoc
-abstract class _$$ContainerWithColumnsImplCopyWith<$Res>
-    implements $ContainerWithColumnsCopyWith<$Res> {
-  factory _$$ContainerWithColumnsImplCopyWith(_$ContainerWithColumnsImpl value,
-          $Res Function(_$ContainerWithColumnsImpl) then) =
-      __$$ContainerWithColumnsImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({Container container, List<ColumnWithWidgets> columns});
+/// Adds pattern-matching-related methods to [ContainerWithColumns].
+extension ContainerWithColumnsPatterns on ContainerWithColumns {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
 
-  @override
-  $ContainerCopyWith<$Res> get container;
-}
-
-/// @nodoc
-class __$$ContainerWithColumnsImplCopyWithImpl<$Res>
-    extends _$ContainerWithColumnsCopyWithImpl<$Res, _$ContainerWithColumnsImpl>
-    implements _$$ContainerWithColumnsImplCopyWith<$Res> {
-  __$$ContainerWithColumnsImplCopyWithImpl(_$ContainerWithColumnsImpl _value,
-      $Res Function(_$ContainerWithColumnsImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of ContainerWithColumns
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? container = null,
-    Object? columns = null,
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_ContainerWithColumns value)? $default, {
+    required TResult orElse(),
   }) {
-    return _then(_$ContainerWithColumnsImpl(
-      container: null == container
-          ? _value.container
-          : container // ignore: cast_nullable_to_non_nullable
-              as Container,
-      columns: null == columns
-          ? _value._columns
-          : columns // ignore: cast_nullable_to_non_nullable
-              as List<ColumnWithWidgets>,
-    ));
+    final _that = this;
+    switch (_that) {
+      case _ContainerWithColumns() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_ContainerWithColumns value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ContainerWithColumns():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_ContainerWithColumns value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ContainerWithColumns() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(Container container, List<ColumnWithWidgets> columns)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _ContainerWithColumns() when $default != null:
+        return $default(_that.container, _that.columns);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(Container container, List<ColumnWithWidgets> columns)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ContainerWithColumns():
+        return $default(_that.container, _that.columns);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(Container container, List<ColumnWithWidgets> columns)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ContainerWithColumns() when $default != null:
+        return $default(_that.container, _that.columns);
+      case _:
+        return null;
+    }
   }
 }
 
 /// @nodoc
 
-class _$ContainerWithColumnsImpl implements _ContainerWithColumns {
-  const _$ContainerWithColumnsImpl(
+class _ContainerWithColumns implements ContainerWithColumns {
+  const _ContainerWithColumns(
       {required this.container, required final List<ColumnWithWidgets> columns})
       : _columns = columns;
 
@@ -481,16 +944,20 @@ class _$ContainerWithColumnsImpl implements _ContainerWithColumns {
     return EqualUnmodifiableListView(_columns);
   }
 
+  /// Create a copy of ContainerWithColumns
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'ContainerWithColumns(container: $container, columns: $columns)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$ContainerWithColumnsCopyWith<_ContainerWithColumns> get copyWith =>
+      __$ContainerWithColumnsCopyWithImpl<_ContainerWithColumns>(
+          this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ContainerWithColumnsImpl &&
+            other is _ContainerWithColumns &&
             (identical(other.container, container) ||
                 other.container == container) &&
             const DeepCollectionEquality().equals(other._columns, _columns));
@@ -500,53 +967,102 @@ class _$ContainerWithColumnsImpl implements _ContainerWithColumns {
   int get hashCode => Object.hash(
       runtimeType, container, const DeepCollectionEquality().hash(_columns));
 
-  /// Create a copy of ContainerWithColumns
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$ContainerWithColumnsImplCopyWith<_$ContainerWithColumnsImpl>
-      get copyWith =>
-          __$$ContainerWithColumnsImplCopyWithImpl<_$ContainerWithColumnsImpl>(
-              this, _$identity);
+  String toString() {
+    return 'ContainerWithColumns(container: $container, columns: $columns)';
+  }
 }
 
-abstract class _ContainerWithColumns implements ContainerWithColumns {
-  const factory _ContainerWithColumns(
-          {required final Container container,
-          required final List<ColumnWithWidgets> columns}) =
-      _$ContainerWithColumnsImpl;
+/// @nodoc
+abstract mixin class _$ContainerWithColumnsCopyWith<$Res>
+    implements $ContainerWithColumnsCopyWith<$Res> {
+  factory _$ContainerWithColumnsCopyWith(_ContainerWithColumns value,
+          $Res Function(_ContainerWithColumns) _then) =
+      __$ContainerWithColumnsCopyWithImpl;
+  @override
+  @useResult
+  $Res call({Container container, List<ColumnWithWidgets> columns});
 
   @override
-  Container get container;
-  @override
-  List<ColumnWithWidgets> get columns;
+  $ContainerCopyWith<$Res> get container;
+}
+
+/// @nodoc
+class __$ContainerWithColumnsCopyWithImpl<$Res>
+    implements _$ContainerWithColumnsCopyWith<$Res> {
+  __$ContainerWithColumnsCopyWithImpl(this._self, this._then);
+
+  final _ContainerWithColumns _self;
+  final $Res Function(_ContainerWithColumns) _then;
 
   /// Create a copy of ContainerWithColumns
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ContainerWithColumnsImplCopyWith<_$ContainerWithColumnsImpl>
-      get copyWith => throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? container = null,
+    Object? columns = null,
+  }) {
+    return _then(_ContainerWithColumns(
+      container: null == container
+          ? _self.container
+          : container // ignore: cast_nullable_to_non_nullable
+              as Container,
+      columns: null == columns
+          ? _self._columns
+          : columns // ignore: cast_nullable_to_non_nullable
+              as List<ColumnWithWidgets>,
+    ));
+  }
+
+  /// Create a copy of ContainerWithColumns
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ContainerCopyWith<$Res> get container {
+    return $ContainerCopyWith<$Res>(_self.container, (value) {
+      return _then(_self.copyWith(container: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$ColumnWithWidgets {
-  Column get column => throw _privateConstructorUsedError;
-  List<WidgetInstance> get widgets => throw _privateConstructorUsedError;
+  Column get column;
+  List<WidgetInstance> get widgets;
 
   /// Create a copy of ColumnWithWidgets
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $ColumnWithWidgetsCopyWith<ColumnWithWidgets> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$ColumnWithWidgetsCopyWithImpl<ColumnWithWidgets>(
+          this as ColumnWithWidgets, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ColumnWithWidgets &&
+            (identical(other.column, column) || other.column == column) &&
+            const DeepCollectionEquality().equals(other.widgets, widgets));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, column, const DeepCollectionEquality().hash(widgets));
+
+  @override
+  String toString() {
+    return 'ColumnWithWidgets(column: $column, widgets: $widgets)';
+  }
 }
 
 /// @nodoc
-abstract class $ColumnWithWidgetsCopyWith<$Res> {
+abstract mixin class $ColumnWithWidgetsCopyWith<$Res> {
   factory $ColumnWithWidgetsCopyWith(
-          ColumnWithWidgets value, $Res Function(ColumnWithWidgets) then) =
-      _$ColumnWithWidgetsCopyWithImpl<$Res, ColumnWithWidgets>;
+          ColumnWithWidgets value, $Res Function(ColumnWithWidgets) _then) =
+      _$ColumnWithWidgetsCopyWithImpl;
   @useResult
   $Res call({Column column, List<WidgetInstance> widgets});
 
@@ -554,14 +1070,12 @@ abstract class $ColumnWithWidgetsCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$ColumnWithWidgetsCopyWithImpl<$Res, $Val extends ColumnWithWidgets>
+class _$ColumnWithWidgetsCopyWithImpl<$Res>
     implements $ColumnWithWidgetsCopyWith<$Res> {
-  _$ColumnWithWidgetsCopyWithImpl(this._value, this._then);
+  _$ColumnWithWidgetsCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final ColumnWithWidgets _self;
+  final $Res Function(ColumnWithWidgets) _then;
 
   /// Create a copy of ColumnWithWidgets
   /// with the given fields replaced by the non-null parameter values.
@@ -571,16 +1085,16 @@ class _$ColumnWithWidgetsCopyWithImpl<$Res, $Val extends ColumnWithWidgets>
     Object? column = null,
     Object? widgets = null,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       column: null == column
-          ? _value.column
+          ? _self.column
           : column // ignore: cast_nullable_to_non_nullable
               as Column,
       widgets: null == widgets
-          ? _value.widgets
+          ? _self.widgets
           : widgets // ignore: cast_nullable_to_non_nullable
               as List<WidgetInstance>,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of ColumnWithWidgets
@@ -588,59 +1102,173 @@ class _$ColumnWithWidgetsCopyWithImpl<$Res, $Val extends ColumnWithWidgets>
   @override
   @pragma('vm:prefer-inline')
   $ColumnCopyWith<$Res> get column {
-    return $ColumnCopyWith<$Res>(_value.column, (value) {
-      return _then(_value.copyWith(column: value) as $Val);
+    return $ColumnCopyWith<$Res>(_self.column, (value) {
+      return _then(_self.copyWith(column: value));
     });
   }
 }
 
-/// @nodoc
-abstract class _$$ColumnWithWidgetsImplCopyWith<$Res>
-    implements $ColumnWithWidgetsCopyWith<$Res> {
-  factory _$$ColumnWithWidgetsImplCopyWith(_$ColumnWithWidgetsImpl value,
-          $Res Function(_$ColumnWithWidgetsImpl) then) =
-      __$$ColumnWithWidgetsImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({Column column, List<WidgetInstance> widgets});
+/// Adds pattern-matching-related methods to [ColumnWithWidgets].
+extension ColumnWithWidgetsPatterns on ColumnWithWidgets {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
 
-  @override
-  $ColumnCopyWith<$Res> get column;
-}
-
-/// @nodoc
-class __$$ColumnWithWidgetsImplCopyWithImpl<$Res>
-    extends _$ColumnWithWidgetsCopyWithImpl<$Res, _$ColumnWithWidgetsImpl>
-    implements _$$ColumnWithWidgetsImplCopyWith<$Res> {
-  __$$ColumnWithWidgetsImplCopyWithImpl(_$ColumnWithWidgetsImpl _value,
-      $Res Function(_$ColumnWithWidgetsImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of ColumnWithWidgets
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? column = null,
-    Object? widgets = null,
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_ColumnWithWidgets value)? $default, {
+    required TResult orElse(),
   }) {
-    return _then(_$ColumnWithWidgetsImpl(
-      column: null == column
-          ? _value.column
-          : column // ignore: cast_nullable_to_non_nullable
-              as Column,
-      widgets: null == widgets
-          ? _value._widgets
-          : widgets // ignore: cast_nullable_to_non_nullable
-              as List<WidgetInstance>,
-    ));
+    final _that = this;
+    switch (_that) {
+      case _ColumnWithWidgets() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_ColumnWithWidgets value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ColumnWithWidgets():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_ColumnWithWidgets value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ColumnWithWidgets() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(Column column, List<WidgetInstance> widgets)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _ColumnWithWidgets() when $default != null:
+        return $default(_that.column, _that.widgets);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(Column column, List<WidgetInstance> widgets) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ColumnWithWidgets():
+        return $default(_that.column, _that.widgets);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(Column column, List<WidgetInstance> widgets)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ColumnWithWidgets() when $default != null:
+        return $default(_that.column, _that.widgets);
+      case _:
+        return null;
+    }
   }
 }
 
 /// @nodoc
 
-class _$ColumnWithWidgetsImpl implements _ColumnWithWidgets {
-  const _$ColumnWithWidgetsImpl(
+class _ColumnWithWidgets implements ColumnWithWidgets {
+  const _ColumnWithWidgets(
       {required this.column, required final List<WidgetInstance> widgets})
       : _widgets = widgets;
 
@@ -654,16 +1282,19 @@ class _$ColumnWithWidgetsImpl implements _ColumnWithWidgets {
     return EqualUnmodifiableListView(_widgets);
   }
 
+  /// Create a copy of ColumnWithWidgets
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'ColumnWithWidgets(column: $column, widgets: $widgets)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$ColumnWithWidgetsCopyWith<_ColumnWithWidgets> get copyWith =>
+      __$ColumnWithWidgetsCopyWithImpl<_ColumnWithWidgets>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ColumnWithWidgetsImpl &&
+            other is _ColumnWithWidgets &&
             (identical(other.column, column) || other.column == column) &&
             const DeepCollectionEquality().equals(other._widgets, _widgets));
   }
@@ -672,30 +1303,63 @@ class _$ColumnWithWidgetsImpl implements _ColumnWithWidgets {
   int get hashCode => Object.hash(
       runtimeType, column, const DeepCollectionEquality().hash(_widgets));
 
+  @override
+  String toString() {
+    return 'ColumnWithWidgets(column: $column, widgets: $widgets)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$ColumnWithWidgetsCopyWith<$Res>
+    implements $ColumnWithWidgetsCopyWith<$Res> {
+  factory _$ColumnWithWidgetsCopyWith(
+          _ColumnWithWidgets value, $Res Function(_ColumnWithWidgets) _then) =
+      __$ColumnWithWidgetsCopyWithImpl;
+  @override
+  @useResult
+  $Res call({Column column, List<WidgetInstance> widgets});
+
+  @override
+  $ColumnCopyWith<$Res> get column;
+}
+
+/// @nodoc
+class __$ColumnWithWidgetsCopyWithImpl<$Res>
+    implements _$ColumnWithWidgetsCopyWith<$Res> {
+  __$ColumnWithWidgetsCopyWithImpl(this._self, this._then);
+
+  final _ColumnWithWidgets _self;
+  final $Res Function(_ColumnWithWidgets) _then;
+
   /// Create a copy of ColumnWithWidgets
   /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$ColumnWithWidgetsImplCopyWith<_$ColumnWithWidgetsImpl> get copyWith =>
-      __$$ColumnWithWidgetsImplCopyWithImpl<_$ColumnWithWidgetsImpl>(
-          this, _$identity);
-}
-
-abstract class _ColumnWithWidgets implements ColumnWithWidgets {
-  const factory _ColumnWithWidgets(
-      {required final Column column,
-      required final List<WidgetInstance> widgets}) = _$ColumnWithWidgetsImpl;
-
-  @override
-  Column get column;
-  @override
-  List<WidgetInstance> get widgets;
+  $Res call({
+    Object? column = null,
+    Object? widgets = null,
+  }) {
+    return _then(_ColumnWithWidgets(
+      column: null == column
+          ? _self.column
+          : column // ignore: cast_nullable_to_non_nullable
+              as Column,
+      widgets: null == widgets
+          ? _self._widgets
+          : widgets // ignore: cast_nullable_to_non_nullable
+              as List<WidgetInstance>,
+    ));
+  }
 
   /// Create a copy of ColumnWithWidgets
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ColumnWithWidgetsImplCopyWith<_$ColumnWithWidgetsImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $ColumnCopyWith<$Res> get column {
+    return $ColumnCopyWith<$Res>(_self.column, (value) {
+      return _then(_self.copyWith(column: value));
+    });
+  }
 }
+
+// dart format on

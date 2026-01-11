@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,106 +9,60 @@ part of 'user_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-UserDto _$UserDtoFromJson(Map<String, dynamic> json) {
-  return _UserDto.fromJson(json);
-}
 
 /// @nodoc
 mixin _$UserDto {
-  String get id => throw _privateConstructorUsedError;
-  String get email => throw _privateConstructorUsedError;
+  String get id;
+  String get email;
   @JsonKey(name: 'first_name')
-  String? get firstName => throw _privateConstructorUsedError;
+  String? get firstName;
   @JsonKey(name: 'last_name')
-  String? get lastName => throw _privateConstructorUsedError;
-  String? get role => throw _privateConstructorUsedError;
-  String? get avatar => throw _privateConstructorUsedError;
-
-  /// Serializes this UserDto to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  String? get lastName;
+  String? get role;
+  String? get avatar;
 
   /// Create a copy of UserDto
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $UserDtoCopyWith<UserDto> get copyWith => throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $UserDtoCopyWith<$Res> {
-  factory $UserDtoCopyWith(UserDto value, $Res Function(UserDto) then) =
-      _$UserDtoCopyWithImpl<$Res, UserDto>;
-  @useResult
-  $Res call(
-      {String id,
-      String email,
-      @JsonKey(name: 'first_name') String? firstName,
-      @JsonKey(name: 'last_name') String? lastName,
-      String? role,
-      String? avatar});
-}
-
-/// @nodoc
-class _$UserDtoCopyWithImpl<$Res, $Val extends UserDto>
-    implements $UserDtoCopyWith<$Res> {
-  _$UserDtoCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of UserDto
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
+  $UserDtoCopyWith<UserDto> get copyWith =>
+      _$UserDtoCopyWithImpl<UserDto>(this as UserDto, _$identity);
+
+  /// Serializes this UserDto to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? id = null,
-    Object? email = null,
-    Object? firstName = freezed,
-    Object? lastName = freezed,
-    Object? role = freezed,
-    Object? avatar = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      email: null == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
-              as String,
-      firstName: freezed == firstName
-          ? _value.firstName
-          : firstName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      lastName: freezed == lastName
-          ? _value.lastName
-          : lastName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      role: freezed == role
-          ? _value.role
-          : role // ignore: cast_nullable_to_non_nullable
-              as String?,
-      avatar: freezed == avatar
-          ? _value.avatar
-          : avatar // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is UserDto &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.email, email) || other.email == email) &&
+            (identical(other.firstName, firstName) ||
+                other.firstName == firstName) &&
+            (identical(other.lastName, lastName) ||
+                other.lastName == lastName) &&
+            (identical(other.role, role) || other.role == role) &&
+            (identical(other.avatar, avatar) || other.avatar == avatar));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, id, email, firstName, lastName, role, avatar);
+
+  @override
+  String toString() {
+    return 'UserDto(id: $id, email: $email, firstName: $firstName, lastName: $lastName, role: $role, avatar: $avatar)';
   }
 }
 
 /// @nodoc
-abstract class _$$UserDtoImplCopyWith<$Res> implements $UserDtoCopyWith<$Res> {
-  factory _$$UserDtoImplCopyWith(
-          _$UserDtoImpl value, $Res Function(_$UserDtoImpl) then) =
-      __$$UserDtoImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $UserDtoCopyWith<$Res> {
+  factory $UserDtoCopyWith(UserDto value, $Res Function(UserDto) _then) =
+      _$UserDtoCopyWithImpl;
   @useResult
   $Res call(
       {String id,
@@ -120,12 +74,11 @@ abstract class _$$UserDtoImplCopyWith<$Res> implements $UserDtoCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$UserDtoImplCopyWithImpl<$Res>
-    extends _$UserDtoCopyWithImpl<$Res, _$UserDtoImpl>
-    implements _$$UserDtoImplCopyWith<$Res> {
-  __$$UserDtoImplCopyWithImpl(
-      _$UserDtoImpl _value, $Res Function(_$UserDtoImpl) _then)
-      : super(_value, _then);
+class _$UserDtoCopyWithImpl<$Res> implements $UserDtoCopyWith<$Res> {
+  _$UserDtoCopyWithImpl(this._self, this._then);
+
+  final UserDto _self;
+  final $Res Function(UserDto) _then;
 
   /// Create a copy of UserDto
   /// with the given fields replaced by the non-null parameter values.
@@ -139,48 +92,229 @@ class __$$UserDtoImplCopyWithImpl<$Res>
     Object? role = freezed,
     Object? avatar = freezed,
   }) {
-    return _then(_$UserDtoImpl(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
       email: null == email
-          ? _value.email
+          ? _self.email
           : email // ignore: cast_nullable_to_non_nullable
               as String,
       firstName: freezed == firstName
-          ? _value.firstName
+          ? _self.firstName
           : firstName // ignore: cast_nullable_to_non_nullable
               as String?,
       lastName: freezed == lastName
-          ? _value.lastName
+          ? _self.lastName
           : lastName // ignore: cast_nullable_to_non_nullable
               as String?,
       role: freezed == role
-          ? _value.role
+          ? _self.role
           : role // ignore: cast_nullable_to_non_nullable
               as String?,
       avatar: freezed == avatar
-          ? _value.avatar
+          ? _self.avatar
           : avatar // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
   }
 }
 
+/// Adds pattern-matching-related methods to [UserDto].
+extension UserDtoPatterns on UserDto {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_UserDto value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _UserDto() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_UserDto value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UserDto():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_UserDto value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UserDto() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(
+            String id,
+            String email,
+            @JsonKey(name: 'first_name') String? firstName,
+            @JsonKey(name: 'last_name') String? lastName,
+            String? role,
+            String? avatar)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _UserDto() when $default != null:
+        return $default(_that.id, _that.email, _that.firstName, _that.lastName,
+            _that.role, _that.avatar);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(
+            String id,
+            String email,
+            @JsonKey(name: 'first_name') String? firstName,
+            @JsonKey(name: 'last_name') String? lastName,
+            String? role,
+            String? avatar)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UserDto():
+        return $default(_that.id, _that.email, _that.firstName, _that.lastName,
+            _that.role, _that.avatar);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(
+            String id,
+            String email,
+            @JsonKey(name: 'first_name') String? firstName,
+            @JsonKey(name: 'last_name') String? lastName,
+            String? role,
+            String? avatar)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UserDto() when $default != null:
+        return $default(_that.id, _that.email, _that.firstName, _that.lastName,
+            _that.role, _that.avatar);
+      case _:
+        return null;
+    }
+  }
+}
+
 /// @nodoc
 @JsonSerializable()
-class _$UserDtoImpl implements _UserDto {
-  const _$UserDtoImpl(
+class _UserDto extends UserDto {
+  const _UserDto(
       {required this.id,
       required this.email,
       @JsonKey(name: 'first_name') this.firstName,
       @JsonKey(name: 'last_name') this.lastName,
       this.role,
-      this.avatar});
-
-  factory _$UserDtoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$UserDtoImplFromJson(json);
+      this.avatar})
+      : super._();
+  factory _UserDto.fromJson(Map<String, dynamic> json) =>
+      _$UserDtoFromJson(json);
 
   @override
   final String id;
@@ -197,16 +331,26 @@ class _$UserDtoImpl implements _UserDto {
   @override
   final String? avatar;
 
+  /// Create a copy of UserDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'UserDto(id: $id, email: $email, firstName: $firstName, lastName: $lastName, role: $role, avatar: $avatar)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$UserDtoCopyWith<_UserDto> get copyWith =>
+      __$UserDtoCopyWithImpl<_UserDto>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$UserDtoToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$UserDtoImpl &&
+            other is _UserDto &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.email, email) || other.email == email) &&
             (identical(other.firstName, firstName) ||
@@ -222,52 +366,73 @@ class _$UserDtoImpl implements _UserDto {
   int get hashCode =>
       Object.hash(runtimeType, id, email, firstName, lastName, role, avatar);
 
-  /// Create a copy of UserDto
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$UserDtoImplCopyWith<_$UserDtoImpl> get copyWith =>
-      __$$UserDtoImplCopyWithImpl<_$UserDtoImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$UserDtoImplToJson(
-      this,
-    );
+  String toString() {
+    return 'UserDto(id: $id, email: $email, firstName: $firstName, lastName: $lastName, role: $role, avatar: $avatar)';
   }
 }
 
-abstract class _UserDto implements UserDto {
-  const factory _UserDto(
-      {required final String id,
-      required final String email,
-      @JsonKey(name: 'first_name') final String? firstName,
-      @JsonKey(name: 'last_name') final String? lastName,
-      final String? role,
-      final String? avatar}) = _$UserDtoImpl;
+/// @nodoc
+abstract mixin class _$UserDtoCopyWith<$Res> implements $UserDtoCopyWith<$Res> {
+  factory _$UserDtoCopyWith(_UserDto value, $Res Function(_UserDto) _then) =
+      __$UserDtoCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {String id,
+      String email,
+      @JsonKey(name: 'first_name') String? firstName,
+      @JsonKey(name: 'last_name') String? lastName,
+      String? role,
+      String? avatar});
+}
 
-  factory _UserDto.fromJson(Map<String, dynamic> json) = _$UserDtoImpl.fromJson;
+/// @nodoc
+class __$UserDtoCopyWithImpl<$Res> implements _$UserDtoCopyWith<$Res> {
+  __$UserDtoCopyWithImpl(this._self, this._then);
 
-  @override
-  String get id;
-  @override
-  String get email;
-  @override
-  @JsonKey(name: 'first_name')
-  String? get firstName;
-  @override
-  @JsonKey(name: 'last_name')
-  String? get lastName;
-  @override
-  String? get role;
-  @override
-  String? get avatar;
+  final _UserDto _self;
+  final $Res Function(_UserDto) _then;
 
   /// Create a copy of UserDto
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$UserDtoImplCopyWith<_$UserDtoImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? email = null,
+    Object? firstName = freezed,
+    Object? lastName = freezed,
+    Object? role = freezed,
+    Object? avatar = freezed,
+  }) {
+    return _then(_UserDto(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      email: null == email
+          ? _self.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
+      firstName: freezed == firstName
+          ? _self.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _self.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      role: freezed == role
+          ? _self.role
+          : role // ignore: cast_nullable_to_non_nullable
+              as String?,
+      avatar: freezed == avatar
+          ? _self.avatar
+          : avatar // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
 }
+
+// dart format on

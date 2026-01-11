@@ -9,6 +9,8 @@ part 'dish_props.g.dart';
 /// and display preferences.
 @freezed
 class DishProps with _$DishProps {
+  const DishProps._();
+
   const factory DishProps({
     /// The name of the dish
     required String name,

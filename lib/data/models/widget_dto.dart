@@ -6,6 +6,7 @@ part 'widget_dto.g.dart';
 /// Data Transfer Object for Widget matching Directus 'widget' collection schema
 @freezed
 class WidgetDto with _$WidgetDto {
+  const WidgetDto._();
   const factory WidgetDto({
     required String id,
     @JsonKey(name: 'date_created') DateTime? dateCreated,

@@ -6,7 +6,7 @@ part of 'page.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$PageImpl _$$PageImplFromJson(Map<String, dynamic> json) => _$PageImpl(
+_Page _$PageFromJson(Map<String, dynamic> json) => _Page(
       id: json['id'] as String,
       menuId: json['menuId'] as String,
       name: json['name'] as String,
@@ -19,8 +19,7 @@ _$PageImpl _$$PageImplFromJson(Map<String, dynamic> json) => _$PageImpl(
           : DateTime.parse(json['dateUpdated'] as String),
     );
 
-Map<String, dynamic> _$$PageImplToJson(_$PageImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$PageToJson(_Page instance) => <String, dynamic>{
       'id': instance.id,
       'menuId': instance.menuId,
       'name': instance.name,

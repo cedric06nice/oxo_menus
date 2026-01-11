@@ -6,8 +6,7 @@ part of 'menu_dto.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$MenuDtoImpl _$$MenuDtoImplFromJson(Map<String, dynamic> json) =>
-    _$MenuDtoImpl(
+_MenuDto _$MenuDtoFromJson(Map<String, dynamic> json) => _MenuDto(
       id: json['id'] as String,
       status: json['status'] as String,
       dateCreated: json['date_created'] == null
@@ -25,8 +24,7 @@ _$MenuDtoImpl _$$MenuDtoImplFromJson(Map<String, dynamic> json) =>
       size: json['size'] as Map<String, dynamic>?,
     );
 
-Map<String, dynamic> _$$MenuDtoImplToJson(_$MenuDtoImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$MenuDtoToJson(_MenuDto instance) => <String, dynamic>{
       'id': instance.id,
       'status': instance.status,
       'date_created': instance.dateCreated?.toIso8601String(),

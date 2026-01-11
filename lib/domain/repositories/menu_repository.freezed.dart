@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,32 +9,56 @@ part of 'menu_repository.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$CreateMenuInput {
-  String get name => throw _privateConstructorUsedError;
-  String get version => throw _privateConstructorUsedError;
-  MenuStatus? get status => throw _privateConstructorUsedError;
-  StyleConfig? get styleConfig => throw _privateConstructorUsedError;
-  PageSize? get pageSize => throw _privateConstructorUsedError;
-  String? get area => throw _privateConstructorUsedError;
+  String get name;
+  String get version;
+  MenuStatus? get status;
+  StyleConfig? get styleConfig;
+  PageSize? get pageSize;
+  String? get area;
 
   /// Create a copy of CreateMenuInput
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $CreateMenuInputCopyWith<CreateMenuInput> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$CreateMenuInputCopyWithImpl<CreateMenuInput>(
+          this as CreateMenuInput, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is CreateMenuInput &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.version, version) || other.version == version) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.styleConfig, styleConfig) ||
+                other.styleConfig == styleConfig) &&
+            (identical(other.pageSize, pageSize) ||
+                other.pageSize == pageSize) &&
+            (identical(other.area, area) || other.area == area));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, name, version, status, styleConfig, pageSize, area);
+
+  @override
+  String toString() {
+    return 'CreateMenuInput(name: $name, version: $version, status: $status, styleConfig: $styleConfig, pageSize: $pageSize, area: $area)';
+  }
 }
 
 /// @nodoc
-abstract class $CreateMenuInputCopyWith<$Res> {
+abstract mixin class $CreateMenuInputCopyWith<$Res> {
   factory $CreateMenuInputCopyWith(
-          CreateMenuInput value, $Res Function(CreateMenuInput) then) =
-      _$CreateMenuInputCopyWithImpl<$Res, CreateMenuInput>;
+          CreateMenuInput value, $Res Function(CreateMenuInput) _then) =
+      _$CreateMenuInputCopyWithImpl;
   @useResult
   $Res call(
       {String name,
@@ -49,14 +73,12 @@ abstract class $CreateMenuInputCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$CreateMenuInputCopyWithImpl<$Res, $Val extends CreateMenuInput>
+class _$CreateMenuInputCopyWithImpl<$Res>
     implements $CreateMenuInputCopyWith<$Res> {
-  _$CreateMenuInputCopyWithImpl(this._value, this._then);
+  _$CreateMenuInputCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final CreateMenuInput _self;
+  final $Res Function(CreateMenuInput) _then;
 
   /// Create a copy of CreateMenuInput
   /// with the given fields replaced by the non-null parameter values.
@@ -70,32 +92,32 @@ class _$CreateMenuInputCopyWithImpl<$Res, $Val extends CreateMenuInput>
     Object? pageSize = freezed,
     Object? area = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       name: null == name
-          ? _value.name
+          ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
       version: null == version
-          ? _value.version
+          ? _self.version
           : version // ignore: cast_nullable_to_non_nullable
               as String,
       status: freezed == status
-          ? _value.status
+          ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as MenuStatus?,
       styleConfig: freezed == styleConfig
-          ? _value.styleConfig
+          ? _self.styleConfig
           : styleConfig // ignore: cast_nullable_to_non_nullable
               as StyleConfig?,
       pageSize: freezed == pageSize
-          ? _value.pageSize
+          ? _self.pageSize
           : pageSize // ignore: cast_nullable_to_non_nullable
               as PageSize?,
       area: freezed == area
-          ? _value.area
+          ? _self.area
           : area // ignore: cast_nullable_to_non_nullable
               as String?,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of CreateMenuInput
@@ -103,12 +125,12 @@ class _$CreateMenuInputCopyWithImpl<$Res, $Val extends CreateMenuInput>
   @override
   @pragma('vm:prefer-inline')
   $StyleConfigCopyWith<$Res>? get styleConfig {
-    if (_value.styleConfig == null) {
+    if (_self.styleConfig == null) {
       return null;
     }
 
-    return $StyleConfigCopyWith<$Res>(_value.styleConfig!, (value) {
-      return _then(_value.copyWith(styleConfig: value) as $Val);
+    return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
+      return _then(_self.copyWith(styleConfig: value));
     });
   }
 
@@ -117,91 +139,186 @@ class _$CreateMenuInputCopyWithImpl<$Res, $Val extends CreateMenuInput>
   @override
   @pragma('vm:prefer-inline')
   $PageSizeCopyWith<$Res>? get pageSize {
-    if (_value.pageSize == null) {
+    if (_self.pageSize == null) {
       return null;
     }
 
-    return $PageSizeCopyWith<$Res>(_value.pageSize!, (value) {
-      return _then(_value.copyWith(pageSize: value) as $Val);
+    return $PageSizeCopyWith<$Res>(_self.pageSize!, (value) {
+      return _then(_self.copyWith(pageSize: value));
     });
   }
 }
 
-/// @nodoc
-abstract class _$$CreateMenuInputImplCopyWith<$Res>
-    implements $CreateMenuInputCopyWith<$Res> {
-  factory _$$CreateMenuInputImplCopyWith(_$CreateMenuInputImpl value,
-          $Res Function(_$CreateMenuInputImpl) then) =
-      __$$CreateMenuInputImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {String name,
-      String version,
-      MenuStatus? status,
-      StyleConfig? styleConfig,
-      PageSize? pageSize,
-      String? area});
+/// Adds pattern-matching-related methods to [CreateMenuInput].
+extension CreateMenuInputPatterns on CreateMenuInput {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
 
-  @override
-  $StyleConfigCopyWith<$Res>? get styleConfig;
-  @override
-  $PageSizeCopyWith<$Res>? get pageSize;
-}
-
-/// @nodoc
-class __$$CreateMenuInputImplCopyWithImpl<$Res>
-    extends _$CreateMenuInputCopyWithImpl<$Res, _$CreateMenuInputImpl>
-    implements _$$CreateMenuInputImplCopyWith<$Res> {
-  __$$CreateMenuInputImplCopyWithImpl(
-      _$CreateMenuInputImpl _value, $Res Function(_$CreateMenuInputImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of CreateMenuInput
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? name = null,
-    Object? version = null,
-    Object? status = freezed,
-    Object? styleConfig = freezed,
-    Object? pageSize = freezed,
-    Object? area = freezed,
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_CreateMenuInput value)? $default, {
+    required TResult orElse(),
   }) {
-    return _then(_$CreateMenuInputImpl(
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      version: null == version
-          ? _value.version
-          : version // ignore: cast_nullable_to_non_nullable
-              as String,
-      status: freezed == status
-          ? _value.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as MenuStatus?,
-      styleConfig: freezed == styleConfig
-          ? _value.styleConfig
-          : styleConfig // ignore: cast_nullable_to_non_nullable
-              as StyleConfig?,
-      pageSize: freezed == pageSize
-          ? _value.pageSize
-          : pageSize // ignore: cast_nullable_to_non_nullable
-              as PageSize?,
-      area: freezed == area
-          ? _value.area
-          : area // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
+    final _that = this;
+    switch (_that) {
+      case _CreateMenuInput() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_CreateMenuInput value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreateMenuInput():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_CreateMenuInput value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreateMenuInput() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(String name, String version, MenuStatus? status,
+            StyleConfig? styleConfig, PageSize? pageSize, String? area)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _CreateMenuInput() when $default != null:
+        return $default(_that.name, _that.version, _that.status,
+            _that.styleConfig, _that.pageSize, _that.area);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(String name, String version, MenuStatus? status,
+            StyleConfig? styleConfig, PageSize? pageSize, String? area)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreateMenuInput():
+        return $default(_that.name, _that.version, _that.status,
+            _that.styleConfig, _that.pageSize, _that.area);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(String name, String version, MenuStatus? status,
+            StyleConfig? styleConfig, PageSize? pageSize, String? area)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreateMenuInput() when $default != null:
+        return $default(_that.name, _that.version, _that.status,
+            _that.styleConfig, _that.pageSize, _that.area);
+      case _:
+        return null;
+    }
   }
 }
 
 /// @nodoc
 
-class _$CreateMenuInputImpl implements _CreateMenuInput {
-  const _$CreateMenuInputImpl(
+class _CreateMenuInput implements CreateMenuInput {
+  const _CreateMenuInput(
       {required this.name,
       required this.version,
       this.status,
@@ -222,16 +339,19 @@ class _$CreateMenuInputImpl implements _CreateMenuInput {
   @override
   final String? area;
 
+  /// Create a copy of CreateMenuInput
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'CreateMenuInput(name: $name, version: $version, status: $status, styleConfig: $styleConfig, pageSize: $pageSize, area: $area)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$CreateMenuInputCopyWith<_CreateMenuInput> get copyWith =>
+      __$CreateMenuInputCopyWithImpl<_CreateMenuInput>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$CreateMenuInputImpl &&
+            other is _CreateMenuInput &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.version, version) || other.version == version) &&
             (identical(other.status, status) || other.status == status) &&
@@ -246,68 +366,160 @@ class _$CreateMenuInputImpl implements _CreateMenuInput {
   int get hashCode => Object.hash(
       runtimeType, name, version, status, styleConfig, pageSize, area);
 
-  /// Create a copy of CreateMenuInput
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$CreateMenuInputImplCopyWith<_$CreateMenuInputImpl> get copyWith =>
-      __$$CreateMenuInputImplCopyWithImpl<_$CreateMenuInputImpl>(
-          this, _$identity);
+  String toString() {
+    return 'CreateMenuInput(name: $name, version: $version, status: $status, styleConfig: $styleConfig, pageSize: $pageSize, area: $area)';
+  }
 }
 
-abstract class _CreateMenuInput implements CreateMenuInput {
-  const factory _CreateMenuInput(
-      {required final String name,
-      required final String version,
-      final MenuStatus? status,
-      final StyleConfig? styleConfig,
-      final PageSize? pageSize,
-      final String? area}) = _$CreateMenuInputImpl;
+/// @nodoc
+abstract mixin class _$CreateMenuInputCopyWith<$Res>
+    implements $CreateMenuInputCopyWith<$Res> {
+  factory _$CreateMenuInputCopyWith(
+          _CreateMenuInput value, $Res Function(_CreateMenuInput) _then) =
+      __$CreateMenuInputCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {String name,
+      String version,
+      MenuStatus? status,
+      StyleConfig? styleConfig,
+      PageSize? pageSize,
+      String? area});
 
   @override
-  String get name;
+  $StyleConfigCopyWith<$Res>? get styleConfig;
   @override
-  String get version;
-  @override
-  MenuStatus? get status;
-  @override
-  StyleConfig? get styleConfig;
-  @override
-  PageSize? get pageSize;
-  @override
-  String? get area;
+  $PageSizeCopyWith<$Res>? get pageSize;
+}
+
+/// @nodoc
+class __$CreateMenuInputCopyWithImpl<$Res>
+    implements _$CreateMenuInputCopyWith<$Res> {
+  __$CreateMenuInputCopyWithImpl(this._self, this._then);
+
+  final _CreateMenuInput _self;
+  final $Res Function(_CreateMenuInput) _then;
 
   /// Create a copy of CreateMenuInput
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CreateMenuInputImplCopyWith<_$CreateMenuInputImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? name = null,
+    Object? version = null,
+    Object? status = freezed,
+    Object? styleConfig = freezed,
+    Object? pageSize = freezed,
+    Object? area = freezed,
+  }) {
+    return _then(_CreateMenuInput(
+      name: null == name
+          ? _self.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      version: null == version
+          ? _self.version
+          : version // ignore: cast_nullable_to_non_nullable
+              as String,
+      status: freezed == status
+          ? _self.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as MenuStatus?,
+      styleConfig: freezed == styleConfig
+          ? _self.styleConfig
+          : styleConfig // ignore: cast_nullable_to_non_nullable
+              as StyleConfig?,
+      pageSize: freezed == pageSize
+          ? _self.pageSize
+          : pageSize // ignore: cast_nullable_to_non_nullable
+              as PageSize?,
+      area: freezed == area
+          ? _self.area
+          : area // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+
+  /// Create a copy of CreateMenuInput
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $StyleConfigCopyWith<$Res>? get styleConfig {
+    if (_self.styleConfig == null) {
+      return null;
+    }
+
+    return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
+      return _then(_self.copyWith(styleConfig: value));
+    });
+  }
+
+  /// Create a copy of CreateMenuInput
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PageSizeCopyWith<$Res>? get pageSize {
+    if (_self.pageSize == null) {
+      return null;
+    }
+
+    return $PageSizeCopyWith<$Res>(_self.pageSize!, (value) {
+      return _then(_self.copyWith(pageSize: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$UpdateMenuInput {
-  String get id => throw _privateConstructorUsedError;
-  String? get name => throw _privateConstructorUsedError;
-  String? get version => throw _privateConstructorUsedError;
-  MenuStatus? get status => throw _privateConstructorUsedError;
-  StyleConfig? get styleConfig => throw _privateConstructorUsedError;
-  PageSize? get pageSize => throw _privateConstructorUsedError;
-  String? get area => throw _privateConstructorUsedError;
+  String get id;
+  String? get name;
+  String? get version;
+  MenuStatus? get status;
+  StyleConfig? get styleConfig;
+  PageSize? get pageSize;
+  String? get area;
 
   /// Create a copy of UpdateMenuInput
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $UpdateMenuInputCopyWith<UpdateMenuInput> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$UpdateMenuInputCopyWithImpl<UpdateMenuInput>(
+          this as UpdateMenuInput, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is UpdateMenuInput &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.version, version) || other.version == version) &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.styleConfig, styleConfig) ||
+                other.styleConfig == styleConfig) &&
+            (identical(other.pageSize, pageSize) ||
+                other.pageSize == pageSize) &&
+            (identical(other.area, area) || other.area == area));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, id, name, version, status, styleConfig, pageSize, area);
+
+  @override
+  String toString() {
+    return 'UpdateMenuInput(id: $id, name: $name, version: $version, status: $status, styleConfig: $styleConfig, pageSize: $pageSize, area: $area)';
+  }
 }
 
 /// @nodoc
-abstract class $UpdateMenuInputCopyWith<$Res> {
+abstract mixin class $UpdateMenuInputCopyWith<$Res> {
   factory $UpdateMenuInputCopyWith(
-          UpdateMenuInput value, $Res Function(UpdateMenuInput) then) =
-      _$UpdateMenuInputCopyWithImpl<$Res, UpdateMenuInput>;
+          UpdateMenuInput value, $Res Function(UpdateMenuInput) _then) =
+      _$UpdateMenuInputCopyWithImpl;
   @useResult
   $Res call(
       {String id,
@@ -323,14 +535,12 @@ abstract class $UpdateMenuInputCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$UpdateMenuInputCopyWithImpl<$Res, $Val extends UpdateMenuInput>
+class _$UpdateMenuInputCopyWithImpl<$Res>
     implements $UpdateMenuInputCopyWith<$Res> {
-  _$UpdateMenuInputCopyWithImpl(this._value, this._then);
+  _$UpdateMenuInputCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final UpdateMenuInput _self;
+  final $Res Function(UpdateMenuInput) _then;
 
   /// Create a copy of UpdateMenuInput
   /// with the given fields replaced by the non-null parameter values.
@@ -345,36 +555,36 @@ class _$UpdateMenuInputCopyWithImpl<$Res, $Val extends UpdateMenuInput>
     Object? pageSize = freezed,
     Object? area = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
       name: freezed == name
-          ? _value.name
+          ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String?,
       version: freezed == version
-          ? _value.version
+          ? _self.version
           : version // ignore: cast_nullable_to_non_nullable
               as String?,
       status: freezed == status
-          ? _value.status
+          ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as MenuStatus?,
       styleConfig: freezed == styleConfig
-          ? _value.styleConfig
+          ? _self.styleConfig
           : styleConfig // ignore: cast_nullable_to_non_nullable
               as StyleConfig?,
       pageSize: freezed == pageSize
-          ? _value.pageSize
+          ? _self.pageSize
           : pageSize // ignore: cast_nullable_to_non_nullable
               as PageSize?,
       area: freezed == area
-          ? _value.area
+          ? _self.area
           : area // ignore: cast_nullable_to_non_nullable
               as String?,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of UpdateMenuInput
@@ -382,12 +592,12 @@ class _$UpdateMenuInputCopyWithImpl<$Res, $Val extends UpdateMenuInput>
   @override
   @pragma('vm:prefer-inline')
   $StyleConfigCopyWith<$Res>? get styleConfig {
-    if (_value.styleConfig == null) {
+    if (_self.styleConfig == null) {
       return null;
     }
 
-    return $StyleConfigCopyWith<$Res>(_value.styleConfig!, (value) {
-      return _then(_value.copyWith(styleConfig: value) as $Val);
+    return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
+      return _then(_self.copyWith(styleConfig: value));
     });
   }
 
@@ -396,97 +606,204 @@ class _$UpdateMenuInputCopyWithImpl<$Res, $Val extends UpdateMenuInput>
   @override
   @pragma('vm:prefer-inline')
   $PageSizeCopyWith<$Res>? get pageSize {
-    if (_value.pageSize == null) {
+    if (_self.pageSize == null) {
       return null;
     }
 
-    return $PageSizeCopyWith<$Res>(_value.pageSize!, (value) {
-      return _then(_value.copyWith(pageSize: value) as $Val);
+    return $PageSizeCopyWith<$Res>(_self.pageSize!, (value) {
+      return _then(_self.copyWith(pageSize: value));
     });
   }
 }
 
-/// @nodoc
-abstract class _$$UpdateMenuInputImplCopyWith<$Res>
-    implements $UpdateMenuInputCopyWith<$Res> {
-  factory _$$UpdateMenuInputImplCopyWith(_$UpdateMenuInputImpl value,
-          $Res Function(_$UpdateMenuInputImpl) then) =
-      __$$UpdateMenuInputImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {String id,
-      String? name,
-      String? version,
-      MenuStatus? status,
-      StyleConfig? styleConfig,
-      PageSize? pageSize,
-      String? area});
+/// Adds pattern-matching-related methods to [UpdateMenuInput].
+extension UpdateMenuInputPatterns on UpdateMenuInput {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
 
-  @override
-  $StyleConfigCopyWith<$Res>? get styleConfig;
-  @override
-  $PageSizeCopyWith<$Res>? get pageSize;
-}
-
-/// @nodoc
-class __$$UpdateMenuInputImplCopyWithImpl<$Res>
-    extends _$UpdateMenuInputCopyWithImpl<$Res, _$UpdateMenuInputImpl>
-    implements _$$UpdateMenuInputImplCopyWith<$Res> {
-  __$$UpdateMenuInputImplCopyWithImpl(
-      _$UpdateMenuInputImpl _value, $Res Function(_$UpdateMenuInputImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of UpdateMenuInput
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? name = freezed,
-    Object? version = freezed,
-    Object? status = freezed,
-    Object? styleConfig = freezed,
-    Object? pageSize = freezed,
-    Object? area = freezed,
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_UpdateMenuInput value)? $default, {
+    required TResult orElse(),
   }) {
-    return _then(_$UpdateMenuInputImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: freezed == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-      version: freezed == version
-          ? _value.version
-          : version // ignore: cast_nullable_to_non_nullable
-              as String?,
-      status: freezed == status
-          ? _value.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as MenuStatus?,
-      styleConfig: freezed == styleConfig
-          ? _value.styleConfig
-          : styleConfig // ignore: cast_nullable_to_non_nullable
-              as StyleConfig?,
-      pageSize: freezed == pageSize
-          ? _value.pageSize
-          : pageSize // ignore: cast_nullable_to_non_nullable
-              as PageSize?,
-      area: freezed == area
-          ? _value.area
-          : area // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
+    final _that = this;
+    switch (_that) {
+      case _UpdateMenuInput() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_UpdateMenuInput value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateMenuInput():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_UpdateMenuInput value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateMenuInput() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(
+            String id,
+            String? name,
+            String? version,
+            MenuStatus? status,
+            StyleConfig? styleConfig,
+            PageSize? pageSize,
+            String? area)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateMenuInput() when $default != null:
+        return $default(_that.id, _that.name, _that.version, _that.status,
+            _that.styleConfig, _that.pageSize, _that.area);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(
+            String id,
+            String? name,
+            String? version,
+            MenuStatus? status,
+            StyleConfig? styleConfig,
+            PageSize? pageSize,
+            String? area)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateMenuInput():
+        return $default(_that.id, _that.name, _that.version, _that.status,
+            _that.styleConfig, _that.pageSize, _that.area);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(
+            String id,
+            String? name,
+            String? version,
+            MenuStatus? status,
+            StyleConfig? styleConfig,
+            PageSize? pageSize,
+            String? area)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateMenuInput() when $default != null:
+        return $default(_that.id, _that.name, _that.version, _that.status,
+            _that.styleConfig, _that.pageSize, _that.area);
+      case _:
+        return null;
+    }
   }
 }
 
 /// @nodoc
 
-class _$UpdateMenuInputImpl implements _UpdateMenuInput {
-  const _$UpdateMenuInputImpl(
+class _UpdateMenuInput implements UpdateMenuInput {
+  const _UpdateMenuInput(
       {required this.id,
       this.name,
       this.version,
@@ -510,16 +827,19 @@ class _$UpdateMenuInputImpl implements _UpdateMenuInput {
   @override
   final String? area;
 
+  /// Create a copy of UpdateMenuInput
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'UpdateMenuInput(id: $id, name: $name, version: $version, status: $status, styleConfig: $styleConfig, pageSize: $pageSize, area: $area)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$UpdateMenuInputCopyWith<_UpdateMenuInput> get copyWith =>
+      __$UpdateMenuInputCopyWithImpl<_UpdateMenuInput>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$UpdateMenuInputImpl &&
+            other is _UpdateMenuInput &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.version, version) || other.version == version) &&
@@ -535,45 +855,115 @@ class _$UpdateMenuInputImpl implements _UpdateMenuInput {
   int get hashCode => Object.hash(
       runtimeType, id, name, version, status, styleConfig, pageSize, area);
 
+  @override
+  String toString() {
+    return 'UpdateMenuInput(id: $id, name: $name, version: $version, status: $status, styleConfig: $styleConfig, pageSize: $pageSize, area: $area)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$UpdateMenuInputCopyWith<$Res>
+    implements $UpdateMenuInputCopyWith<$Res> {
+  factory _$UpdateMenuInputCopyWith(
+          _UpdateMenuInput value, $Res Function(_UpdateMenuInput) _then) =
+      __$UpdateMenuInputCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {String id,
+      String? name,
+      String? version,
+      MenuStatus? status,
+      StyleConfig? styleConfig,
+      PageSize? pageSize,
+      String? area});
+
+  @override
+  $StyleConfigCopyWith<$Res>? get styleConfig;
+  @override
+  $PageSizeCopyWith<$Res>? get pageSize;
+}
+
+/// @nodoc
+class __$UpdateMenuInputCopyWithImpl<$Res>
+    implements _$UpdateMenuInputCopyWith<$Res> {
+  __$UpdateMenuInputCopyWithImpl(this._self, this._then);
+
+  final _UpdateMenuInput _self;
+  final $Res Function(_UpdateMenuInput) _then;
+
   /// Create a copy of UpdateMenuInput
   /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$UpdateMenuInputImplCopyWith<_$UpdateMenuInputImpl> get copyWith =>
-      __$$UpdateMenuInputImplCopyWithImpl<_$UpdateMenuInputImpl>(
-          this, _$identity);
-}
-
-abstract class _UpdateMenuInput implements UpdateMenuInput {
-  const factory _UpdateMenuInput(
-      {required final String id,
-      final String? name,
-      final String? version,
-      final MenuStatus? status,
-      final StyleConfig? styleConfig,
-      final PageSize? pageSize,
-      final String? area}) = _$UpdateMenuInputImpl;
-
-  @override
-  String get id;
-  @override
-  String? get name;
-  @override
-  String? get version;
-  @override
-  MenuStatus? get status;
-  @override
-  StyleConfig? get styleConfig;
-  @override
-  PageSize? get pageSize;
-  @override
-  String? get area;
+  $Res call({
+    Object? id = null,
+    Object? name = freezed,
+    Object? version = freezed,
+    Object? status = freezed,
+    Object? styleConfig = freezed,
+    Object? pageSize = freezed,
+    Object? area = freezed,
+  }) {
+    return _then(_UpdateMenuInput(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: freezed == name
+          ? _self.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      version: freezed == version
+          ? _self.version
+          : version // ignore: cast_nullable_to_non_nullable
+              as String?,
+      status: freezed == status
+          ? _self.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as MenuStatus?,
+      styleConfig: freezed == styleConfig
+          ? _self.styleConfig
+          : styleConfig // ignore: cast_nullable_to_non_nullable
+              as StyleConfig?,
+      pageSize: freezed == pageSize
+          ? _self.pageSize
+          : pageSize // ignore: cast_nullable_to_non_nullable
+              as PageSize?,
+      area: freezed == area
+          ? _self.area
+          : area // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
 
   /// Create a copy of UpdateMenuInput
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$UpdateMenuInputImplCopyWith<_$UpdateMenuInputImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $StyleConfigCopyWith<$Res>? get styleConfig {
+    if (_self.styleConfig == null) {
+      return null;
+    }
+
+    return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
+      return _then(_self.copyWith(styleConfig: value));
+    });
+  }
+
+  /// Create a copy of UpdateMenuInput
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PageSizeCopyWith<$Res>? get pageSize {
+    if (_self.pageSize == null) {
+      return null;
+    }
+
+    return $PageSizeCopyWith<$Res>(_self.pageSize!, (value) {
+      return _then(_self.copyWith(pageSize: value));
+    });
+  }
 }
+
+// dart format on

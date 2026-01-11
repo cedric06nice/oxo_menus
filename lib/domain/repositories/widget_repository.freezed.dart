@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,32 +9,55 @@ part of 'widget_repository.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$CreateWidgetInput {
-  String get columnId => throw _privateConstructorUsedError;
-  String get type => throw _privateConstructorUsedError;
-  String get version => throw _privateConstructorUsedError;
-  int get index => throw _privateConstructorUsedError;
-  Map<String, dynamic> get props => throw _privateConstructorUsedError;
-  WidgetStyle? get style => throw _privateConstructorUsedError;
+  String get columnId;
+  String get type;
+  String get version;
+  int get index;
+  Map<String, dynamic> get props;
+  WidgetStyle? get style;
 
   /// Create a copy of CreateWidgetInput
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $CreateWidgetInputCopyWith<CreateWidgetInput> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$CreateWidgetInputCopyWithImpl<CreateWidgetInput>(
+          this as CreateWidgetInput, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is CreateWidgetInput &&
+            (identical(other.columnId, columnId) ||
+                other.columnId == columnId) &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.version, version) || other.version == version) &&
+            (identical(other.index, index) || other.index == index) &&
+            const DeepCollectionEquality().equals(other.props, props) &&
+            (identical(other.style, style) || other.style == style));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, columnId, type, version, index,
+      const DeepCollectionEquality().hash(props), style);
+
+  @override
+  String toString() {
+    return 'CreateWidgetInput(columnId: $columnId, type: $type, version: $version, index: $index, props: $props, style: $style)';
+  }
 }
 
 /// @nodoc
-abstract class $CreateWidgetInputCopyWith<$Res> {
+abstract mixin class $CreateWidgetInputCopyWith<$Res> {
   factory $CreateWidgetInputCopyWith(
-          CreateWidgetInput value, $Res Function(CreateWidgetInput) then) =
-      _$CreateWidgetInputCopyWithImpl<$Res, CreateWidgetInput>;
+          CreateWidgetInput value, $Res Function(CreateWidgetInput) _then) =
+      _$CreateWidgetInputCopyWithImpl;
   @useResult
   $Res call(
       {String columnId,
@@ -48,14 +71,12 @@ abstract class $CreateWidgetInputCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$CreateWidgetInputCopyWithImpl<$Res, $Val extends CreateWidgetInput>
+class _$CreateWidgetInputCopyWithImpl<$Res>
     implements $CreateWidgetInputCopyWith<$Res> {
-  _$CreateWidgetInputCopyWithImpl(this._value, this._then);
+  _$CreateWidgetInputCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final CreateWidgetInput _self;
+  final $Res Function(CreateWidgetInput) _then;
 
   /// Create a copy of CreateWidgetInput
   /// with the given fields replaced by the non-null parameter values.
@@ -69,32 +90,32 @@ class _$CreateWidgetInputCopyWithImpl<$Res, $Val extends CreateWidgetInput>
     Object? props = null,
     Object? style = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       columnId: null == columnId
-          ? _value.columnId
+          ? _self.columnId
           : columnId // ignore: cast_nullable_to_non_nullable
               as String,
       type: null == type
-          ? _value.type
+          ? _self.type
           : type // ignore: cast_nullable_to_non_nullable
               as String,
       version: null == version
-          ? _value.version
+          ? _self.version
           : version // ignore: cast_nullable_to_non_nullable
               as String,
       index: null == index
-          ? _value.index
+          ? _self.index
           : index // ignore: cast_nullable_to_non_nullable
               as int,
       props: null == props
-          ? _value.props
+          ? _self.props
           : props // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>,
       style: freezed == style
-          ? _value.style
+          ? _self.style
           : style // ignore: cast_nullable_to_non_nullable
               as WidgetStyle?,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of CreateWidgetInput
@@ -102,89 +123,186 @@ class _$CreateWidgetInputCopyWithImpl<$Res, $Val extends CreateWidgetInput>
   @override
   @pragma('vm:prefer-inline')
   $WidgetStyleCopyWith<$Res>? get style {
-    if (_value.style == null) {
+    if (_self.style == null) {
       return null;
     }
 
-    return $WidgetStyleCopyWith<$Res>(_value.style!, (value) {
-      return _then(_value.copyWith(style: value) as $Val);
+    return $WidgetStyleCopyWith<$Res>(_self.style!, (value) {
+      return _then(_self.copyWith(style: value));
     });
   }
 }
 
-/// @nodoc
-abstract class _$$CreateWidgetInputImplCopyWith<$Res>
-    implements $CreateWidgetInputCopyWith<$Res> {
-  factory _$$CreateWidgetInputImplCopyWith(_$CreateWidgetInputImpl value,
-          $Res Function(_$CreateWidgetInputImpl) then) =
-      __$$CreateWidgetInputImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {String columnId,
-      String type,
-      String version,
-      int index,
-      Map<String, dynamic> props,
-      WidgetStyle? style});
+/// Adds pattern-matching-related methods to [CreateWidgetInput].
+extension CreateWidgetInputPatterns on CreateWidgetInput {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
 
-  @override
-  $WidgetStyleCopyWith<$Res>? get style;
-}
-
-/// @nodoc
-class __$$CreateWidgetInputImplCopyWithImpl<$Res>
-    extends _$CreateWidgetInputCopyWithImpl<$Res, _$CreateWidgetInputImpl>
-    implements _$$CreateWidgetInputImplCopyWith<$Res> {
-  __$$CreateWidgetInputImplCopyWithImpl(_$CreateWidgetInputImpl _value,
-      $Res Function(_$CreateWidgetInputImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of CreateWidgetInput
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? columnId = null,
-    Object? type = null,
-    Object? version = null,
-    Object? index = null,
-    Object? props = null,
-    Object? style = freezed,
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_CreateWidgetInput value)? $default, {
+    required TResult orElse(),
   }) {
-    return _then(_$CreateWidgetInputImpl(
-      columnId: null == columnId
-          ? _value.columnId
-          : columnId // ignore: cast_nullable_to_non_nullable
-              as String,
-      type: null == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String,
-      version: null == version
-          ? _value.version
-          : version // ignore: cast_nullable_to_non_nullable
-              as String,
-      index: null == index
-          ? _value.index
-          : index // ignore: cast_nullable_to_non_nullable
-              as int,
-      props: null == props
-          ? _value._props
-          : props // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>,
-      style: freezed == style
-          ? _value.style
-          : style // ignore: cast_nullable_to_non_nullable
-              as WidgetStyle?,
-    ));
+    final _that = this;
+    switch (_that) {
+      case _CreateWidgetInput() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_CreateWidgetInput value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreateWidgetInput():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_CreateWidgetInput value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreateWidgetInput() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(String columnId, String type, String version, int index,
+            Map<String, dynamic> props, WidgetStyle? style)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _CreateWidgetInput() when $default != null:
+        return $default(_that.columnId, _that.type, _that.version, _that.index,
+            _that.props, _that.style);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(String columnId, String type, String version, int index,
+            Map<String, dynamic> props, WidgetStyle? style)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreateWidgetInput():
+        return $default(_that.columnId, _that.type, _that.version, _that.index,
+            _that.props, _that.style);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(String columnId, String type, String version, int index,
+            Map<String, dynamic> props, WidgetStyle? style)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreateWidgetInput() when $default != null:
+        return $default(_that.columnId, _that.type, _that.version, _that.index,
+            _that.props, _that.style);
+      case _:
+        return null;
+    }
   }
 }
 
 /// @nodoc
 
-class _$CreateWidgetInputImpl implements _CreateWidgetInput {
-  const _$CreateWidgetInputImpl(
+class _CreateWidgetInput implements CreateWidgetInput {
+  const _CreateWidgetInput(
       {required this.columnId,
       required this.type,
       required this.version,
@@ -212,16 +330,19 @@ class _$CreateWidgetInputImpl implements _CreateWidgetInput {
   @override
   final WidgetStyle? style;
 
+  /// Create a copy of CreateWidgetInput
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'CreateWidgetInput(columnId: $columnId, type: $type, version: $version, index: $index, props: $props, style: $style)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$CreateWidgetInputCopyWith<_CreateWidgetInput> get copyWith =>
+      __$CreateWidgetInputCopyWithImpl<_CreateWidgetInput>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$CreateWidgetInputImpl &&
+            other is _CreateWidgetInput &&
             (identical(other.columnId, columnId) ||
                 other.columnId == columnId) &&
             (identical(other.type, type) || other.type == type) &&
@@ -235,67 +356,140 @@ class _$CreateWidgetInputImpl implements _CreateWidgetInput {
   int get hashCode => Object.hash(runtimeType, columnId, type, version, index,
       const DeepCollectionEquality().hash(_props), style);
 
-  /// Create a copy of CreateWidgetInput
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$CreateWidgetInputImplCopyWith<_$CreateWidgetInputImpl> get copyWith =>
-      __$$CreateWidgetInputImplCopyWithImpl<_$CreateWidgetInputImpl>(
-          this, _$identity);
+  String toString() {
+    return 'CreateWidgetInput(columnId: $columnId, type: $type, version: $version, index: $index, props: $props, style: $style)';
+  }
 }
 
-abstract class _CreateWidgetInput implements CreateWidgetInput {
-  const factory _CreateWidgetInput(
-      {required final String columnId,
-      required final String type,
-      required final String version,
-      required final int index,
-      required final Map<String, dynamic> props,
-      final WidgetStyle? style}) = _$CreateWidgetInputImpl;
+/// @nodoc
+abstract mixin class _$CreateWidgetInputCopyWith<$Res>
+    implements $CreateWidgetInputCopyWith<$Res> {
+  factory _$CreateWidgetInputCopyWith(
+          _CreateWidgetInput value, $Res Function(_CreateWidgetInput) _then) =
+      __$CreateWidgetInputCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {String columnId,
+      String type,
+      String version,
+      int index,
+      Map<String, dynamic> props,
+      WidgetStyle? style});
 
   @override
-  String get columnId;
-  @override
-  String get type;
-  @override
-  String get version;
-  @override
-  int get index;
-  @override
-  Map<String, dynamic> get props;
-  @override
-  WidgetStyle? get style;
+  $WidgetStyleCopyWith<$Res>? get style;
+}
+
+/// @nodoc
+class __$CreateWidgetInputCopyWithImpl<$Res>
+    implements _$CreateWidgetInputCopyWith<$Res> {
+  __$CreateWidgetInputCopyWithImpl(this._self, this._then);
+
+  final _CreateWidgetInput _self;
+  final $Res Function(_CreateWidgetInput) _then;
 
   /// Create a copy of CreateWidgetInput
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CreateWidgetInputImplCopyWith<_$CreateWidgetInputImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? columnId = null,
+    Object? type = null,
+    Object? version = null,
+    Object? index = null,
+    Object? props = null,
+    Object? style = freezed,
+  }) {
+    return _then(_CreateWidgetInput(
+      columnId: null == columnId
+          ? _self.columnId
+          : columnId // ignore: cast_nullable_to_non_nullable
+              as String,
+      type: null == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
+      version: null == version
+          ? _self.version
+          : version // ignore: cast_nullable_to_non_nullable
+              as String,
+      index: null == index
+          ? _self.index
+          : index // ignore: cast_nullable_to_non_nullable
+              as int,
+      props: null == props
+          ? _self._props
+          : props // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
+      style: freezed == style
+          ? _self.style
+          : style // ignore: cast_nullable_to_non_nullable
+              as WidgetStyle?,
+    ));
+  }
+
+  /// Create a copy of CreateWidgetInput
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $WidgetStyleCopyWith<$Res>? get style {
+    if (_self.style == null) {
+      return null;
+    }
+
+    return $WidgetStyleCopyWith<$Res>(_self.style!, (value) {
+      return _then(_self.copyWith(style: value));
+    });
+  }
 }
 
 /// @nodoc
 mixin _$UpdateWidgetInput {
-  String get id => throw _privateConstructorUsedError;
-  String? get type => throw _privateConstructorUsedError;
-  String? get version => throw _privateConstructorUsedError;
-  int? get index => throw _privateConstructorUsedError;
-  Map<String, dynamic>? get props => throw _privateConstructorUsedError;
-  WidgetStyle? get style => throw _privateConstructorUsedError;
+  String get id;
+  String? get type;
+  String? get version;
+  int? get index;
+  Map<String, dynamic>? get props;
+  WidgetStyle? get style;
 
   /// Create a copy of UpdateWidgetInput
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $UpdateWidgetInputCopyWith<UpdateWidgetInput> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$UpdateWidgetInputCopyWithImpl<UpdateWidgetInput>(
+          this as UpdateWidgetInput, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is UpdateWidgetInput &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.type, type) || other.type == type) &&
+            (identical(other.version, version) || other.version == version) &&
+            (identical(other.index, index) || other.index == index) &&
+            const DeepCollectionEquality().equals(other.props, props) &&
+            (identical(other.style, style) || other.style == style));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, id, type, version, index,
+      const DeepCollectionEquality().hash(props), style);
+
+  @override
+  String toString() {
+    return 'UpdateWidgetInput(id: $id, type: $type, version: $version, index: $index, props: $props, style: $style)';
+  }
 }
 
 /// @nodoc
-abstract class $UpdateWidgetInputCopyWith<$Res> {
+abstract mixin class $UpdateWidgetInputCopyWith<$Res> {
   factory $UpdateWidgetInputCopyWith(
-          UpdateWidgetInput value, $Res Function(UpdateWidgetInput) then) =
-      _$UpdateWidgetInputCopyWithImpl<$Res, UpdateWidgetInput>;
+          UpdateWidgetInput value, $Res Function(UpdateWidgetInput) _then) =
+      _$UpdateWidgetInputCopyWithImpl;
   @useResult
   $Res call(
       {String id,
@@ -309,14 +503,12 @@ abstract class $UpdateWidgetInputCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$UpdateWidgetInputCopyWithImpl<$Res, $Val extends UpdateWidgetInput>
+class _$UpdateWidgetInputCopyWithImpl<$Res>
     implements $UpdateWidgetInputCopyWith<$Res> {
-  _$UpdateWidgetInputCopyWithImpl(this._value, this._then);
+  _$UpdateWidgetInputCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final UpdateWidgetInput _self;
+  final $Res Function(UpdateWidgetInput) _then;
 
   /// Create a copy of UpdateWidgetInput
   /// with the given fields replaced by the non-null parameter values.
@@ -330,32 +522,32 @@ class _$UpdateWidgetInputCopyWithImpl<$Res, $Val extends UpdateWidgetInput>
     Object? props = freezed,
     Object? style = freezed,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
       type: freezed == type
-          ? _value.type
+          ? _self.type
           : type // ignore: cast_nullable_to_non_nullable
               as String?,
       version: freezed == version
-          ? _value.version
+          ? _self.version
           : version // ignore: cast_nullable_to_non_nullable
               as String?,
       index: freezed == index
-          ? _value.index
+          ? _self.index
           : index // ignore: cast_nullable_to_non_nullable
               as int?,
       props: freezed == props
-          ? _value.props
+          ? _self.props
           : props // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
       style: freezed == style
-          ? _value.style
+          ? _self.style
           : style // ignore: cast_nullable_to_non_nullable
               as WidgetStyle?,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of UpdateWidgetInput
@@ -363,89 +555,186 @@ class _$UpdateWidgetInputCopyWithImpl<$Res, $Val extends UpdateWidgetInput>
   @override
   @pragma('vm:prefer-inline')
   $WidgetStyleCopyWith<$Res>? get style {
-    if (_value.style == null) {
+    if (_self.style == null) {
       return null;
     }
 
-    return $WidgetStyleCopyWith<$Res>(_value.style!, (value) {
-      return _then(_value.copyWith(style: value) as $Val);
+    return $WidgetStyleCopyWith<$Res>(_self.style!, (value) {
+      return _then(_self.copyWith(style: value));
     });
   }
 }
 
-/// @nodoc
-abstract class _$$UpdateWidgetInputImplCopyWith<$Res>
-    implements $UpdateWidgetInputCopyWith<$Res> {
-  factory _$$UpdateWidgetInputImplCopyWith(_$UpdateWidgetInputImpl value,
-          $Res Function(_$UpdateWidgetInputImpl) then) =
-      __$$UpdateWidgetInputImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {String id,
-      String? type,
-      String? version,
-      int? index,
-      Map<String, dynamic>? props,
-      WidgetStyle? style});
+/// Adds pattern-matching-related methods to [UpdateWidgetInput].
+extension UpdateWidgetInputPatterns on UpdateWidgetInput {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
 
-  @override
-  $WidgetStyleCopyWith<$Res>? get style;
-}
-
-/// @nodoc
-class __$$UpdateWidgetInputImplCopyWithImpl<$Res>
-    extends _$UpdateWidgetInputCopyWithImpl<$Res, _$UpdateWidgetInputImpl>
-    implements _$$UpdateWidgetInputImplCopyWith<$Res> {
-  __$$UpdateWidgetInputImplCopyWithImpl(_$UpdateWidgetInputImpl _value,
-      $Res Function(_$UpdateWidgetInputImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of UpdateWidgetInput
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? type = freezed,
-    Object? version = freezed,
-    Object? index = freezed,
-    Object? props = freezed,
-    Object? style = freezed,
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_UpdateWidgetInput value)? $default, {
+    required TResult orElse(),
   }) {
-    return _then(_$UpdateWidgetInputImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      type: freezed == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String?,
-      version: freezed == version
-          ? _value.version
-          : version // ignore: cast_nullable_to_non_nullable
-              as String?,
-      index: freezed == index
-          ? _value.index
-          : index // ignore: cast_nullable_to_non_nullable
-              as int?,
-      props: freezed == props
-          ? _value._props
-          : props // ignore: cast_nullable_to_non_nullable
-              as Map<String, dynamic>?,
-      style: freezed == style
-          ? _value.style
-          : style // ignore: cast_nullable_to_non_nullable
-              as WidgetStyle?,
-    ));
+    final _that = this;
+    switch (_that) {
+      case _UpdateWidgetInput() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_UpdateWidgetInput value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateWidgetInput():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_UpdateWidgetInput value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateWidgetInput() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(String id, String? type, String? version, int? index,
+            Map<String, dynamic>? props, WidgetStyle? style)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateWidgetInput() when $default != null:
+        return $default(_that.id, _that.type, _that.version, _that.index,
+            _that.props, _that.style);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(String id, String? type, String? version, int? index,
+            Map<String, dynamic>? props, WidgetStyle? style)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateWidgetInput():
+        return $default(_that.id, _that.type, _that.version, _that.index,
+            _that.props, _that.style);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(String id, String? type, String? version, int? index,
+            Map<String, dynamic>? props, WidgetStyle? style)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdateWidgetInput() when $default != null:
+        return $default(_that.id, _that.type, _that.version, _that.index,
+            _that.props, _that.style);
+      case _:
+        return null;
+    }
   }
 }
 
 /// @nodoc
 
-class _$UpdateWidgetInputImpl implements _UpdateWidgetInput {
-  const _$UpdateWidgetInputImpl(
+class _UpdateWidgetInput implements UpdateWidgetInput {
+  const _UpdateWidgetInput(
       {required this.id,
       this.type,
       this.version,
@@ -475,16 +764,19 @@ class _$UpdateWidgetInputImpl implements _UpdateWidgetInput {
   @override
   final WidgetStyle? style;
 
+  /// Create a copy of UpdateWidgetInput
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'UpdateWidgetInput(id: $id, type: $type, version: $version, index: $index, props: $props, style: $style)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$UpdateWidgetInputCopyWith<_UpdateWidgetInput> get copyWith =>
+      __$UpdateWidgetInputCopyWithImpl<_UpdateWidgetInput>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$UpdateWidgetInputImpl &&
+            other is _UpdateWidgetInput &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.type, type) || other.type == type) &&
             (identical(other.version, version) || other.version == version) &&
@@ -497,42 +789,93 @@ class _$UpdateWidgetInputImpl implements _UpdateWidgetInput {
   int get hashCode => Object.hash(runtimeType, id, type, version, index,
       const DeepCollectionEquality().hash(_props), style);
 
+  @override
+  String toString() {
+    return 'UpdateWidgetInput(id: $id, type: $type, version: $version, index: $index, props: $props, style: $style)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$UpdateWidgetInputCopyWith<$Res>
+    implements $UpdateWidgetInputCopyWith<$Res> {
+  factory _$UpdateWidgetInputCopyWith(
+          _UpdateWidgetInput value, $Res Function(_UpdateWidgetInput) _then) =
+      __$UpdateWidgetInputCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {String id,
+      String? type,
+      String? version,
+      int? index,
+      Map<String, dynamic>? props,
+      WidgetStyle? style});
+
+  @override
+  $WidgetStyleCopyWith<$Res>? get style;
+}
+
+/// @nodoc
+class __$UpdateWidgetInputCopyWithImpl<$Res>
+    implements _$UpdateWidgetInputCopyWith<$Res> {
+  __$UpdateWidgetInputCopyWithImpl(this._self, this._then);
+
+  final _UpdateWidgetInput _self;
+  final $Res Function(_UpdateWidgetInput) _then;
+
   /// Create a copy of UpdateWidgetInput
   /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$UpdateWidgetInputImplCopyWith<_$UpdateWidgetInputImpl> get copyWith =>
-      __$$UpdateWidgetInputImplCopyWithImpl<_$UpdateWidgetInputImpl>(
-          this, _$identity);
-}
-
-abstract class _UpdateWidgetInput implements UpdateWidgetInput {
-  const factory _UpdateWidgetInput(
-      {required final String id,
-      final String? type,
-      final String? version,
-      final int? index,
-      final Map<String, dynamic>? props,
-      final WidgetStyle? style}) = _$UpdateWidgetInputImpl;
-
-  @override
-  String get id;
-  @override
-  String? get type;
-  @override
-  String? get version;
-  @override
-  int? get index;
-  @override
-  Map<String, dynamic>? get props;
-  @override
-  WidgetStyle? get style;
+  $Res call({
+    Object? id = null,
+    Object? type = freezed,
+    Object? version = freezed,
+    Object? index = freezed,
+    Object? props = freezed,
+    Object? style = freezed,
+  }) {
+    return _then(_UpdateWidgetInput(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      type: freezed == type
+          ? _self.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String?,
+      version: freezed == version
+          ? _self.version
+          : version // ignore: cast_nullable_to_non_nullable
+              as String?,
+      index: freezed == index
+          ? _self.index
+          : index // ignore: cast_nullable_to_non_nullable
+              as int?,
+      props: freezed == props
+          ? _self._props
+          : props // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      style: freezed == style
+          ? _self.style
+          : style // ignore: cast_nullable_to_non_nullable
+              as WidgetStyle?,
+    ));
+  }
 
   /// Create a copy of UpdateWidgetInput
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$UpdateWidgetInputImplCopyWith<_$UpdateWidgetInputImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $WidgetStyleCopyWith<$Res>? get style {
+    if (_self.style == null) {
+      return null;
+    }
+
+    return $WidgetStyleCopyWith<$Res>(_self.style!, (value) {
+      return _then(_self.copyWith(style: value));
+    });
+  }
 }
+
+// dart format on

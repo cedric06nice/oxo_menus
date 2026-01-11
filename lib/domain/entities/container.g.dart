@@ -6,8 +6,7 @@ part of 'container.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ContainerImpl _$$ContainerImplFromJson(Map<String, dynamic> json) =>
-    _$ContainerImpl(
+_Container _$ContainerFromJson(Map<String, dynamic> json) => _Container(
       id: json['id'] as String,
       pageId: json['pageId'] as String,
       index: (json['index'] as num).toInt(),
@@ -23,7 +22,7 @@ _$ContainerImpl _$$ContainerImplFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['dateUpdated'] as String),
     );
 
-Map<String, dynamic> _$$ContainerImplToJson(_$ContainerImpl instance) =>
+Map<String, dynamic> _$ContainerToJson(_Container instance) =>
     <String, dynamic>{
       'id': instance.id,
       'pageId': instance.pageId,
@@ -34,14 +33,14 @@ Map<String, dynamic> _$$ContainerImplToJson(_$ContainerImpl instance) =>
       'dateUpdated': instance.dateUpdated?.toIso8601String(),
     };
 
-_$LayoutConfigImpl _$$LayoutConfigImplFromJson(Map<String, dynamic> json) =>
-    _$LayoutConfigImpl(
+_LayoutConfig _$LayoutConfigFromJson(Map<String, dynamic> json) =>
+    _LayoutConfig(
       direction: json['direction'] as String?,
       alignment: json['alignment'] as String?,
       spacing: (json['spacing'] as num?)?.toDouble(),
     );
 
-Map<String, dynamic> _$$LayoutConfigImplToJson(_$LayoutConfigImpl instance) =>
+Map<String, dynamic> _$LayoutConfigToJson(_LayoutConfig instance) =>
     <String, dynamic>{
       'direction': instance.direction,
       'alignment': instance.alignment,

@@ -6,8 +6,7 @@ part of 'dish_props.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$DishPropsImpl _$$DishPropsImplFromJson(Map<String, dynamic> json) =>
-    _$DishPropsImpl(
+_DishProps _$DishPropsFromJson(Map<String, dynamic> json) => _DishProps(
       name: json['name'] as String,
       price: (json['price'] as num).toDouble(),
       description: json['description'] as String?,
@@ -23,7 +22,7 @@ _$DishPropsImpl _$$DishPropsImplFromJson(Map<String, dynamic> json) =>
       showAllergens: json['showAllergens'] as bool? ?? true,
     );
 
-Map<String, dynamic> _$$DishPropsImplToJson(_$DishPropsImpl instance) =>
+Map<String, dynamic> _$DishPropsToJson(_DishProps instance) =>
     <String, dynamic>{
       'name': instance.name,
       'price': instance.price,

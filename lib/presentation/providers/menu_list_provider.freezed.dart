@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,87 +9,61 @@ part of 'menu_list_provider.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$MenuListState {
-  List<Menu> get menus => throw _privateConstructorUsedError;
-  bool get isLoading => throw _privateConstructorUsedError;
-  String? get errorMessage => throw _privateConstructorUsedError;
+  List<Menu> get menus;
+  bool get isLoading;
+  String? get errorMessage;
 
   /// Create a copy of MenuListState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $MenuListStateCopyWith<MenuListState> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $MenuListStateCopyWith<$Res> {
-  factory $MenuListStateCopyWith(
-          MenuListState value, $Res Function(MenuListState) then) =
-      _$MenuListStateCopyWithImpl<$Res, MenuListState>;
-  @useResult
-  $Res call({List<Menu> menus, bool isLoading, String? errorMessage});
-}
-
-/// @nodoc
-class _$MenuListStateCopyWithImpl<$Res, $Val extends MenuListState>
-    implements $MenuListStateCopyWith<$Res> {
-  _$MenuListStateCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of MenuListState
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
+  $MenuListStateCopyWith<MenuListState> get copyWith =>
+      _$MenuListStateCopyWithImpl<MenuListState>(
+          this as MenuListState, _$identity);
+
   @override
-  $Res call({
-    Object? menus = null,
-    Object? isLoading = null,
-    Object? errorMessage = freezed,
-  }) {
-    return _then(_value.copyWith(
-      menus: null == menus
-          ? _value.menus
-          : menus // ignore: cast_nullable_to_non_nullable
-              as List<Menu>,
-      isLoading: null == isLoading
-          ? _value.isLoading
-          : isLoading // ignore: cast_nullable_to_non_nullable
-              as bool,
-      errorMessage: freezed == errorMessage
-          ? _value.errorMessage
-          : errorMessage // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is MenuListState &&
+            const DeepCollectionEquality().equals(other.menus, menus) &&
+            (identical(other.isLoading, isLoading) ||
+                other.isLoading == isLoading) &&
+            (identical(other.errorMessage, errorMessage) ||
+                other.errorMessage == errorMessage));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType,
+      const DeepCollectionEquality().hash(menus), isLoading, errorMessage);
+
+  @override
+  String toString() {
+    return 'MenuListState(menus: $menus, isLoading: $isLoading, errorMessage: $errorMessage)';
   }
 }
 
 /// @nodoc
-abstract class _$$MenuListStateImplCopyWith<$Res>
-    implements $MenuListStateCopyWith<$Res> {
-  factory _$$MenuListStateImplCopyWith(
-          _$MenuListStateImpl value, $Res Function(_$MenuListStateImpl) then) =
-      __$$MenuListStateImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $MenuListStateCopyWith<$Res> {
+  factory $MenuListStateCopyWith(
+          MenuListState value, $Res Function(MenuListState) _then) =
+      _$MenuListStateCopyWithImpl;
   @useResult
   $Res call({List<Menu> menus, bool isLoading, String? errorMessage});
 }
 
 /// @nodoc
-class __$$MenuListStateImplCopyWithImpl<$Res>
-    extends _$MenuListStateCopyWithImpl<$Res, _$MenuListStateImpl>
-    implements _$$MenuListStateImplCopyWith<$Res> {
-  __$$MenuListStateImplCopyWithImpl(
-      _$MenuListStateImpl _value, $Res Function(_$MenuListStateImpl) _then)
-      : super(_value, _then);
+class _$MenuListStateCopyWithImpl<$Res>
+    implements $MenuListStateCopyWith<$Res> {
+  _$MenuListStateCopyWithImpl(this._self, this._then);
+
+  final MenuListState _self;
+  final $Res Function(MenuListState) _then;
 
   /// Create a copy of MenuListState
   /// with the given fields replaced by the non-null parameter values.
@@ -100,27 +74,187 @@ class __$$MenuListStateImplCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? errorMessage = freezed,
   }) {
-    return _then(_$MenuListStateImpl(
+    return _then(_self.copyWith(
       menus: null == menus
-          ? _value._menus
+          ? _self.menus
           : menus // ignore: cast_nullable_to_non_nullable
               as List<Menu>,
       isLoading: null == isLoading
-          ? _value.isLoading
+          ? _self.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
               as bool,
       errorMessage: freezed == errorMessage
-          ? _value.errorMessage
+          ? _self.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
   }
 }
 
+/// Adds pattern-matching-related methods to [MenuListState].
+extension MenuListStatePatterns on MenuListState {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_MenuListState value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _MenuListState() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_MenuListState value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _MenuListState():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_MenuListState value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _MenuListState() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(List<Menu> menus, bool isLoading, String? errorMessage)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _MenuListState() when $default != null:
+        return $default(_that.menus, _that.isLoading, _that.errorMessage);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(List<Menu> menus, bool isLoading, String? errorMessage)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _MenuListState():
+        return $default(_that.menus, _that.isLoading, _that.errorMessage);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(List<Menu> menus, bool isLoading, String? errorMessage)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _MenuListState() when $default != null:
+        return $default(_that.menus, _that.isLoading, _that.errorMessage);
+      case _:
+        return null;
+    }
+  }
+}
+
 /// @nodoc
 
-class _$MenuListStateImpl implements _MenuListState {
-  const _$MenuListStateImpl(
+class _MenuListState implements MenuListState {
+  const _MenuListState(
       {final List<Menu> menus = const [],
       this.isLoading = false,
       this.errorMessage})
@@ -141,16 +275,19 @@ class _$MenuListStateImpl implements _MenuListState {
   @override
   final String? errorMessage;
 
+  /// Create a copy of MenuListState
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'MenuListState(menus: $menus, isLoading: $isLoading, errorMessage: $errorMessage)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$MenuListStateCopyWith<_MenuListState> get copyWith =>
+      __$MenuListStateCopyWithImpl<_MenuListState>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$MenuListStateImpl &&
+            other is _MenuListState &&
             const DeepCollectionEquality().equals(other._menus, _menus) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
@@ -162,32 +299,55 @@ class _$MenuListStateImpl implements _MenuListState {
   int get hashCode => Object.hash(runtimeType,
       const DeepCollectionEquality().hash(_menus), isLoading, errorMessage);
 
+  @override
+  String toString() {
+    return 'MenuListState(menus: $menus, isLoading: $isLoading, errorMessage: $errorMessage)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$MenuListStateCopyWith<$Res>
+    implements $MenuListStateCopyWith<$Res> {
+  factory _$MenuListStateCopyWith(
+          _MenuListState value, $Res Function(_MenuListState) _then) =
+      __$MenuListStateCopyWithImpl;
+  @override
+  @useResult
+  $Res call({List<Menu> menus, bool isLoading, String? errorMessage});
+}
+
+/// @nodoc
+class __$MenuListStateCopyWithImpl<$Res>
+    implements _$MenuListStateCopyWith<$Res> {
+  __$MenuListStateCopyWithImpl(this._self, this._then);
+
+  final _MenuListState _self;
+  final $Res Function(_MenuListState) _then;
+
   /// Create a copy of MenuListState
   /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$MenuListStateImplCopyWith<_$MenuListStateImpl> get copyWith =>
-      __$$MenuListStateImplCopyWithImpl<_$MenuListStateImpl>(this, _$identity);
+  $Res call({
+    Object? menus = null,
+    Object? isLoading = null,
+    Object? errorMessage = freezed,
+  }) {
+    return _then(_MenuListState(
+      menus: null == menus
+          ? _self._menus
+          : menus // ignore: cast_nullable_to_non_nullable
+              as List<Menu>,
+      isLoading: null == isLoading
+          ? _self.isLoading
+          : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      errorMessage: freezed == errorMessage
+          ? _self.errorMessage
+          : errorMessage // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
 }
 
-abstract class _MenuListState implements MenuListState {
-  const factory _MenuListState(
-      {final List<Menu> menus,
-      final bool isLoading,
-      final String? errorMessage}) = _$MenuListStateImpl;
-
-  @override
-  List<Menu> get menus;
-  @override
-  bool get isLoading;
-  @override
-  String? get errorMessage;
-
-  /// Create a copy of MenuListState
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$MenuListStateImplCopyWith<_$MenuListStateImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+// dart format on

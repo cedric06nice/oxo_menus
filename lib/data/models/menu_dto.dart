@@ -6,6 +6,7 @@ part 'menu_dto.g.dart';
 /// Data Transfer Object for Menu matching Directus 'menu' collection schema
 @freezed
 class MenuDto with _$MenuDto {
+  const MenuDto._();
   const factory MenuDto({
     required String id,
     required String status,

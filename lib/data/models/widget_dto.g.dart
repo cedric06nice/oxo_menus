@@ -6,8 +6,7 @@ part of 'widget_dto.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$WidgetDtoImpl _$$WidgetDtoImplFromJson(Map<String, dynamic> json) =>
-    _$WidgetDtoImpl(
+_WidgetDto _$WidgetDtoFromJson(Map<String, dynamic> json) => _WidgetDto(
       id: json['id'] as String,
       dateCreated: json['date_created'] == null
           ? null
@@ -23,7 +22,7 @@ _$WidgetDtoImpl _$$WidgetDtoImplFromJson(Map<String, dynamic> json) =>
       styleJson: json['style_json'] as Map<String, dynamic>?,
     );
 
-Map<String, dynamic> _$$WidgetDtoImplToJson(_$WidgetDtoImpl instance) =>
+Map<String, dynamic> _$WidgetDtoToJson(_WidgetDto instance) =>
     <String, dynamic>{
       'id': instance.id,
       'date_created': instance.dateCreated?.toIso8601String(),

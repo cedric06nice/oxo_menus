@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,116 +9,64 @@ part of 'column_dto.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-ColumnDto _$ColumnDtoFromJson(Map<String, dynamic> json) {
-  return _ColumnDto.fromJson(json);
-}
 
 /// @nodoc
 mixin _$ColumnDto {
-  String get id => throw _privateConstructorUsedError;
+  String get id;
   @JsonKey(name: 'date_created')
-  DateTime? get dateCreated => throw _privateConstructorUsedError;
+  DateTime? get dateCreated;
   @JsonKey(name: 'date_updated')
-  DateTime? get dateUpdated => throw _privateConstructorUsedError;
+  DateTime? get dateUpdated;
   @JsonKey(name: 'container_id')
-  String get containerId => throw _privateConstructorUsedError;
-  int get index => throw _privateConstructorUsedError;
-  int? get flex => throw _privateConstructorUsedError;
-  double? get width => throw _privateConstructorUsedError;
-
-  /// Serializes this ColumnDto to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  String get containerId;
+  int get index;
+  int? get flex;
+  double? get width;
 
   /// Create a copy of ColumnDto
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $ColumnDtoCopyWith<ColumnDto> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $ColumnDtoCopyWith<$Res> {
-  factory $ColumnDtoCopyWith(ColumnDto value, $Res Function(ColumnDto) then) =
-      _$ColumnDtoCopyWithImpl<$Res, ColumnDto>;
-  @useResult
-  $Res call(
-      {String id,
-      @JsonKey(name: 'date_created') DateTime? dateCreated,
-      @JsonKey(name: 'date_updated') DateTime? dateUpdated,
-      @JsonKey(name: 'container_id') String containerId,
-      int index,
-      int? flex,
-      double? width});
-}
-
-/// @nodoc
-class _$ColumnDtoCopyWithImpl<$Res, $Val extends ColumnDto>
-    implements $ColumnDtoCopyWith<$Res> {
-  _$ColumnDtoCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of ColumnDto
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
+  $ColumnDtoCopyWith<ColumnDto> get copyWith =>
+      _$ColumnDtoCopyWithImpl<ColumnDto>(this as ColumnDto, _$identity);
+
+  /// Serializes this ColumnDto to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? id = null,
-    Object? dateCreated = freezed,
-    Object? dateUpdated = freezed,
-    Object? containerId = null,
-    Object? index = null,
-    Object? flex = freezed,
-    Object? width = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      dateCreated: freezed == dateCreated
-          ? _value.dateCreated
-          : dateCreated // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      dateUpdated: freezed == dateUpdated
-          ? _value.dateUpdated
-          : dateUpdated // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      containerId: null == containerId
-          ? _value.containerId
-          : containerId // ignore: cast_nullable_to_non_nullable
-              as String,
-      index: null == index
-          ? _value.index
-          : index // ignore: cast_nullable_to_non_nullable
-              as int,
-      flex: freezed == flex
-          ? _value.flex
-          : flex // ignore: cast_nullable_to_non_nullable
-              as int?,
-      width: freezed == width
-          ? _value.width
-          : width // ignore: cast_nullable_to_non_nullable
-              as double?,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ColumnDto &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.dateCreated, dateCreated) ||
+                other.dateCreated == dateCreated) &&
+            (identical(other.dateUpdated, dateUpdated) ||
+                other.dateUpdated == dateUpdated) &&
+            (identical(other.containerId, containerId) ||
+                other.containerId == containerId) &&
+            (identical(other.index, index) || other.index == index) &&
+            (identical(other.flex, flex) || other.flex == flex) &&
+            (identical(other.width, width) || other.width == width));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, id, dateCreated, dateUpdated,
+      containerId, index, flex, width);
+
+  @override
+  String toString() {
+    return 'ColumnDto(id: $id, dateCreated: $dateCreated, dateUpdated: $dateUpdated, containerId: $containerId, index: $index, flex: $flex, width: $width)';
   }
 }
 
 /// @nodoc
-abstract class _$$ColumnDtoImplCopyWith<$Res>
-    implements $ColumnDtoCopyWith<$Res> {
-  factory _$$ColumnDtoImplCopyWith(
-          _$ColumnDtoImpl value, $Res Function(_$ColumnDtoImpl) then) =
-      __$$ColumnDtoImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $ColumnDtoCopyWith<$Res> {
+  factory $ColumnDtoCopyWith(ColumnDto value, $Res Function(ColumnDto) _then) =
+      _$ColumnDtoCopyWithImpl;
   @useResult
   $Res call(
       {String id,
@@ -131,12 +79,11 @@ abstract class _$$ColumnDtoImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$ColumnDtoImplCopyWithImpl<$Res>
-    extends _$ColumnDtoCopyWithImpl<$Res, _$ColumnDtoImpl>
-    implements _$$ColumnDtoImplCopyWith<$Res> {
-  __$$ColumnDtoImplCopyWithImpl(
-      _$ColumnDtoImpl _value, $Res Function(_$ColumnDtoImpl) _then)
-      : super(_value, _then);
+class _$ColumnDtoCopyWithImpl<$Res> implements $ColumnDtoCopyWith<$Res> {
+  _$ColumnDtoCopyWithImpl(this._self, this._then);
+
+  final ColumnDto _self;
+  final $Res Function(ColumnDto) _then;
 
   /// Create a copy of ColumnDto
   /// with the given fields replaced by the non-null parameter values.
@@ -151,53 +98,237 @@ class __$$ColumnDtoImplCopyWithImpl<$Res>
     Object? flex = freezed,
     Object? width = freezed,
   }) {
-    return _then(_$ColumnDtoImpl(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
       dateCreated: freezed == dateCreated
-          ? _value.dateCreated
+          ? _self.dateCreated
           : dateCreated // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       dateUpdated: freezed == dateUpdated
-          ? _value.dateUpdated
+          ? _self.dateUpdated
           : dateUpdated // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       containerId: null == containerId
-          ? _value.containerId
+          ? _self.containerId
           : containerId // ignore: cast_nullable_to_non_nullable
               as String,
       index: null == index
-          ? _value.index
+          ? _self.index
           : index // ignore: cast_nullable_to_non_nullable
               as int,
       flex: freezed == flex
-          ? _value.flex
+          ? _self.flex
           : flex // ignore: cast_nullable_to_non_nullable
               as int?,
       width: freezed == width
-          ? _value.width
+          ? _self.width
           : width // ignore: cast_nullable_to_non_nullable
               as double?,
     ));
   }
 }
 
+/// Adds pattern-matching-related methods to [ColumnDto].
+extension ColumnDtoPatterns on ColumnDto {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_ColumnDto value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _ColumnDto() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_ColumnDto value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ColumnDto():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_ColumnDto value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ColumnDto() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(
+            String id,
+            @JsonKey(name: 'date_created') DateTime? dateCreated,
+            @JsonKey(name: 'date_updated') DateTime? dateUpdated,
+            @JsonKey(name: 'container_id') String containerId,
+            int index,
+            int? flex,
+            double? width)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _ColumnDto() when $default != null:
+        return $default(_that.id, _that.dateCreated, _that.dateUpdated,
+            _that.containerId, _that.index, _that.flex, _that.width);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(
+            String id,
+            @JsonKey(name: 'date_created') DateTime? dateCreated,
+            @JsonKey(name: 'date_updated') DateTime? dateUpdated,
+            @JsonKey(name: 'container_id') String containerId,
+            int index,
+            int? flex,
+            double? width)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ColumnDto():
+        return $default(_that.id, _that.dateCreated, _that.dateUpdated,
+            _that.containerId, _that.index, _that.flex, _that.width);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(
+            String id,
+            @JsonKey(name: 'date_created') DateTime? dateCreated,
+            @JsonKey(name: 'date_updated') DateTime? dateUpdated,
+            @JsonKey(name: 'container_id') String containerId,
+            int index,
+            int? flex,
+            double? width)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _ColumnDto() when $default != null:
+        return $default(_that.id, _that.dateCreated, _that.dateUpdated,
+            _that.containerId, _that.index, _that.flex, _that.width);
+      case _:
+        return null;
+    }
+  }
+}
+
 /// @nodoc
 @JsonSerializable()
-class _$ColumnDtoImpl implements _ColumnDto {
-  const _$ColumnDtoImpl(
+class _ColumnDto extends ColumnDto {
+  const _ColumnDto(
       {required this.id,
       @JsonKey(name: 'date_created') this.dateCreated,
       @JsonKey(name: 'date_updated') this.dateUpdated,
       @JsonKey(name: 'container_id') required this.containerId,
       required this.index,
       this.flex,
-      this.width});
-
-  factory _$ColumnDtoImpl.fromJson(Map<String, dynamic> json) =>
-      _$$ColumnDtoImplFromJson(json);
+      this.width})
+      : super._();
+  factory _ColumnDto.fromJson(Map<String, dynamic> json) =>
+      _$ColumnDtoFromJson(json);
 
   @override
   final String id;
@@ -217,16 +348,26 @@ class _$ColumnDtoImpl implements _ColumnDto {
   @override
   final double? width;
 
+  /// Create a copy of ColumnDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'ColumnDto(id: $id, dateCreated: $dateCreated, dateUpdated: $dateUpdated, containerId: $containerId, index: $index, flex: $flex, width: $width)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$ColumnDtoCopyWith<_ColumnDto> get copyWith =>
+      __$ColumnDtoCopyWithImpl<_ColumnDto>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$ColumnDtoToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$ColumnDtoImpl &&
+            other is _ColumnDto &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.dateCreated, dateCreated) ||
                 other.dateCreated == dateCreated) &&
@@ -244,57 +385,81 @@ class _$ColumnDtoImpl implements _ColumnDto {
   int get hashCode => Object.hash(runtimeType, id, dateCreated, dateUpdated,
       containerId, index, flex, width);
 
-  /// Create a copy of ColumnDto
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$ColumnDtoImplCopyWith<_$ColumnDtoImpl> get copyWith =>
-      __$$ColumnDtoImplCopyWithImpl<_$ColumnDtoImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$ColumnDtoImplToJson(
-      this,
-    );
+  String toString() {
+    return 'ColumnDto(id: $id, dateCreated: $dateCreated, dateUpdated: $dateUpdated, containerId: $containerId, index: $index, flex: $flex, width: $width)';
   }
 }
 
-abstract class _ColumnDto implements ColumnDto {
-  const factory _ColumnDto(
-      {required final String id,
-      @JsonKey(name: 'date_created') final DateTime? dateCreated,
-      @JsonKey(name: 'date_updated') final DateTime? dateUpdated,
-      @JsonKey(name: 'container_id') required final String containerId,
-      required final int index,
-      final int? flex,
-      final double? width}) = _$ColumnDtoImpl;
+/// @nodoc
+abstract mixin class _$ColumnDtoCopyWith<$Res>
+    implements $ColumnDtoCopyWith<$Res> {
+  factory _$ColumnDtoCopyWith(
+          _ColumnDto value, $Res Function(_ColumnDto) _then) =
+      __$ColumnDtoCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {String id,
+      @JsonKey(name: 'date_created') DateTime? dateCreated,
+      @JsonKey(name: 'date_updated') DateTime? dateUpdated,
+      @JsonKey(name: 'container_id') String containerId,
+      int index,
+      int? flex,
+      double? width});
+}
 
-  factory _ColumnDto.fromJson(Map<String, dynamic> json) =
-      _$ColumnDtoImpl.fromJson;
+/// @nodoc
+class __$ColumnDtoCopyWithImpl<$Res> implements _$ColumnDtoCopyWith<$Res> {
+  __$ColumnDtoCopyWithImpl(this._self, this._then);
 
-  @override
-  String get id;
-  @override
-  @JsonKey(name: 'date_created')
-  DateTime? get dateCreated;
-  @override
-  @JsonKey(name: 'date_updated')
-  DateTime? get dateUpdated;
-  @override
-  @JsonKey(name: 'container_id')
-  String get containerId;
-  @override
-  int get index;
-  @override
-  int? get flex;
-  @override
-  double? get width;
+  final _ColumnDto _self;
+  final $Res Function(_ColumnDto) _then;
 
   /// Create a copy of ColumnDto
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$ColumnDtoImplCopyWith<_$ColumnDtoImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? dateCreated = freezed,
+    Object? dateUpdated = freezed,
+    Object? containerId = null,
+    Object? index = null,
+    Object? flex = freezed,
+    Object? width = freezed,
+  }) {
+    return _then(_ColumnDto(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      dateCreated: freezed == dateCreated
+          ? _self.dateCreated
+          : dateCreated // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      dateUpdated: freezed == dateUpdated
+          ? _self.dateUpdated
+          : dateUpdated // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      containerId: null == containerId
+          ? _self.containerId
+          : containerId // ignore: cast_nullable_to_non_nullable
+              as String,
+      index: null == index
+          ? _self.index
+          : index // ignore: cast_nullable_to_non_nullable
+              as int,
+      flex: freezed == flex
+          ? _self.flex
+          : flex // ignore: cast_nullable_to_non_nullable
+              as int?,
+      width: freezed == width
+          ? _self.width
+          : width // ignore: cast_nullable_to_non_nullable
+              as double?,
+    ));
+  }
 }
+
+// dart format on

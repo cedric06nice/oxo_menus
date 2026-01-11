@@ -6,8 +6,8 @@ part of 'widget_instance.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$WidgetInstanceImpl _$$WidgetInstanceImplFromJson(Map<String, dynamic> json) =>
-    _$WidgetInstanceImpl(
+_WidgetInstance _$WidgetInstanceFromJson(Map<String, dynamic> json) =>
+    _WidgetInstance(
       id: json['id'] as String,
       columnId: json['columnId'] as String,
       type: json['type'] as String,
@@ -25,8 +25,7 @@ _$WidgetInstanceImpl _$$WidgetInstanceImplFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['dateUpdated'] as String),
     );
 
-Map<String, dynamic> _$$WidgetInstanceImplToJson(
-        _$WidgetInstanceImpl instance) =>
+Map<String, dynamic> _$WidgetInstanceToJson(_WidgetInstance instance) =>
     <String, dynamic>{
       'id': instance.id,
       'columnId': instance.columnId,
@@ -39,8 +38,7 @@ Map<String, dynamic> _$$WidgetInstanceImplToJson(
       'dateUpdated': instance.dateUpdated?.toIso8601String(),
     };
 
-_$WidgetStyleImpl _$$WidgetStyleImplFromJson(Map<String, dynamic> json) =>
-    _$WidgetStyleImpl(
+_WidgetStyle _$WidgetStyleFromJson(Map<String, dynamic> json) => _WidgetStyle(
       fontFamily: json['fontFamily'] as String?,
       fontSize: (json['fontSize'] as num?)?.toDouble(),
       color: json['color'] as String?,
@@ -49,7 +47,7 @@ _$WidgetStyleImpl _$$WidgetStyleImplFromJson(Map<String, dynamic> json) =>
       padding: (json['padding'] as num?)?.toDouble(),
     );
 
-Map<String, dynamic> _$$WidgetStyleImplToJson(_$WidgetStyleImpl instance) =>
+Map<String, dynamic> _$WidgetStyleToJson(_WidgetStyle instance) =>
     <String, dynamic>{
       'fontFamily': instance.fontFamily,
       'fontSize': instance.fontSize,

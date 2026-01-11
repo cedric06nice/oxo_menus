@@ -6,8 +6,7 @@ part of 'page_dto.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$PageDtoImpl _$$PageDtoImplFromJson(Map<String, dynamic> json) =>
-    _$PageDtoImpl(
+_PageDto _$PageDtoFromJson(Map<String, dynamic> json) => _PageDto(
       id: json['id'] as String,
       dateCreated: json['date_created'] == null
           ? null
@@ -20,8 +19,7 @@ _$PageDtoImpl _$$PageDtoImplFromJson(Map<String, dynamic> json) =>
       index: (json['index'] as num).toInt(),
     );
 
-Map<String, dynamic> _$$PageDtoImplToJson(_$PageDtoImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$PageDtoToJson(_PageDto instance) => <String, dynamic>{
       'id': instance.id,
       'date_created': instance.dateCreated?.toIso8601String(),
       'date_updated': instance.dateUpdated?.toIso8601String(),

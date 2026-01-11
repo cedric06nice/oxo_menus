@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,87 +9,58 @@ part of 'page_repository.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$CreatePageInput {
-  String get menuId => throw _privateConstructorUsedError;
-  String get name => throw _privateConstructorUsedError;
-  int get index => throw _privateConstructorUsedError;
+  String get menuId;
+  String get name;
+  int get index;
 
   /// Create a copy of CreatePageInput
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $CreatePageInputCopyWith<CreatePageInput> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $CreatePageInputCopyWith<$Res> {
-  factory $CreatePageInputCopyWith(
-          CreatePageInput value, $Res Function(CreatePageInput) then) =
-      _$CreatePageInputCopyWithImpl<$Res, CreatePageInput>;
-  @useResult
-  $Res call({String menuId, String name, int index});
-}
-
-/// @nodoc
-class _$CreatePageInputCopyWithImpl<$Res, $Val extends CreatePageInput>
-    implements $CreatePageInputCopyWith<$Res> {
-  _$CreatePageInputCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of CreatePageInput
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
+  $CreatePageInputCopyWith<CreatePageInput> get copyWith =>
+      _$CreatePageInputCopyWithImpl<CreatePageInput>(
+          this as CreatePageInput, _$identity);
+
   @override
-  $Res call({
-    Object? menuId = null,
-    Object? name = null,
-    Object? index = null,
-  }) {
-    return _then(_value.copyWith(
-      menuId: null == menuId
-          ? _value.menuId
-          : menuId // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      index: null == index
-          ? _value.index
-          : index // ignore: cast_nullable_to_non_nullable
-              as int,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is CreatePageInput &&
+            (identical(other.menuId, menuId) || other.menuId == menuId) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.index, index) || other.index == index));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, menuId, name, index);
+
+  @override
+  String toString() {
+    return 'CreatePageInput(menuId: $menuId, name: $name, index: $index)';
   }
 }
 
 /// @nodoc
-abstract class _$$CreatePageInputImplCopyWith<$Res>
-    implements $CreatePageInputCopyWith<$Res> {
-  factory _$$CreatePageInputImplCopyWith(_$CreatePageInputImpl value,
-          $Res Function(_$CreatePageInputImpl) then) =
-      __$$CreatePageInputImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $CreatePageInputCopyWith<$Res> {
+  factory $CreatePageInputCopyWith(
+          CreatePageInput value, $Res Function(CreatePageInput) _then) =
+      _$CreatePageInputCopyWithImpl;
   @useResult
   $Res call({String menuId, String name, int index});
 }
 
 /// @nodoc
-class __$$CreatePageInputImplCopyWithImpl<$Res>
-    extends _$CreatePageInputCopyWithImpl<$Res, _$CreatePageInputImpl>
-    implements _$$CreatePageInputImplCopyWith<$Res> {
-  __$$CreatePageInputImplCopyWithImpl(
-      _$CreatePageInputImpl _value, $Res Function(_$CreatePageInputImpl) _then)
-      : super(_value, _then);
+class _$CreatePageInputCopyWithImpl<$Res>
+    implements $CreatePageInputCopyWith<$Res> {
+  _$CreatePageInputCopyWithImpl(this._self, this._then);
+
+  final CreatePageInput _self;
+  final $Res Function(CreatePageInput) _then;
 
   /// Create a copy of CreatePageInput
   /// with the given fields replaced by the non-null parameter values.
@@ -100,27 +71,184 @@ class __$$CreatePageInputImplCopyWithImpl<$Res>
     Object? name = null,
     Object? index = null,
   }) {
-    return _then(_$CreatePageInputImpl(
+    return _then(_self.copyWith(
       menuId: null == menuId
-          ? _value.menuId
+          ? _self.menuId
           : menuId // ignore: cast_nullable_to_non_nullable
               as String,
       name: null == name
-          ? _value.name
+          ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
       index: null == index
-          ? _value.index
+          ? _self.index
           : index // ignore: cast_nullable_to_non_nullable
               as int,
     ));
   }
 }
 
+/// Adds pattern-matching-related methods to [CreatePageInput].
+extension CreatePageInputPatterns on CreatePageInput {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_CreatePageInput value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _CreatePageInput() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_CreatePageInput value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreatePageInput():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_CreatePageInput value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreatePageInput() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(String menuId, String name, int index)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _CreatePageInput() when $default != null:
+        return $default(_that.menuId, _that.name, _that.index);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(String menuId, String name, int index) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreatePageInput():
+        return $default(_that.menuId, _that.name, _that.index);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(String menuId, String name, int index)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _CreatePageInput() when $default != null:
+        return $default(_that.menuId, _that.name, _that.index);
+      case _:
+        return null;
+    }
+  }
+}
+
 /// @nodoc
 
-class _$CreatePageInputImpl implements _CreatePageInput {
-  const _$CreatePageInputImpl(
+class _CreatePageInput implements CreatePageInput {
+  const _CreatePageInput(
       {required this.menuId, required this.name, required this.index});
 
   @override
@@ -130,16 +258,19 @@ class _$CreatePageInputImpl implements _CreatePageInput {
   @override
   final int index;
 
+  /// Create a copy of CreatePageInput
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'CreatePageInput(menuId: $menuId, name: $name, index: $index)';
-  }
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$CreatePageInputCopyWith<_CreatePageInput> get copyWith =>
+      __$CreatePageInputCopyWithImpl<_CreatePageInput>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$CreatePageInputImpl &&
+            other is _CreatePageInput &&
             (identical(other.menuId, menuId) || other.menuId == menuId) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.index, index) || other.index == index));
@@ -148,162 +279,76 @@ class _$CreatePageInputImpl implements _CreatePageInput {
   @override
   int get hashCode => Object.hash(runtimeType, menuId, name, index);
 
-  /// Create a copy of CreatePageInput
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$CreatePageInputImplCopyWith<_$CreatePageInputImpl> get copyWith =>
-      __$$CreatePageInputImplCopyWithImpl<_$CreatePageInputImpl>(
-          this, _$identity);
-}
-
-abstract class _CreatePageInput implements CreatePageInput {
-  const factory _CreatePageInput(
-      {required final String menuId,
-      required final String name,
-      required final int index}) = _$CreatePageInputImpl;
-
-  @override
-  String get menuId;
-  @override
-  String get name;
-  @override
-  int get index;
-
-  /// Create a copy of CreatePageInput
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$CreatePageInputImplCopyWith<_$CreatePageInputImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-mixin _$UpdatePageInput {
-  String get id => throw _privateConstructorUsedError;
-  String? get name => throw _privateConstructorUsedError;
-  int? get index => throw _privateConstructorUsedError;
-
-  /// Create a copy of UpdatePageInput
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  $UpdatePageInputCopyWith<UpdatePageInput> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $UpdatePageInputCopyWith<$Res> {
-  factory $UpdatePageInputCopyWith(
-          UpdatePageInput value, $Res Function(UpdatePageInput) then) =
-      _$UpdatePageInputCopyWithImpl<$Res, UpdatePageInput>;
-  @useResult
-  $Res call({String id, String? name, int? index});
-}
-
-/// @nodoc
-class _$UpdatePageInputCopyWithImpl<$Res, $Val extends UpdatePageInput>
-    implements $UpdatePageInputCopyWith<$Res> {
-  _$UpdatePageInputCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of UpdatePageInput
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? id = null,
-    Object? name = freezed,
-    Object? index = freezed,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: freezed == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-      index: freezed == index
-          ? _value.index
-          : index // ignore: cast_nullable_to_non_nullable
-              as int?,
-    ) as $Val);
+  String toString() {
+    return 'CreatePageInput(menuId: $menuId, name: $name, index: $index)';
   }
 }
 
 /// @nodoc
-abstract class _$$UpdatePageInputImplCopyWith<$Res>
-    implements $UpdatePageInputCopyWith<$Res> {
-  factory _$$UpdatePageInputImplCopyWith(_$UpdatePageInputImpl value,
-          $Res Function(_$UpdatePageInputImpl) then) =
-      __$$UpdatePageInputImplCopyWithImpl<$Res>;
+abstract mixin class _$CreatePageInputCopyWith<$Res>
+    implements $CreatePageInputCopyWith<$Res> {
+  factory _$CreatePageInputCopyWith(
+          _CreatePageInput value, $Res Function(_CreatePageInput) _then) =
+      __$CreatePageInputCopyWithImpl;
   @override
   @useResult
-  $Res call({String id, String? name, int? index});
+  $Res call({String menuId, String name, int index});
 }
 
 /// @nodoc
-class __$$UpdatePageInputImplCopyWithImpl<$Res>
-    extends _$UpdatePageInputCopyWithImpl<$Res, _$UpdatePageInputImpl>
-    implements _$$UpdatePageInputImplCopyWith<$Res> {
-  __$$UpdatePageInputImplCopyWithImpl(
-      _$UpdatePageInputImpl _value, $Res Function(_$UpdatePageInputImpl) _then)
-      : super(_value, _then);
+class __$CreatePageInputCopyWithImpl<$Res>
+    implements _$CreatePageInputCopyWith<$Res> {
+  __$CreatePageInputCopyWithImpl(this._self, this._then);
 
-  /// Create a copy of UpdatePageInput
+  final _CreatePageInput _self;
+  final $Res Function(_CreatePageInput) _then;
+
+  /// Create a copy of CreatePageInput
   /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
   @override
+  @pragma('vm:prefer-inline')
   $Res call({
-    Object? id = null,
-    Object? name = freezed,
-    Object? index = freezed,
+    Object? menuId = null,
+    Object? name = null,
+    Object? index = null,
   }) {
-    return _then(_$UpdatePageInputImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
+    return _then(_CreatePageInput(
+      menuId: null == menuId
+          ? _self.menuId
+          : menuId // ignore: cast_nullable_to_non_nullable
               as String,
-      name: freezed == name
-          ? _value.name
+      name: null == name
+          ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-      index: freezed == index
-          ? _value.index
+              as String,
+      index: null == index
+          ? _self.index
           : index // ignore: cast_nullable_to_non_nullable
-              as int?,
+              as int,
     ));
   }
 }
 
 /// @nodoc
+mixin _$UpdatePageInput {
+  String get id;
+  String? get name;
+  int? get index;
 
-class _$UpdatePageInputImpl implements _UpdatePageInput {
-  const _$UpdatePageInputImpl({required this.id, this.name, this.index});
-
-  @override
-  final String id;
-  @override
-  final String? name;
-  @override
-  final int? index;
-
-  @override
-  String toString() {
-    return 'UpdatePageInput(id: $id, name: $name, index: $index)';
-  }
+  /// Create a copy of UpdatePageInput
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $UpdatePageInputCopyWith<UpdatePageInput> get copyWith =>
+      _$UpdatePageInputCopyWithImpl<UpdatePageInput>(
+          this as UpdatePageInput, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$UpdatePageInputImpl &&
+            other is UpdatePageInput &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.index, index) || other.index == index));
@@ -312,33 +357,294 @@ class _$UpdatePageInputImpl implements _UpdatePageInput {
   @override
   int get hashCode => Object.hash(runtimeType, id, name, index);
 
+  @override
+  String toString() {
+    return 'UpdatePageInput(id: $id, name: $name, index: $index)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $UpdatePageInputCopyWith<$Res> {
+  factory $UpdatePageInputCopyWith(
+          UpdatePageInput value, $Res Function(UpdatePageInput) _then) =
+      _$UpdatePageInputCopyWithImpl;
+  @useResult
+  $Res call({String id, String? name, int? index});
+}
+
+/// @nodoc
+class _$UpdatePageInputCopyWithImpl<$Res>
+    implements $UpdatePageInputCopyWith<$Res> {
+  _$UpdatePageInputCopyWithImpl(this._self, this._then);
+
+  final UpdatePageInput _self;
+  final $Res Function(UpdatePageInput) _then;
+
   /// Create a copy of UpdatePageInput
   /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? id = null,
+    Object? name = freezed,
+    Object? index = freezed,
+  }) {
+    return _then(_self.copyWith(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: freezed == name
+          ? _self.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      index: freezed == index
+          ? _self.index
+          : index // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ));
+  }
+}
+
+/// Adds pattern-matching-related methods to [UpdatePageInput].
+extension UpdatePageInputPatterns on UpdatePageInput {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_UpdatePageInput value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _UpdatePageInput() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_UpdatePageInput value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdatePageInput():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_UpdatePageInput value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdatePageInput() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(String id, String? name, int? index)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _UpdatePageInput() when $default != null:
+        return $default(_that.id, _that.name, _that.index);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(String id, String? name, int? index) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdatePageInput():
+        return $default(_that.id, _that.name, _that.index);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(String id, String? name, int? index)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _UpdatePageInput() when $default != null:
+        return $default(_that.id, _that.name, _that.index);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+
+class _UpdatePageInput implements UpdatePageInput {
+  const _UpdatePageInput({required this.id, this.name, this.index});
+
+  @override
+  final String id;
+  @override
+  final String? name;
+  @override
+  final int? index;
+
+  /// Create a copy of UpdatePageInput
+  /// with the given fields replaced by the non-null parameter values.
+  @override
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$UpdatePageInputCopyWith<_UpdatePageInput> get copyWith =>
+      __$UpdatePageInputCopyWithImpl<_UpdatePageInput>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _UpdatePageInput &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.index, index) || other.index == index));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, id, name, index);
+
+  @override
+  String toString() {
+    return 'UpdatePageInput(id: $id, name: $name, index: $index)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$UpdatePageInputCopyWith<$Res>
+    implements $UpdatePageInputCopyWith<$Res> {
+  factory _$UpdatePageInputCopyWith(
+          _UpdatePageInput value, $Res Function(_UpdatePageInput) _then) =
+      __$UpdatePageInputCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String id, String? name, int? index});
+}
+
+/// @nodoc
+class __$UpdatePageInputCopyWithImpl<$Res>
+    implements _$UpdatePageInputCopyWith<$Res> {
+  __$UpdatePageInputCopyWithImpl(this._self, this._then);
+
+  final _UpdatePageInput _self;
+  final $Res Function(_UpdatePageInput) _then;
+
+  /// Create a copy of UpdatePageInput
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  _$$UpdatePageInputImplCopyWith<_$UpdatePageInputImpl> get copyWith =>
-      __$$UpdatePageInputImplCopyWithImpl<_$UpdatePageInputImpl>(
-          this, _$identity);
+  $Res call({
+    Object? id = null,
+    Object? name = freezed,
+    Object? index = freezed,
+  }) {
+    return _then(_UpdatePageInput(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: freezed == name
+          ? _self.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String?,
+      index: freezed == index
+          ? _self.index
+          : index // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ));
+  }
 }
 
-abstract class _UpdatePageInput implements UpdatePageInput {
-  const factory _UpdatePageInput(
-      {required final String id,
-      final String? name,
-      final int? index}) = _$UpdatePageInputImpl;
-
-  @override
-  String get id;
-  @override
-  String? get name;
-  @override
-  int? get index;
-
-  /// Create a copy of UpdatePageInput
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$UpdatePageInputImplCopyWith<_$UpdatePageInputImpl> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+// dart format on

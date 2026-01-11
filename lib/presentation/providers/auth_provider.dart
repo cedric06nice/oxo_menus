@@ -1,3 +1,4 @@
+import 'package:riverpod/riverpod.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/core/types/result.dart';
@@ -11,7 +12,7 @@ part 'auth_provider.freezed.dart';
 ///
 /// Represents the current authentication status of the user
 @freezed
-class AuthState with _$AuthState {
+sealed class AuthState with _$AuthState {
   /// Initial state before auth check
   const factory AuthState.initial() = _Initial;
 

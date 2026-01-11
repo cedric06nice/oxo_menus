@@ -8,6 +8,8 @@ part 'section_props.g.dart';
 /// Represents a section header or divider in a menu.
 @freezed
 class SectionProps with _$SectionProps {
+  const SectionProps._();
+
   const factory SectionProps({
     /// The title of the section
     required String title,
