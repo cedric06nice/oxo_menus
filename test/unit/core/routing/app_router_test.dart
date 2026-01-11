@@ -5,25 +5,48 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
+import 'package:oxo_menus/domain/repositories/column_repository.dart';
+import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 class MockMenuRepository extends Mock implements MenuRepository {}
+class MockPageRepository extends Mock implements PageRepository {}
+class MockContainerRepository extends Mock implements ContainerRepository {}
+class MockColumnRepository extends Mock implements ColumnRepository {}
 
 void main() {
   late MockAuthRepository mockAuthRepository;
   late MockMenuRepository mockMenuRepository;
+  late MockPageRepository mockPageRepository;
+  late MockContainerRepository mockContainerRepository;
+  late MockColumnRepository mockColumnRepository;
 
   setUp(() {
     mockAuthRepository = MockAuthRepository();
     mockMenuRepository = MockMenuRepository();
+    mockPageRepository = MockPageRepository();
+    mockContainerRepository = MockContainerRepository();
+    mockColumnRepository = MockColumnRepository();
 
     // Default behavior for menu repository (return empty list)
     when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
+        .thenAnswer((_) async => const Success([]));
+
+    // Default behavior for AdminTemplateEditorPage to prevent loading timeout
+    when(() => mockMenuRepository.getById(any()))
+        .thenAnswer((_) async => const Failure(NotFoundError()));
+    when(() => mockPageRepository.getAllForMenu(any()))
+        .thenAnswer((_) async => const Success([]));
+    when(() => mockContainerRepository.getAllForPage(any()))
+        .thenAnswer((_) async => const Success([]));
+    when(() => mockColumnRepository.getAllForContainer(any()))
         .thenAnswer((_) async => const Success([]));
   });
 
@@ -212,6 +235,9 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            pageRepositoryProvider.overrideWithValue(mockPageRepository),
+            containerRepositoryProvider.overrideWithValue(mockContainerRepository),
+            columnRepositoryProvider.overrideWithValue(mockColumnRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -228,8 +254,8 @@ void main() {
       router.go('/admin/templates/template-123');
       await tester.pumpAndSettle();
 
-      // Should show admin template editor page
-      expect(find.text('Admin Template Editor - Coming Soon'), findsOneWidget);
+      // Should show error message from AdminTemplateEditorPage (menu not found)
+      expect(find.textContaining('Error:'), findsOneWidget);
     });
   });
 
@@ -436,6 +462,9 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            pageRepositoryProvider.overrideWithValue(mockPageRepository),
+            containerRepositoryProvider.overrideWithValue(mockContainerRepository),
+            columnRepositoryProvider.overrideWithValue(mockColumnRepository),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -452,8 +481,8 @@ void main() {
       router.go('/admin/templates/template-123');
       await tester.pumpAndSettle();
 
-      // Should navigate directly to admin template editor
-      expect(find.text('Admin Template Editor - Coming Soon'), findsOneWidget);
+      // Should navigate directly to admin template editor (shows error because menu not found)
+      expect(find.textContaining('Error:'), findsOneWidget);
     });
 
     testWidgets('should redirect deep link to login if unauthenticated', (tester) async {
