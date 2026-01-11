@@ -65,8 +65,8 @@ void main() {
         defaultProps: const TestProps(name: 'default', value: 0),
       );
 
-      final props = const TestProps(name: 'test', value: 123);
-      final widgetContext = const WidgetContext(isEditable: false);
+      const props = TestProps(name: 'test', value: 123);
+      const widgetContext = WidgetContext(isEditable: false);
 
       await tester.pumpWidget(
         MaterialApp(

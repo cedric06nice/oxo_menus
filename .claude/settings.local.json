@@ -14,7 +14,9 @@
       "Bash(dart analyze:*)",
       "Bash(flutter pub deps:*)",
       "Bash(flutter clean:*)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(dart fix:*)",
+      "Bash(lcov:*)"
     ]
   }
 }

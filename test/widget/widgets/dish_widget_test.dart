@@ -13,11 +13,11 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: const WidgetContext(isEditable: false),
+              context: WidgetContext(isEditable: false),
             ),
           ),
         ),
@@ -35,11 +35,11 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: const WidgetContext(isEditable: false),
+              context: WidgetContext(isEditable: false),
             ),
           ),
         ),
@@ -57,11 +57,11 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: const WidgetContext(isEditable: false),
+              context: WidgetContext(isEditable: false),
             ),
           ),
         ),
@@ -79,11 +79,11 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: const WidgetContext(isEditable: false),
+              context: WidgetContext(isEditable: false),
             ),
           ),
         ),
@@ -103,11 +103,11 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: const WidgetContext(isEditable: false),
+              context: WidgetContext(isEditable: false),
             ),
           ),
         ),
@@ -128,11 +128,11 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: const WidgetContext(isEditable: false),
+              context: WidgetContext(isEditable: false),
             ),
           ),
         ),
@@ -150,11 +150,11 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: const WidgetContext(isEditable: false),
+              context: WidgetContext(isEditable: false),
             ),
           ),
         ),
@@ -174,11 +174,11 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: const WidgetContext(isEditable: false),
+              context: WidgetContext(isEditable: false),
             ),
           ),
         ),
@@ -197,11 +197,11 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: const WidgetContext(isEditable: true),
+              context: WidgetContext(isEditable: true),
             ),
           ),
         ),
@@ -224,11 +224,11 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: const WidgetContext(isEditable: false),
+              context: WidgetContext(isEditable: false),
             ),
           ),
         ),
@@ -289,11 +289,11 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: const WidgetContext(isEditable: false),
+              context: WidgetContext(isEditable: false),
             ),
           ),
         ),

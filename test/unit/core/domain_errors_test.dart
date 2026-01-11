@@ -165,15 +165,15 @@ void main() {
 
       test('Errors with same message but different details should not be equal',
           () {
-        const error1 = ValidationError('Invalid', details: const {'a': 1});
-        const error2 = ValidationError('Invalid', details: const {'b': 2});
+        const error1 = ValidationError('Invalid', details: {'a': 1});
+        const error2 = ValidationError('Invalid', details: {'b': 2});
 
         expect(error1, isNot(equals(error2)));
       });
 
       test('Errors with same message and details should be equal', () {
-        const error1 = ValidationError('Invalid', details: const {'a': 1});
-        const error2 = ValidationError('Invalid', details: const {'a': 1});
+        const error1 = ValidationError('Invalid', details: {'a': 1});
+        const error2 = ValidationError('Invalid', details: {'a': 1});
 
         expect(error1, equals(error2));
         expect(error1.hashCode, equals(error2.hashCode));

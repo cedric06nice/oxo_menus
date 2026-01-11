@@ -55,7 +55,7 @@ class _TextEditDialogState extends State<TextEditDialog> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _align,
+              initialValue: _align,
               decoration: const InputDecoration(
                 labelText: 'Alignment',
               ),

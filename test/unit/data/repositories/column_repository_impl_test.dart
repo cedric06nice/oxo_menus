@@ -4,7 +4,6 @@ import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/repositories/column_repository_impl.dart';
-import 'package:oxo_menus/domain/entities/column.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 
 class MockDirectusDataSource extends Mock implements DirectusDataSource {}

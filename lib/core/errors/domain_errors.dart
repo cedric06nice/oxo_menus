@@ -42,18 +42,17 @@ sealed class DomainError {
 
 /// Error thrown when user credentials are invalid.
 final class InvalidCredentialsError extends DomainError {
-  const InvalidCredentialsError([String message = 'Invalid credentials'])
-      : super(message);
+  const InvalidCredentialsError([super.message = 'Invalid credentials']);
 }
 
 /// Error thrown when an authentication token has expired.
 final class TokenExpiredError extends DomainError {
-  const TokenExpiredError([String message = 'Token expired']) : super(message);
+  const TokenExpiredError([super.message = 'Token expired']);
 }
 
 /// Error thrown when user is not authorized to perform an action.
 final class UnauthorizedError extends DomainError {
-  const UnauthorizedError([String message = 'Unauthorized']) : super(message);
+  const UnauthorizedError([super.message = 'Unauthorized']);
 }
 
 // ============================================================================
@@ -62,13 +61,12 @@ final class UnauthorizedError extends DomainError {
 
 /// Error thrown when a network request fails.
 final class NetworkError extends DomainError {
-  const NetworkError([String message = 'Network error']) : super(message);
+  const NetworkError([super.message = 'Network error']);
 }
 
 /// Error thrown when network is unavailable (no internet connection).
 final class NetworkUnavailableError extends DomainError {
-  const NetworkUnavailableError([String message = 'Network unavailable'])
-      : super(message);
+  const NetworkUnavailableError([super.message = 'Network unavailable']);
 }
 
 // ============================================================================
@@ -77,13 +75,12 @@ final class NetworkUnavailableError extends DomainError {
 
 /// Error thrown when a requested resource is not found.
 final class NotFoundError extends DomainError {
-  const NotFoundError([String message = 'Resource not found']) : super(message);
+  const NotFoundError([super.message = 'Resource not found']);
 }
 
 /// Error thrown when data validation fails.
 final class ValidationError extends DomainError {
-  const ValidationError(String message, {dynamic details})
-      : super(message, details: details);
+  const ValidationError(super.message, {super.details});
 }
 
 // ============================================================================
@@ -92,11 +89,11 @@ final class ValidationError extends DomainError {
 
 /// Error thrown when the server returns an error.
 final class ServerError extends DomainError {
-  const ServerError([String message = 'Server error']) : super(message);
+  const ServerError([super.message = 'Server error']);
 }
 
 /// Error thrown when an unknown or unexpected error occurs.
 final class UnknownError extends DomainError {
-  const UnknownError([String message = 'Unknown error', dynamic details])
-      : super(message, details: details);
+  const UnknownError([super.message = 'Unknown error', dynamic details])
+      : super(details: details);
 }

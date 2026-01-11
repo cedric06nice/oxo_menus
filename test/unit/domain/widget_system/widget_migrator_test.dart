@@ -27,7 +27,7 @@ class TestProps {
 void main() {
   group('WidgetMigrator', () {
     test('should detect when migration is needed', () {
-      final instance = WidgetInstance(
+      const instance = WidgetInstance(
         id: 'widget-1',
         columnId: 'column-1',
         type: 'test',
@@ -48,7 +48,7 @@ void main() {
     });
 
     test('should detect when migration is not needed', () {
-      final instance = WidgetInstance(
+      const instance = WidgetInstance(
         id: 'widget-1',
         columnId: 'column-1',
         type: 'test',
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('should migrate props when migration function is provided', () {
-      final instance = WidgetInstance(
+      const instance = WidgetInstance(
         id: 'widget-1',
         columnId: 'column-1',
         type: 'test',
@@ -100,7 +100,7 @@ void main() {
     });
 
     test('should return original props when no migration function', () {
-      final instance = WidgetInstance(
+      const instance = WidgetInstance(
         id: 'widget-1',
         columnId: 'column-1',
         type: 'test',
@@ -125,7 +125,7 @@ void main() {
     });
 
     test('should handle migration errors gracefully', () {
-      final instance = WidgetInstance(
+      const instance = WidgetInstance(
         id: 'widget-1',
         columnId: 'column-1',
         type: 'test',
@@ -155,7 +155,7 @@ void main() {
     });
 
     test('should handle missing fields during migration', () {
-      final instance = WidgetInstance(
+      const instance = WidgetInstance(
         id: 'widget-1',
         columnId: 'column-1',
         type: 'test',
@@ -186,7 +186,7 @@ void main() {
     });
 
     test('should preserve all original props when migration fails', () {
-      final instance = WidgetInstance(
+      const instance = WidgetInstance(
         id: 'widget-1',
         columnId: 'column-1',
         type: 'test',

@@ -18,7 +18,7 @@ void main() {
   group('GeneratePdfUseCase', () {
     test('should generate PDF for empty menu', () async {
       // Arrange
-      final menuTree = MenuTree(
+      const menuTree = MenuTree(
         menu: Menu(
           id: 'menu-1',
           name: 'Empty Menu',
@@ -39,7 +39,7 @@ void main() {
 
     test('should generate PDF with single page', () async {
       // Arrange
-      final menuTree = MenuTree(
+      const menuTree = MenuTree(
         menu: Menu(
           id: 'menu-1',
           name: 'Single Page Menu',
@@ -70,7 +70,7 @@ void main() {
 
     test('should generate PDF with dish widgets', () async {
       // Arrange
-      final menuTree = MenuTree(
+      const menuTree = MenuTree(
         menu: Menu(
           id: 'menu-1',
           name: 'Menu with Dishes',
@@ -137,7 +137,7 @@ void main() {
 
     test('should generate PDF with text widgets', () async {
       // Arrange
-      final menuTree = MenuTree(
+      const menuTree = MenuTree(
         menu: Menu(
           id: 'menu-1',
           name: 'Menu with Text',
@@ -201,7 +201,7 @@ void main() {
 
     test('should generate PDF with section widgets', () async {
       // Arrange
-      final menuTree = MenuTree(
+      const menuTree = MenuTree(
         menu: Menu(
           id: 'menu-1',
           name: 'Menu with Sections',
@@ -264,7 +264,7 @@ void main() {
 
     test('should generate PDF with multiple columns', () async {
       // Arrange
-      final menuTree = MenuTree(
+      const menuTree = MenuTree(
         menu: Menu(
           id: 'menu-1',
           name: 'Multi-Column Menu',
@@ -351,7 +351,7 @@ void main() {
 
     test('should apply default page format when pageSize is null', () async {
       // Arrange
-      final menuTree = MenuTree(
+      const menuTree = MenuTree(
         menu: Menu(
           id: 'menu-1',
           name: 'Default Size Menu',
@@ -372,7 +372,7 @@ void main() {
 
     test('should handle unknown widget types gracefully', () async {
       // Arrange
-      final menuTree = MenuTree(
+      const menuTree = MenuTree(
         menu: Menu(
           id: 'menu-1',
           name: 'Menu with Unknown Widget',
@@ -430,7 +430,7 @@ void main() {
 
     test('should generate PDF with complex layout', () async {
       // Arrange
-      final menuTree = MenuTree(
+      const menuTree = MenuTree(
         menu: Menu(
           id: 'menu-1',
           name: 'Complex Menu',

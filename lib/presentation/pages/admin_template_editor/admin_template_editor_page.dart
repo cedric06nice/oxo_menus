@@ -31,8 +31,8 @@ class _AdminTemplateEditorPageState
     extends ConsumerState<AdminTemplateEditorPage> {
   Menu? _menu;
   List<entity.Page> _pages = [];
-  Map<String, List<entity.Container>> _containers = {};
-  Map<String, List<entity.Column>> _columns = {};
+  final Map<String, List<entity.Container>> _containers = {};
+  final Map<String, List<entity.Column>> _columns = {};
   bool _isLoading = true;
   String? _errorMessage;
 

@@ -29,14 +29,6 @@ void main() {
       role: UserRole.user,
     );
 
-    const adminUser = User(
-      id: '2',
-      email: 'admin@example.com',
-      firstName: 'Admin',
-      lastName: 'User',
-      role: UserRole.admin,
-    );
-
     test('should start with initial state', () {
       // Create a new notifier to avoid the auto-check
       final notifier = AuthNotifier(mockAuthRepository);

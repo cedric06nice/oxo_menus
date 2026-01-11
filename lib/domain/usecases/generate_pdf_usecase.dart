@@ -227,9 +227,9 @@ class GeneratePdfUseCase {
                           horizontal: 8,
                           vertical: 2,
                         ),
-                        decoration: pw.BoxDecoration(
+                        decoration: const pw.BoxDecoration(
                           color: PdfColors.orange100,
-                          borderRadius: const pw.BorderRadius.all(
+                          borderRadius: pw.BorderRadius.all(
                             pw.Radius.circular(12),
                           ),
                         ),
@@ -255,9 +255,9 @@ class GeneratePdfUseCase {
                           horizontal: 8,
                           vertical: 2,
                         ),
-                        decoration: pw.BoxDecoration(
+                        decoration: const pw.BoxDecoration(
                           color: PdfColors.green100,
-                          borderRadius: const pw.BorderRadius.all(
+                          borderRadius: pw.BorderRadius.all(
                             pw.Radius.circular(12),
                           ),
                         ),

@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
