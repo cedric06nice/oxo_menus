@@ -20,7 +20,8 @@
       "Bash(flutter build:*)",
       "Bash(flutter pub:*)",
       "Bash(dart run build_runner:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(dart run:*)"
     ]
   }
 }

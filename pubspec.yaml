@@ -23,6 +23,9 @@ dependencies:
   riverpod_annotation: ^4.0.0
   state_notifier: ^1.0.0
 
+  # Reflectable (required by directus_api_manager)
+  reflectable: ^5.1.0
+
   # Functional Programming
   fpdart: ^1.1.0
 
@@ -77,6 +80,7 @@ dev_dependencies:
 
   # Dev Tools
   flutter_launcher_icons: ^0.13.0
+  reflectable_builder: ^1.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
+import 'main.reflectable.dart';
 
 void main() {
+  initializeReflectable();
+
   runApp(
     const ProviderScope(
       child: MyApp(),

@@ -793,13 +793,21 @@ packages:
     source: hosted
     version: "3.0.2"
   reflectable:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: reflectable
       sha256: ab4a185dcf100e2ae003610474e37a8ff4aa714326db36d42d86c8426508ab7c
       url: "https://pub.dev"
     source: hosted
     version: "5.1.0"
+  reflectable_builder:
+    dependency: "direct dev"
+    description:
+      name: reflectable_builder
+      sha256: b8ed3dea929db791767301baf1b72af405ae899358ed8ee3134f539b276a79c2
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   riverpod:
     dependency: "direct main"
     description:

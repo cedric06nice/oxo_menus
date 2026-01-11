@@ -51,3 +51,6 @@ app.*.map.json
 !.env.example
 !.env.development
 !.env.production
+
+# Reflectable generated files
+*.reflectable.dart
