@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/admin_template_editor_page.dart';
 import 'package:oxo_menus/presentation/pages/login/login_page.dart';
+import 'package:oxo_menus/presentation/pages/menu_editor/menu_editor_page.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 
@@ -71,12 +72,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: ':id',
             name: 'menu-editor',
             builder: (context, state) {
-              return Scaffold(
-                appBar: AppBar(title: const Text('Menu Editor')),
-                body: const Center(
-                  child: Text('Menu Editor - Coming Soon'),
-                ),
-              );
+              final menuId = state.pathParameters['id']!;
+              return MenuEditorPage(menuId: menuId);
             },
           ),
         ],

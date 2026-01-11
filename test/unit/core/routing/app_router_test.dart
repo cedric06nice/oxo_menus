@@ -177,8 +177,8 @@ void main() {
       router.go('/menus/menu-123');
       await tester.pumpAndSettle();
 
-      // Should show menu editor page
-      expect(find.text('Menu Editor - Coming Soon'), findsOneWidget);
+      // Should show error message from MenuEditorPage (menu not found)
+      expect(find.textContaining('Error:'), findsOneWidget);
     });
 
     testWidgets('should have /admin/templates route for admins', (tester) async {
@@ -441,8 +441,8 @@ void main() {
       router.go('/menus/menu-123');
       await tester.pumpAndSettle();
 
-      // Should navigate directly to menu editor
-      expect(find.text('Menu Editor - Coming Soon'), findsOneWidget);
+      // Should navigate directly to menu editor (shows error because menu not found)
+      expect(find.textContaining('Error:'), findsOneWidget);
     });
 
     testWidgets('should support deep linking to admin template editor', (tester) async {
