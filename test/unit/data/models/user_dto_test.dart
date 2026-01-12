@@ -45,6 +45,47 @@ void main() {
         expect(dto.role, isNull);
         expect(dto.avatar, isNull);
       });
+
+      test('should handle role as expanded relation object', () {
+        // Arrange - role is a Directus relation object
+        final json = {
+          'id': 'user-3',
+          'email': 'admin@example.com',
+          'first_name': 'Admin',
+          'last_name': 'User',
+          'role': {
+            'id': 'role-uuid-abc',
+            'name': 'Administrator',
+          },
+        };
+
+        // Act
+        final dto = UserDto.fromJson(json);
+
+        // Assert
+        expect(dto.id, 'user-3');
+        expect(dto.email, 'admin@example.com');
+        expect(dto.firstName, 'Admin');
+        expect(dto.lastName, 'User');
+        expect(dto.role, 'Administrator'); // Should extract name from object
+      });
+
+      test('should handle role as UUID string (unexpanded relation)', () {
+        // Arrange - role is just a UUID (unexpanded relation)
+        final json = {
+          'id': 'user-4',
+          'email': 'user@example.com',
+          'role': 'uuid-1234-5678-90ab-cdef',
+        };
+
+        // Act
+        final dto = UserDto.fromJson(json);
+
+        // Assert
+        expect(dto.id, 'user-4');
+        expect(dto.email, 'user@example.com');
+        expect(dto.role, 'uuid-1234-5678-90ab-cdef'); // UUID string passed through
+      });
     });
 
     group('toJson', () {

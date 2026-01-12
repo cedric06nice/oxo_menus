@@ -1,7 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'user_dto.freezed.dart';
-part 'user_dto.g.dart';
 
 /// Data Transfer Object for User matching Directus users
 @freezed
@@ -16,6 +15,42 @@ abstract class UserDto with _$UserDto {
     String? avatar,
   }) = _UserDto;
 
-  factory UserDto.fromJson(Map<String, dynamic> json) =>
-      _$UserDtoFromJson(json);
+  /// Custom fromJson to handle role field which can be either:
+  /// - A string (direct role name)
+  /// - A Map (relation to directus_roles table with expanded fields)
+  /// - A UUID string (unexpanded relation - just the ID)
+  factory UserDto.fromJson(Map<String, dynamic> json) {
+    // Extract role name from various formats
+    final roleData = json['role'];
+    String? roleName;
+
+    if (roleData is String) {
+      // Could be role name directly or a UUID
+      roleName = roleData;
+    } else if (roleData is Map<String, dynamic>) {
+      // Role is an expanded relation object
+      roleName = roleData['name'] as String?;
+    }
+
+    return UserDto(
+      id: json['id'] as String,
+      email: json['email'] as String,
+      firstName: json['first_name'] as String?,
+      lastName: json['last_name'] as String?,
+      role: roleName,
+      avatar: json['avatar'] as String?,
+    );
+  }
+
+  /// Custom toJson to serialize with snake_case field names
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'email': email,
+      if (firstName != null) 'first_name': firstName,
+      if (lastName != null) 'last_name': lastName,
+      if (role != null) 'role': role,
+      if (avatar != null) 'avatar': avatar,
+    };
+  }
 }

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:directus_api_manager/directus_api_manager.dart';
+import 'package:http/http.dart' as http;
 
 /// Generic DirectusItem implementation for collections without custom models
 ///
@@ -19,9 +21,11 @@ class GenericDirectusItem extends DirectusItem {
 /// and directus_api_manager's GenericDirectusItem objects.
 class DirectusDataSource {
   final DirectusApiManager _apiManager;
+  final String _baseUrl;
 
   DirectusDataSource({required String baseUrl})
-      : _apiManager = DirectusApiManager(baseURL: baseUrl);
+      : _apiManager = DirectusApiManager(baseURL: baseUrl),
+        _baseUrl = baseUrl;
 
   // ===== Authentication Methods =====
 
@@ -39,9 +43,8 @@ class DirectusDataSource {
 
     switch (result.type) {
       case DirectusLoginResultType.success:
-        // Get current user data
-        final user = await _apiManager.currentDirectusUser();
-        final userData = user?.getRawData() ?? {};
+        // Get current user data with expanded role relation
+        final userData = await _fetchUserWithRole();
 
         return {
           'user': userData,
@@ -74,18 +77,52 @@ class DirectusDataSource {
     await _apiManager.logoutDirectusUser();
   }
 
-  /// Get the current authenticated user
+  /// Get the current authenticated user with expanded role
   Future<Map<String, dynamic>> getCurrentUser() async {
-    final user = await _apiManager.currentDirectusUser();
+    return await _fetchUserWithRole();
+  }
 
-    if (user == null) {
+  /// Fetch current user with role relation expanded
+  ///
+  /// Makes a direct HTTP request to /users/me with fields parameter to expand
+  /// the role relation and get the role name instead of just the UUID
+  Future<Map<String, dynamic>> _fetchUserWithRole() async {
+    final accessToken = _apiManager.accessToken;
+
+    if (accessToken == null || accessToken.isEmpty) {
       throw DirectusException(
         code: 'NOT_AUTHENTICATED',
-        message: 'No authenticated user',
+        message: 'No access token available',
       );
     }
 
-    return user.getRawData();
+    // Fetch user with expanded role using Directus API
+    // The fields parameter tells Directus to expand the role relation
+    final url = Uri.parse(
+      '$_baseUrl/users/me?fields=id,email,first_name,last_name,avatar,role.name',
+    );
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      return data['data'] as Map<String, dynamic>;
+    } else if (response.statusCode == 401) {
+      throw DirectusException(
+        code: 'NOT_AUTHENTICATED',
+        message: 'Authentication required',
+      );
+    } else {
+      throw DirectusException(
+        code: 'FETCH_USER_FAILED',
+        message: 'Failed to fetch user: ${response.statusCode}',
+      );
+    }
   }
 
   // ===== CRUD Operations =====
