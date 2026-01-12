@@ -3,6 +3,7 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/mappers/error_mapper.dart';
 import 'package:oxo_menus/data/mappers/menu_mapper.dart';
+import 'package:oxo_menus/data/models/directus_items/menu_directus_item.dart';
 import 'package:oxo_menus/data/models/menu_dto.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
@@ -10,15 +11,13 @@ import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 /// Implementation of MenuRepository using Directus as data source
 class MenuRepositoryImpl implements MenuRepository {
   final DirectusDataSource dataSource;
-  static const String collection = 'menu';
 
   const MenuRepositoryImpl({required this.dataSource});
 
   @override
   Future<Result<Menu, DomainError>> getById(String id) async {
     try {
-      final data = await dataSource.getItem(
-        collection,
+      final data = await dataSource.getItem<MenuDirectusItem>(
         id,
         fields: [
           'id',
@@ -55,8 +54,7 @@ class MenuRepositoryImpl implements MenuRepository {
             }
           : null;
 
-      final data = await dataSource.getItems(
-        collection,
+      final data = await dataSource.getItems<MenuDirectusItem>(
         filter: filter,
         fields: [
           'id',
@@ -84,10 +82,15 @@ class MenuRepositoryImpl implements MenuRepository {
   @override
   Future<Result<Menu, DomainError>> create(CreateMenuInput input) async {
     try {
-      final data = await dataSource.createItem(
-        collection,
-        MenuMapper.toCreateDto(input),
-      );
+      final item = MenuDirectusItem.newItem();
+      final createData = MenuMapper.toCreateDto(input);
+
+      // Set all properties
+      for (final entry in createData.entries) {
+        item.setValue(entry.value, forKey: entry.key);
+      }
+
+      final data = await dataSource.createItem<MenuDirectusItem>(item);
 
       final dto = MenuDto.fromJson(data);
       final menu = MenuMapper.toEntity(dto);
@@ -101,11 +104,18 @@ class MenuRepositoryImpl implements MenuRepository {
   @override
   Future<Result<Menu, DomainError>> update(UpdateMenuInput input) async {
     try {
-      final data = await dataSource.updateItem(
-        collection,
-        input.id,
-        MenuMapper.toUpdateDto(input),
-      );
+      // First fetch the existing item
+      final existingData = await dataSource.getItem<MenuDirectusItem>(input.id);
+      final item = MenuDirectusItem(existingData);
+
+      final updateData = MenuMapper.toUpdateDto(input);
+
+      // Update properties
+      for (final entry in updateData.entries) {
+        item.setValue(entry.value, forKey: entry.key);
+      }
+
+      final data = await dataSource.updateItem<MenuDirectusItem>(item);
 
       final dto = MenuDto.fromJson(data);
       final menu = MenuMapper.toEntity(dto);
@@ -119,7 +129,7 @@ class MenuRepositoryImpl implements MenuRepository {
   @override
   Future<Result<void, DomainError>> delete(String id) async {
     try {
-      await dataSource.deleteItem(collection, id);
+      await dataSource.deleteItem<MenuDirectusItem>(id);
       return const Success(null);
     } catch (e) {
       return Failure(mapDirectusError(e));

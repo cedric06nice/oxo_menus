@@ -2,16 +2,6 @@ import 'dart:convert';
 import 'package:directus_api_manager/directus_api_manager.dart';
 import 'package:http/http.dart' as http;
 
-/// Generic DirectusItem implementation for collections without custom models
-///
-/// This allows us to work with any Directus collection using the generic
-/// DirectusItem interface without needing to create custom model classes.
-class GenericDirectusItem extends DirectusItem {
-  GenericDirectusItem(super.rawReceivedData);
-  GenericDirectusItem.newItem() : super.newItem();
-  GenericDirectusItem.withId(super.id) : super.withId();
-}
-
 /// Wrapper for Directus backend communication using directus_api_manager package
 ///
 /// This class adapts the directus_api_manager's DirectusApiManager to our repository
@@ -128,12 +118,11 @@ class DirectusDataSource {
   // ===== CRUD Operations =====
 
   /// Get a single item by ID from a collection
-  Future<Map<String, dynamic>> getItem(
-    String collection,
+  Future<Map<String, dynamic>> getItem<T extends DirectusItem>(
     String id, {
     List<String>? fields,
   }) async {
-    final item = await _apiManager.getSpecificItem<GenericDirectusItem>(
+    final item = await _apiManager.getSpecificItem<T>(
       id: id,
       fields: fields?.join(','),
     );
@@ -149,8 +138,7 @@ class DirectusDataSource {
   }
 
   /// Get multiple items from a collection
-  Future<List<Map<String, dynamic>>> getItems(
-    String collection, {
+  Future<List<Map<String, dynamic>>> getItems<T extends DirectusItem>({
     Map<String, dynamic>? filter,
     List<String>? fields,
     List<String>? sort,
@@ -176,7 +164,7 @@ class DirectusDataSource {
       }).toList();
     }
 
-    final items = await _apiManager.findListOfItems<GenericDirectusItem>(
+    final items = await _apiManager.findListOfItems<T>(
       filter: directusFilter,
       fields: fields?.join(','),
       sortBy: sortProperties,
@@ -188,19 +176,11 @@ class DirectusDataSource {
   }
 
   /// Create a new item in a collection
-  Future<Map<String, dynamic>> createItem(
-    String collection,
-    Map<String, dynamic> data,
+  Future<Map<String, dynamic>> createItem<T extends DirectusItem>(
+    T newItem,
   ) async {
-    final item = GenericDirectusItem.newItem();
-
-    // Set all properties from data
-    for (final entry in data.entries) {
-      item.setValue(entry.value, forKey: entry.key);
-    }
-
-    final result = await _apiManager.createNewItem<GenericDirectusItem>(
-      objectToCreate: item,
+    final result = await _apiManager.createNewItem<T>(
+      objectToCreate: newItem,
     );
 
     if (!result.isSuccess || result.createdItem == null) {
@@ -214,36 +194,19 @@ class DirectusDataSource {
   }
 
   /// Update an existing item in a collection
-  Future<Map<String, dynamic>> updateItem(
-    String collection,
-    String id,
-    Map<String, dynamic> data,
+  Future<Map<String, dynamic>> updateItem<T extends DirectusItem>(
+    T itemToUpdate,
   ) async {
-    // First fetch the item to get its current state
-    final item = await _apiManager.getSpecificItem<GenericDirectusItem>(id: id);
-
-    if (item == null) {
-      throw DirectusException(
-        code: 'NOT_FOUND',
-        message: 'Item not found',
-      );
-    }
-
-    // Update properties
-    for (final entry in data.entries) {
-      item.setValue(entry.value, forKey: entry.key);
-    }
-
-    final updated = await _apiManager.updateItem<GenericDirectusItem>(
-      objectToUpdate: item,
+    final updated = await _apiManager.updateItem<T>(
+      objectToUpdate: itemToUpdate,
     );
 
     return updated.getRawData();
   }
 
   /// Delete an item from a collection
-  Future<void> deleteItem(String collection, String id) async {
-    final success = await _apiManager.deleteItem<GenericDirectusItem>(
+  Future<void> deleteItem<T extends DirectusItem>(String id) async {
+    final success = await _apiManager.deleteItem<T>(
       objectId: id,
     );
 
@@ -428,12 +391,6 @@ class DirectusDataSource {
     }
   }
 
-  // ===== Collection Constants =====
-  static const String menuCollection = 'menu';
-  static const String pageCollection = 'page';
-  static const String containerCollection = 'container';
-  static const String columnCollection = 'column';
-  static const String widgetCollection = 'widget';
 }
 
 /// Custom exception class for Directus errors
