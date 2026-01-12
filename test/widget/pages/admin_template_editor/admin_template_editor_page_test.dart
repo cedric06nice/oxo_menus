@@ -9,11 +9,13 @@ import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
+import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/admin_template_editor_page.dart';
+import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 class MockMenuRepository extends Mock implements MenuRepository {}
@@ -67,12 +69,21 @@ void main() {
   });
 
   Widget createWidgetUnderTest(String menuId) {
+    final mockUser = User(
+      id: 'admin-1',
+      email: 'admin@example.com',
+      firstName: 'Admin',
+      lastName: 'User',
+      role: UserRole.admin,
+    );
+
     return ProviderScope(
       overrides: [
         menuRepositoryProvider.overrideWithValue(mockMenuRepository),
         pageRepositoryProvider.overrideWithValue(mockPageRepository),
         containerRepositoryProvider.overrideWithValue(mockContainerRepository),
         columnRepositoryProvider.overrideWithValue(mockColumnRepository),
+        currentUserProvider.overrideWithValue(mockUser),
       ],
       child: MaterialApp(
         home: InheritedGoRouter(

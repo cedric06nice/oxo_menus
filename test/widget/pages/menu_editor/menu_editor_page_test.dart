@@ -8,6 +8,7 @@ import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
+import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
@@ -16,6 +17,7 @@ import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/menu_editor_page.dart';
+import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definition.dart';
@@ -70,6 +72,14 @@ void main() {
   });
 
   Widget createWidgetUnderTest(String menuId) {
+    final mockUser = User(
+      id: 'user-1',
+      email: 'test@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+      role: UserRole.user,
+    );
+
     return ProviderScope(
       overrides: [
         menuRepositoryProvider.overrideWithValue(mockMenuRepository),
@@ -78,6 +88,7 @@ void main() {
         columnRepositoryProvider.overrideWithValue(mockColumnRepository),
         widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
         widgetRegistryProvider.overrideWithValue(mockWidgetRegistry),
+        currentUserProvider.overrideWithValue(mockUser),
       ],
       child: MaterialApp(
         home: MenuEditorPage(menuId: menuId),

@@ -103,7 +103,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should be redirected to home
-      expect(find.text('Home Page - Coming Soon'), findsOneWidget);
+      expect(find.text('Quick Actions'), findsOneWidget);
     });
 
     testWidgets('should have /menus route', (tester) async {
@@ -214,7 +214,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should show admin templates page
-      expect(find.text('Admin Templates - Coming Soon'), findsOneWidget);
+      expect(find.text('No templates found'), findsOneWidget);
     });
 
     testWidgets('should have /admin/templates/:id route for admins', (tester) async {
@@ -325,7 +325,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should be redirected to home
-      expect(find.text('Home Page - Coming Soon'), findsOneWidget);
+      expect(find.text('Quick Actions'), findsOneWidget);
     });
   });
 
@@ -364,8 +364,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should be redirected to home
-      expect(find.text('Home Page - Coming Soon'), findsOneWidget);
-      expect(find.text('Admin Templates - Coming Soon'), findsNothing);
+      expect(find.text('Quick Actions'), findsOneWidget);
+      expect(find.text('No templates found'), findsNothing);
     });
 
     testWidgets('should allow admin users to access admin routes', (tester) async {
@@ -402,7 +402,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should show admin page
-      expect(find.text('Admin Templates - Coming Soon'), findsOneWidget);
+      expect(find.text('No templates found'), findsOneWidget);
     });
   });
 

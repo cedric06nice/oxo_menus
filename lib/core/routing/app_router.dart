@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/admin_template_editor_page.dart';
+import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_page.dart';
+import 'package:oxo_menus/presentation/pages/home/home_page.dart';
 import 'package:oxo_menus/presentation/pages/login/login_page.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/menu_editor_page.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
+import 'package:oxo_menus/presentation/pages/settings/settings_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 
 /// App router configuration using go_router
@@ -57,11 +60,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/home',
         name: 'home',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text('Home Page - Coming Soon'),
-          ),
-        ),
+        builder: (context, state) => const HomePage(),
+      ),
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (context, state) => const SettingsPage(),
       ),
       GoRoute(
         path: '/menus',
@@ -81,12 +85,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/templates',
         name: 'admin-templates',
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(title: const Text('Admin Templates')),
-          body: const Center(
-            child: Text('Admin Templates - Coming Soon'),
-          ),
-        ),
+        builder: (context, state) => const AdminTemplatesPage(),
         routes: [
           GoRoute(
             path: ':id',

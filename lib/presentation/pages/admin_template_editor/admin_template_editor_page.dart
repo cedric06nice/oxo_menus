@@ -10,6 +10,7 @@ import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 
 /// Admin Template Editor Page
 ///
@@ -243,33 +244,33 @@ class _AdminTemplateEditorPageState
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
+      return const AuthenticatedScaffold(
+        title: 'Loading...',
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_errorMessage != null) {
-      return Scaffold(
+      return AuthenticatedScaffold(
+        title: 'Error',
         body: Center(child: Text('Error: $_errorMessage')),
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_menu?.name ?? 'Template Editor'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save),
-            onPressed: _saveTemplate,
-            tooltip: 'Save',
-          ),
-          IconButton(
-            icon: const Icon(Icons.publish),
-            onPressed: _publishTemplate,
-            tooltip: 'Publish',
-          ),
-        ],
-      ),
+    return AuthenticatedScaffold(
+      title: _menu?.name ?? 'Template Editor',
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.save),
+          onPressed: _saveTemplate,
+          tooltip: 'Save',
+        ),
+        IconButton(
+          icon: const Icon(Icons.publish),
+          onPressed: _publishTemplate,
+          tooltip: 'Publish',
+        ),
+      ],
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

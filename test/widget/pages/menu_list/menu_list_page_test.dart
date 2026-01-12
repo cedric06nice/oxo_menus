@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
@@ -29,10 +30,19 @@ void main() {
   });
 
   Widget createWidgetUnderTest({bool isAdmin = false}) {
+    final mockUser = User(
+      id: 'user-1',
+      email: 'test@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+      role: isAdmin ? UserRole.admin : UserRole.user,
+    );
+
     return ProviderScope(
       overrides: [
         menuRepositoryProvider.overrideWithValue(mockMenuRepository),
         isAdminProvider.overrideWithValue(isAdmin),
+        currentUserProvider.overrideWithValue(mockUser),
       ],
       child: MaterialApp(
         home: InheritedGoRouter(

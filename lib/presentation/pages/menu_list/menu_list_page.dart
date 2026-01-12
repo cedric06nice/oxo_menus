@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_list_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/menu_list_item.dart';
 
 /// Menu list page
@@ -75,17 +76,15 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
     final state = ref.watch(menuListProvider);
     final isAdmin = ref.watch(isAdminProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Menus'),
-        actions: [
-          if (isAdmin)
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: _handleCreateMenu,
-            ),
-        ],
-      ),
+    return AuthenticatedScaffold(
+      title: 'Menus',
+      actions: [
+        if (isAdmin)
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: _handleCreateMenu,
+          ),
+      ],
       body: RefreshIndicator(
         onRefresh: _handleRefresh,
         child: _buildBody(state, isAdmin),

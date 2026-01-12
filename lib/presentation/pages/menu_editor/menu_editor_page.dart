@@ -12,6 +12,7 @@ import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
 
 /// Menu Editor Page
@@ -155,31 +156,31 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
+      return const AuthenticatedScaffold(
+        title: 'Loading...',
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_errorMessage != null) {
-      return Scaffold(
+      return AuthenticatedScaffold(
+        title: 'Error',
         body: Center(child: Text('Error: $_errorMessage')),
       );
     }
 
     final registry = ref.watch(widgetRegistryProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_menu?.name ?? 'Menu Editor'),
-        actions: [
-          IconButton(
-            key: const Key('save_menu_button'),
-            icon: const Icon(Icons.save),
-            onPressed: _saveMenu,
-            tooltip: 'Save',
-          ),
-        ],
-      ),
+    return AuthenticatedScaffold(
+      title: _menu?.name ?? 'Menu Editor',
+      actions: [
+        IconButton(
+          key: const Key('save_menu_button'),
+          icon: const Icon(Icons.save),
+          onPressed: _saveMenu,
+          tooltip: 'Save',
+        ),
+      ],
       body: Row(
         children: [
           // Left Panel: Widget Palette
