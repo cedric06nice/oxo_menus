@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:oxo_menus/domain/allergens/allergen_formatter.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'dish_edit_dialog.dart';
@@ -62,21 +63,27 @@ class DishWidget extends StatelessWidget {
               ],
 
               // Allergens
-              if (props.showAllergens && props.allergens.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: props.allergens
-                      .map((allergen) => Chip(
-                            label: Text(
-                              allergen,
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            visualDensity: VisualDensity.compact,
-                            backgroundColor: Colors.orange[100],
-                          ))
-                      .toList(),
+              if (props.showAllergens) ...[
+                Builder(
+                  builder: (context) {
+                    final formattedAllergens = AllergenFormatter.formatForDisplay(
+                      props.effectiveAllergenInfo,
+                    );
+                    if (formattedAllergens.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        formattedAllergens,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
 

@@ -13,6 +13,11 @@ _DishProps _$DishPropsFromJson(Map<String, dynamic> json) => _DishProps(
   allergens:
       (json['allergens'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
+  allergenInfo:
+      (json['allergenInfo'] as List<dynamic>?)
+          ?.map((e) => AllergenInfo.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   dietary:
       (json['dietary'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
@@ -26,6 +31,7 @@ Map<String, dynamic> _$DishPropsToJson(_DishProps instance) =>
       'price': instance.price,
       'description': instance.description,
       'allergens': instance.allergens,
+      'allergenInfo': instance.allergenInfo,
       'dietary': instance.dietary,
       'showPrice': instance.showPrice,
       'showAllergens': instance.showAllergens,

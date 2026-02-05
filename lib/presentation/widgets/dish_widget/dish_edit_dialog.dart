@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:oxo_menus/domain/allergens/allergen_info.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
+import 'package:oxo_menus/presentation/widgets/allergen_selector/allergen_selector.dart';
 
 /// Dialog for editing dish properties
 class DishEditDialog extends StatefulWidget {
@@ -20,8 +22,8 @@ class _DishEditDialogState extends State<DishEditDialog> {
   late TextEditingController _nameController;
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
-  late TextEditingController _allergensController;
   late TextEditingController _dietaryController;
+  late List<AllergenInfo> _selectedAllergens;
   late bool _showPrice;
   late bool _showAllergens;
 
@@ -33,10 +35,9 @@ class _DishEditDialogState extends State<DishEditDialog> {
         TextEditingController(text: widget.props.price.toString());
     _descriptionController =
         TextEditingController(text: widget.props.description ?? '');
-    _allergensController =
-        TextEditingController(text: widget.props.allergens.join(', '));
     _dietaryController =
         TextEditingController(text: widget.props.dietary.join(', '));
+    _selectedAllergens = List.from(widget.props.effectiveAllergenInfo);
     _showPrice = widget.props.showPrice;
     _showAllergens = widget.props.showAllergens;
   }
@@ -46,7 +47,6 @@ class _DishEditDialogState extends State<DishEditDialog> {
     _nameController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
-    _allergensController.dispose();
     _dietaryController.dispose();
     super.dispose();
   }
@@ -86,15 +86,14 @@ class _DishEditDialogState extends State<DishEditDialog> {
               ),
               maxLines: 3,
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _allergensController,
-              decoration: const InputDecoration(
-                labelText: 'Allergens',
-                hintText: 'Comma-separated (e.g., Dairy, Gluten)',
-              ),
+            const SizedBox(height: 16),
+            AllergenSelector(
+              initialSelection: _selectedAllergens,
+              onChanged: (allergens) {
+                setState(() => _selectedAllergens = allergens);
+              },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             TextField(
               controller: _dietaryController,
               decoration: const InputDecoration(
@@ -138,11 +137,8 @@ class _DishEditDialogState extends State<DishEditDialog> {
       description: _descriptionController.text.trim().isEmpty
           ? null
           : _descriptionController.text.trim(),
-      allergens: _allergensController.text
-          .split(',')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList(),
+      allergens: const [], // Clear legacy field
+      allergenInfo: _selectedAllergens,
       dietary: _dietaryController.text
           .split(',')
           .map((s) => s.trim())

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/allergens/allergen_formatter.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/domain/widgets/section/section_props.dart';
@@ -216,32 +217,25 @@ class GeneratePdfUseCase {
             ),
           ],
           // Allergens
-          if (props.showAllergens && props.allergens.isNotEmpty) ...[
-            pw.SizedBox(height: 4),
-            pw.Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: props.allergens
-                  .map((allergen) => pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: const pw.BoxDecoration(
-                          color: PdfColors.orange100,
-                          borderRadius: pw.BorderRadius.all(
-                            pw.Radius.circular(12),
-                          ),
-                        ),
-                        child: pw.Text(
-                          allergen,
-                          style: pw.TextStyle(
-                            fontSize: baseFontSize - 3,
-                          ),
-                        ),
-                      ))
-                  .toList(),
-            ),
+          if (props.showAllergens) ...[
+            () {
+              final formattedAllergens = AllergenFormatter.formatForDisplay(
+                props.effectiveAllergenInfo,
+              );
+              if (formattedAllergens.isEmpty) {
+                return pw.SizedBox.shrink();
+              }
+              return pw.Padding(
+                padding: const pw.EdgeInsets.only(top: 4),
+                child: pw.Text(
+                  formattedAllergens,
+                  style: pw.TextStyle(
+                    fontSize: baseFontSize - 2,
+                    fontStyle: pw.FontStyle.italic,
+                  ),
+                ),
+              );
+            }(),
           ],
           // Dietary
           if (props.dietary.isNotEmpty) ...[

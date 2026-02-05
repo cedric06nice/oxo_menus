@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:oxo_menus/domain/allergens/allergen_info.dart';
 
 part 'dish_props.freezed.dart';
 part 'dish_props.g.dart';
@@ -21,8 +22,12 @@ abstract class DishProps with _$DishProps {
     /// Optional description of the dish
     String? description,
 
-    /// List of allergens (e.g., 'Dairy', 'Gluten', 'Nuts')
+    /// Legacy allergens field (for backward compatibility)
+    /// @deprecated Use allergenInfo instead
     @Default([]) List<String> allergens,
+
+    /// Structured allergen information with UK allergen types
+    @Default([]) List<AllergenInfo> allergenInfo,
 
     /// List of dietary tags (e.g., 'Vegetarian', 'Vegan', 'Gluten-Free')
     @Default([]) List<String> dietary,
@@ -36,4 +41,19 @@ abstract class DishProps with _$DishProps {
 
   factory DishProps.fromJson(Map<String, dynamic> json) =>
       _$DishPropsFromJson(json);
+
+  /// Get effective allergen info, migrating from legacy format if needed
+  ///
+  /// Returns [allergenInfo] if present, otherwise attempts to migrate
+  /// from the legacy [allergens] list.
+  List<AllergenInfo> get effectiveAllergenInfo {
+    if (allergenInfo.isNotEmpty) {
+      return allergenInfo;
+    }
+    // Migrate from legacy format
+    return allergens
+        .map((s) => AllergenInfo.fromLegacyString(s))
+        .whereType<AllergenInfo>()
+        .toList();
+  }
 }
