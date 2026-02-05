@@ -198,7 +198,7 @@ class GeneratePdfUseCase {
               ),
               if (props.showPrice)
                 pw.Text(
-                  '\$${props.price.toStringAsFixed(2)}',
+                  '£${props.price.toStringAsFixed(2)}',
                   style: pw.TextStyle(
                     fontSize: baseFontSize,
                     fontWeight: pw.FontWeight.bold,

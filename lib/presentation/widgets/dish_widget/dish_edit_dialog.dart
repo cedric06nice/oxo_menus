@@ -72,7 +72,7 @@ class _DishEditDialogState extends State<DishEditDialog> {
               decoration: const InputDecoration(
                 labelText: 'Price',
                 hintText: 'Enter price',
-                prefixText: '\$',
+                prefixText: '£',
               ),
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),

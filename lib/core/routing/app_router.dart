@@ -8,6 +8,7 @@ import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_pag
 import 'package:oxo_menus/presentation/pages/home/home_page.dart';
 import 'package:oxo_menus/presentation/pages/login/login_page.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/menu_editor_page.dart';
+import 'package:oxo_menus/presentation/pages/menu_editor/pdf_preview_dialog.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
 import 'package:oxo_menus/presentation/pages/settings/settings_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
@@ -34,11 +35,7 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
 
@@ -129,6 +126,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'menus',
         builder: (context, state) => const MenuListPage(),
         routes: [
+          GoRoute(
+            path: '/pdf/:id',
+            name: 'menu-pdf',
+            builder: (context, state) {
+              final int menuId = int.parse(state.pathParameters['id']!);
+              return PdfPreviewDialog(menuId: menuId);
+            },
+          ),
           GoRoute(
             path: ':id',
             name: 'menu-editor',

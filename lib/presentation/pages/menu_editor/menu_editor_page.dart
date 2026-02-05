@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
@@ -27,14 +28,14 @@ class _WidgetDragData {
   final int? sourceColumnId;
 
   const _WidgetDragData.newWidget(String type)
-      : newWidgetType = type,
-        existingWidget = null,
-        sourceColumnId = null;
+    : newWidgetType = type,
+      existingWidget = null,
+      sourceColumnId = null;
 
   const _WidgetDragData.existing(WidgetInstance widget, int columnId)
-      : newWidgetType = null,
-        existingWidget = widget,
-        sourceColumnId = columnId;
+    : newWidgetType = null,
+      existingWidget = widget,
+      sourceColumnId = columnId;
 
   bool get isNewWidget => newWidgetType != null;
   bool get isExistingWidget => existingWidget != null;
@@ -51,10 +52,7 @@ class _WidgetDragData {
 class MenuEditorPage extends ConsumerStatefulWidget {
   final int menuId;
 
-  const MenuEditorPage({
-    super.key,
-    required this.menuId,
-  });
+  const MenuEditorPage({super.key, required this.menuId});
 
   @override
   ConsumerState<MenuEditorPage> createState() => _MenuEditorPageState();
@@ -87,13 +85,15 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     });
 
     // Load menu
-    final menuResult =
-        await ref.read(menuRepositoryProvider).getById(widget.menuId);
+    final menuResult = await ref
+        .read(menuRepositoryProvider)
+        .getById(widget.menuId);
 
     if (menuResult.isFailure) {
       setState(() {
         _isLoading = false;
-        _errorMessage = menuResult.errorOrNull?.message ?? 'Failed to load menu';
+        _errorMessage =
+            menuResult.errorOrNull?.message ?? 'Failed to load menu';
       });
       return;
     }
@@ -101,8 +101,9 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     _menu = menuResult.valueOrNull!;
 
     // Load pages
-    final pagesResult =
-        await ref.read(pageRepositoryProvider).getAllForMenu(widget.menuId);
+    final pagesResult = await ref
+        .read(pageRepositoryProvider)
+        .getAllForMenu(widget.menuId);
 
     if (pagesResult.isFailure) {
       setState(() {
@@ -122,13 +123,14 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     _widgets.clear();
 
     for (final page in _pages) {
-      final containersResult =
-          await ref.read(containerRepositoryProvider).getAllForPage(page.id);
+      final containersResult = await ref
+          .read(containerRepositoryProvider)
+          .getAllForPage(page.id);
 
       if (containersResult.isSuccess) {
-        final containers =
-            List<entity.Container>.from(containersResult.valueOrNull!)
-              ..sort((a, b) => a.index.compareTo(b.index));
+        final containers = List<entity.Container>.from(
+          containersResult.valueOrNull!,
+        )..sort((a, b) => a.index.compareTo(b.index));
         _containers[page.id] = containers;
 
         // Load columns for each container
@@ -138,21 +140,20 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
               .getAllForContainer(container.id);
 
           if (columnsResult.isSuccess) {
-            _columns[container.id] =
-                List<entity.Column>.from(columnsResult.valueOrNull!)
-                  ..sort((a, b) => a.index.compareTo(b.index));
+            _columns[container.id] = List<entity.Column>.from(
+              columnsResult.valueOrNull!,
+            )..sort((a, b) => a.index.compareTo(b.index));
 
             // Load widgets for each column
-            for (final column
-                in _columns[container.id] ?? <entity.Column>[]) {
+            for (final column in _columns[container.id] ?? <entity.Column>[]) {
               final widgetsResult = await ref
                   .read(widgetRepositoryProvider)
                   .getAllForColumn(column.id);
 
               if (widgetsResult.isSuccess) {
-                _widgets[column.id] =
-                    List<WidgetInstance>.from(widgetsResult.valueOrNull!)
-                      ..sort((a, b) => a.index.compareTo(b.index));
+                _widgets[column.id] = List<WidgetInstance>.from(
+                  widgetsResult.valueOrNull!,
+                )..sort((a, b) => a.index.compareTo(b.index));
               }
             }
           }
@@ -165,8 +166,14 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     });
   }
 
+  Future<void> _showPdf() async {
+    context.push('/menus/pdf/${widget.menuId}');
+  }
+
   Future<void> _saveMenu() async {
-    final result = await ref.read(menuRepositoryProvider).update(
+    final result = await ref
+        .read(menuRepositoryProvider)
+        .update(
           UpdateMenuInput(
             id: widget.menuId,
             // Keep existing data for now
@@ -174,9 +181,9 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
         );
 
     if (result.isSuccess && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Menu saved')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Menu saved')));
     }
   }
 
@@ -202,6 +209,12 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       title: _menu?.name ?? 'Menu Editor',
       actions: [
         IconButton(
+          key: const Key('show_pdf_button'),
+          onPressed: _showPdf,
+          icon: const Icon(Icons.file_present),
+          tooltip: 'Show PDF',
+        ),
+        IconButton(
           key: const Key('save_menu_button'),
           icon: const Icon(Icons.save),
           onPressed: _saveMenu,
@@ -211,18 +224,13 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       body: Row(
         children: [
           // Left Panel: Widget Palette
-          SizedBox(
-            width: 200,
-            child: _buildWidgetPalette(registry),
-          ),
+          SizedBox(width: 200, child: _buildWidgetPalette(registry)),
 
           // Divider
           const VerticalDivider(width: 1),
 
           // Right Panel: Canvas Preview
-          Expanded(
-            child: _buildCanvas(),
-          ),
+          Expanded(child: _buildCanvas()),
         ],
       ),
     );
@@ -297,11 +305,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       ),
       child: Row(
         children: [
-          Icon(
-            _getIconForType(type),
-            size: 20,
-            color: Colors.grey[700],
-          ),
+          Icon(_getIconForType(type), size: 20, color: Colors.grey[700]),
           const SizedBox(width: 8),
           Text(
             type.toUpperCase(),
@@ -348,10 +352,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Page Header
-            Text(
-              page.name,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text(page.name, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
 
             // Containers
@@ -386,10 +387,12 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: columns
-                    .map((column) => Expanded(
-                          flex: column.flex ?? 1,
-                          child: _buildColumnCard(column),
-                        ))
+                    .map(
+                      (column) => Expanded(
+                        flex: column.flex ?? 1,
+                        child: _buildColumnCard(column),
+                      ),
+                    )
                     .toList(),
               ),
           ],
@@ -433,10 +436,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
                 padding: const EdgeInsets.all(12.0),
                 child: Text(
                   'Drop widgets here',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
                 ),
               ),
             ),
@@ -456,7 +456,11 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   }
 
   Widget _buildDropZone(
-      int columnId, int index, bool isHovering, WidgetRegistry registry) {
+    int columnId,
+    int index,
+    bool isHovering,
+    WidgetRegistry registry,
+  ) {
     return DragTarget<_WidgetDragData>(
       key: Key('drop_zone_${columnId}_$index'),
       onWillAcceptWithDetails: (details) {
@@ -511,7 +515,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       builder: (context, candidateData, rejectedData) {
         final showLine = isHovering && candidateData.isNotEmpty;
         // Show a muted color for no-op positions
-        final isNoOp = candidateData.isNotEmpty &&
+        final isNoOp =
+            candidateData.isNotEmpty &&
             candidateData.first != null &&
             _isNoOpDrop(candidateData.first!, columnId, index);
 
@@ -531,7 +536,10 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   }
 
   Widget _buildWidgetItem(
-      WidgetInstance widget, int columnId, WidgetRegistry registry) {
+    WidgetInstance widget,
+    int columnId,
+    WidgetRegistry registry,
+  ) {
     final widgetContent = Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: WidgetRenderer(
@@ -563,10 +571,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
           ),
         ),
       ),
-      childWhenDragging: Opacity(
-        opacity: 0.3,
-        child: widgetContent,
-      ),
+      childWhenDragging: Opacity(opacity: 0.3, child: widgetContent),
       child: Dismissible(
         key: Key('dismissible_${widget.id}'),
         direction: DismissDirection.endToStart,
@@ -584,10 +589,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
             color: Colors.red,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(
-            Icons.delete,
-            color: Colors.white,
-          ),
+          child: const Icon(Icons.delete, color: Colors.white),
         ),
         child: widgetContent,
       ),
@@ -595,7 +597,10 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   }
 
   Future<void> _handleWidgetDropAtIndex(
-      String widgetType, int columnId, int index) async {
+    String widgetType,
+    int columnId,
+    int index,
+  ) async {
     try {
       final registry = ref.read(widgetRegistryProvider);
       final definition = registry.getDefinition(widgetType);
@@ -611,7 +616,9 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       final propsJson =
           (definition.defaultProps as dynamic).toJson() as Map<String, dynamic>;
 
-      final result = await ref.read(widgetRepositoryProvider).create(
+      final result = await ref
+          .read(widgetRepositoryProvider)
+          .create(
             CreateWidgetInput(
               columnId: columnId,
               type: widgetType,
@@ -627,7 +634,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Failed to create widget: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+              'Failed to create widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -645,13 +653,12 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   }
 
   Future<void> _handleWidgetUpdate(
-      int widgetId, Map<String, dynamic> updatedProps) async {
-    final result = await ref.read(widgetRepositoryProvider).update(
-          UpdateWidgetInput(
-            id: widgetId,
-            props: updatedProps,
-          ),
-        );
+    int widgetId,
+    Map<String, dynamic> updatedProps,
+  ) async {
+    final result = await ref
+        .read(widgetRepositoryProvider)
+        .update(UpdateWidgetInput(id: widgetId, props: updatedProps));
 
     if (result.isSuccess) {
       await _loadMenu();
@@ -668,8 +675,9 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       if (sourceColumnId == targetColumnId) {
         // Reordering within the same column
         // Adjust index if moving down (since removing the widget shifts indices)
-        final adjustedIndex =
-            targetIndex > widget.index ? targetIndex - 1 : targetIndex;
+        final adjustedIndex = targetIndex > widget.index
+            ? targetIndex - 1
+            : targetIndex;
 
         final result = await ref
             .read(widgetRepositoryProvider)
@@ -681,7 +689,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                  'Failed to reorder widget: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+                'Failed to reorder widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -698,7 +707,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                  'Failed to move widget: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+                'Failed to move widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -732,7 +742,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Failed to delete widget: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+            'Failed to delete widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+          ),
           backgroundColor: Colors.red,
         ),
       );

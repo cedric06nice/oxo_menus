@@ -41,7 +41,7 @@ class DishWidget extends StatelessWidget {
                   ),
                   if (props.showPrice)
                     Text(
-                      '\$${props.price.toStringAsFixed(2)}',
+                      '£${props.price.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
