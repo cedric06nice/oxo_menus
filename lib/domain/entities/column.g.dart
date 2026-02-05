@@ -7,8 +7,8 @@ part of 'column.dart';
 // **************************************************************************
 
 _Column _$ColumnFromJson(Map<String, dynamic> json) => _Column(
-  id: json['id'] as String,
-  containerId: json['containerId'] as String,
+  id: (json['id'] as num).toInt(),
+  containerId: (json['containerId'] as num).toInt(),
   index: (json['index'] as num).toInt(),
   flex: (json['flex'] as num?)?.toInt(),
   width: (json['width'] as num?)?.toDouble(),

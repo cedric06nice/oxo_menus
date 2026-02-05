@@ -1,24 +1,52 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:directus_api_manager/directus_api_manager.dart';
+import 'package:oxo_menus/data/models/column_dto.dart';
 
-part 'widget_dto.freezed.dart';
-part 'widget_dto.g.dart';
+@DirectusCollection()
+@CollectionMetadata(endpointName: "widget")
+class WidgetDto extends DirectusItem {
+  int get index => getValue(forKey: "index");
+  String get typeKey => getValue(forKey: "type_key");
+  String get version => getValue(forKey: "version");
+  String? get status => getValue(forKey: "status");
+  DateTime? get dateCreated => getOptionalDateTime(forKey: "date_created");
+  DateTime? get dateUpdated => getOptionalDateTime(forKey: "date_updated");
+  String? get userUpdated => getValue(forKey: "user_updated");
 
-/// Data Transfer Object for Widget matching Directus 'widget' collection schema
-@freezed
-abstract class WidgetDto with _$WidgetDto {
-  const WidgetDto._();
-  const factory WidgetDto({
-    required String id,
-    @JsonKey(name: 'date_created') DateTime? dateCreated,
-    @JsonKey(name: 'date_updated') DateTime? dateUpdated,
-    @JsonKey(name: 'column_id') required String columnId,
-    required String type,
-    required String version,
-    required int index,
-    required Map<String, dynamic> props,
-    @JsonKey(name: 'style_json') Map<String, dynamic>? styleJson,
-  }) = _WidgetDto;
+  Map<String, dynamic> get styleJson =>
+      Map<String, dynamic>.from(getValue(forKey: "style_json") ?? const {});
+  Map<String, dynamic> get propsJson =>
+      Map<String, dynamic>.from(getValue(forKey: "props_json") ?? const {});
 
-  factory WidgetDto.fromJson(Map<String, dynamic> json) =>
-      _$WidgetDtoFromJson(json);
+  ColumnDto? get column {
+    final raw = getValue(forKey: "column");
+    if (raw == null) return null;
+    if (raw is int) {
+      return ColumnDto.withId(raw);
+    }
+    if (raw is Map<String, dynamic>) {
+      return ColumnDto(raw);
+    }
+    return null;
+  }
+
+  WidgetDto.newItem({
+    required int? index,
+    required String? typeKey,
+    required String? version,
+    String? status,
+    Map<String, dynamic>? propsJson,
+    Map<String, dynamic>? styleJson,
+    int? column,
+  }) : super.newItem() {
+    setValue(index, forKey: "index");
+    setValue(typeKey, forKey: "type_key");
+    setValue(version, forKey: "version");
+    setValue(status, forKey: "status");
+    setValue(propsJson, forKey: "props_json");
+    setValue(styleJson, forKey: "style_json");
+    setValue(column, forKey: "column");
+  }
+
+  WidgetDto(super.rawReceivedData);
+  WidgetDto.withId(super.id) : super.withId();
 }

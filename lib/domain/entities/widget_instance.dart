@@ -7,10 +7,10 @@ part 'widget_instance.g.dart';
 @freezed
 abstract class WidgetInstance with _$WidgetInstance {
   const WidgetInstance._();
-  
+
   const factory WidgetInstance({
-    required String id,
-    required String columnId,
+    required int id,
+    required int columnId,
     required String type,
     required String version,
     required int index,
@@ -28,7 +28,7 @@ abstract class WidgetInstance with _$WidgetInstance {
 @freezed
 abstract class WidgetStyle with _$WidgetStyle {
   const WidgetStyle._();
-  
+
   const factory WidgetStyle({
     String? fontFamily,
     double? fontSize,

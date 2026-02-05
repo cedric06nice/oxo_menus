@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreateWidgetInput {
 
- String get columnId; String get type; String get version; int get index; Map<String, dynamic> get props; WidgetStyle? get style;
+ int get columnId; String get type; String get version; int get index; Map<String, dynamic> get props; WidgetStyle? get style;
 /// Create a copy of CreateWidgetInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $CreateWidgetInputCopyWith<$Res>  {
   factory $CreateWidgetInputCopyWith(CreateWidgetInput value, $Res Function(CreateWidgetInput) _then) = _$CreateWidgetInputCopyWithImpl;
 @useResult
 $Res call({
- String columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style
+ int columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style
 });
 
 
@@ -65,7 +65,7 @@ class _$CreateWidgetInputCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? columnId = null,Object? type = null,Object? version = null,Object? index = null,Object? props = null,Object? style = freezed,}) {
   return _then(_self.copyWith(
 columnId: null == columnId ? _self.columnId : columnId // ignore: cast_nullable_to_non_nullable
-as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,props: null == props ? _self.props : props // ignore: cast_nullable_to_non_nullable
@@ -167,7 +167,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateWidgetInput() when $default != null:
 return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style);case _:
@@ -188,7 +188,7 @@ return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style)  $default,) {final _that = this;
 switch (_that) {
 case _CreateWidgetInput():
 return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style);case _:
@@ -208,7 +208,7 @@ return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateWidgetInput() when $default != null:
 return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style);case _:
@@ -226,7 +226,7 @@ class _CreateWidgetInput extends CreateWidgetInput {
   const _CreateWidgetInput({required this.columnId, required this.type, required this.version, required this.index, required final  Map<String, dynamic> props, this.style}): _props = props,super._();
   
 
-@override final  String columnId;
+@override final  int columnId;
 @override final  String type;
 @override final  String version;
 @override final  int index;
@@ -269,7 +269,7 @@ abstract mixin class _$CreateWidgetInputCopyWith<$Res> implements $CreateWidgetI
   factory _$CreateWidgetInputCopyWith(_CreateWidgetInput value, $Res Function(_CreateWidgetInput) _then) = __$CreateWidgetInputCopyWithImpl;
 @override @useResult
 $Res call({
- String columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style
+ int columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style
 });
 
 
@@ -289,7 +289,7 @@ class __$CreateWidgetInputCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? columnId = null,Object? type = null,Object? version = null,Object? index = null,Object? props = null,Object? style = freezed,}) {
   return _then(_CreateWidgetInput(
 columnId: null == columnId ? _self.columnId : columnId // ignore: cast_nullable_to_non_nullable
-as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,props: null == props ? _self._props : props // ignore: cast_nullable_to_non_nullable
@@ -316,7 +316,7 @@ $WidgetStyleCopyWith<$Res>? get style {
 /// @nodoc
 mixin _$UpdateWidgetInput {
 
- String get id; String? get type; String? get version; int? get index; Map<String, dynamic>? get props; WidgetStyle? get style;
+ int get id; String? get type; String? get version; int? get index; Map<String, dynamic>? get props; WidgetStyle? get style;
 /// Create a copy of UpdateWidgetInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -347,7 +347,7 @@ abstract mixin class $UpdateWidgetInputCopyWith<$Res>  {
   factory $UpdateWidgetInputCopyWith(UpdateWidgetInput value, $Res Function(UpdateWidgetInput) _then) = _$UpdateWidgetInputCopyWithImpl;
 @useResult
 $Res call({
- String id, String? type, String? version, int? index, Map<String, dynamic>? props, WidgetStyle? style
+ int id, String? type, String? version, int? index, Map<String, dynamic>? props, WidgetStyle? style
 });
 
 
@@ -367,7 +367,7 @@ class _$UpdateWidgetInputCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? type = freezed,Object? version = freezed,Object? index = freezed,Object? props = freezed,Object? style = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,type: freezed == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as int,type: freezed == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String?,version: freezed == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String?,index: freezed == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int?,props: freezed == props ? _self.props : props // ignore: cast_nullable_to_non_nullable
@@ -469,7 +469,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? type,  String? version,  int? index,  Map<String, dynamic>? props,  WidgetStyle? style)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String? type,  String? version,  int? index,  Map<String, dynamic>? props,  WidgetStyle? style)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdateWidgetInput() when $default != null:
 return $default(_that.id,_that.type,_that.version,_that.index,_that.props,_that.style);case _:
@@ -490,7 +490,7 @@ return $default(_that.id,_that.type,_that.version,_that.index,_that.props,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? type,  String? version,  int? index,  Map<String, dynamic>? props,  WidgetStyle? style)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String? type,  String? version,  int? index,  Map<String, dynamic>? props,  WidgetStyle? style)  $default,) {final _that = this;
 switch (_that) {
 case _UpdateWidgetInput():
 return $default(_that.id,_that.type,_that.version,_that.index,_that.props,_that.style);case _:
@@ -510,7 +510,7 @@ return $default(_that.id,_that.type,_that.version,_that.index,_that.props,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? type,  String? version,  int? index,  Map<String, dynamic>? props,  WidgetStyle? style)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String? type,  String? version,  int? index,  Map<String, dynamic>? props,  WidgetStyle? style)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdateWidgetInput() when $default != null:
 return $default(_that.id,_that.type,_that.version,_that.index,_that.props,_that.style);case _:
@@ -528,7 +528,7 @@ class _UpdateWidgetInput extends UpdateWidgetInput {
   const _UpdateWidgetInput({required this.id, this.type, this.version, this.index, final  Map<String, dynamic>? props, this.style}): _props = props,super._();
   
 
-@override final  String id;
+@override final  int id;
 @override final  String? type;
 @override final  String? version;
 @override final  int? index;
@@ -573,7 +573,7 @@ abstract mixin class _$UpdateWidgetInputCopyWith<$Res> implements $UpdateWidgetI
   factory _$UpdateWidgetInputCopyWith(_UpdateWidgetInput value, $Res Function(_UpdateWidgetInput) _then) = __$UpdateWidgetInputCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? type, String? version, int? index, Map<String, dynamic>? props, WidgetStyle? style
+ int id, String? type, String? version, int? index, Map<String, dynamic>? props, WidgetStyle? style
 });
 
 
@@ -593,7 +593,7 @@ class __$UpdateWidgetInputCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? type = freezed,Object? version = freezed,Object? index = freezed,Object? props = freezed,Object? style = freezed,}) {
   return _then(_UpdateWidgetInput(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,type: freezed == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as int,type: freezed == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String?,version: freezed == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String?,index: freezed == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int?,props: freezed == props ? _self._props : props // ignore: cast_nullable_to_non_nullable

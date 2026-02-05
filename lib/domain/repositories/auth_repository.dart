@@ -15,4 +15,9 @@ abstract class AuthRepository {
 
   /// Refresh the current session
   Future<Result<void, DomainError>> refreshSession();
+
+  /// Try to restore session from stored tokens
+  ///
+  /// Returns the user if session was restored successfully
+  Future<Result<User, DomainError>> tryRestoreSession();
 }

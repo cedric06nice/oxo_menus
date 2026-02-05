@@ -9,8 +9,8 @@ abstract class Page with _$Page {
   const Page._();
 
   const factory Page({
-    required String id,
-    required String menuId,
+    required int id,
+    required int menuId,
     required String name,
     required int index,
     DateTime? dateCreated,

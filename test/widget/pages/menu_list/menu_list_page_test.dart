@@ -6,6 +6,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
@@ -134,15 +135,15 @@ void main() {
       // Arrange
       final menus = [
         const Menu(
-          id: '1',
+          id: 1,
           name: 'Summer Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
         const Menu(
-          id: '2',
+          id: 2,
           name: 'Winter Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
       ];
@@ -208,9 +209,9 @@ void main() {
       // Arrange
       final menus = [
         const Menu(
-          id: 'menu-123',
+          id: 123,
           name: 'Summer Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
       ];
@@ -227,7 +228,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      verify(() => mockRouter.push('/menus/menu-123')).called(1);
+      verify(() => mockRouter.push('/menus/123')).called(1);
     });
 
     testWidgets('should navigate to create menu when add button tapped', (tester) async {
@@ -253,9 +254,9 @@ void main() {
       // Arrange
       final menus = [
         const Menu(
-          id: '1',
+          id: 1,
           name: 'Summer Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
       ];
@@ -275,9 +276,9 @@ void main() {
       // Arrange
       final menus = [
         const Menu(
-          id: '1',
+          id: 1,
           name: 'Summer Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
       ];
@@ -297,9 +298,9 @@ void main() {
       // Arrange
       final menus = [
         const Menu(
-          id: '1',
+          id: 1,
           name: 'Summer Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
       ];
@@ -326,16 +327,16 @@ void main() {
       // Arrange
       final menus = [
         const Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Summer Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
       ];
 
       when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
           .thenAnswer((_) async => Success(menus));
-      when(() => mockMenuRepository.delete('menu-1'))
+      when(() => mockMenuRepository.delete(1))
           .thenAnswer((_) async => const Success(null));
 
       // Act
@@ -349,7 +350,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      verify(() => mockMenuRepository.delete('menu-1')).called(1);
+      verify(() => mockMenuRepository.delete(1)).called(1);
       expect(find.text('Summer Menu'), findsNothing); // Menu should be removed from list
     });
 
@@ -357,9 +358,9 @@ void main() {
       // Arrange
       final menus = [
         const Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Summer Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
       ];
@@ -388,9 +389,9 @@ void main() {
       // Arrange
       final menus = [
         const Menu(
-          id: '1',
+          id: 1,
           name: 'Test Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
       ];

@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
 
 part 'menu_repository.freezed.dart';
 
@@ -14,13 +15,13 @@ abstract class MenuRepository {
   Future<Result<List<Menu>, DomainError>> listAll({bool onlyPublished = true});
 
   /// Get menu by ID
-  Future<Result<Menu, DomainError>> getById(String id);
+  Future<Result<Menu, DomainError>> getById(int id);
 
   /// Update an existing menu
   Future<Result<Menu, DomainError>> update(UpdateMenuInput input);
 
   /// Delete a menu
-  Future<Result<void, DomainError>> delete(String id);
+  Future<Result<void, DomainError>> delete(int id);
 }
 
 /// Input for creating a menu
@@ -31,9 +32,9 @@ abstract class CreateMenuInput with _$CreateMenuInput {
   const factory CreateMenuInput({
     required String name,
     required String version,
-    MenuStatus? status,
+    Status? status,
     StyleConfig? styleConfig,
-    PageSize? pageSize,
+    int? sizeId,
     String? area,
   }) = _CreateMenuInput;
 }
@@ -44,10 +45,10 @@ abstract class UpdateMenuInput with _$UpdateMenuInput {
   const UpdateMenuInput._();
 
   const factory UpdateMenuInput({
-    required String id,
+    required int id,
     String? name,
     String? version,
-    MenuStatus? status,
+    Status? status,
     StyleConfig? styleConfig,
     PageSize? pageSize,
     String? area,

@@ -5,6 +5,7 @@ import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
+import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/presentation/widgets/template_canvas.dart';
@@ -15,9 +16,9 @@ void main() {
       // Arrange
       const menuTree = MenuTree(
         menu: Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Test Menu',
-          status: MenuStatus.draft,
+          status: Status.draft,
           version: '1.0.0',
         ),
         pages: [],
@@ -40,16 +41,16 @@ void main() {
       // Arrange
       const menuTree = MenuTree(
         menu: Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Test Menu',
-          status: MenuStatus.draft,
+          status: Status.draft,
           version: '1.0.0',
         ),
         pages: [
           PageWithContainers(
             page: entity.Page(
-              id: 'page-1',
-              menuId: 'menu-1',
+              id: 1,
+              menuId: 1,
               name: 'Page 1',
               index: 0,
             ),
@@ -79,16 +80,16 @@ void main() {
       // Arrange
       const menuTree = MenuTree(
         menu: Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Test Menu',
-          status: MenuStatus.draft,
+          status: Status.draft,
           version: '1.0.0',
         ),
         pages: [
           PageWithContainers(
             page: entity.Page(
-              id: 'page-1',
-              menuId: 'menu-1',
+              id: 1,
+              menuId: 1,
               name: 'Page 1',
               index: 0,
             ),
@@ -96,8 +97,8 @@ void main() {
           ),
           PageWithContainers(
             page: entity.Page(
-              id: 'page-2',
-              menuId: 'menu-1',
+              id: 2,
+              menuId: 1,
               name: 'Page 2',
               index: 1,
             ),
@@ -127,8 +128,8 @@ void main() {
       // Arrange
       const pageData = PageWithContainers(
         page: entity.Page(
-          id: 'page-1',
-          menuId: 'menu-1',
+          id: 1,
+          menuId: 1,
           name: 'Test Page',
           index: 0,
         ),
@@ -155,8 +156,8 @@ void main() {
       // Arrange
       const pageData = PageWithContainers(
         page: entity.Page(
-          id: 'page-1',
-          menuId: 'menu-1',
+          id: 1,
+          menuId: 1,
           name: 'Test Page',
           index: 0,
         ),
@@ -182,16 +183,16 @@ void main() {
       // Arrange
       const pageData = PageWithContainers(
         page: entity.Page(
-          id: 'page-1',
-          menuId: 'menu-1',
+          id: 1,
+          menuId: 1,
           name: 'Test Page',
           index: 0,
         ),
         containers: [
           ContainerWithColumns(
             container: entity.Container(
-              id: 'container-1',
-              pageId: 'page-1',
+              id: 1,
+              pageId: 1,
               index: 0,
               name: 'Container 1',
             ),
@@ -223,8 +224,8 @@ void main() {
       // Arrange
       const containerData = ContainerWithColumns(
         container: entity.Container(
-          id: 'container-1',
-          pageId: 'page-1',
+          id: 1,
+          pageId: 1,
           index: 0,
           name: 'Test Container',
         ),
@@ -252,8 +253,8 @@ void main() {
       // Arrange
       const containerData = ContainerWithColumns(
         container: entity.Container(
-          id: 'container-1',
-          pageId: 'page-1',
+          id: 1,
+          pageId: 1,
           index: 0,
           name: 'Test Container',
         ),
@@ -280,15 +281,15 @@ void main() {
       // Arrange
       const containerData = ContainerWithColumns(
         container: entity.Container(
-          id: 'container-1',
-          pageId: 'page-1',
+          id: 1,
+          pageId: 1,
           index: 0,
         ),
         columns: [
           ColumnWithWidgets(
             column: entity.Column(
-              id: 'column-1',
-              containerId: 'container-1',
+              id: 1,
+              containerId: 1,
               index: 0,
               flex: 1,
             ),
@@ -296,8 +297,8 @@ void main() {
           ),
           ColumnWithWidgets(
             column: entity.Column(
-              id: 'column-2',
-              containerId: 'container-1',
+              id: 2,
+              containerId: 1,
               index: 1,
               flex: 2,
             ),
@@ -327,15 +328,15 @@ void main() {
       // Arrange
       const containerData = ContainerWithColumns(
         container: entity.Container(
-          id: 'container-1',
-          pageId: 'page-1',
+          id: 1,
+          pageId: 1,
           index: 0,
         ),
         columns: [
           ColumnWithWidgets(
             column: entity.Column(
-              id: 'column-1',
-              containerId: 'container-1',
+              id: 1,
+              containerId: 1,
               index: 0,
               flex: 1,
             ),
@@ -343,8 +344,8 @@ void main() {
           ),
           ColumnWithWidgets(
             column: entity.Column(
-              id: 'column-2',
-              containerId: 'container-1',
+              id: 2,
+              containerId: 1,
               index: 1,
               flex: 3,
             ),
@@ -379,8 +380,8 @@ void main() {
       // Arrange
       const columnData = ColumnWithWidgets(
         column: entity.Column(
-          id: 'column-1',
-          containerId: 'container-1',
+          id: 1,
+          containerId: 1,
           index: 0,
         ),
         widgets: [],
@@ -406,8 +407,8 @@ void main() {
       // Arrange
       const columnData = ColumnWithWidgets(
         column: entity.Column(
-          id: 'column-1',
-          containerId: 'container-1',
+          id: 1,
+          containerId: 1,
           index: 0,
         ),
         widgets: [],
@@ -432,8 +433,8 @@ void main() {
       // Arrange
       const columnData = ColumnWithWidgets(
         column: entity.Column(
-          id: 'column-1',
-          containerId: 'container-1',
+          id: 1,
+          containerId: 1,
           index: 0,
         ),
         widgets: [],
@@ -465,8 +466,8 @@ void main() {
       // Arrange
       const columnData = ColumnWithWidgets(
         column: entity.Column(
-          id: 'column-1',
-          containerId: 'container-1',
+          id: 1,
+          containerId: 1,
           index: 0,
         ),
         widgets: [],
@@ -496,14 +497,14 @@ void main() {
       // Arrange
       const columnData = ColumnWithWidgets(
         column: entity.Column(
-          id: 'column-1',
-          containerId: 'container-1',
+          id: 1,
+          containerId: 1,
           index: 0,
         ),
         widgets: [
           WidgetInstance(
-            id: 'widget-1',
-            columnId: 'column-1',
+            id: 1,
+            columnId: 1,
             type: 'text',
             version: '1.0.0',
             index: 0,
@@ -534,15 +535,15 @@ void main() {
       // Arrange
       const containerData = ContainerWithColumns(
         container: entity.Container(
-          id: 'container-1',
-          pageId: 'page-1',
+          id: 1,
+          pageId: 1,
           index: 0,
         ),
         columns: [
           ColumnWithWidgets(
             column: entity.Column(
-              id: 'column-1',
-              containerId: 'container-1',
+              id: 1,
+              containerId: 1,
               index: 0,
               flex: 1,
             ),
@@ -572,8 +573,8 @@ void main() {
       // Arrange
       const pageData = PageWithContainers(
         page: entity.Page(
-          id: 'page-1',
-          menuId: 'menu-1',
+          id: 1,
+          menuId: 1,
           name: 'Test Page',
           index: 0,
         ),

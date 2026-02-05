@@ -5,12 +5,14 @@ import 'package:oxo_menus/data/repositories/column_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/container_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/menu_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/page_repository_impl.dart';
+import 'package:oxo_menus/data/repositories/size_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/widget_repository_impl.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
+import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 
 /// Directus base URL provider
@@ -78,4 +80,12 @@ final widgetRepositoryProvider = Provider<WidgetRepository>((ref) {
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final dataSource = ref.watch(directusDataSourceProvider);
   return AuthRepositoryImpl(dataSource: dataSource);
+});
+
+/// Size repository provider
+///
+/// Provides the SizeRepository implementation for fetching available page sizes
+final sizeRepositoryProvider = Provider<SizeRepository>((ref) {
+  final dataSource = ref.watch(directusDataSourceProvider);
+  return SizeRepositoryImpl(dataSource: dataSource);
 });

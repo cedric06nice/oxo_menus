@@ -3,7 +3,6 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/mappers/error_mapper.dart';
 import 'package:oxo_menus/data/mappers/widget_mapper.dart';
-import 'package:oxo_menus/data/models/directus_items/widget_directus_item.dart';
 import 'package:oxo_menus/data/models/widget_dto.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
@@ -16,14 +15,17 @@ class WidgetRepositoryImpl implements WidgetRepository {
 
   @override
   Future<Result<WidgetInstance, DomainError>> create(
-      CreateWidgetInput input) async {
+    CreateWidgetInput input,
+  ) async {
     try {
-      final item = WidgetDirectusItem.newItem();
-      item.setValue(input.columnId, forKey: 'column_id');
-      item.setValue(input.type, forKey: 'type');
-      item.setValue(input.version, forKey: 'version');
-      item.setValue(input.index, forKey: 'index');
-      item.setValue(input.props, forKey: 'props');
+      final item = WidgetDto.newItem(
+        index: input.index,
+        typeKey: input.type,
+        version: input.version,
+        status: 'published',
+      );
+      item.setValue(input.columnId, forKey: 'column');
+      item.setValue(input.props, forKey: 'props_json');
 
       if (input.style != null) {
         item.setValue(
@@ -32,9 +34,9 @@ class WidgetRepositoryImpl implements WidgetRepository {
         );
       }
 
-      final data = await dataSource.createItem<WidgetDirectusItem>(item);
+      final data = await dataSource.createItem<WidgetDto>(item);
 
-      final dto = WidgetDto.fromJson(data);
+      final dto = WidgetDto(data);
       final widget = WidgetMapper.toEntity(dto);
 
       return Success(widget);
@@ -45,28 +47,31 @@ class WidgetRepositoryImpl implements WidgetRepository {
 
   @override
   Future<Result<List<WidgetInstance>, DomainError>> getAllForColumn(
-      String columnId) async {
+    int columnId,
+  ) async {
     try {
-      final data = await dataSource.getItems<WidgetDirectusItem>(
+      final data = await dataSource.getItems<WidgetDto>(
         filter: {
-          'column_id': {'_eq': columnId}
+          'column': {'_eq': columnId},
         },
         fields: [
           'id',
-          'column_id',
-          'type',
-          'version',
-          'index',
-          'props',
-          'style_json',
+          'status',
           'date_created',
           'date_updated',
+          'user_created',
+          'user_updated',
+          'index',
+          'type_key',
+          'version',
+          'props_json',
+          'style_json',
         ],
         sort: ['index'],
       );
 
       final widgets = data
-          .map((json) => WidgetDto.fromJson(json))
+          .map((json) => WidgetDto(json))
           .map((dto) => WidgetMapper.toEntity(dto))
           .toList();
 
@@ -77,24 +82,26 @@ class WidgetRepositoryImpl implements WidgetRepository {
   }
 
   @override
-  Future<Result<WidgetInstance, DomainError>> getById(String id) async {
+  Future<Result<WidgetInstance, DomainError>> getById(int id) async {
     try {
-      final data = await dataSource.getItem<WidgetDirectusItem>(
+      final data = await dataSource.getItem<WidgetDto>(
         id,
         fields: [
           'id',
-          'column_id',
-          'type',
-          'version',
-          'index',
-          'props',
-          'style_json',
+          'status',
           'date_created',
           'date_updated',
+          'user_created',
+          'user_updated',
+          'index',
+          'type_key',
+          'version',
+          'props_json',
+          'style_json',
         ],
       );
 
-      final dto = WidgetDto.fromJson(data);
+      final dto = WidgetDto(data);
       final widget = WidgetMapper.toEntity(dto);
 
       return Success(widget);
@@ -105,14 +112,15 @@ class WidgetRepositoryImpl implements WidgetRepository {
 
   @override
   Future<Result<WidgetInstance, DomainError>> update(
-      UpdateWidgetInput input) async {
+    UpdateWidgetInput input,
+  ) async {
     try {
       // First fetch the existing item
-      final existingData = await dataSource.getItem<WidgetDirectusItem>(input.id);
-      final item = WidgetDirectusItem(existingData);
+      final existingData = await dataSource.getItem<WidgetDto>(input.id);
+      final item = WidgetDto(existingData);
 
       if (input.type != null) {
-        item.setValue(input.type, forKey: 'type');
+        item.setValue(input.type, forKey: 'type_key');
       }
       if (input.version != null) {
         item.setValue(input.version, forKey: 'version');
@@ -121,7 +129,7 @@ class WidgetRepositoryImpl implements WidgetRepository {
         item.setValue(input.index, forKey: 'index');
       }
       if (input.props != null) {
-        item.setValue(input.props, forKey: 'props');
+        item.setValue(input.props, forKey: 'props_json');
       }
       if (input.style != null) {
         item.setValue(
@@ -130,9 +138,9 @@ class WidgetRepositoryImpl implements WidgetRepository {
         );
       }
 
-      final data = await dataSource.updateItem<WidgetDirectusItem>(item);
+      final data = await dataSource.updateItem<WidgetDto>(item);
 
-      final dto = WidgetDto.fromJson(data);
+      final dto = WidgetDto(data);
       final widget = WidgetMapper.toEntity(dto);
 
       return Success(widget);
@@ -142,9 +150,9 @@ class WidgetRepositoryImpl implements WidgetRepository {
   }
 
   @override
-  Future<Result<void, DomainError>> delete(String id) async {
+  Future<Result<void, DomainError>> delete(int id) async {
     try {
-      await dataSource.deleteItem<WidgetDirectusItem>(id);
+      await dataSource.deleteItem<WidgetDto>(id);
       return const Success(null);
     } catch (e) {
       return Failure(mapDirectusError(e));
@@ -152,16 +160,77 @@ class WidgetRepositoryImpl implements WidgetRepository {
   }
 
   @override
-  Future<Result<void, DomainError>> reorder(
-      String widgetId, int newIndex) async {
+  Future<Result<void, DomainError>> reorder(int widgetId, int newIndex) async {
     try {
-      // First fetch the existing item
-      final existingData = await dataSource.getItem<WidgetDirectusItem>(widgetId);
-      final item = WidgetDirectusItem(existingData);
-      
-      item.setValue(newIndex, forKey: 'index');
+      // First fetch the widget to get its current index and column
+      final existingData = await dataSource.getItem<WidgetDto>(widgetId);
+      final item = WidgetDto(existingData);
+      final oldIndex = item.index;
 
-      await dataSource.updateItem<WidgetDirectusItem>(item);
+      // Get the column ID directly from raw data (handles both int and nested object)
+      final rawColumn = item.getValue(forKey: 'column');
+      final int? columnId;
+      if (rawColumn is int) {
+        columnId = rawColumn;
+      } else if (rawColumn is Map<String, dynamic>) {
+        columnId = rawColumn['id'] as int?;
+      } else {
+        columnId = null;
+      }
+
+      if (columnId == null) {
+        return const Failure(ValidationError('Widget has no column'));
+      }
+
+      if (oldIndex == newIndex) {
+        return const Success(null); // No change needed
+      }
+
+      // Fetch all widgets in the same column
+      final allWidgetsData = await dataSource.getItems<WidgetDto>(
+        filter: {
+          'column': {'_eq': columnId},
+        },
+        fields: ['id', 'index'],
+        sort: ['index'],
+      );
+
+      // Update indices for affected widgets
+      final updates = <Future<void>>[];
+
+      for (final widgetData in allWidgetsData) {
+        final dto = WidgetDto(widgetData);
+        final rawId = dto.id;
+        final currentIndex = dto.index;
+
+        if (rawId == null) continue;
+        final id = rawId is int ? rawId : int.tryParse(rawId.toString());
+        if (id == null) continue;
+
+        int? newWidgetIndex;
+
+        if (id == widgetId) {
+          // This is the widget being moved
+          newWidgetIndex = newIndex;
+        } else if (oldIndex < newIndex) {
+          // Moving down: shift widgets between old and new position up
+          if (currentIndex > oldIndex && currentIndex <= newIndex) {
+            newWidgetIndex = currentIndex - 1;
+          }
+        } else {
+          // Moving up: shift widgets between new and old position down
+          if (currentIndex >= newIndex && currentIndex < oldIndex) {
+            newWidgetIndex = currentIndex + 1;
+          }
+        }
+
+        if (newWidgetIndex != null && newWidgetIndex != currentIndex) {
+          dto.setValue(newWidgetIndex, forKey: 'index');
+          updates.add(dataSource.updateItem<WidgetDto>(dto));
+        }
+      }
+
+      await Future.wait(updates);
       return const Success(null);
     } catch (e) {
       return Failure(mapDirectusError(e));
@@ -170,16 +239,91 @@ class WidgetRepositoryImpl implements WidgetRepository {
 
   @override
   Future<Result<void, DomainError>> moveTo(
-      String widgetId, String newColumnId, int index) async {
+    int widgetId,
+    int newColumnId,
+    int index,
+  ) async {
     try {
-      // First fetch the existing item
-      final existingData = await dataSource.getItem<WidgetDirectusItem>(widgetId);
-      final item = WidgetDirectusItem(existingData);
-      
-      item.setValue(newColumnId, forKey: 'column_id');
-      item.setValue(index, forKey: 'index');
+      // First fetch the widget to get its current index and column
+      final existingData = await dataSource.getItem<WidgetDto>(widgetId);
+      final item = WidgetDto(existingData);
+      final oldIndex = item.index;
 
-      await dataSource.updateItem<WidgetDirectusItem>(item);
+      // Get the column ID directly from raw data (handles both int and nested object)
+      final rawColumn = item.getValue(forKey: 'column');
+      final int? oldColumnId;
+      if (rawColumn is int) {
+        oldColumnId = rawColumn;
+      } else if (rawColumn is Map<String, dynamic>) {
+        oldColumnId = rawColumn['id'] as int?;
+      } else {
+        oldColumnId = null;
+      }
+
+      if (oldColumnId == null) {
+        return const Failure(ValidationError('Widget has no column'));
+      }
+
+      final updates = <Future<void>>[];
+
+      // Update indices in the source column (shift widgets down after removed widget)
+      if (oldColumnId != newColumnId) {
+        final sourceWidgetsData = await dataSource.getItems<WidgetDto>(
+          filter: {
+            'column': {'_eq': oldColumnId},
+          },
+          fields: ['id', 'index'],
+          sort: ['index'],
+        );
+
+        for (final widgetData in sourceWidgetsData) {
+          final dto = WidgetDto(widgetData);
+          final rawId = dto.id;
+          final currentIndex = dto.index;
+
+          if (rawId == null) continue;
+          final id = rawId is int ? rawId : int.tryParse(rawId.toString());
+          if (id == null || id == widgetId) continue;
+
+          // Shift widgets after the removed widget down by 1
+          if (currentIndex > oldIndex) {
+            dto.setValue(currentIndex - 1, forKey: 'index');
+            updates.add(dataSource.updateItem<WidgetDto>(dto));
+          }
+        }
+      }
+
+      // Update indices in the target column (shift widgets up at and after insertion point)
+      final targetWidgetsData = await dataSource.getItems<WidgetDto>(
+        filter: {
+          'column': {'_eq': newColumnId},
+        },
+        fields: ['id', 'index'],
+        sort: ['index'],
+      );
+
+      for (final widgetData in targetWidgetsData) {
+        final dto = WidgetDto(widgetData);
+        final rawId = dto.id;
+        final currentIndex = dto.index;
+
+        if (rawId == null) continue;
+        final id = rawId is int ? rawId : int.tryParse(rawId.toString());
+        if (id == null || id == widgetId) continue;
+
+        // Shift widgets at and after the insertion point up by 1
+        if (currentIndex >= index) {
+          dto.setValue(currentIndex + 1, forKey: 'index');
+          updates.add(dataSource.updateItem<WidgetDto>(dto));
+        }
+      }
+
+      // Move the widget to the new column with the new index
+      item.setValue(newColumnId, forKey: 'column');
+      item.setValue(index, forKey: 'index');
+      updates.add(dataSource.updateItem<WidgetDto>(item));
+
+      await Future.wait(updates);
       return const Success(null);
     } catch (e) {
       return Failure(mapDirectusError(e));

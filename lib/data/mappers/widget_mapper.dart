@@ -5,15 +5,18 @@ import 'package:oxo_menus/domain/entities/widget_instance.dart';
 class WidgetMapper {
   /// Convert WidgetDto to WidgetInstance entity
   static WidgetInstance toEntity(WidgetDto dto) {
+    String idString = dto.id ?? '0';
     return WidgetInstance(
-      id: dto.id,
-      columnId: dto.columnId,
-      type: dto.type,
+      id: int.parse(idString),
+      columnId: dto.column?.id != null ? int.parse(dto.column!.id!) : 0,
+      type: dto.typeKey,
       version: dto.version,
       index: dto.index,
-      props: Map<String, dynamic>.from(dto.props),
-      style: dto.styleJson != null
-          ? _mapStyleJsonToWidgetStyle(dto.styleJson!)
+      props: dto.propsJson.isNotEmpty
+          ? Map<String, dynamic>.from(dto.propsJson)
+          : {},
+      style: dto.styleJson.isNotEmpty
+          ? _mapStyleJsonToWidgetStyle(dto.styleJson)
           : null,
       dateCreated: dto.dateCreated,
       dateUpdated: dto.dateUpdated,
@@ -22,19 +25,19 @@ class WidgetMapper {
 
   /// Convert WidgetInstance entity to WidgetDto
   static WidgetDto toDto(WidgetInstance entity) {
-    return WidgetDto(
-      id: entity.id,
-      columnId: entity.columnId,
-      type: entity.type,
-      version: entity.version,
-      index: entity.index,
-      props: Map<String, dynamic>.from(entity.props),
-      styleJson: entity.style != null
+    return WidgetDto({
+      'id': entity.id,
+      'column': entity.columnId,
+      'type_key': entity.type,
+      'version': entity.version,
+      'index': entity.index,
+      'props_json': Map<String, dynamic>.from(entity.props),
+      'style_json': entity.style != null
           ? widgetStyleToJson(entity.style!)
           : null,
-      dateCreated: entity.dateCreated,
-      dateUpdated: entity.dateUpdated,
-    );
+      'date_created': entity.dateCreated,
+      'date_updated': entity.dateUpdated,
+    });
   }
 
   // ===== Private helper methods =====

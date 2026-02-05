@@ -11,19 +11,19 @@ abstract class PageRepository {
   Future<Result<Page, DomainError>> create(CreatePageInput input);
 
   /// Get all pages for a menu
-  Future<Result<List<Page>, DomainError>> getAllForMenu(String menuId);
+  Future<Result<List<Page>, DomainError>> getAllForMenu(int menuId);
 
   /// Get page by ID
-  Future<Result<Page, DomainError>> getById(String id);
+  Future<Result<Page, DomainError>> getById(int id);
 
   /// Update an existing page
   Future<Result<Page, DomainError>> update(UpdatePageInput input);
 
   /// Delete a page
-  Future<Result<void, DomainError>> delete(String id);
+  Future<Result<void, DomainError>> delete(int id);
 
   /// Reorder a page within its menu
-  Future<Result<void, DomainError>> reorder(String pageId, int newIndex);
+  Future<Result<void, DomainError>> reorder(int pageId, int newIndex);
 }
 
 /// Input for creating a page
@@ -32,7 +32,7 @@ abstract class CreatePageInput with _$CreatePageInput {
   const CreatePageInput._();
 
   const factory CreatePageInput({
-    required String menuId,
+    required int menuId,
     required String name,
     required int index,
   }) = _CreatePageInput;
@@ -44,7 +44,7 @@ abstract class UpdatePageInput with _$UpdatePageInput {
   const UpdatePageInput._();
 
   const factory UpdatePageInput({
-    required String id,
+    required int id,
     String? name,
     int? index,
   }) = _UpdatePageInput;

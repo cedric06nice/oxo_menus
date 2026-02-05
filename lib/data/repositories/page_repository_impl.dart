@@ -3,7 +3,6 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/mappers/error_mapper.dart';
 import 'package:oxo_menus/data/mappers/page_mapper.dart';
-import 'package:oxo_menus/data/models/directus_items/page_directus_item.dart';
 import 'package:oxo_menus/data/models/page_dto.dart';
 import 'package:oxo_menus/domain/entities/page.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
@@ -17,14 +16,15 @@ class PageRepositoryImpl implements PageRepository {
   @override
   Future<Result<Page, DomainError>> create(CreatePageInput input) async {
     try {
-      final item = PageDirectusItem.newItem();
-      item.setValue(input.menuId, forKey: 'menu_id');
-      item.setValue(input.name, forKey: 'name');
-      item.setValue(input.index, forKey: 'index');
+      final item = PageDto.newItem(
+        index: input.index,
+        menu: input.menuId,
+        status: 'draft',
+      );
 
-      final data = await dataSource.createItem<PageDirectusItem>(item);
+      final data = await dataSource.createItem<PageDto>(item);
 
-      final dto = PageDto.fromJson(data);
+      final dto = PageDto(data);
       final page = PageMapper.toEntity(dto);
 
       return Success(page);
@@ -34,25 +34,53 @@ class PageRepositoryImpl implements PageRepository {
   }
 
   @override
-  Future<Result<List<Page>, DomainError>> getAllForMenu(String menuId) async {
+  Future<Result<List<Page>, DomainError>> getAllForMenu(int menuId) async {
     try {
-      final data = await dataSource.getItems<PageDirectusItem>(
+      final data = await dataSource.getItems<PageDto>(
         filter: {
-          'menu_id': {'_eq': menuId}
+          'menu': {'_eq': menuId}
         },
         fields: [
           'id',
-          'menu_id',
-          'name',
-          'index',
+          'status',
           'date_created',
           'date_updated',
+          'user_created',
+          'user_updated',
+          'index',
+          'containers.id',
+          'containers.date_created',
+          'containers.date_updated',
+          'containers.user_created',
+          'containers.user_updated',
+          'containers.index',
+          'containers.direction',
+          'containers.style_json',
+          'containers.columns.id',
+          'containers.columns.date_created',
+          'containers.columns.date_updated',
+          'containers.columns.user_created',
+          'containers.columns.user_updated',
+          'containers.columns.index',
+          'containers.columns.width',
+          'containers.columns.style_json',
+          'containers.columns.widgets.id',
+          'containers.columns.widgets.status',
+          'containers.columns.widgets.date_created',
+          'containers.columns.widgets.date_updated',
+          'containers.columns.widgets.user_created',
+          'containers.columns.widgets.user_updated',
+          'containers.columns.widgets.index',
+          'containers.columns.widgets.type_key',
+          'containers.columns.widgets.version',
+          'containers.columns.widgets.props_json',
+          'containers.columns.widgets.style_json'
         ],
         sort: ['index'],
       );
 
       final pages = data
-          .map((json) => PageDto.fromJson(json))
+          .map((json) => PageDto(json))
           .map((dto) => PageMapper.toEntity(dto))
           .toList();
 
@@ -63,21 +91,49 @@ class PageRepositoryImpl implements PageRepository {
   }
 
   @override
-  Future<Result<Page, DomainError>> getById(String id) async {
+  Future<Result<Page, DomainError>> getById(int id) async {
     try {
-      final data = await dataSource.getItem<PageDirectusItem>(
+      final data = await dataSource.getItem<PageDto>(
         id,
         fields: [
           'id',
-          'menu_id',
-          'name',
-          'index',
+          'status',
           'date_created',
           'date_updated',
+          'user_created',
+          'user_updated',
+          'index',
+          'containers.id',
+          'containers.date_created',
+          'containers.date_updated',
+          'containers.user_created',
+          'containers.user_updated',
+          'containers.index',
+          'containers.direction',
+          'containers.style_json',
+          'containers.columns.id',
+          'containers.columns.date_created',
+          'containers.columns.date_updated',
+          'containers.columns.user_created',
+          'containers.columns.user_updated',
+          'containers.columns.index',
+          'containers.columns.width',
+          'containers.columns.style_json',
+          'containers.columns.widgets.id',
+          'containers.columns.widgets.status',
+          'containers.columns.widgets.date_created',
+          'containers.columns.widgets.date_updated',
+          'containers.columns.widgets.user_created',
+          'containers.columns.widgets.user_updated',
+          'containers.columns.widgets.index',
+          'containers.columns.widgets.type_key',
+          'containers.columns.widgets.version',
+          'containers.columns.widgets.props_json',
+          'containers.columns.widgets.style_json'
         ],
       );
 
-      final dto = PageDto.fromJson(data);
+      final dto = PageDto(data);
       final page = PageMapper.toEntity(dto);
 
       return Success(page);
@@ -90,15 +146,15 @@ class PageRepositoryImpl implements PageRepository {
   Future<Result<Page, DomainError>> update(UpdatePageInput input) async {
     try {
       // First fetch the existing item
-      final existingData = await dataSource.getItem<PageDirectusItem>(input.id);
-      final item = PageDirectusItem(existingData);
+      final existingData = await dataSource.getItem<PageDto>(input.id);
+      final item = PageDto(existingData);
 
-      if (input.name != null) item.setValue(input.name, forKey: 'name');
+      // if (input.name != null) item.setValue(input.name, forKey: 'name');
       if (input.index != null) item.setValue(input.index, forKey: 'index');
 
-      final data = await dataSource.updateItem<PageDirectusItem>(item);
+      final data = await dataSource.updateItem<PageDto>(item);
 
-      final dto = PageDto.fromJson(data);
+      final dto = PageDto(data);
       final page = PageMapper.toEntity(dto);
 
       return Success(page);
@@ -108,9 +164,9 @@ class PageRepositoryImpl implements PageRepository {
   }
 
   @override
-  Future<Result<void, DomainError>> delete(String id) async {
+  Future<Result<void, DomainError>> delete(int id) async {
     try {
-      await dataSource.deleteItem<PageDirectusItem>(id);
+      await dataSource.deleteItem<PageDto>(id);
       return const Success(null);
     } catch (e) {
       return Failure(mapDirectusError(e));
@@ -118,15 +174,15 @@ class PageRepositoryImpl implements PageRepository {
   }
 
   @override
-  Future<Result<void, DomainError>> reorder(String pageId, int newIndex) async {
+  Future<Result<void, DomainError>> reorder(int pageId, int newIndex) async {
     try {
       // First fetch the existing item
-      final existingData = await dataSource.getItem<PageDirectusItem>(pageId);
-      final item = PageDirectusItem(existingData);
-      
+      final existingData = await dataSource.getItem<PageDto>(pageId);
+      final item = PageDto(existingData);
+
       item.setValue(newIndex, forKey: 'index');
 
-      await dataSource.updateItem<PageDirectusItem>(item);
+      await dataSource.updateItem<PageDto>(item);
       return const Success(null);
     } catch (e) {
       return Failure(mapDirectusError(e));

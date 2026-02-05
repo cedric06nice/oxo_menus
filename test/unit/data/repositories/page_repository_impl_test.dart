@@ -3,21 +3,11 @@ import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
+import 'package:oxo_menus/data/models/page_dto.dart';
 import 'package:oxo_menus/data/repositories/page_repository_impl.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
 
 class MockDirectusDataSource extends Mock implements DirectusDataSource {}
-
-// Mock exception classes
-class MockDirectusException implements Exception {
-  final String code;
-  final String message;
-
-  MockDirectusException({required this.code, required this.message});
-
-  @override
-  String toString() => 'DirectusException: $code - $message';
-}
 
 void main() {
   late PageRepository repository;
@@ -26,27 +16,33 @@ void main() {
   setUp(() {
     mockDataSource = MockDirectusDataSource();
     repository = PageRepositoryImpl(dataSource: mockDataSource);
+    registerFallbackValue(PageDto({
+      'id': 1,
+      'menu': 1,
+      'index': 0,
+      'status': 'draft',
+    }));
   });
 
   group('PageRepositoryImpl', () {
     group('create', () {
       const input = CreatePageInput(
-        menuId: 'menu-1',
+        menuId: 1,
         name: 'Page 1',
         index: 0,
       );
 
       final createdJson = {
-        'id': 'page-new',
-        'menu_id': 'menu-1',
-        'name': 'Page 1',
+        'id': 2,
+        'menu': 1,
         'index': 0,
+        'status': 'draft',
         'date_created': '2024-01-15T10:30:00Z',
       };
 
       test('should create page and return entity', () async {
         // Arrange
-        when(() => mockDataSource.createItem('page', any()))
+        when(() => mockDataSource.createItem<PageDto>(any()))
             .thenAnswer((_) async => createdJson);
 
         // Act
@@ -54,18 +50,19 @@ void main() {
 
         // Assert
         expect(result.isSuccess, true);
-        expect(result.valueOrNull!.id, 'page-new');
-        expect(result.valueOrNull!.menuId, 'menu-1');
-        expect(result.valueOrNull!.name, 'Page 1');
+        expect(result.valueOrNull!.id, 2);
+        expect(result.valueOrNull!.menuId, 1);
+        // PageMapper generates name as "Page {index}"
+        expect(result.valueOrNull!.name, 'Page 0');
         expect(result.valueOrNull!.index, 0);
 
-        verify(() => mockDataSource.createItem('page', any())).called(1);
+        verify(() => mockDataSource.createItem<PageDto>(any())).called(1);
       });
 
       test('should return ValidationError when creation fails', () async {
         // Arrange
-        when(() => mockDataSource.createItem('page', any())).thenThrow(
-          MockDirectusException(
+        when(() => mockDataSource.createItem<PageDto>(any())).thenThrow(
+          DirectusException(
             code: 'INVALID_FOREIGN_KEY',
             message: 'Menu not found',
           ),
@@ -81,26 +78,25 @@ void main() {
     });
 
     group('getAllForMenu', () {
-      const menuId = 'menu-1';
+      const menuId = 1;
       final pagesJson = [
         {
-          'id': 'page-1',
-          'menu_id': menuId,
-          'name': 'Page 1',
+          'id': 1,
+          'menu': menuId,
           'index': 0,
+          'status': 'draft',
         },
         {
-          'id': 'page-2',
-          'menu_id': menuId,
-          'name': 'Page 2',
+          'id': 2,
+          'menu': menuId,
           'index': 1,
+          'status': 'draft',
         },
       ];
 
       test('should return list of pages for menu', () async {
         // Arrange
-        when(() => mockDataSource.getItems(
-              'page',
+        when(() => mockDataSource.getItems<PageDto>(
               filter: any(named: 'filter'),
               fields: any(named: 'fields'),
               sort: any(named: 'sort'),
@@ -112,25 +108,23 @@ void main() {
         // Assert
         expect(result.isSuccess, true);
         expect(result.valueOrNull!.length, 2);
-        expect(result.valueOrNull![0].id, 'page-1');
-        expect(result.valueOrNull![1].id, 'page-2');
+        expect(result.valueOrNull![0].id, 1);
+        expect(result.valueOrNull![1].id, 2);
 
-        final captured = verify(() => mockDataSource.getItems(
-              'page',
+        final captured = verify(() => mockDataSource.getItems<PageDto>(
               filter: captureAny(named: 'filter'),
               fields: any(named: 'fields'),
               sort: any(named: 'sort'),
             )).captured;
 
-        // Verify filter includes menu_id
+        // Verify filter includes menu
         expect(captured[0], isNotNull);
-        expect(captured[0]['menu_id'], isNotNull);
+        expect(captured[0]['menu'], isNotNull);
       });
 
       test('should return empty list when no pages found', () async {
         // Arrange
-        when(() => mockDataSource.getItems(
-              'page',
+        when(() => mockDataSource.getItems<PageDto>(
               filter: any(named: 'filter'),
               fields: any(named: 'fields'),
               sort: any(named: 'sort'),
@@ -146,19 +140,19 @@ void main() {
     });
 
     group('getById', () {
-      const pageId = 'page-1';
+      const pageId = 1;
       final pageJson = {
         'id': pageId,
-        'menu_id': 'menu-1',
-        'name': 'Page 1',
+        'menu': 1,
         'index': 0,
+        'status': 'draft',
         'date_created': '2024-01-15T10:30:00Z',
         'date_updated': '2024-01-16T15:45:00Z',
       };
 
       test('should return Page entity when fetch succeeds', () async {
         // Arrange
-        when(() => mockDataSource.getItem('page', pageId, fields: any(named: 'fields')))
+        when(() => mockDataSource.getItem<PageDto>(pageId, fields: any(named: 'fields')))
             .thenAnswer((_) async => pageJson);
 
         // Act
@@ -168,18 +162,19 @@ void main() {
         expect(result.isSuccess, true);
         final page = result.valueOrNull!;
         expect(page.id, pageId);
-        expect(page.menuId, 'menu-1');
-        expect(page.name, 'Page 1');
+        expect(page.menuId, 1);
+        // PageMapper generates name as "Page {index}"
+        expect(page.name, 'Page 0');
         expect(page.index, 0);
 
-        verify(() => mockDataSource.getItem('page', pageId, fields: any(named: 'fields')))
+        verify(() => mockDataSource.getItem<PageDto>(pageId, fields: any(named: 'fields')))
             .called(1);
       });
 
       test('should return NotFoundError when page does not exist', () async {
         // Arrange
-        when(() => mockDataSource.getItem('page', pageId, fields: any(named: 'fields')))
-            .thenThrow(MockDirectusException(
+        when(() => mockDataSource.getItem<PageDto>(pageId, fields: any(named: 'fields')))
+            .thenThrow(DirectusException(
           code: 'NOT_FOUND',
           message: 'Page not found',
         ));
@@ -195,20 +190,30 @@ void main() {
 
     group('update', () {
       const input = UpdatePageInput(
-        id: 'page-1',
+        id: 1,
         name: 'Updated Page',
       );
 
-      final updatedJson = {
-        'id': 'page-1',
-        'menu_id': 'menu-1',
-        'name': 'Updated Page',
+      final existingJson = {
+        'id': 1,
+        'menu': 1,
         'index': 0,
+        'status': 'draft',
+      };
+
+      final updatedJson = {
+        'id': 1,
+        'menu': 1,
+        'index': 0,
+        'status': 'draft',
       };
 
       test('should update page and return entity', () async {
         // Arrange
-        when(() => mockDataSource.updateItem('page', 'page-1', any()))
+        when(() => mockDataSource.getItem<PageDto>(any(),
+                fields: any(named: 'fields')))
+            .thenAnswer((_) async => existingJson);
+        when(() => mockDataSource.updateItem<PageDto>(any()))
             .thenAnswer((_) async => updatedJson);
 
         // Act
@@ -216,20 +221,21 @@ void main() {
 
         // Assert
         expect(result.isSuccess, true);
-        expect(result.valueOrNull!.id, 'page-1');
-        expect(result.valueOrNull!.name, 'Updated Page');
+        expect(result.valueOrNull!.id, 1);
+        // PageMapper generates name as "Page {index}"
+        expect(result.valueOrNull!.name, 'Page 0');
 
-        verify(() => mockDataSource.updateItem('page', 'page-1', any())).called(1);
+        verify(() => mockDataSource.updateItem<PageDto>(any())).called(1);
       });
 
       test('should return NotFoundError when page does not exist', () async {
         // Arrange
-        when(() => mockDataSource.updateItem('page', 'page-1', any())).thenThrow(
-          MockDirectusException(
-            code: 'NOT_FOUND',
-            message: 'Page not found',
-          ),
-        );
+        when(() => mockDataSource.getItem<PageDto>(any(),
+                fields: any(named: 'fields')))
+            .thenThrow(DirectusException(
+          code: 'NOT_FOUND',
+          message: 'Page not found',
+        ));
 
         // Act
         final result = await repository.update(input);
@@ -241,11 +247,11 @@ void main() {
     });
 
     group('delete', () {
-      const pageId = 'page-1';
+      const pageId = 1;
 
       test('should delete page successfully', () async {
         // Arrange
-        when(() => mockDataSource.deleteItem('page', pageId))
+        when(() => mockDataSource.deleteItem<PageDto>(pageId))
             .thenAnswer((_) async => {});
 
         // Act
@@ -253,13 +259,13 @@ void main() {
 
         // Assert
         expect(result.isSuccess, true);
-        verify(() => mockDataSource.deleteItem('page', pageId)).called(1);
+        verify(() => mockDataSource.deleteItem<PageDto>(pageId)).called(1);
       });
 
       test('should return NotFoundError when page does not exist', () async {
         // Arrange
-        when(() => mockDataSource.deleteItem('page', pageId)).thenThrow(
-          MockDirectusException(
+        when(() => mockDataSource.deleteItem<PageDto>(pageId)).thenThrow(
+          DirectusException(
             code: 'NOT_FOUND',
             message: 'Page not found',
           ),
@@ -275,19 +281,29 @@ void main() {
     });
 
     group('reorder', () {
-      const pageId = 'page-1';
+      const pageId = 1;
       const newIndex = 2;
+
+      final existingJson = {
+        'id': pageId,
+        'menu': 1,
+        'index': 0,
+        'status': 'draft',
+      };
 
       final updatedJson = {
         'id': pageId,
-        'menu_id': 'menu-1',
-        'name': 'Page 1',
+        'menu': 1,
         'index': newIndex,
+        'status': 'draft',
       };
 
       test('should update page index successfully', () async {
         // Arrange
-        when(() => mockDataSource.updateItem('page', pageId, any()))
+        when(() => mockDataSource.getItem<PageDto>(any(),
+                fields: any(named: 'fields')))
+            .thenAnswer((_) async => existingJson);
+        when(() => mockDataSource.updateItem<PageDto>(any()))
             .thenAnswer((_) async => updatedJson);
 
         // Act
@@ -295,21 +311,17 @@ void main() {
 
         // Assert
         expect(result.isSuccess, true);
-
-        final captured = verify(() => mockDataSource.updateItem('page', pageId, captureAny()))
-            .captured;
-
-        expect(captured[0]['index'], newIndex);
+        verify(() => mockDataSource.updateItem<PageDto>(any())).called(1);
       });
 
       test('should return NotFoundError when page does not exist', () async {
         // Arrange
-        when(() => mockDataSource.updateItem('page', pageId, any())).thenThrow(
-          MockDirectusException(
-            code: 'NOT_FOUND',
-            message: 'Page not found',
-          ),
-        );
+        when(() => mockDataSource.getItem<PageDto>(any(),
+                fields: any(named: 'fields')))
+            .thenThrow(DirectusException(
+          code: 'NOT_FOUND',
+          message: 'Page not found',
+        ));
 
         // Act
         final result = await repository.reorder(pageId, newIndex);

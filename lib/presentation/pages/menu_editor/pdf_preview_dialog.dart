@@ -10,7 +10,7 @@ import 'package:printing/printing.dart';
 ///
 /// Shows a preview of the generated PDF menu with options to download or print.
 class PdfPreviewDialog extends ConsumerWidget {
-  final String menuId;
+  final int menuId;
 
   const PdfPreviewDialog({
     super.key,

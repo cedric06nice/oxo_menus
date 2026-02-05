@@ -84,7 +84,7 @@ void main() {
           .called(1);
 
       // Verify we're redirected to home page
-      expect(find.text('Home Page - Coming Soon'), findsOneWidget);
+      expect(find.text('Home'), findsOneWidget);
     });
 
     testWidgets('login flow - failed authentication shows error',
@@ -205,7 +205,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should be redirected to home page
-      expect(find.text('Home Page - Coming Soon'), findsOneWidget);
+      expect(find.text('Home'), findsOneWidget);
       expect(find.byKey(const Key('login_button')), findsNothing);
     });
   });

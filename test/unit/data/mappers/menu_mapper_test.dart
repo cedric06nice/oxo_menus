@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/data/mappers/menu_mapper.dart';
 import 'package:oxo_menus/data/models/menu_dto.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 
 void main() {
@@ -9,16 +10,15 @@ void main() {
     group('toEntity', () {
       test('should convert MenuDto to Menu entity with all fields', () {
         // Arrange
-        final dto = MenuDto(
-          id: 'menu-1',
-          status: 'published',
-          dateCreated: DateTime.parse('2024-01-15T10:30:00Z'),
-          dateUpdated: DateTime.parse('2024-01-16T15:45:00Z'),
-          userCreated: 'user-123',
-          userUpdated: 'user-456',
-          name: 'Test Menu',
-          version: '1.0.0',
-          styleJson: const {
+        final json = {
+          "id": 1,
+          "status": "published",
+          "date_created": "2025-11-13T10:25:31.922Z",
+          "date_updated": "2025-11-13T10:25:31.922Z",
+          "user_created": "f8205fcc-3816-4a93-9010-76df1a1f4a90",
+          "user_updated": "f8205fcc-3816-4a93-9010-76df1a1f4a90",
+          "name": "Restaurant A La Carte",
+          "style_json": {
             'fontFamily': 'Arial',
             'fontSize': 14.0,
             'primaryColor': '#000000',
@@ -30,27 +30,30 @@ void main() {
             'marginRight': 15.0,
             'padding': 8.0,
           },
-          area: 'dining',
-          size: const {
-            'name': 'A4',
-            'width': 210.0,
-            'height': 297.0,
-          },
-        );
+          "version": "1.0.0",
+          "area": 1,
+          "size": 1,
+          "versions": [],
+          "pages": [1],
+        };
+        final dto = MenuDto(json);
 
         // Act
         final entity = MenuMapper.toEntity(dto);
 
         // Assert
-        expect(entity.id, 'menu-1');
-        expect(entity.status, MenuStatus.published);
-        expect(entity.name, 'Test Menu');
+        expect(entity.id, 1);
+        expect(entity.status, Status.published);
+        expect(entity.name, 'Restaurant A La Carte');
         expect(entity.version, '1.0.0');
-        expect(entity.dateCreated, DateTime.parse('2024-01-15T10:30:00Z'));
-        expect(entity.dateUpdated, DateTime.parse('2024-01-16T15:45:00Z'));
-        expect(entity.userCreated, 'user-123');
-        expect(entity.userUpdated, 'user-456');
-        expect(entity.area, 'dining');
+        expect(entity.dateCreated, isA<DateTime>());
+        expect(entity.dateCreated, DateTime.parse("2025-11-13T10:25:31.922Z"));
+        expect(entity.dateUpdated, isA<DateTime>());
+        expect(entity.dateUpdated, DateTime.parse("2025-11-13T10:25:31.922Z"));
+        expect(entity.userCreated, 'f8205fcc-3816-4a93-9010-76df1a1f4a90');
+        expect(entity.userUpdated, 'f8205fcc-3816-4a93-9010-76df1a1f4a90');
+        expect(entity.pageSize, isNull);
+        expect(entity.area, null);
 
         // StyleConfig
         expect(entity.styleConfig, isNotNull);
@@ -64,29 +67,23 @@ void main() {
         expect(entity.styleConfig!.marginLeft, 15.0);
         expect(entity.styleConfig!.marginRight, 15.0);
         expect(entity.styleConfig!.padding, 8.0);
-
-        // PageSize
-        expect(entity.pageSize, isNotNull);
-        expect(entity.pageSize!.name, 'A4');
-        expect(entity.pageSize!.width, 210.0);
-        expect(entity.pageSize!.height, 297.0);
       });
 
       test('should convert MenuDto with minimal fields', () {
         // Arrange
-        const dto = MenuDto(
-          id: 'menu-2',
-          status: 'draft',
-          name: 'Simple Menu',
-          version: '1.0.0',
-        );
+        final dto = MenuDto({
+          'id': 2,
+          'status': 'draft',
+          'name': 'Simple Menu',
+          'version': '1.0.0',
+        });
 
         // Act
         final entity = MenuMapper.toEntity(dto);
 
         // Assert
-        expect(entity.id, 'menu-2');
-        expect(entity.status, MenuStatus.draft);
+        expect(entity.id, 2);
+        expect(entity.status, Status.draft);
         expect(entity.name, 'Simple Menu');
         expect(entity.version, '1.0.0');
         expect(entity.styleConfig, isNull);
@@ -96,31 +93,34 @@ void main() {
 
       test('should map status strings correctly', () {
         // Draft
-        const draftDto = MenuDto(
-          id: 'menu-1',
-          status: 'draft',
-          name: 'Menu',
-          version: '1.0.0',
-        );
-        expect(MenuMapper.toEntity(draftDto).status, MenuStatus.draft);
+        final draftDto = MenuDto({
+          'id': 1,
+          'status': 'draft',
+          'name': 'Menu',
+          'version': '1.0.0',
+        });
+        expect(MenuMapper.toEntity(draftDto).status, Status.draft);
 
         // Published
-        const publishedDto = MenuDto(
-          id: 'menu-2',
-          status: 'published',
-          name: 'Menu',
-          version: '1.0.0',
-        );
-        expect(MenuMapper.toEntity(publishedDto).status, MenuStatus.published);
+        final publishedDto = MenuDto({
+          'id': 2,
+          'status': 'published',
+          'name': 'Menu',
+          'version': '1.0.0',
+        });
+        expect(MenuMapper.toEntity(publishedDto).status, Status.published);
 
         // Archived
-        const archivedDto = MenuDto(
-          id: 'menu-3',
-          status: 'archived',
-          name: 'Menu',
-          version: '1.0.0',
-        );
-        expect(MenuMapper.toEntity(archivedDto).status, MenuStatus.archived);
+        final archivedDto = MenuDto({
+          'id': 3,
+          'status': 'archived',
+          'name': 'Menu',
+          'version': '1.0.0',
+        });
+
+        expect(MenuMapper.toEntity(draftDto).status, Status.draft);
+        expect(MenuMapper.toEntity(publishedDto).status, Status.published);
+        expect(MenuMapper.toEntity(archivedDto).status, Status.archived);
       });
     });
 
@@ -128,8 +128,8 @@ void main() {
       test('should convert Menu entity to MenuDto with all fields', () {
         // Arrange
         final entity = Menu(
-          id: 'menu-1',
-          status: MenuStatus.published,
+          id: 1,
+          status: Status.published,
           dateCreated: DateTime.parse('2024-01-15T10:30:00Z'),
           dateUpdated: DateTime.parse('2024-01-16T15:45:00Z'),
           userCreated: 'user-123',
@@ -142,23 +142,21 @@ void main() {
             primaryColor: '#000000',
           ),
           area: 'dining',
-          pageSize: const PageSize(
-            name: 'A4',
-            width: 210.0,
-            height: 297.0,
-          ),
+          pageSize: const PageSize(name: 'A4', width: 210.0, height: 297.0),
         );
 
         // Act
         final dto = MenuMapper.toDto(entity);
 
         // Assert
-        expect(dto.id, 'menu-1');
+        expect(dto.id, '1');
         expect(dto.status, 'published');
         expect(dto.name, 'Test Menu');
         expect(dto.version, '1.0.0');
-        expect(dto.styleJson!['fontFamily'], 'Arial');
-        expect(dto.size!['name'], 'A4');
+        expect(dto.styleJson['fontFamily'], 'Arial');
+        // Check raw size data (using getter would fail as it expects 'id' in the map)
+        final rawSize = dto.getRawData()['size'] as Map<String, dynamic>?;
+        expect(rawSize?['name'], 'A4');
       });
     });
 
@@ -168,16 +166,9 @@ void main() {
         const input = CreateMenuInput(
           name: 'New Menu',
           version: '1.0.0',
-          status: MenuStatus.draft,
-          styleConfig: StyleConfig(
-            fontFamily: 'Arial',
-            fontSize: 14.0,
-          ),
-          pageSize: PageSize(
-            name: 'A4',
-            width: 210.0,
-            height: 297.0,
-          ),
+          status: Status.draft,
+          styleConfig: StyleConfig(fontFamily: 'Arial', fontSize: 14.0),
+          pageSize: PageSize(name: 'A4', width: 210.0, height: 297.0),
           area: 'dining',
         );
 
@@ -192,15 +183,12 @@ void main() {
         expect(dto['style_json']['fontFamily'], 'Arial');
         expect(dto['size'], isNotNull);
         expect(dto['size']['name'], 'A4');
-        expect(dto['area'], 'dining');
+        expect(dto['area'], 1); // Now converted from 'dining' string to 1 int
       });
 
       test('should convert CreateMenuInput with minimal fields', () {
         // Arrange
-        const input = CreateMenuInput(
-          name: 'Simple Menu',
-          version: '1.0.0',
-        );
+        const input = CreateMenuInput(name: 'Simple Menu', version: '1.0.0');
 
         // Act
         final dto = MenuMapper.toCreateDto(input);
@@ -219,12 +207,10 @@ void main() {
       test('should convert UpdateMenuInput to Directus format', () {
         // Arrange
         const input = UpdateMenuInput(
-          id: 'menu-1',
+          id: 1,
           name: 'Updated Menu',
-          status: MenuStatus.published,
-          styleConfig: StyleConfig(
-            fontSize: 16.0,
-          ),
+          status: Status.published,
+          styleConfig: StyleConfig(fontSize: 16.0),
         );
 
         // Act
@@ -240,10 +226,7 @@ void main() {
 
       test('should only include non-null fields', () {
         // Arrange
-        const input = UpdateMenuInput(
-          id: 'menu-1',
-          name: 'Updated Menu',
-        );
+        const input = UpdateMenuInput(id: 1, name: 'Updated Menu');
 
         // Act
         final dto = MenuMapper.toUpdateDto(input);

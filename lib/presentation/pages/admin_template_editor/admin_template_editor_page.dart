@@ -5,6 +5,7 @@ import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
+import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
@@ -16,7 +17,7 @@ import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dar
 ///
 /// Allows admin users to create and edit menu templates with pages, containers, and columns.
 class AdminTemplateEditorPage extends ConsumerStatefulWidget {
-  final String menuId;
+  final int menuId;
 
   const AdminTemplateEditorPage({
     super.key,
@@ -32,8 +33,8 @@ class _AdminTemplateEditorPageState
     extends ConsumerState<AdminTemplateEditorPage> {
   Menu? _menu;
   List<entity.Page> _pages = [];
-  final Map<String, List<entity.Container>> _containers = {};
-  final Map<String, List<entity.Column>> _columns = {};
+  final Map<int, List<entity.Container>> _containers = {};
+  final Map<int, List<entity.Column>> _columns = {};
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -124,10 +125,17 @@ class _AdminTemplateEditorPageState
 
     if (result.isSuccess) {
       await _loadTemplate();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to add page: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
-  Future<void> _deletePage(String pageId) async {
+  Future<void> _deletePage(int pageId) async {
     final confirmed = await _showDeleteConfirmation();
     if (confirmed != true) return;
 
@@ -138,21 +146,30 @@ class _AdminTemplateEditorPageState
     }
   }
 
-  Future<void> _addContainer(String pageId) async {
+  Future<void> _addContainer(int pageId) async {
     final containers = _containers[pageId] ?? [];
     final result = await ref.read(containerRepositoryProvider).create(
           CreateContainerInput(
             pageId: pageId,
             index: containers.length,
+            direction: 'portrait',
           ),
         );
 
     if (result.isSuccess) {
       await _loadTemplate();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Failed to add container: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
-  Future<void> _deleteContainer(String containerId) async {
+  Future<void> _deleteContainer(int containerId) async {
     final confirmed = await _showDeleteConfirmation();
     if (confirmed != true) return;
 
@@ -164,7 +181,7 @@ class _AdminTemplateEditorPageState
     }
   }
 
-  Future<void> _addColumn(String containerId) async {
+  Future<void> _addColumn(int containerId) async {
     final columns = _columns[containerId] ?? [];
     final result = await ref.read(columnRepositoryProvider).create(
           CreateColumnInput(
@@ -176,10 +193,18 @@ class _AdminTemplateEditorPageState
 
     if (result.isSuccess) {
       await _loadTemplate();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Failed to add column: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
-  Future<void> _deleteColumn(String columnId) async {
+  Future<void> _deleteColumn(int columnId) async {
     final confirmed = await _showDeleteConfirmation();
     if (confirmed != true) return;
 
@@ -229,7 +254,7 @@ class _AdminTemplateEditorPageState
     final result = await ref.read(menuRepositoryProvider).update(
           UpdateMenuInput(
             id: widget.menuId,
-            status: MenuStatus.published,
+            status: Status.published,
           ),
         );
 

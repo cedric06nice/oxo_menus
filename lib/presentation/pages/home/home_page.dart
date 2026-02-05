@@ -10,9 +10,6 @@ import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dar
 /// Features:
 /// - Welcome message with user's first name
 /// - Role badge (Admin/User)
-/// - Quick action cards based on user role:
-///   - Regular users: Browse Templates, My Menus
-///   - Admin users: additional Create Template, Manage Templates cards
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
@@ -75,25 +72,26 @@ class HomePage extends ConsumerWidget {
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           children: [
+
             _QuickActionCard(
               icon: Icons.restaurant_menu,
-              title: isAdmin ? 'Manage Templates' : 'Browse Templates',
-              onTap: () => context.push(
-                isAdmin ? '/admin/templates' : '/admin/templates',
-              ),
-            ),
-            _QuickActionCard(
-              icon: Icons.list,
-              title: 'My Menus',
+              title: 'OXO Menus',
               onTap: () => context.push('/menus'),
             ),
-            if (isAdmin) ...[
-              _QuickActionCard(
-                icon: Icons.add_box,
-                title: 'Create Template',
-                onTap: () => context.push('/admin/templates/create'),
-              ),
-            ],
+            // _QuickActionCard(
+            //   icon: Icons.restaurant_menu,
+            //   title: isAdmin ? 'Manage Templates' : 'Browse Templates',
+            //   onTap: () => context.push(
+            //     isAdmin ? '/admin/templates' : '/admin/templates',
+            //   ),
+            // ),
+            // if (isAdmin) ...[
+            //   _QuickActionCard(
+            //     icon: Icons.add_box,
+            //     title: 'Create Template',
+            //     onTap: () => context.push('/admin/templates/create'),
+            //   ),
+            // ],
           ],
         ),
       ],

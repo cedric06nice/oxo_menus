@@ -9,8 +9,8 @@ abstract class Container with _$Container {
   const Container._();
 
   const factory Container({
-    required String id,
-    required String pageId,
+    required int id,
+    required int pageId,
     required int index,
     String? name,
     LayoutConfig? layout,

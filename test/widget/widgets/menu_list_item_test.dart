@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/presentation/widgets/menu_list_item.dart';
 
 void main() {
   group('MenuListItem', () {
     final testMenu = Menu(
-      id: 'menu-1',
+      id: 1,
       name: 'Summer Menu',
-      status: MenuStatus.published,
+      status: Status.published,
       version: '1.0.0',
       dateCreated: DateTime.parse('2024-01-15T10:00:00Z'),
       dateUpdated: DateTime.parse('2024-01-20T15:30:00Z'),
@@ -202,9 +203,9 @@ void main() {
     testWidgets('should display draft status with different color', (tester) async {
       // Arrange
       const draftMenu = Menu(
-        id: 'menu-2',
+        id: 2,
         name: 'Draft Menu',
-        status: MenuStatus.draft,
+        status: Status.draft,
         version: '1.0.0',
       );
 
@@ -232,9 +233,9 @@ void main() {
     testWidgets('should display archived status with different color', (tester) async {
       // Arrange
       const archivedMenu = Menu(
-        id: 'menu-3',
+        id: 3,
         name: 'Archived Menu',
-        status: MenuStatus.archived,
+        status: Status.archived,
         version: '1.0.0',
       );
 
@@ -258,9 +259,9 @@ void main() {
     testWidgets('should handle menu without dates gracefully', (tester) async {
       // Arrange
       const menuWithoutDates = Menu(
-        id: 'menu-4',
+        id: 4,
         name: 'Menu Without Dates',
-        status: MenuStatus.published,
+        status: Status.published,
         version: '1.0.0',
       );
 

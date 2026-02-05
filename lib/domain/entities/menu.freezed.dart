@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Menu {
 
- String get id; String get name; MenuStatus get status; String get version; DateTime? get dateCreated; DateTime? get dateUpdated; String? get userCreated; String? get userUpdated; StyleConfig? get styleConfig; PageSize? get pageSize; String? get area;
+ int get id; String get name; Status get status; String get version; DateTime? get dateCreated; DateTime? get dateUpdated; String? get userCreated; String? get userUpdated; StyleConfig? get styleConfig; PageSize? get pageSize; String? get area;
 /// Create a copy of Menu
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $MenuCopyWith<$Res>  {
   factory $MenuCopyWith(Menu value, $Res Function(Menu) _then) = _$MenuCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, MenuStatus status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, String? area
+ int id, String name, Status status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, String? area
 });
 
 
@@ -68,9 +68,9 @@ class _$MenuCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? status = null,Object? version = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,Object? userCreated = freezed,Object? userUpdated = freezed,Object? styleConfig = freezed,Object? pageSize = freezed,Object? area = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as MenuStatus,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as Status,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
 as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime?,userCreated: freezed == userCreated ? _self.userCreated : userCreated // ignore: cast_nullable_to_non_nullable
@@ -187,7 +187,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  MenuStatus status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Menu() when $default != null:
 return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area);case _:
@@ -208,7 +208,7 @@ return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  MenuStatus status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area)  $default,) {final _that = this;
 switch (_that) {
 case _Menu():
 return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area);case _:
@@ -228,7 +228,7 @@ return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  MenuStatus status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area)?  $default,) {final _that = this;
 switch (_that) {
 case _Menu() when $default != null:
 return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area);case _:
@@ -246,9 +246,9 @@ class _Menu extends Menu {
   const _Menu({required this.id, required this.name, required this.status, required this.version, this.dateCreated, this.dateUpdated, this.userCreated, this.userUpdated, this.styleConfig, this.pageSize, this.area}): super._();
   factory _Menu.fromJson(Map<String, dynamic> json) => _$MenuFromJson(json);
 
-@override final  String id;
+@override final  int id;
 @override final  String name;
-@override final  MenuStatus status;
+@override final  Status status;
 @override final  String version;
 @override final  DateTime? dateCreated;
 @override final  DateTime? dateUpdated;
@@ -291,7 +291,7 @@ abstract mixin class _$MenuCopyWith<$Res> implements $MenuCopyWith<$Res> {
   factory _$MenuCopyWith(_Menu value, $Res Function(_Menu) _then) = __$MenuCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, MenuStatus status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, String? area
+ int id, String name, Status status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, String? area
 });
 
 
@@ -311,9 +311,9 @@ class __$MenuCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? status = null,Object? version = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,Object? userCreated = freezed,Object? userUpdated = freezed,Object? styleConfig = freezed,Object? pageSize = freezed,Object? area = freezed,}) {
   return _then(_Menu(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as MenuStatus,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as Status,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
 as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime?,userCreated: freezed == userCreated ? _self.userCreated : userCreated // ignore: cast_nullable_to_non_nullable

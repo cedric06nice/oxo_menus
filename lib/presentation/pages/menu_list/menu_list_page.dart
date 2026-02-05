@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_list_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/menu_list_item.dart';
+import 'package:oxo_menus/presentation/widgets/template_create_dialog.dart';
 
 /// Menu list page
 ///
@@ -67,8 +70,31 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
     context.push('/menus/${menu.id}');
   }
 
-  void _handleCreateMenu() {
-    context.push('/menus/create');
+  void _editTemplate(Menu menu) {
+    context.push('/admin/templates/${menu.id}');
+  }
+
+  void _handleCreateTemplate() {
+    showDialog<TemplateCreateResult>(
+      context: context,
+      builder: (dialogContext) => TemplateCreateDialog(
+        onSave: (result) async {
+          final input = CreateMenuInput(
+            name: result.name,
+            version: result.version,
+            status: result.status,
+            sizeId: result.sizeId,
+          );
+
+          final createdMenu =
+              await ref.read(menuListProvider.notifier).createMenu(input);
+
+          if (createdMenu != null && mounted) {
+            context.push('/admin/templates/${createdMenu.id}');
+          }
+        },
+      ),
+    );
   }
 
   @override
@@ -78,13 +104,14 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
 
     return AuthenticatedScaffold(
       title: 'Menus',
-      actions: [
-        if (isAdmin)
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _handleCreateMenu,
-          ),
-      ],
+      actions: isAdmin
+          ? [
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: _handleCreateTemplate,
+              ),
+            ]
+          : null,
       body: RefreshIndicator(
         onRefresh: _handleRefresh,
         child: _buildBody(state, isAdmin),
@@ -113,9 +140,25 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
           menu: menu,
           isAdmin: isAdmin,
           onTap: () => _handleMenuTap(menu),
+          onEdit: isAdmin ? () => _editTemplate(menu) : null,
           onDelete: isAdmin ? () => _confirmDelete(menu) : null,
         );
       },
     );
   }
+}
+
+/// Result from the template create dialog
+class TemplateCreateResult {
+  final String name;
+  final Status status;
+  final String version;
+  final int sizeId;
+
+  const TemplateCreateResult({
+    required this.name,
+    required this.status,
+    required this.version,
+    required this.sizeId,
+  });
 }

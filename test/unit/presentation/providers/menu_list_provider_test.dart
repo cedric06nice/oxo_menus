@@ -3,6 +3,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/presentation/providers/menu_list_provider.dart';
 
@@ -20,21 +21,21 @@ void main() {
   group('MenuListNotifier', () {
     final testMenus = [
       const Menu(
-        id: '1',
+        id: 1,
         name: 'Test Menu 1',
-        status: MenuStatus.published,
+        status: Status.published,
         version: '1.0.0',
       ),
       const Menu(
-        id: '2',
+        id: 2,
         name: 'Test Menu 2',
-        status: MenuStatus.published,
+        status: Status.published,
         version: '1.0.0',
       ),
       const Menu(
-        id: '3',
+        id: 3,
         name: 'Draft Menu',
-        status: MenuStatus.draft,
+        status: Status.draft,
         version: '1.0.0',
       ),
     ];
@@ -132,15 +133,15 @@ void main() {
         expect(menuListNotifier.state.menus.length, 3);
 
         // Then delete one
-        when(() => mockMenuRepository.delete('1'))
+        when(() => mockMenuRepository.delete(1))
             .thenAnswer((_) async => const Success(null));
 
-        await menuListNotifier.deleteMenu('1');
+        await menuListNotifier.deleteMenu(1);
 
         expect(menuListNotifier.state.menus.length, 2);
-        expect(menuListNotifier.state.menus.any((m) => m.id == '1'), false);
+        expect(menuListNotifier.state.menus.any((m) => m.id == 1), false);
         expect(menuListNotifier.state.errorMessage, null);
-        verify(() => mockMenuRepository.delete('1')).called(1);
+        verify(() => mockMenuRepository.delete(1)).called(1);
       });
 
       test('should handle delete errors', () async {
@@ -151,16 +152,16 @@ void main() {
 
         // Then fail to delete
         const error = ServerError('Failed to delete menu');
-        when(() => mockMenuRepository.delete('1'))
+        when(() => mockMenuRepository.delete(1))
             .thenAnswer((_) async => const Failure(error));
 
-        await menuListNotifier.deleteMenu('1');
+        await menuListNotifier.deleteMenu(1);
 
         // Menu should still be in the list
         expect(menuListNotifier.state.menus.length, 3);
-        expect(menuListNotifier.state.menus.any((m) => m.id == '1'), true);
+        expect(menuListNotifier.state.menus.any((m) => m.id == 1), true);
         expect(menuListNotifier.state.errorMessage, 'Failed to delete menu');
-        verify(() => mockMenuRepository.delete('1')).called(1);
+        verify(() => mockMenuRepository.delete(1)).called(1);
       });
 
       test('should handle deleting non-existent menu', () async {
@@ -170,10 +171,10 @@ void main() {
         await menuListNotifier.loadMenus(onlyPublished: true);
 
         // Delete a menu that doesn't exist in local state
-        when(() => mockMenuRepository.delete('999'))
+        when(() => mockMenuRepository.delete(999))
             .thenAnswer((_) async => const Success(null));
 
-        await menuListNotifier.deleteMenu('999');
+        await menuListNotifier.deleteMenu(999);
 
         // State should be unchanged
         expect(menuListNotifier.state.menus.length, 3);
@@ -226,9 +227,9 @@ void main() {
         await menuListNotifier.loadMenus(onlyPublished: true);
 
         // Set an error
-        when(() => mockMenuRepository.delete('1'))
+        when(() => mockMenuRepository.delete(1))
             .thenAnswer((_) async => const Failure(ServerError('Error')));
-        await menuListNotifier.deleteMenu('1');
+        await menuListNotifier.deleteMenu(1);
 
         expect(menuListNotifier.state.errorMessage, 'Error');
         final menusBefore = menuListNotifier.state.menus;
@@ -255,9 +256,9 @@ void main() {
     test('should create state with custom values', () {
       final menus = [
         const Menu(
-          id: '1',
+          id: 1,
           name: 'Test',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
       ];
@@ -294,9 +295,9 @@ void main() {
     test('should support equality', () {
       final menus = [
         const Menu(
-          id: '1',
+          id: 1,
           name: 'Test',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
       ];

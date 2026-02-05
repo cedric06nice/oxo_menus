@@ -51,7 +51,7 @@ class AdminTemplatesNotifier extends StateNotifier<AdminTemplatesState> {
   }
 
   /// Delete a template by ID
-  Future<void> deleteTemplate(String templateId) async {
+  Future<void> deleteTemplate(int templateId) async {
     final result = await _menuRepository.delete(templateId);
 
     result.fold(

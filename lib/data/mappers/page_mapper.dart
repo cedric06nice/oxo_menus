@@ -5,10 +5,11 @@ import 'package:oxo_menus/domain/entities/page.dart';
 class PageMapper {
   /// Convert PageDto to Page entity
   static Page toEntity(PageDto dto) {
+    String idString = dto.id ?? '0';
     return Page(
-      id: dto.id,
-      menuId: dto.menuId,
-      name: dto.name,
+      id: int.parse(idString),
+      menuId: dto.menu?.id != null ? int.parse(dto.menu!.id!) : 0,
+      name: "Page ${dto.index}",
       index: dto.index,
       dateCreated: dto.dateCreated,
       dateUpdated: dto.dateUpdated,
@@ -17,13 +18,13 @@ class PageMapper {
 
   /// Convert Page entity to PageDto
   static PageDto toDto(Page entity) {
-    return PageDto(
-      id: entity.id,
-      menuId: entity.menuId,
-      name: entity.name,
-      index: entity.index,
-      dateCreated: entity.dateCreated,
-      dateUpdated: entity.dateUpdated,
-    );
+    return PageDto({
+      'id': entity.id,
+      'menu': entity.menuId,
+      'name': entity.name,
+      'index': entity.index,
+      'date_created': entity.dateCreated?.toIso8601String(),
+      'date_updated': entity.dateUpdated?.toIso8601String(),
+    });
   }
 }

@@ -173,7 +173,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Navigate to menu editor
-      router.go('/menus/menu-123');
+      router.go('/menus/123');
       await tester.pumpAndSettle();
 
       // Should show error message from MenuEditorPage (menu not found)
@@ -250,7 +250,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Navigate to admin template editor
-      router.go('/admin/templates/template-123');
+      router.go('/admin/templates/123');
       await tester.pumpAndSettle();
 
       // Should show error message from AdminTemplateEditorPage (menu not found)
@@ -437,7 +437,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Simulate deep link by programmatically navigating
-      router.go('/menus/menu-123');
+      router.go('/menus/123');
       await tester.pumpAndSettle();
 
       // Should navigate directly to menu editor (shows error because menu not found)
@@ -477,7 +477,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Simulate deep link by programmatically navigating
-      router.go('/admin/templates/template-123');
+      router.go('/admin/templates/123');
       await tester.pumpAndSettle();
 
       // Should navigate directly to admin template editor (shows error because menu not found)
@@ -508,7 +508,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Try to navigate to protected route via deep link
-      router.go('/menus/menu-123');
+      router.go('/menus/123');
       await tester.pumpAndSettle();
 
       // Should be redirected to login

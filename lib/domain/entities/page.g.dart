@@ -7,8 +7,8 @@ part of 'page.dart';
 // **************************************************************************
 
 _Page _$PageFromJson(Map<String, dynamic> json) => _Page(
-  id: json['id'] as String,
-  menuId: json['menuId'] as String,
+  id: (json['id'] as num).toInt(),
+  menuId: (json['menuId'] as num).toInt(),
   name: json['name'] as String,
   index: (json['index'] as num).toInt(),
   dateCreated: json['dateCreated'] == null

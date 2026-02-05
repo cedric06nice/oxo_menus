@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 
@@ -102,7 +103,7 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
         );
   }
 
-  Widget _buildTemplatesList(state) {
+  Widget _buildTemplatesList(dynamic state) {
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -306,7 +307,7 @@ class _TemplateCard extends StatelessWidget {
 }
 
 class _StatusBadge extends StatelessWidget {
-  final MenuStatus status;
+  final Status status;
 
   const _StatusBadge({required this.status});
 
@@ -316,15 +317,15 @@ class _StatusBadge extends StatelessWidget {
     IconData icon;
 
     switch (status) {
-      case MenuStatus.draft:
+      case Status.draft:
         color = Colors.orange;
         icon = Icons.edit;
         break;
-      case MenuStatus.published:
+      case Status.published:
         color = Colors.green;
         icon = Icons.check_circle;
         break;
-      case MenuStatus.archived:
+      case Status.archived:
         color = Colors.grey;
         icon = Icons.archive;
         break;

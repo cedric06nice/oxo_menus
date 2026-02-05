@@ -28,8 +28,8 @@ void main() {
   group('WidgetMigrator', () {
     test('should detect when migration is needed', () {
       const instance = WidgetInstance(
-        id: 'widget-1',
-        columnId: 'column-1',
+        id: 1,
+        columnId: 1,
         type: 'test',
         version: '1.0.0',
         index: 0,
@@ -49,8 +49,8 @@ void main() {
 
     test('should detect when migration is not needed', () {
       const instance = WidgetInstance(
-        id: 'widget-1',
-        columnId: 'column-1',
+        id: 1,
+        columnId: 1,
         type: 'test',
         version: '1.0.0',
         index: 0,
@@ -70,8 +70,8 @@ void main() {
 
     test('should migrate props when migration function is provided', () {
       const instance = WidgetInstance(
-        id: 'widget-1',
-        columnId: 'column-1',
+        id: 1,
+        columnId: 1,
         type: 'test',
         version: '1.0.0',
         index: 0,
@@ -101,8 +101,8 @@ void main() {
 
     test('should return original props when no migration function', () {
       const instance = WidgetInstance(
-        id: 'widget-1',
-        columnId: 'column-1',
+        id: 1,
+        columnId: 1,
         type: 'test',
         version: '1.0.0',
         index: 0,
@@ -126,8 +126,8 @@ void main() {
 
     test('should handle migration errors gracefully', () {
       const instance = WidgetInstance(
-        id: 'widget-1',
-        columnId: 'column-1',
+        id: 1,
+        columnId: 1,
         type: 'test',
         version: '1.0.0',
         index: 0,
@@ -156,8 +156,8 @@ void main() {
 
     test('should handle missing fields during migration', () {
       const instance = WidgetInstance(
-        id: 'widget-1',
-        columnId: 'column-1',
+        id: 1,
+        columnId: 1,
         type: 'test',
         version: '1.0.0',
         index: 0,
@@ -187,8 +187,8 @@ void main() {
 
     test('should preserve all original props when migration fails', () {
       const instance = WidgetInstance(
-        id: 'widget-1',
-        columnId: 'column-1',
+        id: 1,
+        columnId: 1,
         type: 'test',
         version: '1.0.0',
         index: 0,

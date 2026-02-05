@@ -12,20 +12,20 @@ abstract class ColumnRepository {
 
   /// Get all columns for a container
   Future<Result<List<Column>, DomainError>> getAllForContainer(
-    String containerId,
+    int containerId,
   );
 
   /// Get column by ID
-  Future<Result<Column, DomainError>> getById(String id);
+  Future<Result<Column, DomainError>> getById(int id);
 
   /// Update an existing column
   Future<Result<Column, DomainError>> update(UpdateColumnInput input);
 
   /// Delete a column
-  Future<Result<void, DomainError>> delete(String id);
+  Future<Result<void, DomainError>> delete(int id);
 
   /// Reorder a column within its container
-  Future<Result<void, DomainError>> reorder(String columnId, int newIndex);
+  Future<Result<void, DomainError>> reorder(int columnId, int newIndex);
 }
 
 /// Input for creating a column
@@ -34,7 +34,7 @@ abstract class CreateColumnInput with _$CreateColumnInput {
   const CreateColumnInput._();
 
   const factory CreateColumnInput({
-    required String containerId,
+    required int containerId,
     required int index,
     int? flex,
     double? width,
@@ -47,7 +47,7 @@ abstract class UpdateColumnInput with _$UpdateColumnInput {
   const UpdateColumnInput._();
 
   const factory UpdateColumnInput({
-    required String id,
+    required int id,
     int? index,
     int? flex,
     double? width,

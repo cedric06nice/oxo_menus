@@ -36,7 +36,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
 
   AuthNotifier(this._authRepository) : super(const AuthState.initial()) {
-    _checkAuthStatus();
+    _tryRestoreSession();
+  }
+
+  /// Try to restore session from stored tokens
+  Future<void> _tryRestoreSession() async {
+    state = const AuthState.loading();
+    final result = await _authRepository.tryRestoreSession();
+
+    result.fold(
+      onSuccess: (user) => state = AuthState.authenticated(user),
+      onFailure: (_) => state = const AuthState.unauthenticated(),
+    );
   }
 
   /// Check current authentication status

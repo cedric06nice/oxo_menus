@@ -1,22 +1,66 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:directus_api_manager/directus_api_manager.dart';
+import 'package:oxo_menus/data/models/container_dto.dart';
+import 'package:oxo_menus/data/models/widget_dto.dart';
 
-part 'column_dto.freezed.dart';
-part 'column_dto.g.dart';
+@DirectusCollection()
+@CollectionMetadata(endpointName: "column")
+class ColumnDto extends DirectusItem {
+  int get index => getValue(forKey: "index");
+  num get width => getValue(forKey: "width"); // Accept both int and double
+  DateTime? get dateCreated => getOptionalDateTime(forKey: "date_created");
+  DateTime? get dateUpdated => getOptionalDateTime(forKey: "date_updated");
+  String? get userUpdated => getValue(forKey: "user_updated");
 
-/// Data Transfer Object for Column matching Directus 'column' collection schema
-@freezed
-abstract class ColumnDto with _$ColumnDto {
-  const ColumnDto._();
-  const factory ColumnDto({
-    required String id,
-    @JsonKey(name: 'date_created') DateTime? dateCreated,
-    @JsonKey(name: 'date_updated') DateTime? dateUpdated,
-    @JsonKey(name: 'container_id') required String containerId,
-    required int index,
-    int? flex,
-    double? width,
-  }) = _ColumnDto;
+  Map<String, dynamic> get styleJson =>
+      Map<String, dynamic>.from(getValue(forKey: "style_json") ?? const {});
 
-  factory ColumnDto.fromJson(Map<String, dynamic> json) =>
-      _$ColumnDtoFromJson(json);
+  ContainerDto? get container {
+    final raw = getValue(forKey: "container");
+    if (raw == null) return null;
+    if (raw is int) {
+      return ContainerDto.withId(raw);
+    }
+    if (raw is Map<String, dynamic>) {
+      return ContainerDto(raw);
+    }
+    return null;
+  }
+
+  List<WidgetDto>? get widgets {
+    final raw = getValue(forKey: "widgets");
+    if (raw == null) return null;
+
+    if (raw is! List) {
+      throw FormatException(
+        'Expected "widgets" to be a List, got ${raw.runtimeType}',
+      );
+    }
+
+    return raw.map<WidgetDto>((e) {
+      if (e is num) {
+        // IDs-only shape
+        return WidgetDto({'id': e.toInt()});
+      }
+      if (e is Map<String, dynamic>) return WidgetDto(e);
+      if (e is Map) return WidgetDto(Map<String, dynamic>.from(e));
+      throw FormatException('Unexpected widgets element: ${e.runtimeType}');
+    }).toList();
+  }
+
+  ColumnDto.newItem({
+    required int? index,
+    required int? width,
+    Map<String, dynamic>? styleJson,
+    int? container,
+    List<int>? widgets,
+  }) : super.newItem() {
+    setValue(index, forKey: "index");
+    setValue(width, forKey: "width");
+    setValue(styleJson, forKey: "style_json");
+    setValue(container, forKey: "container");
+    setValue(widgets, forKey: "widgets");
+  }
+
+  ColumnDto(super.rawReceivedData);
+  ColumnDto.withId(super.id) : super.withId();
 }

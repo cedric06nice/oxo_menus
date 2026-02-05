@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Column {
 
- String get id; String get containerId; int get index; int? get flex; double? get width; DateTime? get dateCreated; DateTime? get dateUpdated;
+ int get id; int get containerId; int get index; int? get flex; double? get width; DateTime? get dateCreated; DateTime? get dateUpdated;
 /// Create a copy of Column
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $ColumnCopyWith<$Res>  {
   factory $ColumnCopyWith(Column value, $Res Function(Column) _then) = _$ColumnCopyWithImpl;
 @useResult
 $Res call({
- String id, String containerId, int index, int? flex, double? width, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int containerId, int index, int? flex, double? width, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -68,8 +68,8 @@ class _$ColumnCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? containerId = null,Object? index = null,Object? flex = freezed,Object? width = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,containerId: null == containerId ? _self.containerId : containerId // ignore: cast_nullable_to_non_nullable
-as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
+as int,containerId: null == containerId ? _self.containerId : containerId // ignore: cast_nullable_to_non_nullable
+as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,flex: freezed == flex ? _self.flex : flex // ignore: cast_nullable_to_non_nullable
 as int?,width: freezed == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as double?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
@@ -159,7 +159,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String containerId,  int index,  int? flex,  double? width,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int containerId,  int index,  int? flex,  double? width,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Column() when $default != null:
 return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_that.dateCreated,_that.dateUpdated);case _:
@@ -180,7 +180,7 @@ return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String containerId,  int index,  int? flex,  double? width,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int containerId,  int index,  int? flex,  double? width,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
 switch (_that) {
 case _Column():
 return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_that.dateCreated,_that.dateUpdated);case _:
@@ -200,7 +200,7 @@ return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String containerId,  int index,  int? flex,  double? width,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int containerId,  int index,  int? flex,  double? width,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
 switch (_that) {
 case _Column() when $default != null:
 return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_that.dateCreated,_that.dateUpdated);case _:
@@ -218,8 +218,8 @@ class _Column extends Column {
   const _Column({required this.id, required this.containerId, required this.index, this.flex, this.width, this.dateCreated, this.dateUpdated}): super._();
   factory _Column.fromJson(Map<String, dynamic> json) => _$ColumnFromJson(json);
 
-@override final  String id;
-@override final  String containerId;
+@override final  int id;
+@override final  int containerId;
 @override final  int index;
 @override final  int? flex;
 @override final  double? width;
@@ -259,7 +259,7 @@ abstract mixin class _$ColumnCopyWith<$Res> implements $ColumnCopyWith<$Res> {
   factory _$ColumnCopyWith(_Column value, $Res Function(_Column) _then) = __$ColumnCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String containerId, int index, int? flex, double? width, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int containerId, int index, int? flex, double? width, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -279,8 +279,8 @@ class __$ColumnCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? containerId = null,Object? index = null,Object? flex = freezed,Object? width = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_Column(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,containerId: null == containerId ? _self.containerId : containerId // ignore: cast_nullable_to_non_nullable
-as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
+as int,containerId: null == containerId ? _self.containerId : containerId // ignore: cast_nullable_to_non_nullable
+as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,flex: freezed == flex ? _self.flex : flex // ignore: cast_nullable_to_non_nullable
 as int?,width: freezed == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as double?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable

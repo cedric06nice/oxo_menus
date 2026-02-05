@@ -1,19 +1,20 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
 
 void main() {
   group('Menu Entity', () {
     test('should create Menu with required fields', () {
       const menu = Menu(
-        id: '1',
+        id: 1,
         name: 'Test Menu',
-        status: MenuStatus.draft,
+        status: Status.draft,
         version: '1.0.0',
       );
 
-      expect(menu.id, '1');
+      expect(menu.id, 1);
       expect(menu.name, 'Test Menu');
-      expect(menu.status, MenuStatus.draft);
+      expect(menu.status, Status.draft);
       expect(menu.version, '1.0.0');
       expect(menu.dateCreated, null);
       expect(menu.dateUpdated, null);
@@ -38,9 +39,9 @@ void main() {
       );
 
       final menu = Menu(
-        id: '1',
+        id: 1,
         name: 'Complete Menu',
-        status: MenuStatus.published,
+        status: Status.published,
         version: '2.0.0',
         dateCreated: now,
         dateUpdated: now,
@@ -51,9 +52,9 @@ void main() {
         area: 'Restaurant',
       );
 
-      expect(menu.id, '1');
+      expect(menu.id, 1);
       expect(menu.name, 'Complete Menu');
-      expect(menu.status, MenuStatus.published);
+      expect(menu.status, Status.published);
       expect(menu.version, '2.0.0');
       expect(menu.dateCreated, now);
       expect(menu.dateUpdated, now);
@@ -66,35 +67,35 @@ void main() {
 
     test('should support copyWith', () {
       const menu = Menu(
-        id: '1',
+        id: 1,
         name: 'Original',
-        status: MenuStatus.draft,
+        status: Status.draft,
         version: '1.0.0',
       );
 
       final updated = menu.copyWith(
         name: 'Updated',
-        status: MenuStatus.published,
+        status: Status.published,
       );
 
-      expect(updated.id, '1');
+      expect(updated.id, 1);
       expect(updated.name, 'Updated');
-      expect(updated.status, MenuStatus.published);
+      expect(updated.status, Status.published);
       expect(updated.version, '1.0.0');
     });
 
     test('should support equality', () {
       const menu1 = Menu(
-        id: '1',
+        id: 1,
         name: 'Test Menu',
-        status: MenuStatus.draft,
+        status: Status.draft,
         version: '1.0.0',
       );
 
       const menu2 = Menu(
-        id: '1',
+        id: 1,
         name: 'Test Menu',
-        status: MenuStatus.draft,
+        status: Status.draft,
         version: '1.0.0',
       );
 
@@ -104,16 +105,16 @@ void main() {
 
     test('should not be equal with different values', () {
       const menu1 = Menu(
-        id: '1',
+        id: 1,
         name: 'Test Menu',
-        status: MenuStatus.draft,
+        status: Status.draft,
         version: '1.0.0',
       );
 
       const menu2 = Menu(
-        id: '2',
+        id: 2,
         name: 'Test Menu',
-        status: MenuStatus.draft,
+        status: Status.draft,
         version: '1.0.0',
       );
 
@@ -122,15 +123,15 @@ void main() {
 
     test('should serialize to JSON', () {
       const menu = Menu(
-        id: '1',
+        id: 1,
         name: 'Test Menu',
-        status: MenuStatus.draft,
+        status: Status.draft,
         version: '1.0.0',
       );
 
       final json = menu.toJson();
 
-      expect(json['id'], '1');
+      expect(json['id'], 1);
       expect(json['name'], 'Test Menu');
       expect(json['status'], 'draft');
       expect(json['version'], '1.0.0');
@@ -138,7 +139,7 @@ void main() {
 
     test('should deserialize from JSON', () {
       final json = {
-        'id': '1',
+        'id': 1,
         'name': 'Test Menu',
         'status': 'published',
         'version': '1.0.0',
@@ -146,18 +147,18 @@ void main() {
 
       final menu = Menu.fromJson(json);
 
-      expect(menu.id, '1');
+      expect(menu.id, 1);
       expect(menu.name, 'Test Menu');
-      expect(menu.status, MenuStatus.published);
+      expect(menu.status, Status.published);
       expect(menu.version, '1.0.0');
     });
   });
 
-  group('MenuStatus', () {
+  group('Status', () {
     test('should have correct JSON values', () {
-      expect(MenuStatus.draft.name, 'draft');
-      expect(MenuStatus.published.name, 'published');
-      expect(MenuStatus.archived.name, 'archived');
+      expect(Status.draft.name, 'draft');
+      expect(Status.published.name, 'published');
+      expect(Status.archived.name, 'archived');
     });
   });
 

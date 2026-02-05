@@ -5,13 +5,14 @@ import 'package:oxo_menus/domain/entities/container.dart';
 class ContainerMapper {
   /// Convert ContainerDto to Container entity
   static Container toEntity(ContainerDto dto) {
+    String idString = dto.id ?? '0';
     return Container(
-      id: dto.id,
-      pageId: dto.pageId,
+      id: int.parse(idString),
+      pageId: dto.page?.id != null ? int.parse(dto.page!.id!) : 0,
       index: dto.index,
-      name: dto.name,
-      layout: dto.layoutJson != null
-          ? _mapLayoutJsonToLayoutConfig(dto.layoutJson!)
+      name: "Container ${dto.id}",
+      layout: dto.styleJson.isNotEmpty
+          ? _mapLayoutJsonToLayoutConfig(dto.styleJson)
           : null,
       dateCreated: dto.dateCreated,
       dateUpdated: dto.dateUpdated,
@@ -20,17 +21,17 @@ class ContainerMapper {
 
   /// Convert Container entity to ContainerDto
   static ContainerDto toDto(Container entity) {
-    return ContainerDto(
-      id: entity.id,
-      pageId: entity.pageId,
-      index: entity.index,
-      name: entity.name,
-      layoutJson: entity.layout != null
+    return ContainerDto({
+      'id': entity.id,
+      'page': entity.pageId,
+      'index': entity.index,
+      'name': entity.name,
+      'style_json': entity.layout != null
           ? layoutConfigToJson(entity.layout!)
           : null,
-      dateCreated: entity.dateCreated,
-      dateUpdated: entity.dateUpdated,
-    );
+      'date_created': entity.dateCreated?.toIso8601String(),
+      'date_updated': entity.dateUpdated?.toIso8601String(),
+    });
   }
 
   // ===== Private helper methods =====

@@ -12,25 +12,25 @@ abstract class WidgetRepository {
 
   /// Get all widget instances for a column
   Future<Result<List<WidgetInstance>, DomainError>> getAllForColumn(
-    String columnId,
+    int columnId,
   );
 
   /// Get widget instance by ID
-  Future<Result<WidgetInstance, DomainError>> getById(String id);
+  Future<Result<WidgetInstance, DomainError>> getById(int id);
 
   /// Update an existing widget instance
   Future<Result<WidgetInstance, DomainError>> update(UpdateWidgetInput input);
 
   /// Delete a widget instance
-  Future<Result<void, DomainError>> delete(String id);
+  Future<Result<void, DomainError>> delete(int id);
 
   /// Reorder a widget within its column
-  Future<Result<void, DomainError>> reorder(String widgetId, int newIndex);
+  Future<Result<void, DomainError>> reorder(int widgetId, int newIndex);
 
   /// Move widget to a different column
   Future<Result<void, DomainError>> moveTo(
-    String widgetId,
-    String newColumnId,
+    int widgetId,
+    int newColumnId,
     int index,
   );
 }
@@ -41,7 +41,7 @@ abstract class CreateWidgetInput with _$CreateWidgetInput {
   const CreateWidgetInput._();
 
   const factory CreateWidgetInput({
-    required String columnId,
+    required int columnId,
     required String type,
     required String version,
     required int index,
@@ -56,7 +56,7 @@ abstract class UpdateWidgetInput with _$UpdateWidgetInput {
   const UpdateWidgetInput._();
 
   const factory UpdateWidgetInput({
-    required String id,
+    required int id,
     String? type,
     String? version,
     int? index,

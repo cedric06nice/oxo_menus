@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreateContainerInput {
 
- String get pageId; int get index; String? get name; LayoutConfig? get layout;
+ int get pageId; int get index; String get direction; String? get name; LayoutConfig? get layout;
 /// Create a copy of CreateContainerInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $CreateContainerInputCopyWith<CreateContainerInput> get copyWith => _$CreateCont
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateContainerInput&&(identical(other.pageId, pageId) || other.pageId == pageId)&&(identical(other.index, index) || other.index == index)&&(identical(other.name, name) || other.name == name)&&(identical(other.layout, layout) || other.layout == layout));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateContainerInput&&(identical(other.pageId, pageId) || other.pageId == pageId)&&(identical(other.index, index) || other.index == index)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.name, name) || other.name == name)&&(identical(other.layout, layout) || other.layout == layout));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,pageId,index,name,layout);
+int get hashCode => Object.hash(runtimeType,pageId,index,direction,name,layout);
 
 @override
 String toString() {
-  return 'CreateContainerInput(pageId: $pageId, index: $index, name: $name, layout: $layout)';
+  return 'CreateContainerInput(pageId: $pageId, index: $index, direction: $direction, name: $name, layout: $layout)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $CreateContainerInputCopyWith<$Res>  {
   factory $CreateContainerInputCopyWith(CreateContainerInput value, $Res Function(CreateContainerInput) _then) = _$CreateContainerInputCopyWithImpl;
 @useResult
 $Res call({
- String pageId, int index, String? name, LayoutConfig? layout
+ int pageId, int index, String direction, String? name, LayoutConfig? layout
 });
 
 
@@ -62,11 +62,12 @@ class _$CreateContainerInputCopyWithImpl<$Res>
 
 /// Create a copy of CreateContainerInput
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? pageId = null,Object? index = null,Object? name = freezed,Object? layout = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? pageId = null,Object? index = null,Object? direction = null,Object? name = freezed,Object? layout = freezed,}) {
   return _then(_self.copyWith(
 pageId: null == pageId ? _self.pageId : pageId // ignore: cast_nullable_to_non_nullable
-as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
-as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
+as int,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
+as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,layout: freezed == layout ? _self.layout : layout // ignore: cast_nullable_to_non_nullable
 as LayoutConfig?,
   ));
@@ -165,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String pageId,  int index,  String? name,  LayoutConfig? layout)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int pageId,  int index,  String direction,  String? name,  LayoutConfig? layout)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateContainerInput() when $default != null:
-return $default(_that.pageId,_that.index,_that.name,_that.layout);case _:
+return $default(_that.pageId,_that.index,_that.direction,_that.name,_that.layout);case _:
   return orElse();
 
 }
@@ -186,10 +187,10 @@ return $default(_that.pageId,_that.index,_that.name,_that.layout);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String pageId,  int index,  String? name,  LayoutConfig? layout)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int pageId,  int index,  String direction,  String? name,  LayoutConfig? layout)  $default,) {final _that = this;
 switch (_that) {
 case _CreateContainerInput():
-return $default(_that.pageId,_that.index,_that.name,_that.layout);case _:
+return $default(_that.pageId,_that.index,_that.direction,_that.name,_that.layout);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +207,10 @@ return $default(_that.pageId,_that.index,_that.name,_that.layout);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String pageId,  int index,  String? name,  LayoutConfig? layout)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int pageId,  int index,  String direction,  String? name,  LayoutConfig? layout)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateContainerInput() when $default != null:
-return $default(_that.pageId,_that.index,_that.name,_that.layout);case _:
+return $default(_that.pageId,_that.index,_that.direction,_that.name,_that.layout);case _:
   return null;
 
 }
@@ -221,11 +222,12 @@ return $default(_that.pageId,_that.index,_that.name,_that.layout);case _:
 
 
 class _CreateContainerInput extends CreateContainerInput {
-  const _CreateContainerInput({required this.pageId, required this.index, this.name, this.layout}): super._();
+  const _CreateContainerInput({required this.pageId, required this.index, required this.direction, this.name, this.layout}): super._();
   
 
-@override final  String pageId;
+@override final  int pageId;
 @override final  int index;
+@override final  String direction;
 @override final  String? name;
 @override final  LayoutConfig? layout;
 
@@ -239,16 +241,16 @@ _$CreateContainerInputCopyWith<_CreateContainerInput> get copyWith => __$CreateC
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateContainerInput&&(identical(other.pageId, pageId) || other.pageId == pageId)&&(identical(other.index, index) || other.index == index)&&(identical(other.name, name) || other.name == name)&&(identical(other.layout, layout) || other.layout == layout));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateContainerInput&&(identical(other.pageId, pageId) || other.pageId == pageId)&&(identical(other.index, index) || other.index == index)&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.name, name) || other.name == name)&&(identical(other.layout, layout) || other.layout == layout));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,pageId,index,name,layout);
+int get hashCode => Object.hash(runtimeType,pageId,index,direction,name,layout);
 
 @override
 String toString() {
-  return 'CreateContainerInput(pageId: $pageId, index: $index, name: $name, layout: $layout)';
+  return 'CreateContainerInput(pageId: $pageId, index: $index, direction: $direction, name: $name, layout: $layout)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$CreateContainerInputCopyWith<$Res> implements $CreateCont
   factory _$CreateContainerInputCopyWith(_CreateContainerInput value, $Res Function(_CreateContainerInput) _then) = __$CreateContainerInputCopyWithImpl;
 @override @useResult
 $Res call({
- String pageId, int index, String? name, LayoutConfig? layout
+ int pageId, int index, String direction, String? name, LayoutConfig? layout
 });
 
 
@@ -276,11 +278,12 @@ class __$CreateContainerInputCopyWithImpl<$Res>
 
 /// Create a copy of CreateContainerInput
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? pageId = null,Object? index = null,Object? name = freezed,Object? layout = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? pageId = null,Object? index = null,Object? direction = null,Object? name = freezed,Object? layout = freezed,}) {
   return _then(_CreateContainerInput(
 pageId: null == pageId ? _self.pageId : pageId // ignore: cast_nullable_to_non_nullable
-as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
-as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
+as int,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
+as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,layout: freezed == layout ? _self.layout : layout // ignore: cast_nullable_to_non_nullable
 as LayoutConfig?,
   ));
@@ -304,7 +307,7 @@ $LayoutConfigCopyWith<$Res>? get layout {
 /// @nodoc
 mixin _$UpdateContainerInput {
 
- String get id; String? get name; int? get index; LayoutConfig? get layout;
+ int get id; String? get name; int? get index; LayoutConfig? get layout;
 /// Create a copy of UpdateContainerInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -335,7 +338,7 @@ abstract mixin class $UpdateContainerInputCopyWith<$Res>  {
   factory $UpdateContainerInputCopyWith(UpdateContainerInput value, $Res Function(UpdateContainerInput) _then) = _$UpdateContainerInputCopyWithImpl;
 @useResult
 $Res call({
- String id, String? name, int? index, LayoutConfig? layout
+ int id, String? name, int? index, LayoutConfig? layout
 });
 
 
@@ -355,7 +358,7 @@ class _$UpdateContainerInputCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? index = freezed,Object? layout = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,index: freezed == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int?,layout: freezed == layout ? _self.layout : layout // ignore: cast_nullable_to_non_nullable
 as LayoutConfig?,
@@ -455,7 +458,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? name,  int? index,  LayoutConfig? layout)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String? name,  int? index,  LayoutConfig? layout)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdateContainerInput() when $default != null:
 return $default(_that.id,_that.name,_that.index,_that.layout);case _:
@@ -476,7 +479,7 @@ return $default(_that.id,_that.name,_that.index,_that.layout);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? name,  int? index,  LayoutConfig? layout)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String? name,  int? index,  LayoutConfig? layout)  $default,) {final _that = this;
 switch (_that) {
 case _UpdateContainerInput():
 return $default(_that.id,_that.name,_that.index,_that.layout);case _:
@@ -496,7 +499,7 @@ return $default(_that.id,_that.name,_that.index,_that.layout);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? name,  int? index,  LayoutConfig? layout)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String? name,  int? index,  LayoutConfig? layout)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdateContainerInput() when $default != null:
 return $default(_that.id,_that.name,_that.index,_that.layout);case _:
@@ -514,7 +517,7 @@ class _UpdateContainerInput extends UpdateContainerInput {
   const _UpdateContainerInput({required this.id, this.name, this.index, this.layout}): super._();
   
 
-@override final  String id;
+@override final  int id;
 @override final  String? name;
 @override final  int? index;
 @override final  LayoutConfig? layout;
@@ -549,7 +552,7 @@ abstract mixin class _$UpdateContainerInputCopyWith<$Res> implements $UpdateCont
   factory _$UpdateContainerInputCopyWith(_UpdateContainerInput value, $Res Function(_UpdateContainerInput) _then) = __$UpdateContainerInputCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? name, int? index, LayoutConfig? layout
+ int id, String? name, int? index, LayoutConfig? layout
 });
 
 
@@ -569,7 +572,7 @@ class __$UpdateContainerInputCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = freezed,Object? index = freezed,Object? layout = freezed,}) {
   return _then(_UpdateContainerInput(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,index: freezed == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int?,layout: freezed == layout ? _self.layout : layout // ignore: cast_nullable_to_non_nullable
 as LayoutConfig?,

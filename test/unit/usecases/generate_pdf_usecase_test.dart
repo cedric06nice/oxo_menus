@@ -4,6 +4,7 @@ import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
+import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
@@ -20,9 +21,9 @@ void main() {
       // Arrange
       const menuTree = MenuTree(
         menu: Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Empty Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
         pages: [],
@@ -41,16 +42,16 @@ void main() {
       // Arrange
       const menuTree = MenuTree(
         menu: Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Single Page Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
         pages: [
           PageWithContainers(
             page: entity.Page(
-              id: 'page-1',
-              menuId: 'menu-1',
+              id: 1,
+              menuId: 1,
               name: 'Page 1',
               index: 0,
             ),
@@ -72,38 +73,38 @@ void main() {
       // Arrange
       const menuTree = MenuTree(
         menu: Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Menu with Dishes',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
         pages: [
           PageWithContainers(
             page: entity.Page(
-              id: 'page-1',
-              menuId: 'menu-1',
+              id: 1,
+              menuId: 1,
               name: 'Page 1',
               index: 0,
             ),
             containers: [
               ContainerWithColumns(
                 container: entity.Container(
-                  id: 'container-1',
-                  pageId: 'page-1',
+                  id: 1,
+                  pageId: 1,
                   index: 0,
                 ),
                 columns: [
                   ColumnWithWidgets(
                     column: entity.Column(
-                      id: 'column-1',
-                      containerId: 'container-1',
+                      id: 1,
+                      containerId: 1,
                       index: 0,
                       flex: 1,
                     ),
                     widgets: [
                       WidgetInstance(
-                        id: 'widget-1',
-                        columnId: 'column-1',
+                        id: 1,
+                        columnId: 1,
                         type: 'dish',
                         version: '1.0.0',
                         index: 0,
@@ -139,38 +140,38 @@ void main() {
       // Arrange
       const menuTree = MenuTree(
         menu: Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Menu with Text',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
         pages: [
           PageWithContainers(
             page: entity.Page(
-              id: 'page-1',
-              menuId: 'menu-1',
+              id: 1,
+              menuId: 1,
               name: 'Page 1',
               index: 0,
             ),
             containers: [
               ContainerWithColumns(
                 container: entity.Container(
-                  id: 'container-1',
-                  pageId: 'page-1',
+                  id: 1,
+                  pageId: 1,
                   index: 0,
                 ),
                 columns: [
                   ColumnWithWidgets(
                     column: entity.Column(
-                      id: 'column-1',
-                      containerId: 'container-1',
+                      id: 1,
+                      containerId: 1,
                       index: 0,
                       flex: 1,
                     ),
                     widgets: [
                       WidgetInstance(
-                        id: 'widget-1',
-                        columnId: 'column-1',
+                        id: 1,
+                        columnId: 1,
                         type: 'text',
                         version: '1.0.0',
                         index: 0,
@@ -203,38 +204,38 @@ void main() {
       // Arrange
       const menuTree = MenuTree(
         menu: Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Menu with Sections',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
         pages: [
           PageWithContainers(
             page: entity.Page(
-              id: 'page-1',
-              menuId: 'menu-1',
+              id: 1,
+              menuId: 1,
               name: 'Page 1',
               index: 0,
             ),
             containers: [
               ContainerWithColumns(
                 container: entity.Container(
-                  id: 'container-1',
-                  pageId: 'page-1',
+                  id: 1,
+                  pageId: 1,
                   index: 0,
                 ),
                 columns: [
                   ColumnWithWidgets(
                     column: entity.Column(
-                      id: 'column-1',
-                      containerId: 'container-1',
+                      id: 1,
+                      containerId: 1,
                       index: 0,
                       flex: 1,
                     ),
                     widgets: [
                       WidgetInstance(
-                        id: 'widget-1',
-                        columnId: 'column-1',
+                        id: 1,
+                        columnId: 1,
                         type: 'section',
                         version: '1.0.0',
                         index: 0,
@@ -266,38 +267,38 @@ void main() {
       // Arrange
       const menuTree = MenuTree(
         menu: Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Multi-Column Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
         pages: [
           PageWithContainers(
             page: entity.Page(
-              id: 'page-1',
-              menuId: 'menu-1',
+              id: 1,
+              menuId: 1,
               name: 'Page 1',
               index: 0,
             ),
             containers: [
               ContainerWithColumns(
                 container: entity.Container(
-                  id: 'container-1',
-                  pageId: 'page-1',
+                  id: 1,
+                  pageId: 1,
                   index: 0,
                 ),
                 columns: [
                   ColumnWithWidgets(
                     column: entity.Column(
-                      id: 'column-1',
-                      containerId: 'container-1',
+                      id: 1,
+                      containerId: 1,
                       index: 0,
                       flex: 1,
                     ),
                     widgets: [
                       WidgetInstance(
-                        id: 'widget-1',
-                        columnId: 'column-1',
+                        id: 1,
+                        columnId: 1,
                         type: 'text',
                         version: '1.0.0',
                         index: 0,
@@ -312,15 +313,15 @@ void main() {
                   ),
                   ColumnWithWidgets(
                     column: entity.Column(
-                      id: 'column-2',
-                      containerId: 'container-1',
+                      id: 2,
+                      containerId: 1,
                       index: 1,
                       flex: 2,
                     ),
                     widgets: [
                       WidgetInstance(
-                        id: 'widget-2',
-                        columnId: 'column-2',
+                        id: 2,
+                        columnId: 2,
                         type: 'text',
                         version: '1.0.0',
                         index: 0,
@@ -353,9 +354,9 @@ void main() {
       // Arrange
       const menuTree = MenuTree(
         menu: Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Default Size Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
           pageSize: null,
         ),
@@ -374,38 +375,38 @@ void main() {
       // Arrange
       const menuTree = MenuTree(
         menu: Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Menu with Unknown Widget',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
         pages: [
           PageWithContainers(
             page: entity.Page(
-              id: 'page-1',
-              menuId: 'menu-1',
+              id: 1,
+              menuId: 1,
               name: 'Page 1',
               index: 0,
             ),
             containers: [
               ContainerWithColumns(
                 container: entity.Container(
-                  id: 'container-1',
-                  pageId: 'page-1',
+                  id: 1,
+                  pageId: 1,
                   index: 0,
                 ),
                 columns: [
                   ColumnWithWidgets(
                     column: entity.Column(
-                      id: 'column-1',
-                      containerId: 'container-1',
+                      id: 1,
+                      containerId: 1,
                       index: 0,
                       flex: 1,
                     ),
                     widgets: [
                       WidgetInstance(
-                        id: 'widget-1',
-                        columnId: 'column-1',
+                        id: 1,
+                        columnId: 1,
                         type: 'unknown_type',
                         version: '1.0.0',
                         index: 0,
@@ -432,39 +433,39 @@ void main() {
       // Arrange
       const menuTree = MenuTree(
         menu: Menu(
-          id: 'menu-1',
+          id: 1,
           name: 'Complex Menu',
-          status: MenuStatus.published,
+          status: Status.published,
           version: '1.0.0',
         ),
         pages: [
           PageWithContainers(
             page: entity.Page(
-              id: 'page-1',
-              menuId: 'menu-1',
+              id: 1,
+              menuId: 1,
               name: 'Page 1',
               index: 0,
             ),
             containers: [
               ContainerWithColumns(
                 container: entity.Container(
-                  id: 'container-1',
-                  pageId: 'page-1',
+                  id: 1,
+                  pageId: 1,
                   index: 0,
                   name: 'Main Courses',
                 ),
                 columns: [
                   ColumnWithWidgets(
                     column: entity.Column(
-                      id: 'column-1',
-                      containerId: 'container-1',
+                      id: 1,
+                      containerId: 1,
                       index: 0,
                       flex: 1,
                     ),
                     widgets: [
                       WidgetInstance(
-                        id: 'widget-1',
-                        columnId: 'column-1',
+                        id: 1,
+                        columnId: 1,
                         type: 'section',
                         version: '1.0.0',
                         index: 0,
@@ -475,8 +476,8 @@ void main() {
                         },
                       ),
                       WidgetInstance(
-                        id: 'widget-2',
-                        columnId: 'column-1',
+                        id: 2,
+                        columnId: 1,
                         type: 'dish',
                         version: '1.0.0',
                         index: 1,
@@ -494,15 +495,15 @@ void main() {
                   ),
                   ColumnWithWidgets(
                     column: entity.Column(
-                      id: 'column-2',
-                      containerId: 'container-1',
+                      id: 2,
+                      containerId: 1,
                       index: 1,
                       flex: 1,
                     ),
                     widgets: [
                       WidgetInstance(
-                        id: 'widget-3',
-                        columnId: 'column-2',
+                        id: 3,
+                        columnId: 2,
                         type: 'text',
                         version: '1.0.0',
                         index: 0,

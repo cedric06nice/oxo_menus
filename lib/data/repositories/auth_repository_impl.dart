@@ -72,4 +72,25 @@ class AuthRepositoryImpl implements AuthRepository {
       return Failure(mapDirectusError(e));
     }
   }
+
+  @override
+  Future<Result<User, DomainError>> tryRestoreSession() async {
+    try {
+      final restored = await dataSource.tryRestoreSession();
+      if (!restored) {
+        return const Failure(
+          TokenExpiredError('No valid session to restore'),
+        );
+      }
+
+      // Session restored, fetch the current user
+      final data = await dataSource.getCurrentUser();
+      final dto = UserDto.fromJson(data);
+      final user = UserMapper.toEntity(dto);
+
+      return Success(user);
+    } catch (e) {
+      return Failure(mapDirectusError(e));
+    }
+  }
 }

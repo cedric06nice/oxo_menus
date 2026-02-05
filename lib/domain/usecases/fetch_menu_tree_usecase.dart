@@ -31,7 +31,7 @@ class FetchMenuTreeUseCase {
   });
 
   /// Execute the use case to fetch menu tree by ID
-  Future<Result<MenuTree, DomainError>> execute(String menuId) async {
+  Future<Result<MenuTree, DomainError>> execute(int menuId) async {
     // 1. Fetch menu
     final menuResult = await menuRepository.getById(menuId);
     if (menuResult.isFailure) {

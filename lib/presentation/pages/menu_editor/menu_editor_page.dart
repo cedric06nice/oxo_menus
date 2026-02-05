@@ -15,6 +15,31 @@ import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
 
+/// Data class for drag operations - represents either a new widget type or an existing widget
+class _WidgetDragData {
+  /// Widget type for new widgets from palette (null if dragging existing widget)
+  final String? newWidgetType;
+
+  /// Existing widget being dragged for reordering (null if dragging from palette)
+  final WidgetInstance? existingWidget;
+
+  /// Source column ID when dragging an existing widget
+  final int? sourceColumnId;
+
+  const _WidgetDragData.newWidget(String type)
+      : newWidgetType = type,
+        existingWidget = null,
+        sourceColumnId = null;
+
+  const _WidgetDragData.existing(WidgetInstance widget, int columnId)
+      : newWidgetType = null,
+        existingWidget = widget,
+        sourceColumnId = columnId;
+
+  bool get isNewWidget => newWidgetType != null;
+  bool get isExistingWidget => existingWidget != null;
+}
+
 /// Menu Editor Page
 ///
 /// Allows users to create and edit menus by:
@@ -24,7 +49,7 @@ import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
 /// - Reordering widgets
 /// - Saving the menu
 class MenuEditorPage extends ConsumerStatefulWidget {
-  final String menuId;
+  final int menuId;
 
   const MenuEditorPage({
     super.key,
@@ -38,12 +63,14 @@ class MenuEditorPage extends ConsumerStatefulWidget {
 class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   Menu? _menu;
   List<entity.Page> _pages = [];
-  final Map<String, List<entity.Container>> _containers = {};
-  final Map<String, List<entity.Column>> _columns = {};
-  final Map<String, List<WidgetInstance>> _widgets = {};
+  final Map<int, List<entity.Container>> _containers = {};
+  final Map<int, List<entity.Column>> _columns = {};
+  final Map<int, List<WidgetInstance>> _widgets = {};
   bool _isLoading = true;
   String? _errorMessage;
-  String? _draggedWidgetType; // For drag and drop from palette
+
+  // Track hover position for drag-and-drop: columnId -> hoverIndex (-1 = not hovering)
+  final Map<int, int> _hoverIndex = {};
 
   @override
   void initState() {
@@ -233,8 +260,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   Widget _buildPaletteItem(String type, WidgetDefinition? definition) {
     if (definition == null) return const SizedBox();
 
-    return Draggable<String>(
-      data: type,
+    return Draggable<_WidgetDragData>(
+      data: _WidgetDragData.newWidget(type),
       feedback: Material(
         elevation: 4.0,
         child: Container(
@@ -254,16 +281,6 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
         opacity: 0.3,
         child: _paletteItemContent(type),
       ),
-      onDragStarted: () {
-        setState(() {
-          _draggedWidgetType = type;
-        });
-      },
-      onDragEnd: (_) {
-        setState(() {
-          _draggedWidgetType = null;
-        });
-      },
       child: _paletteItemContent(type),
     );
   }
@@ -384,91 +401,251 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   Widget _buildColumnCard(entity.Column column) {
     final widgets = _widgets[column.id] ?? [];
     final registry = ref.watch(widgetRegistryProvider);
+    final currentHoverIndex = _hoverIndex[column.id] ?? -1;
 
-    return DragTarget<String>(
-      key: Key('drop_zone_${column.id}'),
-      onWillAcceptWithDetails: (details) => _draggedWidgetType != null,
-      onAcceptWithDetails: (details) {
-        _handleWidgetDrop(details.data, column.id);
-      },
-      builder: (context, candidateData, rejectedData) {
-        final isHovering = candidateData.isNotEmpty;
+    return Container(
+      key: Key('column_${column.id}'),
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(4),
+        color: Colors.white,
+      ),
+      constraints: const BoxConstraints(minHeight: 100),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Build interleaved list of drop zones and widgets
+          for (int i = 0; i <= widgets.length; i++) ...[
+            // Drop zone at position i
+            _buildDropZone(column.id, i, currentHoverIndex == i, registry),
 
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: isHovering ? Colors.blue : Colors.grey[300]!,
-              width: isHovering ? 2 : 1,
-            ),
-            borderRadius: BorderRadius.circular(4),
-            color: isHovering ? Colors.blue[50] : Colors.white,
-          ),
-          constraints: const BoxConstraints(minHeight: 100),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Column widgets
-              ...widgets.map((widget) => _buildWidgetItem(widget, registry)),
+            // Widget at position i (if exists)
+            if (i < widgets.length)
+              _buildWidgetItem(widgets[i], column.id, registry),
+          ],
 
-              // Empty state
-              if (widgets.isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Text(
-                      'Drop widgets here',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 12,
-                      ),
-                    ),
+          // Empty state (only show when no widgets and not hovering)
+          if (widgets.isEmpty && currentHoverIndex == -1)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Text(
+                  'Drop widgets here',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 12,
                   ),
                 ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildWidgetItem(WidgetInstance widget, WidgetRegistry registry) {
-    return Container(
-      key: Key('widget_${widget.id}'),
-      margin: const EdgeInsets.only(bottom: 8),
-      child: WidgetRenderer(
-        widgetInstance: widget,
-        isEditable: true,
-        onUpdate: (updatedProps) => _handleWidgetUpdate(widget.id, updatedProps),
-        onDelete: () => _handleWidgetDelete(widget.id),
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  Future<void> _handleWidgetDrop(String widgetType, String columnId) async {
-    final registry = ref.read(widgetRegistryProvider);
-    final definition = registry.getDefinition(widgetType);
-    if (definition == null) return;
+  /// Check if dropping at this position would be a no-op (widget already at this position)
+  bool _isNoOpDrop(_WidgetDragData dragData, int columnId, int index) {
+    if (!dragData.isExistingWidget) return false;
+    if (dragData.sourceColumnId != columnId) return false;
 
-    final widgets = _widgets[columnId] ?? [];
-    final result = await ref.read(widgetRepositoryProvider).create(
-          CreateWidgetInput(
-            columnId: columnId,
-            type: widgetType,
-            version: definition.version,
-            index: widgets.length,
-            props: (definition.defaultProps as dynamic).toJson(),
+    final currentIndex = dragData.existingWidget!.index;
+    // Dropping at current position or the position right after is a no-op
+    return index == currentIndex || index == currentIndex + 1;
+  }
+
+  Widget _buildDropZone(
+      int columnId, int index, bool isHovering, WidgetRegistry registry) {
+    return DragTarget<_WidgetDragData>(
+      key: Key('drop_zone_${columnId}_$index'),
+      onWillAcceptWithDetails: (details) {
+        final dragData = details.data;
+        if (dragData.isNewWidget) {
+          return registry.getDefinition(dragData.newWidgetType!) != null;
+        } else if (dragData.isExistingWidget) {
+          // Always accept to show the indicator, but check for no-op in onAccept
+          return true;
+        }
+        return false;
+      },
+      onAcceptWithDetails: (details) {
+        setState(() {
+          _hoverIndex[columnId] = -1;
+        });
+        final dragData = details.data;
+
+        // Skip no-op drops (widget already at this position)
+        if (_isNoOpDrop(dragData, columnId, index)) {
+          return;
+        }
+
+        if (dragData.isNewWidget) {
+          _handleWidgetDropAtIndex(dragData.newWidgetType!, columnId, index);
+        } else if (dragData.isExistingWidget) {
+          _handleWidgetMoveToIndex(
+            dragData.existingWidget!,
+            dragData.sourceColumnId!,
+            columnId,
+            index,
+          );
+        }
+      },
+      onMove: (details) {
+        if (_hoverIndex[columnId] != index) {
+          setState(() {
+            _hoverIndex[columnId] = index;
+          });
+        }
+      },
+      onLeave: (data) {
+        // Small delay to prevent flickering when moving between zones
+        Future.delayed(const Duration(milliseconds: 50), () {
+          if (mounted && _hoverIndex[columnId] == index) {
+            setState(() {
+              _hoverIndex[columnId] = -1;
+            });
+          }
+        });
+      },
+      builder: (context, candidateData, rejectedData) {
+        final showLine = isHovering && candidateData.isNotEmpty;
+        // Show a muted color for no-op positions
+        final isNoOp = candidateData.isNotEmpty &&
+            candidateData.first != null &&
+            _isNoOpDrop(candidateData.first!, columnId, index);
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          height: showLine ? 4 : 8,
+          margin: const EdgeInsets.symmetric(vertical: 2),
+          decoration: BoxDecoration(
+            color: showLine
+                ? (isNoOp ? Colors.grey[400] : Colors.blue)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(2),
           ),
         );
+      },
+    );
+  }
 
-    if (result.isSuccess) {
-      await _loadMenu();
+  Widget _buildWidgetItem(
+      WidgetInstance widget, int columnId, WidgetRegistry registry) {
+    final widgetContent = Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: WidgetRenderer(
+        widgetInstance: widget,
+        isEditable: true,
+        onUpdate: (updatedProps) =>
+            _handleWidgetUpdate(widget.id, updatedProps),
+        onDelete: () => _handleWidgetDelete(widget.id),
+      ),
+    );
+
+    return LongPressDraggable<_WidgetDragData>(
+      key: Key('widget_${widget.id}'),
+      data: _WidgetDragData.existing(widget, columnId),
+      feedback: Material(
+        elevation: 4.0,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 200,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.blue, width: 2),
+          ),
+          child: Text(
+            widget.type.toUpperCase(),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.3,
+        child: widgetContent,
+      ),
+      child: Dismissible(
+        key: Key('dismissible_${widget.id}'),
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (direction) async {
+          return await _showDeleteConfirmation();
+        },
+        onDismissed: (direction) {
+          _performWidgetDelete(widget.id);
+        },
+        background: Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 16),
+          decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(
+            Icons.delete,
+            color: Colors.white,
+          ),
+        ),
+        child: widgetContent,
+      ),
+    );
+  }
+
+  Future<void> _handleWidgetDropAtIndex(
+      String widgetType, int columnId, int index) async {
+    try {
+      final registry = ref.read(widgetRegistryProvider);
+      final definition = registry.getDefinition(widgetType);
+      if (definition == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Unknown widget type: $widgetType')),
+          );
+        }
+        return;
+      }
+
+      final propsJson =
+          (definition.defaultProps as dynamic).toJson() as Map<String, dynamic>;
+
+      final result = await ref.read(widgetRepositoryProvider).create(
+            CreateWidgetInput(
+              columnId: columnId,
+              type: widgetType,
+              version: definition.version,
+              index: index,
+              props: propsJson,
+            ),
+          );
+
+      if (result.isSuccess) {
+        await _loadMenu();
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Failed to create widget: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating widget: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   Future<void> _handleWidgetUpdate(
-      String widgetId, Map<String, dynamic> updatedProps) async {
+      int widgetId, Map<String, dynamic> updatedProps) async {
     final result = await ref.read(widgetRepositoryProvider).update(
           UpdateWidgetInput(
             id: widgetId,
@@ -481,14 +658,84 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     }
   }
 
-  Future<void> _handleWidgetDelete(String widgetId) async {
+  Future<void> _handleWidgetMoveToIndex(
+    WidgetInstance widget,
+    int sourceColumnId,
+    int targetColumnId,
+    int targetIndex,
+  ) async {
+    try {
+      if (sourceColumnId == targetColumnId) {
+        // Reordering within the same column
+        // Adjust index if moving down (since removing the widget shifts indices)
+        final adjustedIndex =
+            targetIndex > widget.index ? targetIndex - 1 : targetIndex;
+
+        final result = await ref
+            .read(widgetRepositoryProvider)
+            .reorder(widget.id, adjustedIndex);
+
+        if (result.isSuccess) {
+          await _loadMenu();
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Failed to reorder widget: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
+        // Moving to a different column
+        final result = await ref
+            .read(widgetRepositoryProvider)
+            .moveTo(widget.id, targetColumnId, targetIndex);
+
+        if (result.isSuccess) {
+          await _loadMenu();
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Failed to move widget: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error moving widget: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleWidgetDelete(int widgetId) async {
     final confirmed = await _showDeleteConfirmation();
     if (confirmed != true) return;
 
+    await _performWidgetDelete(widgetId);
+  }
+
+  Future<void> _performWidgetDelete(int widgetId) async {
     final result = await ref.read(widgetRepositoryProvider).delete(widgetId);
 
     if (result.isSuccess) {
       await _loadMenu();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'Failed to delete widget: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

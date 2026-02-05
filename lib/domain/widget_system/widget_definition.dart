@@ -49,7 +49,7 @@ class WidgetDefinition<P> {
   /// Parse JSON props into typed props object
   final P Function(Map<String, dynamic>) parseProps;
 
-  /// Render the widget with props and context
+  /// Render the widget with props and context (type-safe version)
   final Widget Function(P props, WidgetContext context) render;
 
   /// Default props for new instances
@@ -69,4 +69,13 @@ class WidgetDefinition<P> {
     required this.defaultProps,
     this.migrate,
   });
+
+  /// Render the widget with dynamic props (type-erased version)
+  ///
+  /// This method is used by the WidgetRenderer to avoid generic type issues
+  /// when the definition is stored in a heterogeneous registry.
+  /// The props should already be parsed using [parseProps].
+  Widget renderDynamic(dynamic props, WidgetContext context) {
+    return render(props as P, context);
+  }
 }

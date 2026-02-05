@@ -7,8 +7,8 @@ part of 'container.dart';
 // **************************************************************************
 
 _Container _$ContainerFromJson(Map<String, dynamic> json) => _Container(
-  id: json['id'] as String,
-  pageId: json['pageId'] as String,
+  id: (json['id'] as num).toInt(),
+  pageId: (json['pageId'] as num).toInt(),
   index: (json['index'] as num).toInt(),
   name: json['name'] as String?,
   layout: json['layout'] == null

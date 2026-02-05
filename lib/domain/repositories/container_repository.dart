@@ -11,24 +11,24 @@ abstract class ContainerRepository {
   Future<Result<Container, DomainError>> create(CreateContainerInput input);
 
   /// Get all containers for a page
-  Future<Result<List<Container>, DomainError>> getAllForPage(String pageId);
+  Future<Result<List<Container>, DomainError>> getAllForPage(int pageId);
 
   /// Get container by ID
-  Future<Result<Container, DomainError>> getById(String id);
+  Future<Result<Container, DomainError>> getById(int id);
 
   /// Update an existing container
   Future<Result<Container, DomainError>> update(UpdateContainerInput input);
 
   /// Delete a container
-  Future<Result<void, DomainError>> delete(String id);
+  Future<Result<void, DomainError>> delete(int id);
 
   /// Reorder a container within its page
-  Future<Result<void, DomainError>> reorder(String containerId, int newIndex);
+  Future<Result<void, DomainError>> reorder(int containerId, int newIndex);
 
   /// Move container to a different page
   Future<Result<void, DomainError>> moveTo(
-    String containerId,
-    String newPageId,
+    int containerId,
+    int newPageId,
     int index,
   );
 }
@@ -39,8 +39,9 @@ abstract class CreateContainerInput with _$CreateContainerInput {
   const CreateContainerInput._();
 
   const factory CreateContainerInput({
-    required String pageId,
+    required int pageId,
     required int index,
+    required String direction,
     String? name,
     LayoutConfig? layout,
   }) = _CreateContainerInput;
@@ -52,7 +53,7 @@ abstract class UpdateContainerInput with _$UpdateContainerInput {
   const UpdateContainerInput._();
 
   const factory UpdateContainerInput({
-    required String id,
+    required int id,
     String? name,
     int? index,
     LayoutConfig? layout,

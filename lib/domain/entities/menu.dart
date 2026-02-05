@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
 
 part 'menu.freezed.dart';
 part 'menu.g.dart';
@@ -9,9 +10,9 @@ abstract class Menu with _$Menu {
   const Menu._();
 
   const factory Menu({
-    required String id,
+    required int id,
     required String name,
-    required MenuStatus status,
+    required Status status,
     required String version,
     DateTime? dateCreated,
     DateTime? dateUpdated,
@@ -23,16 +24,6 @@ abstract class Menu with _$Menu {
   }) = _Menu;
 
   factory Menu.fromJson(Map<String, dynamic> json) => _$MenuFromJson(json);
-}
-
-/// Menu status enumeration
-enum MenuStatus {
-  @JsonValue('draft')
-  draft,
-  @JsonValue('published')
-  published,
-  @JsonValue('archived')
-  archived,
 }
 
 /// Style configuration for a menu

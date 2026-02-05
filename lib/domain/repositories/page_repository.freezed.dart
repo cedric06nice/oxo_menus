@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreatePageInput {
 
- String get menuId; String get name; int get index;
+ int get menuId; String get name; int get index;
 /// Create a copy of CreatePageInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -45,7 +45,7 @@ abstract mixin class $CreatePageInputCopyWith<$Res>  {
   factory $CreatePageInputCopyWith(CreatePageInput value, $Res Function(CreatePageInput) _then) = _$CreatePageInputCopyWithImpl;
 @useResult
 $Res call({
- String menuId, String name, int index
+ int menuId, String name, int index
 });
 
 
@@ -65,7 +65,7 @@ class _$CreatePageInputCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? menuId = null,Object? name = null,Object? index = null,}) {
   return _then(_self.copyWith(
 menuId: null == menuId ? _self.menuId : menuId // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,
   ));
@@ -152,7 +152,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String menuId,  String name,  int index)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int menuId,  String name,  int index)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreatePageInput() when $default != null:
 return $default(_that.menuId,_that.name,_that.index);case _:
@@ -173,7 +173,7 @@ return $default(_that.menuId,_that.name,_that.index);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String menuId,  String name,  int index)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int menuId,  String name,  int index)  $default,) {final _that = this;
 switch (_that) {
 case _CreatePageInput():
 return $default(_that.menuId,_that.name,_that.index);case _:
@@ -193,7 +193,7 @@ return $default(_that.menuId,_that.name,_that.index);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String menuId,  String name,  int index)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int menuId,  String name,  int index)?  $default,) {final _that = this;
 switch (_that) {
 case _CreatePageInput() when $default != null:
 return $default(_that.menuId,_that.name,_that.index);case _:
@@ -211,7 +211,7 @@ class _CreatePageInput extends CreatePageInput {
   const _CreatePageInput({required this.menuId, required this.name, required this.index}): super._();
   
 
-@override final  String menuId;
+@override final  int menuId;
 @override final  String name;
 @override final  int index;
 
@@ -245,7 +245,7 @@ abstract mixin class _$CreatePageInputCopyWith<$Res> implements $CreatePageInput
   factory _$CreatePageInputCopyWith(_CreatePageInput value, $Res Function(_CreatePageInput) _then) = __$CreatePageInputCopyWithImpl;
 @override @useResult
 $Res call({
- String menuId, String name, int index
+ int menuId, String name, int index
 });
 
 
@@ -265,7 +265,7 @@ class __$CreatePageInputCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? menuId = null,Object? name = null,Object? index = null,}) {
   return _then(_CreatePageInput(
 menuId: null == menuId ? _self.menuId : menuId // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,
   ));
@@ -277,7 +277,7 @@ as int,
 /// @nodoc
 mixin _$UpdatePageInput {
 
- String get id; String? get name; int? get index;
+ int get id; String? get name; int? get index;
 /// Create a copy of UpdatePageInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -308,7 +308,7 @@ abstract mixin class $UpdatePageInputCopyWith<$Res>  {
   factory $UpdatePageInputCopyWith(UpdatePageInput value, $Res Function(UpdatePageInput) _then) = _$UpdatePageInputCopyWithImpl;
 @useResult
 $Res call({
- String id, String? name, int? index
+ int id, String? name, int? index
 });
 
 
@@ -328,7 +328,7 @@ class _$UpdatePageInputCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? index = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,index: freezed == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
@@ -415,7 +415,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String? name,  int? index)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String? name,  int? index)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdatePageInput() when $default != null:
 return $default(_that.id,_that.name,_that.index);case _:
@@ -436,7 +436,7 @@ return $default(_that.id,_that.name,_that.index);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String? name,  int? index)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String? name,  int? index)  $default,) {final _that = this;
 switch (_that) {
 case _UpdatePageInput():
 return $default(_that.id,_that.name,_that.index);case _:
@@ -456,7 +456,7 @@ return $default(_that.id,_that.name,_that.index);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String? name,  int? index)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String? name,  int? index)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdatePageInput() when $default != null:
 return $default(_that.id,_that.name,_that.index);case _:
@@ -474,7 +474,7 @@ class _UpdatePageInput extends UpdatePageInput {
   const _UpdatePageInput({required this.id, this.name, this.index}): super._();
   
 
-@override final  String id;
+@override final  int id;
 @override final  String? name;
 @override final  int? index;
 
@@ -508,7 +508,7 @@ abstract mixin class _$UpdatePageInputCopyWith<$Res> implements $UpdatePageInput
   factory _$UpdatePageInputCopyWith(_UpdatePageInput value, $Res Function(_UpdatePageInput) _then) = __$UpdatePageInputCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String? name, int? index
+ int id, String? name, int? index
 });
 
 
@@ -528,7 +528,7 @@ class __$UpdatePageInputCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = freezed,Object? index = freezed,}) {
   return _then(_UpdatePageInput(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,index: freezed == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int?,
   ));

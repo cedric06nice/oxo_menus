@@ -9,8 +9,8 @@ abstract class Column with _$Column {
   const Column._();
 
   const factory Column({
-    required String id,
-    required String containerId,
+    required int id,
+    required int containerId,
     required int index,
     int? flex,
     double? width,

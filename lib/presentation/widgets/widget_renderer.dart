@@ -64,10 +64,7 @@ class WidgetRenderer extends ConsumerWidget {
     dynamic props,
     WidgetContext context,
   ) {
-    // Call the render function with dynamic props
-    // The function signature is Widget Function(P, WidgetContext)
-    // We cast to Widget Function(dynamic, WidgetContext) to avoid type issues
-    final renderFn = definition.render;
-    return renderFn(props, context);
+    // Use the type-erased renderDynamic method to avoid generic type issues
+    return definition.renderDynamic(props, context);
   }
 }

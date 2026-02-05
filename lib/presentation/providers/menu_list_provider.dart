@@ -55,7 +55,7 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
   /// Delete a menu by ID
   ///
   /// Removes the menu from both the backend and the local state
-  Future<void> deleteMenu(String menuId) async {
+  Future<void> deleteMenu(int menuId) async {
     final result = await _menuRepository.delete(menuId);
 
     result.fold(
@@ -81,6 +81,33 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
   /// Clear any error messages
   void clearError() {
     state = state.copyWith(errorMessage: null);
+  }
+
+  /// Create a new menu/template
+  ///
+  /// Creates a new menu with the given input and adds it to the local state.
+  /// Returns the created menu on success, or null on failure.
+  Future<Menu?> createMenu(CreateMenuInput input) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    final result = await _menuRepository.create(input);
+
+    return result.fold(
+      onSuccess: (menu) {
+        state = state.copyWith(
+          menus: [menu, ...state.menus],
+          isLoading: false,
+        );
+        return menu;
+      },
+      onFailure: (error) {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: error.message,
+        );
+        return null;
+      },
+    );
   }
 }
 

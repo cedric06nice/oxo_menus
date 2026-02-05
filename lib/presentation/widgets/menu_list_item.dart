@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
 
 /// Menu list item widget
 ///
@@ -10,6 +11,7 @@ class MenuListItem extends StatelessWidget {
   final Menu menu;
   final bool isAdmin;
   final VoidCallback onTap;
+  final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
   const MenuListItem({
@@ -17,56 +19,60 @@ class MenuListItem extends StatelessWidget {
     required this.menu,
     required this.isAdmin,
     required this.onTap,
+    this.onEdit,
     this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
       child: ListTile(
         onTap: onTap,
         title: Text(
           menu.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                _buildStatusChip(context),
-                const SizedBox(width: 8),
-                Text(
-                  'v${menu.version}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+        subtitle: isAdmin
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      _buildStatusChip(context),
+                      const SizedBox(width: 8),
+                      Text(
+                        'v${menu.version}',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            if (menu.dateUpdated != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Updated ${_formatDate(menu.dateUpdated!)}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ],
-        ),
+                  if (menu.dateUpdated != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Updated ${_formatDate(menu.dateUpdated!)}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                  ],
+                ],
+              )
+            : null,
         trailing: isAdmin && onDelete != null
-            ? IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: onDelete,
-                tooltip: 'Delete menu',
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: onEdit,
+                    tooltip: 'Edit menu',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: onDelete,
+                    tooltip: 'Delete menu',
+                  ),
+                ],
               )
             : null,
       ),
@@ -76,24 +82,21 @@ class MenuListItem extends StatelessWidget {
   Widget _buildStatusChip(BuildContext context) {
     Color chipColor;
     switch (menu.status) {
-      case MenuStatus.published:
+      case Status.published:
         chipColor = Colors.green;
         break;
-      case MenuStatus.draft:
+      case Status.draft:
         chipColor = Colors.orange;
         break;
-      case MenuStatus.archived:
+      case Status.archived:
         chipColor = Colors.grey;
         break;
     }
 
     return Chip(
       label: Text(
-        menu.status.name,
-        style: const TextStyle(
-          fontSize: 12,
-          color: Colors.white,
-        ),
+        menu.status.name.toUpperCase(),
+        style: const TextStyle(fontSize: 12, color: Colors.white),
       ),
       backgroundColor: chipColor,
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
@@ -116,7 +119,7 @@ class MenuListItem extends StatelessWidget {
     } else if (difference.inDays < 7) {
       return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
     } else {
-      return DateFormat('MMM d, y').format(date);
+      return DateFormat('d MMM y').format(date);
     }
   }
 }

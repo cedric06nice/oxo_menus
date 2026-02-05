@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:directus_api_manager/directus_api_manager.dart';
 import 'package:http/http.dart' as http;
+import 'package:oxo_menus/data/datasources/secure_token_storage.dart';
 
 /// Wrapper for Directus backend communication using directus_api_manager package
 ///
@@ -11,11 +12,23 @@ import 'package:http/http.dart' as http;
 /// and directus_api_manager's GenericDirectusItem objects.
 class DirectusDataSource {
   final DirectusApiManager _apiManager;
+  final SecureTokenStorage _tokenStorage;
   final String _baseUrl;
 
-  DirectusDataSource({required String baseUrl})
-      : _apiManager = DirectusApiManager(baseURL: baseUrl),
+  // Internal token state for restored sessions
+  String? _restoredAccessToken;
+  String? _restoredRefreshToken;
+
+  DirectusDataSource({
+    required String baseUrl,
+    SecureTokenStorage? tokenStorage,
+  })  : _apiManager = DirectusApiManager(baseURL: baseUrl),
+        _tokenStorage = tokenStorage ?? SecureTokenStorage(),
         _baseUrl = baseUrl;
+
+  /// Get the current access token (from api manager or restored session)
+  String? get _currentAccessToken =>
+      _apiManager.accessToken ?? _restoredAccessToken;
 
   // ===== Authentication Methods =====
 
@@ -33,13 +46,23 @@ class DirectusDataSource {
 
     switch (result.type) {
       case DirectusLoginResultType.success:
+        // Save tokens to secure storage
+        final accessToken = _apiManager.accessToken;
+        final refreshToken = _apiManager.refreshToken;
+        if (accessToken != null && refreshToken != null) {
+          await _tokenStorage.saveTokens(
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+          );
+        }
+
         // Get current user data with expanded role relation
         final userData = await _fetchUserWithRole();
 
         return {
           'user': userData,
-          'access_token': _apiManager.accessToken,
-          'refresh_token': _apiManager.refreshToken,
+          'access_token': accessToken,
+          'refresh_token': refreshToken,
         };
 
       case DirectusLoginResultType.invalidCredentials:
@@ -65,6 +88,69 @@ class DirectusDataSource {
   /// Logout the current user
   Future<void> logout() async {
     await _apiManager.logoutDirectusUser();
+    await _tokenStorage.clearTokens();
+    _restoredAccessToken = null;
+    _restoredRefreshToken = null;
+  }
+
+  /// Try to restore session from stored tokens
+  ///
+  /// Returns true if session was restored successfully, false otherwise
+  Future<bool> tryRestoreSession() async {
+    final hasTokens = await _tokenStorage.hasTokens();
+    if (!hasTokens) {
+      return false;
+    }
+
+    final refreshToken = await _tokenStorage.getRefreshToken();
+    if (refreshToken == null) {
+      return false;
+    }
+
+    // Try to refresh the access token using the stored refresh token
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/refresh'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'refresh_token': refreshToken, 'mode': 'json'}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final tokenData = data['data'] as Map<String, dynamic>?;
+
+        if (tokenData != null) {
+          final newAccessToken = tokenData['access_token'] as String?;
+          final newRefreshToken = tokenData['refresh_token'] as String?;
+
+          if (newAccessToken != null && newRefreshToken != null) {
+            // Save new tokens to secure storage
+            await _tokenStorage.saveTokens(
+              accessToken: newAccessToken,
+              refreshToken: newRefreshToken,
+            );
+
+            // Store tokens internally for use in HTTP calls
+            _restoredAccessToken = newAccessToken;
+            _restoredRefreshToken = newRefreshToken;
+
+            return true;
+          }
+        }
+      }
+
+      // Token refresh failed - clear stored tokens
+      await _tokenStorage.clearTokens();
+      _restoredAccessToken = null;
+      _restoredRefreshToken = null;
+      return false;
+    } catch (e) {
+      // Error during refresh - clear stored tokens
+      await _tokenStorage.clearTokens();
+      _restoredAccessToken = null;
+      _restoredRefreshToken = null;
+      return false;
+    }
   }
 
   /// Get the current authenticated user with expanded role
@@ -77,7 +163,7 @@ class DirectusDataSource {
   /// Makes a direct HTTP request to /users/me with fields parameter to expand
   /// the role relation and get the role name instead of just the UUID
   Future<Map<String, dynamic>> _fetchUserWithRole() async {
-    final accessToken = _apiManager.accessToken;
+    final accessToken = _currentAccessToken;
 
     if (accessToken == null || accessToken.isEmpty) {
       throw DirectusException(
@@ -103,6 +189,10 @@ class DirectusDataSource {
       final data = json.decode(response.body) as Map<String, dynamic>;
       return data['data'] as Map<String, dynamic>;
     } else if (response.statusCode == 401) {
+      // Token might be expired, clear stored tokens
+      await _tokenStorage.clearTokens();
+      _restoredAccessToken = null;
+      _restoredRefreshToken = null;
       throw DirectusException(
         code: 'NOT_AUTHENTICATED',
         message: 'Authentication required',
@@ -119,11 +209,11 @@ class DirectusDataSource {
 
   /// Get a single item by ID from a collection
   Future<Map<String, dynamic>> getItem<T extends DirectusItem>(
-    String id, {
+    int id, {
     List<String>? fields,
   }) async {
     final item = await _apiManager.getSpecificItem<T>(
-      id: id,
+      id: id.toString(),
       fields: fields?.join(','),
     );
 
@@ -205,9 +295,9 @@ class DirectusDataSource {
   }
 
   /// Delete an item from a collection
-  Future<void> deleteItem<T extends DirectusItem>(String id) async {
+  Future<void> deleteItem<T extends DirectusItem>(int id) async {
     final success = await _apiManager.deleteItem<T>(
-      objectId: id,
+      objectId: id.toString(),
     );
 
     if (!success) {

@@ -3,7 +3,6 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/mappers/error_mapper.dart';
 import 'package:oxo_menus/data/mappers/container_mapper.dart';
-import 'package:oxo_menus/data/models/directus_items/container_directus_item.dart';
 import 'package:oxo_menus/data/models/container_dto.dart';
 import 'package:oxo_menus/domain/entities/container.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
@@ -18,9 +17,12 @@ class ContainerRepositoryImpl implements ContainerRepository {
   Future<Result<Container, DomainError>> create(
       CreateContainerInput input) async {
     try {
-      final item = ContainerDirectusItem.newItem();
-      item.setValue(input.pageId, forKey: 'page_id');
-      item.setValue(input.index, forKey: 'index');
+      final item = ContainerDto.newItem(
+        index: input.index,
+        page: input.pageId,
+        status: 'published',
+        direction: input.direction,
+      );
 
       if (input.name != null) {
         item.setValue(input.name, forKey: 'name');
@@ -32,9 +34,9 @@ class ContainerRepositoryImpl implements ContainerRepository {
         );
       }
 
-      final data = await dataSource.createItem<ContainerDirectusItem>(item);
+      final data = await dataSource.createItem<ContainerDto>(item);
 
-      final dto = ContainerDto.fromJson(data);
+      final dto = ContainerDto(data);
       final container = ContainerMapper.toEntity(dto);
 
       return Success(container);
@@ -45,26 +47,46 @@ class ContainerRepositoryImpl implements ContainerRepository {
 
   @override
   Future<Result<List<Container>, DomainError>> getAllForPage(
-      String pageId) async {
+      int pageId) async {
     try {
-      final data = await dataSource.getItems<ContainerDirectusItem>(
+      final data = await dataSource.getItems<ContainerDto>(
         filter: {
-          'page_id': {'_eq': pageId}
+          'page': {'_eq': pageId}
         },
         fields: [
           'id',
-          'page_id',
-          'index',
-          'name',
-          'layout_json',
           'date_created',
           'date_updated',
+          'user_created',
+          'user_updated',
+          'index',
+          'direction',
+          'style_json',
+          'columns.id',
+          'columns.date_created',
+          'columns.date_updated',
+          'columns.user_created',
+          'columns.user_updated',
+          'columns.index',
+          'columns.width',
+          'columns.style_json',
+          'columns.widgets.id',
+          'columns.widgets.status',
+          'columns.widgets.date_created',
+          'columns.widgets.date_updated',
+          'columns.widgets.user_created',
+          'columns.widgets.user_updated',
+          'columns.widgets.index',
+          'columns.widgets.type_key',
+          'columns.widgets.version',
+          'columns.widgets.props_json',
+          'columns.widgets.style_json'
         ],
         sort: ['index'],
       );
 
       final containers = data
-          .map((json) => ContainerDto.fromJson(json))
+          .map((json) => ContainerDto(json))
           .map((dto) => ContainerMapper.toEntity(dto))
           .toList();
 
@@ -75,22 +97,42 @@ class ContainerRepositoryImpl implements ContainerRepository {
   }
 
   @override
-  Future<Result<Container, DomainError>> getById(String id) async {
+  Future<Result<Container, DomainError>> getById(int id) async {
     try {
-      final data = await dataSource.getItem<ContainerDirectusItem>(
+      final data = await dataSource.getItem<ContainerDto>(
         id,
         fields: [
           'id',
-          'page_id',
-          'index',
-          'name',
-          'layout_json',
           'date_created',
           'date_updated',
+          'user_created',
+          'user_updated',
+          'index',
+          'direction',
+          'style_json',
+          'columns.id',
+          'columns.date_created',
+          'columns.date_updated',
+          'columns.user_created',
+          'columns.user_updated',
+          'columns.index',
+          'columns.width',
+          'columns.style_json',
+          'columns.widgets.id',
+          'columns.widgets.status',
+          'columns.widgets.date_created',
+          'columns.widgets.date_updated',
+          'columns.widgets.user_created',
+          'columns.widgets.user_updated',
+          'columns.widgets.index',
+          'columns.widgets.type_key',
+          'columns.widgets.version',
+          'columns.widgets.props_json',
+          'columns.widgets.style_json'
         ],
       );
 
-      final dto = ContainerDto.fromJson(data);
+      final dto = ContainerDto(data);
       final container = ContainerMapper.toEntity(dto);
 
       return Success(container);
@@ -104,8 +146,8 @@ class ContainerRepositoryImpl implements ContainerRepository {
       UpdateContainerInput input) async {
     try {
       // First fetch the existing item
-      final existingData = await dataSource.getItem<ContainerDirectusItem>(input.id);
-      final item = ContainerDirectusItem(existingData);
+      final existingData = await dataSource.getItem<ContainerDto>(input.id);
+      final item = ContainerDto(existingData);
 
       if (input.name != null) {
         item.setValue(input.name, forKey: 'name');
@@ -120,9 +162,9 @@ class ContainerRepositoryImpl implements ContainerRepository {
         );
       }
 
-      final data = await dataSource.updateItem<ContainerDirectusItem>(item);
+      final data = await dataSource.updateItem<ContainerDto>(item);
 
-      final dto = ContainerDto.fromJson(data);
+      final dto = ContainerDto(data);
       final container = ContainerMapper.toEntity(dto);
 
       return Success(container);
@@ -132,9 +174,9 @@ class ContainerRepositoryImpl implements ContainerRepository {
   }
 
   @override
-  Future<Result<void, DomainError>> delete(String id) async {
+  Future<Result<void, DomainError>> delete(int id) async {
     try {
-      await dataSource.deleteItem<ContainerDirectusItem>(id);
+      await dataSource.deleteItem<ContainerDto>(id);
       return const Success(null);
     } catch (e) {
       return Failure(mapDirectusError(e));
@@ -143,15 +185,15 @@ class ContainerRepositoryImpl implements ContainerRepository {
 
   @override
   Future<Result<void, DomainError>> reorder(
-      String containerId, int newIndex) async {
+      int containerId, int newIndex) async {
     try {
       // First fetch the existing item
-      final existingData = await dataSource.getItem<ContainerDirectusItem>(containerId);
-      final item = ContainerDirectusItem(existingData);
-      
+      final existingData = await dataSource.getItem<ContainerDto>(containerId);
+      final item = ContainerDto(existingData);
+
       item.setValue(newIndex, forKey: 'index');
 
-      await dataSource.updateItem<ContainerDirectusItem>(item);
+      await dataSource.updateItem<ContainerDto>(item);
       return const Success(null);
     } catch (e) {
       return Failure(mapDirectusError(e));
@@ -160,16 +202,16 @@ class ContainerRepositoryImpl implements ContainerRepository {
 
   @override
   Future<Result<void, DomainError>> moveTo(
-      String containerId, String newPageId, int index) async {
+      int containerId, int newPageId, int index) async {
     try {
       // First fetch the existing item
-      final existingData = await dataSource.getItem<ContainerDirectusItem>(containerId);
-      final item = ContainerDirectusItem(existingData);
-      
+      final existingData = await dataSource.getItem<ContainerDto>(containerId);
+      final item = ContainerDto(existingData);
+
       item.setValue(newPageId, forKey: 'page_id');
       item.setValue(index, forKey: 'index');
 
-      await dataSource.updateItem<ContainerDirectusItem>(item);
+      await dataSource.updateItem<ContainerDto>(item);
       return const Success(null);
     } catch (e) {
       return Failure(mapDirectusError(e));

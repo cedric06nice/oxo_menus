@@ -5,14 +5,14 @@ void main() {
   group('Page Entity', () {
     test('should create Page with required fields', () {
       const page = Page(
-        id: '1',
-        menuId: 'menu-1',
+        id: 1,
+        menuId: 1,
         name: 'Page 1',
         index: 0,
       );
 
-      expect(page.id, '1');
-      expect(page.menuId, 'menu-1');
+      expect(page.id, 1);
+      expect(page.menuId, 1);
       expect(page.name, 'Page 1');
       expect(page.index, 0);
       expect(page.dateCreated, null);
@@ -22,16 +22,16 @@ void main() {
     test('should create Page with all fields', () {
       final now = DateTime.now();
       final page = Page(
-        id: '1',
-        menuId: 'menu-1',
+        id: 1,
+        menuId: 1,
         name: 'First Page',
         index: 0,
         dateCreated: now,
         dateUpdated: now,
       );
 
-      expect(page.id, '1');
-      expect(page.menuId, 'menu-1');
+      expect(page.id, 1);
+      expect(page.menuId, 1);
       expect(page.name, 'First Page');
       expect(page.index, 0);
       expect(page.dateCreated, now);
@@ -40,8 +40,8 @@ void main() {
 
     test('should support copyWith', () {
       const page = Page(
-        id: '1',
-        menuId: 'menu-1',
+        id: 1,
+        menuId: 1,
         name: 'Page 1',
         index: 0,
       );
@@ -51,23 +51,23 @@ void main() {
         index: 1,
       );
 
-      expect(updated.id, '1');
-      expect(updated.menuId, 'menu-1');
+      expect(updated.id, 1);
+      expect(updated.menuId, 1);
       expect(updated.name, 'Updated Page');
       expect(updated.index, 1);
     });
 
     test('should support equality', () {
       const page1 = Page(
-        id: '1',
-        menuId: 'menu-1',
+        id: 1,
+        menuId: 1,
         name: 'Page 1',
         index: 0,
       );
 
       const page2 = Page(
-        id: '1',
-        menuId: 'menu-1',
+        id: 1,
+        menuId: 1,
         name: 'Page 1',
         index: 0,
       );
@@ -78,32 +78,32 @@ void main() {
 
     test('should serialize to JSON', () {
       const page = Page(
-        id: '1',
-        menuId: 'menu-1',
+        id: 1,
+        menuId: 1,
         name: 'Page 1',
         index: 0,
       );
 
       final json = page.toJson();
 
-      expect(json['id'], '1');
-      expect(json['menuId'], 'menu-1');
+      expect(json['id'], 1);
+      expect(json['menuId'], 1);
       expect(json['name'], 'Page 1');
       expect(json['index'], 0);
     });
 
     test('should deserialize from JSON', () {
       final json = {
-        'id': '1',
-        'menuId': 'menu-1',
+        'id': 1,
+        'menuId': 1,
         'name': 'Page 1',
         'index': 0,
       };
 
       final page = Page.fromJson(json);
 
-      expect(page.id, '1');
-      expect(page.menuId, 'menu-1');
+      expect(page.id, 1);
+      expect(page.menuId, 1);
       expect(page.name, 'Page 1');
       expect(page.index, 0);
     });

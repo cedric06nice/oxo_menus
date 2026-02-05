@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WidgetInstance {
 
- String get id; String get columnId; String get type; String get version; int get index; Map<String, dynamic> get props; WidgetStyle? get style; DateTime? get dateCreated; DateTime? get dateUpdated;
+ int get id; int get columnId; String get type; String get version; int get index; Map<String, dynamic> get props; WidgetStyle? get style; DateTime? get dateCreated; DateTime? get dateUpdated;
 /// Create a copy of WidgetInstance
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $WidgetInstanceCopyWith<$Res>  {
   factory $WidgetInstanceCopyWith(WidgetInstance value, $Res Function(WidgetInstance) _then) = _$WidgetInstanceCopyWithImpl;
 @useResult
 $Res call({
- String id, String columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -68,8 +68,8 @@ class _$WidgetInstanceCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? columnId = null,Object? type = null,Object? version = null,Object? index = null,Object? props = null,Object? style = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,columnId: null == columnId ? _self.columnId : columnId // ignore: cast_nullable_to_non_nullable
-as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as int,columnId: null == columnId ? _self.columnId : columnId // ignore: cast_nullable_to_non_nullable
+as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,props: null == props ? _self.props : props // ignore: cast_nullable_to_non_nullable
@@ -173,7 +173,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WidgetInstance() when $default != null:
 return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style,_that.dateCreated,_that.dateUpdated);case _:
@@ -194,7 +194,7 @@ return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
 switch (_that) {
 case _WidgetInstance():
 return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style,_that.dateCreated,_that.dateUpdated);case _:
@@ -214,7 +214,7 @@ return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
 switch (_that) {
 case _WidgetInstance() when $default != null:
 return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style,_that.dateCreated,_that.dateUpdated);case _:
@@ -232,8 +232,8 @@ class _WidgetInstance extends WidgetInstance {
   const _WidgetInstance({required this.id, required this.columnId, required this.type, required this.version, required this.index, required final  Map<String, dynamic> props, this.style, this.dateCreated, this.dateUpdated}): _props = props,super._();
   factory _WidgetInstance.fromJson(Map<String, dynamic> json) => _$WidgetInstanceFromJson(json);
 
-@override final  String id;
-@override final  String columnId;
+@override final  int id;
+@override final  int columnId;
 @override final  String type;
 @override final  String version;
 @override final  int index;
@@ -281,7 +281,7 @@ abstract mixin class _$WidgetInstanceCopyWith<$Res> implements $WidgetInstanceCo
   factory _$WidgetInstanceCopyWith(_WidgetInstance value, $Res Function(_WidgetInstance) _then) = __$WidgetInstanceCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -301,8 +301,8 @@ class __$WidgetInstanceCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? columnId = null,Object? type = null,Object? version = null,Object? index = null,Object? props = null,Object? style = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_WidgetInstance(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,columnId: null == columnId ? _self.columnId : columnId // ignore: cast_nullable_to_non_nullable
-as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as int,columnId: null == columnId ? _self.columnId : columnId // ignore: cast_nullable_to_non_nullable
+as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,props: null == props ? _self._props : props // ignore: cast_nullable_to_non_nullable

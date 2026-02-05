@@ -8,8 +8,8 @@ part of 'widget_instance.dart';
 
 _WidgetInstance _$WidgetInstanceFromJson(Map<String, dynamic> json) =>
     _WidgetInstance(
-      id: json['id'] as String,
-      columnId: json['columnId'] as String,
+      id: (json['id'] as num).toInt(),
+      columnId: (json['columnId'] as num).toInt(),
       type: json['type'] as String,
       version: json['version'] as String,
       index: (json['index'] as num).toInt(),

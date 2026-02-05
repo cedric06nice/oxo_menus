@@ -6,6 +6,7 @@ import 'package:oxo_menus/domain/entities/column.dart';
 import 'package:oxo_menus/domain/entities/container.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
@@ -49,11 +50,11 @@ void main() {
   });
 
   group('FetchMenuTreeUseCase', () {
-    const menuId = 'menu-1';
+    const menuId = 1;
     const mockMenu = Menu(
       id: menuId,
       name: 'Test Menu',
-      status: MenuStatus.published,
+      status: Status.published,
       version: '1.0.0',
     );
 
@@ -116,9 +117,9 @@ void main() {
     test('should sort pages by index', () async {
       // Arrange
       final pages = [
-        const Page(id: 'p2', menuId: menuId, name: 'Page 2', index: 2),
-        const Page(id: 'p1', menuId: menuId, name: 'Page 1', index: 1),
-        const Page(id: 'p3', menuId: menuId, name: 'Page 3', index: 3),
+        const Page(id: 2, menuId: menuId, name: 'Page 2', index: 2),
+        const Page(id: 1, menuId: menuId, name: 'Page 1', index: 1),
+        const Page(id: 3, menuId: menuId, name: 'Page 3', index: 3),
       ];
 
       when(() => mockMenuRepo.getById(menuId))
@@ -134,15 +135,15 @@ void main() {
       // Assert
       expect(result.isSuccess, true);
       final sortedPages = result.valueOrNull!.pages.map((p) => p.page).toList();
-      expect(sortedPages[0].id, 'p1');
-      expect(sortedPages[1].id, 'p2');
-      expect(sortedPages[2].id, 'p3');
+      expect(sortedPages[0].id, 1);
+      expect(sortedPages[1].id, 2);
+      expect(sortedPages[2].id, 3);
     });
 
     test('should return failure when containers fetch fails', () async {
       // Arrange
       final pages = [
-        const Page(id: 'p1', menuId: menuId, name: 'Page 1', index: 1),
+        const Page(id: 1, menuId: menuId, name: 'Page 1', index: 1),
       ];
       const error = ServerError('Server error');
 
@@ -150,7 +151,7 @@ void main() {
           .thenAnswer((_) async => const Success(mockMenu));
       when(() => mockPageRepo.getAllForMenu(menuId))
           .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage('p1'))
+      when(() => mockContainerRepo.getAllForPage(1))
           .thenAnswer((_) async => const Failure(error));
 
       // Act
@@ -164,18 +165,18 @@ void main() {
     test('should sort containers by index', () async {
       // Arrange
       final pages = [
-        const Page(id: 'p1', menuId: menuId, name: 'Page 1', index: 1),
+        const Page(id: 1, menuId: menuId, name: 'Page 1', index: 1),
       ];
       final containers = [
-        const Container(id: 'c2', pageId: 'p1', index: 2, name: 'Container 2'),
-        const Container(id: 'c1', pageId: 'p1', index: 1, name: 'Container 1'),
+        const Container(id: 2, pageId: 1, index: 2, name: 'Container 2'),
+        const Container(id: 1, pageId: 1, index: 1, name: 'Container 1'),
       ];
 
       when(() => mockMenuRepo.getById(menuId))
           .thenAnswer((_) async => const Success(mockMenu));
       when(() => mockPageRepo.getAllForMenu(menuId))
           .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage('p1'))
+      when(() => mockContainerRepo.getAllForPage(1))
           .thenAnswer((_) async => Success(containers));
       when(() => mockColumnRepo.getAllForContainer(any()))
           .thenAnswer((_) async => const Success([]));
@@ -187,17 +188,17 @@ void main() {
       expect(result.isSuccess, true);
       final sortedContainers =
           result.valueOrNull!.pages[0].containers.map((c) => c.container).toList();
-      expect(sortedContainers[0].id, 'c1');
-      expect(sortedContainers[1].id, 'c2');
+      expect(sortedContainers[0].id, 1);
+      expect(sortedContainers[1].id, 2);
     });
 
     test('should return failure when columns fetch fails', () async {
       // Arrange
       final pages = [
-        const Page(id: 'p1', menuId: menuId, name: 'Page 1', index: 1),
+        const Page(id: 1, menuId: menuId, name: 'Page 1', index: 1),
       ];
       final containers = [
-        const Container(id: 'c1', pageId: 'p1', index: 1, name: 'Container 1'),
+        const Container(id: 1, pageId: 1, index: 1, name: 'Container 1'),
       ];
       const error = ValidationError('Invalid column data');
 
@@ -205,9 +206,9 @@ void main() {
           .thenAnswer((_) async => const Success(mockMenu));
       when(() => mockPageRepo.getAllForMenu(menuId))
           .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage('p1'))
+      when(() => mockContainerRepo.getAllForPage(1))
           .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepo.getAllForContainer('c1'))
+      when(() => mockColumnRepo.getAllForContainer(1))
           .thenAnswer((_) async => const Failure(error));
 
       // Act
@@ -221,24 +222,24 @@ void main() {
     test('should sort columns by index', () async {
       // Arrange
       final pages = [
-        const Page(id: 'p1', menuId: menuId, name: 'Page 1', index: 1),
+        const Page(id: 1, menuId: menuId, name: 'Page 1', index: 1),
       ];
       final containers = [
-        const Container(id: 'c1', pageId: 'p1', index: 1, name: 'Container 1'),
+        const Container(id: 1, pageId: 1, index: 1, name: 'Container 1'),
       ];
       final columns = [
-        const Column(id: 'col3', containerId: 'c1', index: 3, flex: 1),
-        const Column(id: 'col1', containerId: 'c1', index: 1, flex: 1),
-        const Column(id: 'col2', containerId: 'c1', index: 2, flex: 1),
+        const Column(id: 3, containerId: 1, index: 3, flex: 1),
+        const Column(id: 1, containerId: 1, index: 1, flex: 1),
+        const Column(id: 2, containerId: 1, index: 2, flex: 1),
       ];
 
       when(() => mockMenuRepo.getById(menuId))
           .thenAnswer((_) async => const Success(mockMenu));
       when(() => mockPageRepo.getAllForMenu(menuId))
           .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage('p1'))
+      when(() => mockContainerRepo.getAllForPage(1))
           .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepo.getAllForContainer('c1'))
+      when(() => mockColumnRepo.getAllForContainer(1))
           .thenAnswer((_) async => Success(columns));
       when(() => mockWidgetRepo.getAllForColumn(any()))
           .thenAnswer((_) async => const Success([]));
@@ -252,21 +253,21 @@ void main() {
           .valueOrNull!.pages[0].containers[0].columns
           .map((c) => c.column)
           .toList();
-      expect(sortedColumns[0].id, 'col1');
-      expect(sortedColumns[1].id, 'col2');
-      expect(sortedColumns[2].id, 'col3');
+      expect(sortedColumns[0].id, 1);
+      expect(sortedColumns[1].id, 2);
+      expect(sortedColumns[2].id, 3);
     });
 
     test('should return failure when widgets fetch fails', () async {
       // Arrange
       final pages = [
-        const Page(id: 'p1', menuId: menuId, name: 'Page 1', index: 1),
+        const Page(id: 1, menuId: menuId, name: 'Page 1', index: 1),
       ];
       final containers = [
-        const Container(id: 'c1', pageId: 'p1', index: 1, name: 'Container 1'),
+        const Container(id: 1, pageId: 1, index: 1, name: 'Container 1'),
       ];
       final columns = [
-        const Column(id: 'col1', containerId: 'c1', index: 1, flex: 1),
+        const Column(id: 1, containerId: 1, index: 1, flex: 1),
       ];
       const error = UnknownError('Unknown error');
 
@@ -274,11 +275,11 @@ void main() {
           .thenAnswer((_) async => const Success(mockMenu));
       when(() => mockPageRepo.getAllForMenu(menuId))
           .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage('p1'))
+      when(() => mockContainerRepo.getAllForPage(1))
           .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepo.getAllForContainer('c1'))
+      when(() => mockColumnRepo.getAllForContainer(1))
           .thenAnswer((_) async => Success(columns));
-      when(() => mockWidgetRepo.getAllForColumn('col1'))
+      when(() => mockWidgetRepo.getAllForColumn(1))
           .thenAnswer((_) async => const Failure(error));
 
       // Act
@@ -292,26 +293,26 @@ void main() {
     test('should sort widgets by index', () async {
       // Arrange
       final pages = [
-        const Page(id: 'p1', menuId: menuId, name: 'Page 1', index: 1),
+        const Page(id: 1, menuId: menuId, name: 'Page 1', index: 1),
       ];
       final containers = [
-        const Container(id: 'c1', pageId: 'p1', index: 1, name: 'Container 1'),
+        const Container(id: 1, pageId: 1, index: 1, name: 'Container 1'),
       ];
       final columns = [
-        const Column(id: 'col1', containerId: 'c1', index: 1, flex: 1),
+        const Column(id: 1, containerId: 1, index: 1, flex: 1),
       ];
       final widgets = [
         const WidgetInstance(
-          id: 'w2',
-          columnId: 'col1',
+          id: 2,
+          columnId: 1,
           type: 'text',
           version: '1.0.0',
           index: 2,
           props: {},
         ),
         const WidgetInstance(
-          id: 'w1',
-          columnId: 'col1',
+          id: 1,
+          columnId: 1,
           type: 'text',
           version: '1.0.0',
           index: 1,
@@ -323,11 +324,11 @@ void main() {
           .thenAnswer((_) async => const Success(mockMenu));
       when(() => mockPageRepo.getAllForMenu(menuId))
           .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage('p1'))
+      when(() => mockContainerRepo.getAllForPage(1))
           .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepo.getAllForContainer('c1'))
+      when(() => mockColumnRepo.getAllForContainer(1))
           .thenAnswer((_) async => Success(columns));
-      when(() => mockWidgetRepo.getAllForColumn('col1'))
+      when(() => mockWidgetRepo.getAllForColumn(1))
           .thenAnswer((_) async => Success(widgets));
 
       // Act
@@ -337,25 +338,25 @@ void main() {
       expect(result.isSuccess, true);
       final sortedWidgets =
           result.valueOrNull!.pages[0].containers[0].columns[0].widgets;
-      expect(sortedWidgets[0].id, 'w1');
-      expect(sortedWidgets[1].id, 'w2');
+      expect(sortedWidgets[0].id, 1);
+      expect(sortedWidgets[1].id, 2);
     });
 
     test('should fetch complete tree with all levels', () async {
       // Arrange
       final pages = [
-        const Page(id: 'p1', menuId: menuId, name: 'Page 1', index: 1),
+        const Page(id: 1, menuId: menuId, name: 'Page 1', index: 1),
       ];
       final containers = [
-        const Container(id: 'c1', pageId: 'p1', index: 1, name: 'Container 1'),
+        const Container(id: 1, pageId: 1, index: 1, name: 'Container 1'),
       ];
       final columns = [
-        const Column(id: 'col1', containerId: 'c1', index: 1, flex: 1),
+        const Column(id: 1, containerId: 1, index: 1, flex: 1),
       ];
       final widgets = [
         const WidgetInstance(
-          id: 'w1',
-          columnId: 'col1',
+          id: 1,
+          columnId: 1,
           type: 'text',
           version: '1.0.0',
           index: 1,
@@ -367,11 +368,11 @@ void main() {
           .thenAnswer((_) async => const Success(mockMenu));
       when(() => mockPageRepo.getAllForMenu(menuId))
           .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage('p1'))
+      when(() => mockContainerRepo.getAllForPage(1))
           .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepo.getAllForContainer('c1'))
+      when(() => mockColumnRepo.getAllForContainer(1))
           .thenAnswer((_) async => Success(columns));
-      when(() => mockWidgetRepo.getAllForColumn('col1'))
+      when(() => mockWidgetRepo.getAllForColumn(1))
           .thenAnswer((_) async => Success(widgets));
 
       // Act
@@ -386,19 +387,19 @@ void main() {
 
       // Verify page level
       expect(tree.pages.length, 1);
-      expect(tree.pages[0].page.id, 'p1');
+      expect(tree.pages[0].page.id, 1);
 
       // Verify container level
       expect(tree.pages[0].containers.length, 1);
-      expect(tree.pages[0].containers[0].container.id, 'c1');
+      expect(tree.pages[0].containers[0].container.id, 1);
 
       // Verify column level
       expect(tree.pages[0].containers[0].columns.length, 1);
-      expect(tree.pages[0].containers[0].columns[0].column.id, 'col1');
+      expect(tree.pages[0].containers[0].columns[0].column.id, 1);
 
       // Verify widget level
       expect(tree.pages[0].containers[0].columns[0].widgets.length, 1);
-      expect(tree.pages[0].containers[0].columns[0].widgets[0].id, 'w1');
+      expect(tree.pages[0].containers[0].columns[0].widgets[0].id, 1);
       expect(
         tree.pages[0].containers[0].columns[0].widgets[0].props['text'],
         'Hello',

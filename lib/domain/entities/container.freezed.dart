@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Container {
 
- String get id; String get pageId; int get index; String? get name; LayoutConfig? get layout; DateTime? get dateCreated; DateTime? get dateUpdated;
+ int get id; int get pageId; int get index; String? get name; LayoutConfig? get layout; DateTime? get dateCreated; DateTime? get dateUpdated;
 /// Create a copy of Container
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $ContainerCopyWith<$Res>  {
   factory $ContainerCopyWith(Container value, $Res Function(Container) _then) = _$ContainerCopyWithImpl;
 @useResult
 $Res call({
- String id, String pageId, int index, String? name, LayoutConfig? layout, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int pageId, int index, String? name, LayoutConfig? layout, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -68,8 +68,8 @@ class _$ContainerCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? pageId = null,Object? index = null,Object? name = freezed,Object? layout = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,pageId: null == pageId ? _self.pageId : pageId // ignore: cast_nullable_to_non_nullable
-as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
+as int,pageId: null == pageId ? _self.pageId : pageId // ignore: cast_nullable_to_non_nullable
+as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,layout: freezed == layout ? _self.layout : layout // ignore: cast_nullable_to_non_nullable
 as LayoutConfig?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
@@ -171,7 +171,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String pageId,  int index,  String? name,  LayoutConfig? layout,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int pageId,  int index,  String? name,  LayoutConfig? layout,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Container() when $default != null:
 return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.dateCreated,_that.dateUpdated);case _:
@@ -192,7 +192,7 @@ return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String pageId,  int index,  String? name,  LayoutConfig? layout,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int pageId,  int index,  String? name,  LayoutConfig? layout,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
 switch (_that) {
 case _Container():
 return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.dateCreated,_that.dateUpdated);case _:
@@ -212,7 +212,7 @@ return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String pageId,  int index,  String? name,  LayoutConfig? layout,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int pageId,  int index,  String? name,  LayoutConfig? layout,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
 switch (_that) {
 case _Container() when $default != null:
 return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.dateCreated,_that.dateUpdated);case _:
@@ -230,8 +230,8 @@ class _Container extends Container {
   const _Container({required this.id, required this.pageId, required this.index, this.name, this.layout, this.dateCreated, this.dateUpdated}): super._();
   factory _Container.fromJson(Map<String, dynamic> json) => _$ContainerFromJson(json);
 
-@override final  String id;
-@override final  String pageId;
+@override final  int id;
+@override final  int pageId;
 @override final  int index;
 @override final  String? name;
 @override final  LayoutConfig? layout;
@@ -271,7 +271,7 @@ abstract mixin class _$ContainerCopyWith<$Res> implements $ContainerCopyWith<$Re
   factory _$ContainerCopyWith(_Container value, $Res Function(_Container) _then) = __$ContainerCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String pageId, int index, String? name, LayoutConfig? layout, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int pageId, int index, String? name, LayoutConfig? layout, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -291,8 +291,8 @@ class __$ContainerCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? pageId = null,Object? index = null,Object? name = freezed,Object? layout = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_Container(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,pageId: null == pageId ? _self.pageId : pageId // ignore: cast_nullable_to_non_nullable
-as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
+as int,pageId: null == pageId ? _self.pageId : pageId // ignore: cast_nullable_to_non_nullable
+as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,layout: freezed == layout ? _self.layout : layout // ignore: cast_nullable_to_non_nullable
 as LayoutConfig?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable

@@ -7,9 +7,9 @@ part of 'menu.dart';
 // **************************************************************************
 
 _Menu _$MenuFromJson(Map<String, dynamic> json) => _Menu(
-  id: json['id'] as String,
+  id: (json['id'] as num).toInt(),
   name: json['name'] as String,
-  status: $enumDecode(_$MenuStatusEnumMap, json['status']),
+  status: $enumDecode(_$StatusEnumMap, json['status']),
   version: json['version'] as String,
   dateCreated: json['dateCreated'] == null
       ? null
@@ -31,7 +31,7 @@ _Menu _$MenuFromJson(Map<String, dynamic> json) => _Menu(
 Map<String, dynamic> _$MenuToJson(_Menu instance) => <String, dynamic>{
   'id': instance.id,
   'name': instance.name,
-  'status': _$MenuStatusEnumMap[instance.status]!,
+  'status': _$StatusEnumMap[instance.status]!,
   'version': instance.version,
   'dateCreated': instance.dateCreated?.toIso8601String(),
   'dateUpdated': instance.dateUpdated?.toIso8601String(),
@@ -42,10 +42,10 @@ Map<String, dynamic> _$MenuToJson(_Menu instance) => <String, dynamic>{
   'area': instance.area,
 };
 
-const _$MenuStatusEnumMap = {
-  MenuStatus.draft: 'draft',
-  MenuStatus.published: 'published',
-  MenuStatus.archived: 'archived',
+const _$StatusEnumMap = {
+  Status.draft: 'draft',
+  Status.published: 'published',
+  Status.archived: 'archived',
 };
 
 _StyleConfig _$StyleConfigFromJson(Map<String, dynamic> json) => _StyleConfig(
