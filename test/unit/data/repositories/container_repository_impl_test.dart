@@ -30,6 +30,7 @@ void main() {
         pageId: 1,
         index: 0,
         name: 'Header Section',
+        direction: 'row',
       );
 
       final createdJson = {

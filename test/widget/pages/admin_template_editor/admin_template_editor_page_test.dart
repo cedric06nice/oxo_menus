@@ -49,24 +49,14 @@ void main() {
     registerFallbackValue(
       const CreatePageInput(menuId: -1, name: '', index: 0),
     );
+    registerFallbackValue(const UpdatePageInput(id: -1));
     registerFallbackValue(
-      const UpdatePageInput(id: -1),
+      const CreateContainerInput(pageId: -1, index: 0, direction: 'row'),
     );
-    registerFallbackValue(
-      const CreateContainerInput(pageId: -1, index: 0),
-    );
-    registerFallbackValue(
-      const UpdateContainerInput(id: -1),
-    );
-    registerFallbackValue(
-      const CreateColumnInput(containerId: -1, index: 0),
-    );
-    registerFallbackValue(
-      const UpdateColumnInput(id: -1),
-    );
-    registerFallbackValue(
-      const UpdateMenuInput(id: -1),
-    );
+    registerFallbackValue(const UpdateContainerInput(id: -1));
+    registerFallbackValue(const CreateColumnInput(containerId: -1, index: 0));
+    registerFallbackValue(const UpdateColumnInput(id: -1));
+    registerFallbackValue(const UpdateMenuInput(id: -1));
   });
 
   Widget createWidgetUnderTest(int menuId) {
@@ -112,8 +102,9 @@ void main() {
           () => const Success(menu),
         ),
       );
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -136,10 +127,12 @@ void main() {
         version: '1.0.0',
       );
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -152,8 +145,9 @@ void main() {
     testWidgets('should show error when menu fails to load', (tester) async {
       // Arrange
       const menuId = 1;
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Failure(NotFoundError('Menu not found')));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Failure(NotFoundError('Menu not found')));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -163,8 +157,9 @@ void main() {
       expect(find.text('Error: Menu not found'), findsOneWidget);
     });
 
-    testWidgets('should have app bar with save and publish actions',
-        (tester) async {
+    testWidgets('should have app bar with save and publish actions', (
+      tester,
+    ) async {
       // Arrange
       const menuId = 1;
       const menu = Menu(
@@ -174,10 +169,12 @@ void main() {
         version: '1.0.0',
       );
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -200,26 +197,19 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(
-          id: 1,
-          menuId: menuId,
-          name: 'Page 1',
-          index: 0,
-        ),
-        const entity.Page(
-          id: 2,
-          menuId: menuId,
-          name: 'Page 2',
-          index: 1,
-        ),
+        const entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0),
+        const entity.Page(id: 2, menuId: menuId, name: 'Page 2', index: 1),
       ];
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(any()))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -240,10 +230,12 @@ void main() {
         version: '1.0.0',
       );
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -253,8 +245,9 @@ void main() {
       expect(find.byKey(const Key('add_page_button')), findsOneWidget);
     });
 
-    testWidgets('should create new page when add button tapped',
-        (tester) async {
+    testWidgets('should create new page when add button tapped', (
+      tester,
+    ) async {
       // Arrange
       const menuId = 1;
       const menu = Menu(
@@ -270,14 +263,18 @@ void main() {
         index: 0,
       );
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => const Success([]));
-      when(() => mockPageRepository.create(any()))
-          .thenAnswer((_) async => const Success(newPage));
-      when(() => mockContainerRepository.getAllForPage(any()))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockPageRepository.create(any()),
+      ).thenAnswer((_) async => const Success(newPage));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -292,8 +289,7 @@ void main() {
       // The implementation correctly calls _loadTemplate() after create
     });
 
-    testWidgets('should delete page when delete button tapped',
-        (tester) async {
+    testWidgets('should delete page when delete button tapped', (tester) async {
       // Arrange
       const menuId = 1;
       const menu = Menu(
@@ -303,22 +299,21 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(
-          id: 1,
-          menuId: menuId,
-          name: 'Page 1',
-          index: 0,
-        ),
+        const entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0),
       ];
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(any()))
-          .thenAnswer((_) async => const Success([]));
-      when(() => mockPageRepository.delete(1))
-          .thenAnswer((_) async => const Success(null));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockPageRepository.delete(1),
+      ).thenAnswer((_) async => const Success(null));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -351,12 +346,7 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(
-          id: pageId,
-          menuId: menuId,
-          name: 'Page 1',
-          index: 0,
-        ),
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
       ];
       final containers = [
         const entity.Container(
@@ -367,14 +357,18 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(pageId))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepository.getAllForContainer(any()))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(any()),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -395,29 +389,25 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(
-          id: pageId,
-          menuId: menuId,
-          name: 'Page 1',
-          index: 0,
-        ),
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
       ];
-      const newContainer = entity.Container(
-        id: 2,
-        pageId: pageId,
-        index: 0,
-      );
+      const newContainer = entity.Container(id: 2, pageId: pageId, index: 0);
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(pageId))
-          .thenAnswer((_) async => const Success([]));
-      when(() => mockContainerRepository.create(any()))
-          .thenAnswer((_) async => const Success(newContainer));
-      when(() => mockColumnRepository.getAllForContainer(any()))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockContainerRepository.create(any()),
+      ).thenAnswer((_) async => const Success(newContainer));
+      when(
+        () => mockColumnRepository.getAllForContainer(any()),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -441,12 +431,7 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(
-          id: pageId,
-          menuId: menuId,
-          name: 'Page 1',
-          index: 0,
-        ),
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
       ];
       final containers = [
         const entity.Container(
@@ -457,16 +442,21 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(pageId))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepository.getAllForContainer(any()))
-          .thenAnswer((_) async => const Success([]));
-      when(() => mockContainerRepository.delete(1))
-          .thenAnswer((_) async => const Success(null));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(any()),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockContainerRepository.delete(1),
+      ).thenAnswer((_) async => const Success(null));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -499,43 +489,28 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(
-          id: pageId,
-          menuId: menuId,
-          name: 'Page 1',
-          index: 0,
-        ),
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
       ];
       final containers = [
-        const entity.Container(
-          id: containerId,
-          pageId: pageId,
-          index: 0,
-        ),
+        const entity.Container(id: containerId, pageId: pageId, index: 0),
       ];
       final columns = [
-        const entity.Column(
-          id: 1,
-          containerId: containerId,
-          index: 0,
-          flex: 1,
-        ),
-        const entity.Column(
-          id: 2,
-          containerId: containerId,
-          index: 1,
-          flex: 1,
-        ),
+        const entity.Column(id: 1, containerId: containerId, index: 0, flex: 1),
+        const entity.Column(id: 2, containerId: containerId, index: 1, flex: 1),
       ];
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(pageId))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepository.getAllForContainer(containerId))
-          .thenAnswer((_) async => Success(columns));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(containerId),
+      ).thenAnswer((_) async => Success(columns));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -558,19 +533,10 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(
-          id: pageId,
-          menuId: menuId,
-          name: 'Page 1',
-          index: 0,
-        ),
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
       ];
       final containers = [
-        const entity.Container(
-          id: containerId,
-          pageId: pageId,
-          index: 0,
-        ),
+        const entity.Container(id: containerId, pageId: pageId, index: 0),
       ];
       const newColumn = entity.Column(
         id: 2,
@@ -579,16 +545,21 @@ void main() {
         flex: 1,
       );
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(pageId))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepository.getAllForContainer(containerId))
-          .thenAnswer((_) async => const Success([]));
-      when(() => mockColumnRepository.create(any()))
-          .thenAnswer((_) async => const Success(newColumn));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(containerId),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockColumnRepository.create(any()),
+      ).thenAnswer((_) async => const Success(newColumn));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -613,39 +584,30 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(
-          id: pageId,
-          menuId: menuId,
-          name: 'Page 1',
-          index: 0,
-        ),
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
       ];
       final containers = [
-        const entity.Container(
-          id: containerId,
-          pageId: pageId,
-          index: 0,
-        ),
+        const entity.Container(id: containerId, pageId: pageId, index: 0),
       ];
       final columns = [
-        const entity.Column(
-          id: 1,
-          containerId: containerId,
-          index: 0,
-          flex: 1,
-        ),
+        const entity.Column(id: 1, containerId: containerId, index: 0, flex: 1),
       ];
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(pageId))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepository.getAllForContainer(containerId))
-          .thenAnswer((_) async => Success(columns));
-      when(() => mockColumnRepository.delete(1))
-          .thenAnswer((_) async => const Success(null));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(containerId),
+      ).thenAnswer((_) async => Success(columns));
+      when(
+        () => mockColumnRepository.delete(1),
+      ).thenAnswer((_) async => const Success(null));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -676,12 +638,15 @@ void main() {
         version: '1.0.0',
       );
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => const Success([]));
-      when(() => mockMenuRepository.update(any()))
-          .thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.update(any()),
+      ).thenAnswer((_) async => const Success(menu));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -706,12 +671,15 @@ void main() {
       );
       final publishedMenu = menu.copyWith(status: Status.published);
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => const Success([]));
-      when(() => mockMenuRepository.update(any()))
-          .thenAnswer((_) async => Success(publishedMenu));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.update(any()),
+      ).thenAnswer((_) async => Success(publishedMenu));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));

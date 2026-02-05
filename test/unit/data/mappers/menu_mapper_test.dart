@@ -168,7 +168,7 @@ void main() {
           version: '1.0.0',
           status: Status.draft,
           styleConfig: StyleConfig(fontFamily: 'Arial', fontSize: 14.0),
-          pageSize: PageSize(name: 'A4', width: 210.0, height: 297.0),
+          sizeId: 3,
           area: 'dining',
         );
 
@@ -181,8 +181,7 @@ void main() {
         expect(dto['status'], 'draft');
         expect(dto['style_json'], isNotNull);
         expect(dto['style_json']['fontFamily'], 'Arial');
-        expect(dto['size'], isNotNull);
-        expect(dto['size']['name'], 'A4');
+        expect(dto['size'], 3);
         expect(dto['area'], 1); // Now converted from 'dining' string to 1 int
       });
 
