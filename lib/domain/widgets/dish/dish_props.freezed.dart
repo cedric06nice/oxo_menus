@@ -222,8 +222,8 @@ return $default(_that.name,_that.price,_that.description,_that.allergens,_that.a
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _DishProps extends DishProps {
   const _DishProps({required this.name, required this.price, this.description, final  List<String> allergens = const [], final  List<AllergenInfo> allergenInfo = const [], final  List<String> dietary = const [], this.showPrice = true, this.showAllergens = true}): _allergens = allergens,_allergenInfo = allergenInfo,_dietary = dietary,super._();
   factory _DishProps.fromJson(Map<String, dynamic> json) => _$DishPropsFromJson(json);

@@ -31,7 +31,7 @@ Map<String, dynamic> _$DishPropsToJson(_DishProps instance) =>
       'price': instance.price,
       'description': instance.description,
       'allergens': instance.allergens,
-      'allergenInfo': instance.allergenInfo,
+      'allergenInfo': instance.allergenInfo.map((e) => e.toJson()).toList(),
       'dietary': instance.dietary,
       'showPrice': instance.showPrice,
       'showAllergens': instance.showAllergens,

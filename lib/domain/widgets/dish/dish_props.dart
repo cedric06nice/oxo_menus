@@ -12,6 +12,7 @@ part 'dish_props.g.dart';
 abstract class DishProps with _$DishProps {
   const DishProps._();
 
+  @JsonSerializable(explicitToJson: true)
   const factory DishProps({
     /// The name of the dish
     required String name,
