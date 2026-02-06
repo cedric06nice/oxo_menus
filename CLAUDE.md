@@ -94,6 +94,33 @@ flutter run --dart-define=DIRECTUS_URL=http://localhost:8055
 # Default fallback: http://localhost:8055
 ```
 
+## TDD — Mandatory Invariant
+
+**This is a non-negotiable rule. Any response that violates it is invalid.**
+
+All production code in this repository (Dart, Flutter, or any other language) MUST be written using strict Test-Driven Development following the Red → Green → Refactor cycle:
+
+1. **RED** — Write a failing test first. The test must target the intended behavior and must fail for the right reason. Run it and confirm the failure before proceeding.
+2. **GREEN** — Write the minimum production code required to make the failing test pass. Nothing more.
+3. **REFACTOR** — Improve the code (production and test) while keeping all tests green. No new behavior is added in this step.
+
+### Prohibitions
+
+- Writing or modifying production code without a corresponding failing test **first** is forbidden.
+- Skipping the red step (e.g., writing a test that already passes) is forbidden.
+- Writing production code "to be tested later" is forbidden.
+- Generating a batch of production code and then backfilling tests afterward is forbidden.
+
+### Scope
+
+- Applies to **all languages and all files** in this repository.
+- Applies to new features, bug fixes, and refactors that change behavior.
+- The only exceptions are non-behavioral changes: documentation, configuration, code generation output, and static analysis fixes.
+
+### Enforcement
+
+Treat this rule as a hard constraint, not guidance. If a task cannot be completed under TDD (e.g., the user explicitly opts out), state the conflict and ask for confirmation before proceeding.
+
 ## Conventions
 
 - Entities: freezed, named fields, `const factory`, private `_` constructor
