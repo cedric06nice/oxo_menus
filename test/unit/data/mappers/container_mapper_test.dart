@@ -98,14 +98,14 @@ void main() {
 
         // Assert
         expect(dto.id, '1');
-        expect(dto.page, 5);
+        expect(dto.page?.id, '5');
         expect(dto.index, 0);
         expect(dto.styleJson, isNotNull);
         expect(dto.styleJson['direction'], 'row');
         expect(dto.styleJson['alignment'], 'center');
         expect(dto.styleJson['spacing'], 16.0);
-        expect(dto.dateCreated, isA<String>());
-        expect(dto.dateUpdated, isA<String>());
+        expect(dto.dateCreated, isA<DateTime>());
+        expect(dto.dateUpdated, isA<DateTime>());
       });
 
       test('should convert Container with minimal fields', () {
@@ -122,9 +122,9 @@ void main() {
 
         // Assert
         expect(dto.id, '2');
-        expect(dto.page, 3);
+        expect(dto.page?.id, '3');
         expect(dto.index, 1);
-        expect(dto.styleJson, isNull);
+        expect(dto.styleJson, isEmpty);
       });
 
       test('should handle null layout', () {
@@ -142,7 +142,7 @@ void main() {
 
         // Assert
         expect(dto.id, '3');
-        expect(dto.styleJson, isNull);
+        expect(dto.styleJson, isEmpty);
       });
     });
 

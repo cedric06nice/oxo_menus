@@ -24,7 +24,7 @@ void main() {
       );
 
       expect(find.text('Pasta Carbonara'), findsOneWidget);
-      expect(find.text('\$12.50'), findsOneWidget);
+      expect(find.text('£12.50'), findsOneWidget);
     });
 
     testWidgets('should hide price when showPrice is false', (tester) async {
@@ -46,7 +46,7 @@ void main() {
       );
 
       expect(find.text('Pasta Carbonara'), findsOneWidget);
-      expect(find.text('\$12.50'), findsNothing);
+      expect(find.text('£12.50'), findsNothing);
     });
 
     testWidgets('should display description', (tester) async {
@@ -113,9 +113,9 @@ void main() {
         ),
       );
 
-      expect(find.text('Dairy'), findsOneWidget);
-      expect(find.text('Gluten'), findsOneWidget);
-      expect(find.byType(Chip), findsNWidgets(2));
+      // Allergens are displayed as UK-formatted text (not individual Chips)
+      // 'Dairy' → MILK, 'Gluten' → GLUTEN, sorted alphabetically
+      expect(find.text('GLUTEN, MILK'), findsOneWidget);
     });
 
     testWidgets('should hide allergens when showAllergens is false',
@@ -138,8 +138,8 @@ void main() {
         ),
       );
 
-      expect(find.text('Dairy'), findsNothing);
-      expect(find.text('Gluten'), findsNothing);
+      // Allergen text should not be present when showAllergens is false
+      expect(find.text('GLUTEN, MILK'), findsNothing);
     });
 
     testWidgets('should display dietary tags', (tester) async {
@@ -184,9 +184,11 @@ void main() {
         ),
       );
 
-      expect(find.text('Nuts'), findsOneWidget);
+      // 'Nuts' is rendered as allergen text 'NUTS', 'Vegetarian' as dietary Chip
+      expect(find.text('NUTS'), findsOneWidget);
       expect(find.text('Vegetarian'), findsOneWidget);
-      expect(find.byType(Chip), findsNWidgets(2));
+      // Only dietary tags render as Chips (allergens are formatted text)
+      expect(find.byType(Chip), findsOneWidget);
     });
 
     testWidgets('should open edit dialog when tapped in editable mode',

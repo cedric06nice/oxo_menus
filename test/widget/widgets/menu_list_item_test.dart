@@ -34,31 +34,31 @@ void main() {
     });
 
     testWidgets('should display menu status', (tester) async {
-      // Act
+      // Act — subtitle (status/version/date) is only shown for admin users
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: MenuListItem(
               menu: testMenu,
-              isAdmin: false,
+              isAdmin: true,
               onTap: () {},
             ),
           ),
         ),
       );
 
-      // Assert
-      expect(find.text('published'), findsOneWidget);
+      // Assert — status is displayed in uppercase
+      expect(find.text('PUBLISHED'), findsOneWidget);
     });
 
     testWidgets('should display menu version', (tester) async {
-      // Act
+      // Act — subtitle is only shown for admin users
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: MenuListItem(
               menu: testMenu,
-              isAdmin: false,
+              isAdmin: true,
               onTap: () {},
             ),
           ),
@@ -70,13 +70,13 @@ void main() {
     });
 
     testWidgets('should display last updated date', (tester) async {
-      // Act
+      // Act — subtitle is only shown for admin users
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: MenuListItem(
               menu: testMenu,
-              isAdmin: false,
+              isAdmin: true,
               onTap: () {},
             ),
           ),
@@ -222,8 +222,8 @@ void main() {
         ),
       );
 
-      // Assert
-      expect(find.text('draft'), findsOneWidget);
+      // Assert — status is displayed in uppercase
+      expect(find.text('DRAFT'), findsOneWidget);
 
       // Find the chip widget and verify it has a different color
       final chipFinder = find.byType(Chip);
@@ -252,8 +252,8 @@ void main() {
         ),
       );
 
-      // Assert
-      expect(find.text('archived'), findsOneWidget);
+      // Assert — status is displayed in uppercase
+      expect(find.text('ARCHIVED'), findsOneWidget);
     });
 
     testWidgets('should handle menu without dates gracefully', (tester) async {

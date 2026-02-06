@@ -32,7 +32,7 @@ void main() {
   group('LoginPage', () {
     testWidgets('should display app title', (tester) async {
       // Mock getCurrentUser to return unauthenticated
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
@@ -42,7 +42,7 @@ void main() {
     });
 
     testWidgets('should display email and password fields', (tester) async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
@@ -53,7 +53,7 @@ void main() {
     });
 
     testWidgets('should display login button', (tester) async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
@@ -63,7 +63,7 @@ void main() {
     });
 
     testWidgets('should validate empty email', (tester) async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
@@ -87,7 +87,7 @@ void main() {
     });
 
     testWidgets('should validate empty password', (tester) async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
@@ -117,7 +117,7 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
       when(() => mockAuthRepository.login(any(), any()))
           .thenAnswer((_) async => const Success(testUser));
@@ -152,7 +152,7 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
       when(() => mockAuthRepository.login(any(), any()))
           .thenAnswer((_) async => const Success(testUser));
@@ -181,7 +181,7 @@ void main() {
 
     testWidgets('should display error message on login failure',
         (tester) async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
       when(() => mockAuthRepository.login(any(), any())).thenAnswer(
         (_) async => const Failure(
@@ -211,7 +211,7 @@ void main() {
     });
 
     testWidgets('should hide password text', (tester) async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
@@ -230,7 +230,7 @@ void main() {
 
     testWidgets('should have email keyboard type for email field',
         (tester) async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
@@ -248,7 +248,7 @@ void main() {
     });
 
     testWidgets('should not show error initially', (tester) async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());

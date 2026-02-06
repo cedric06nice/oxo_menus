@@ -6,9 +6,11 @@ import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
@@ -17,13 +19,23 @@ class MockMenuRepository extends Mock implements MenuRepository {}
 
 class MockGoRouter extends Mock implements GoRouter {}
 
+class MockSizeRepository extends Mock implements SizeRepository {}
+
 void main() {
   late MockMenuRepository mockMenuRepository;
   late MockGoRouter mockRouter;
+  late MockSizeRepository mockSizeRepository;
 
   setUp(() {
     mockMenuRepository = MockMenuRepository();
     mockRouter = MockGoRouter();
+    mockSizeRepository = MockSizeRepository();
+
+    // Default behavior for size repository
+    when(() => mockSizeRepository.getAll())
+        .thenAnswer((_) async => const Success([
+              domain.Size(id: 1, name: 'A4', width: 210, height: 297),
+            ]));
   });
 
   setUpAll(() {
@@ -42,6 +54,7 @@ void main() {
     return ProviderScope(
       overrides: [
         menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+        sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
         isAdminProvider.overrideWithValue(isAdmin),
         currentUserProvider.overrideWithValue(mockUser),
       ],
@@ -231,11 +244,10 @@ void main() {
       verify(() => mockRouter.push('/menus/123')).called(1);
     });
 
-    testWidgets('should navigate to create menu when add button tapped', (tester) async {
+    testWidgets('should open create template dialog when add button tapped', (tester) async {
       // Arrange
       when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
           .thenAnswer((_) async => const Success([]));
-      when(() => mockRouter.push(any())).thenAnswer((_) async => null);
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
@@ -244,8 +256,8 @@ void main() {
       await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
 
-      // Assert
-      verify(() => mockRouter.push('/menus/create')).called(1);
+      // Assert — TemplateCreateDialog should be shown
+      expect(find.text('Create Template'), findsOneWidget);
     });
   });
 

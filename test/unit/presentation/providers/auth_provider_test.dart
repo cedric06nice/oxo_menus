@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
@@ -7,7 +6,6 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
-import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 

@@ -78,10 +78,10 @@ void main() {
 
         // Assert
         expect(dto.id, '1');
-        expect(dto.menu, 5);
+        expect(dto.menu?.id, '5');
         expect(dto.index, 0);
-        expect(dto.dateCreated, isA<String>());
-        expect(dto.dateUpdated, isA<String>());
+        expect(dto.dateCreated, isA<DateTime>());
+        expect(dto.dateUpdated, isA<DateTime>());
       });
 
       test('should convert Page with minimal fields', () {
@@ -98,7 +98,7 @@ void main() {
 
         // Assert
         expect(dto.id, '2');
-        expect(dto.menu, 3);
+        expect(dto.menu?.id, '3');
         expect(dto.index, 1);
       });
     });

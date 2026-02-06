@@ -51,7 +51,7 @@ void main() {
 
   group('AppRouter - Route Configuration', () {
     testWidgets('should have /login route', (tester) async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(
@@ -82,7 +82,7 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Success(testUser));
 
       await tester.pumpWidget(
@@ -113,7 +113,7 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
@@ -150,7 +150,7 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
@@ -187,7 +187,7 @@ void main() {
         role: UserRole.admin,
       );
 
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
@@ -224,7 +224,7 @@ void main() {
         role: UserRole.admin,
       );
 
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
@@ -260,7 +260,7 @@ void main() {
 
   group('AppRouter - Auth Guards', () {
     testWidgets('should redirect unauthenticated users to login', (tester) async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       late GoRouter router;
@@ -298,7 +298,7 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
@@ -337,7 +337,7 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
@@ -375,7 +375,7 @@ void main() {
         role: UserRole.admin,
       );
 
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
@@ -414,7 +414,7 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
@@ -451,7 +451,7 @@ void main() {
         role: UserRole.admin,
       );
 
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
@@ -485,7 +485,7 @@ void main() {
     });
 
     testWidgets('should redirect deep link to login if unauthenticated', (tester) async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       late GoRouter router;
