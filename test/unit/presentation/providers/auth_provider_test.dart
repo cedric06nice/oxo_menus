@@ -1,3 +1,5 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
@@ -5,6 +7,7 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
@@ -14,8 +17,8 @@ void main() {
 
   setUp(() {
     mockAuthRepository = MockAuthRepository();
-    // Mock getCurrentUser to return unauthenticated by default
-    when(() => mockAuthRepository.getCurrentUser())
+    // Mock tryRestoreSession (called by constructor) to return unauthenticated by default
+    when(() => mockAuthRepository.tryRestoreSession())
         .thenAnswer((_) async => const Failure(UnauthorizedError()));
     authNotifier = AuthNotifier(mockAuthRepository);
   });
@@ -40,12 +43,12 @@ void main() {
       // Wait for the initial check to complete
       await Future.delayed(const Duration(milliseconds: 100));
 
-      verify(() => mockAuthRepository.getCurrentUser()).called(1);
+      verify(() => mockAuthRepository.tryRestoreSession()).called(1);
       expect(authNotifier.state, const AuthState.unauthenticated());
     });
 
     test('should set authenticated state when user is logged in', () async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Success(testUser));
 
       final newNotifier = AuthNotifier(mockAuthRepository);
@@ -242,6 +245,69 @@ void main() {
       );
 
       expect(userNoRole.role == UserRole.admin, false);
+    });
+  });
+
+  group('isAdminProvider with adminViewAsUser override', () {
+    const adminUser = User(
+      id: '1',
+      email: 'admin@example.com',
+      role: UserRole.admin,
+    );
+
+    const regularUser = User(
+      id: '2',
+      email: 'user@example.com',
+      role: UserRole.user,
+    );
+
+    test('should return true for admin when override is false', () {
+      final container = ProviderContainer(
+        overrides: [currentUserProvider.overrideWithValue(adminUser)],
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(isAdminProvider), true);
+    });
+
+    test('should return false for admin when override is true', () {
+      final container = ProviderContainer(
+        overrides: [currentUserProvider.overrideWithValue(adminUser)],
+      );
+      addTearDown(container.dispose);
+
+      container.read(adminViewAsUserProvider.notifier).state = true;
+
+      expect(container.read(isAdminProvider), false);
+    });
+
+    test('should return false for regular user regardless of override', () {
+      final container = ProviderContainer(
+        overrides: [currentUserProvider.overrideWithValue(regularUser)],
+      );
+      addTearDown(container.dispose);
+
+      container.read(adminViewAsUserProvider.notifier).state = true;
+
+      expect(container.read(isAdminProvider), false);
+    });
+  });
+
+  group('adminViewAsUserProvider', () {
+    test('should default to false', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      expect(container.read(adminViewAsUserProvider), false);
+    });
+
+    test('should be togglable to true', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(adminViewAsUserProvider.notifier).state = true;
+
+      expect(container.read(adminViewAsUserProvider), true);
     });
   });
 }

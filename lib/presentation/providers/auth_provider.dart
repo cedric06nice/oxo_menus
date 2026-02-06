@@ -123,6 +123,12 @@ final currentUserProvider = Provider<User?>((ref) {
   );
 });
 
+/// Admin "view as user" override provider
+///
+/// Session-only toggle that lets an admin pretend to be a regular user.
+/// When `true`, [isAdminProvider] returns `false` even for admin users.
+final adminViewAsUserProvider = StateProvider<bool>((ref) => false);
+
 /// Is admin provider
 ///
 /// Convenience provider that returns true if the current user is an admin
@@ -136,5 +142,6 @@ final currentUserProvider = Provider<User?>((ref) {
 /// ```
 final isAdminProvider = Provider<bool>((ref) {
   final user = ref.watch(currentUserProvider);
-  return user?.role == UserRole.admin;
+  final viewAsUser = ref.watch(adminViewAsUserProvider);
+  return user?.role == UserRole.admin && !viewAsUser;
 });

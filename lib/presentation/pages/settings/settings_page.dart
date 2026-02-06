@@ -34,6 +34,14 @@ class SettingsPage extends ConsumerWidget {
 
                   // Account section
                   _buildAccountSection(context, ref),
+
+                  // Debug section (admin only)
+                  if (user.role == UserRole.admin) ...[
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    _buildDebugSection(ref),
+                  ],
                 ],
               ),
             ),
@@ -96,6 +104,38 @@ class SettingsPage extends ConsumerWidget {
             leading: const Icon(Icons.logout),
             title: const Text('Logout'),
             onTap: () => _handleLogout(context, ref),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDebugSection(WidgetRef ref) {
+    final viewAsUser = ref.watch(adminViewAsUserProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            'Debug',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Card(
+          child: SwitchListTile(
+            secondary: const Icon(Icons.bug_report),
+            title: const Text('Show as non-admin user'),
+            subtitle: const Text('Preview the app as a regular user'),
+            value: viewAsUser,
+            onChanged: (value) {
+              ref.read(adminViewAsUserProvider.notifier).state = value;
+            },
           ),
         ),
       ],
