@@ -1,7 +1,40 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
+import 'package:oxo_menus/data/datasources/secure_token_storage.dart';
 import 'package:oxo_menus/data/models/menu_dto.dart';
 import 'package:oxo_menus/main.reflectable.dart';
+
+/// In-memory token storage for integration tests (avoids FlutterSecureStorage
+/// platform channels which are unavailable in the test environment).
+class FakeTokenStorage extends Fake implements SecureTokenStorage {
+  String? _accessToken;
+  String? _refreshToken;
+
+  @override
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    _accessToken = accessToken;
+    _refreshToken = refreshToken;
+  }
+
+  @override
+  Future<String?> getAccessToken() async => _accessToken;
+
+  @override
+  Future<String?> getRefreshToken() async => _refreshToken;
+
+  @override
+  Future<bool> hasTokens() async =>
+      _accessToken != null && _refreshToken != null;
+
+  @override
+  Future<void> clearTokens() async {
+    _accessToken = null;
+    _refreshToken = null;
+  }
+}
 
 /// Integration tests for DirectusDataSource
 ///
@@ -20,7 +53,10 @@ void main() {
     late DirectusDataSource dataSource;
 
     setUp(() {
-      dataSource = DirectusDataSource(baseUrl: 'http://localhost:8102');
+      dataSource = DirectusDataSource(
+        baseUrl: 'http://localhost:8102',
+        tokenStorage: FakeTokenStorage(),
+      );
     });
 
     group('Authentication', () {

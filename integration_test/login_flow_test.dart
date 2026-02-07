@@ -33,7 +33,7 @@ void main() {
       );
 
       // Mock initial state as unauthenticated
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       // Mock successful login
@@ -90,7 +90,7 @@ void main() {
     testWidgets('login flow - failed authentication shows error',
         (tester) async {
       // Mock initial state as unauthenticated
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       // Mock failed login
@@ -142,7 +142,7 @@ void main() {
 
     testWidgets('login flow - form validation prevents empty submission',
         (tester) async {
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(
@@ -183,7 +183,7 @@ void main() {
       );
 
       // Mock already authenticated user
-      when(() => mockAuthRepository.getCurrentUser())
+      when(() => mockAuthRepository.tryRestoreSession())
           .thenAnswer((_) async => const Success(testUser));
 
       await tester.pumpWidget(
