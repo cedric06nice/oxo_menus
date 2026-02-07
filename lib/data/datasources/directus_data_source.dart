@@ -17,7 +17,6 @@ class DirectusDataSource {
 
   // Internal token state for restored sessions
   String? _restoredAccessToken;
-  String? _restoredRefreshToken;
 
   DirectusDataSource({
     required String baseUrl,
@@ -90,7 +89,6 @@ class DirectusDataSource {
     await _apiManager.logoutDirectusUser();
     await _tokenStorage.clearTokens();
     _restoredAccessToken = null;
-    _restoredRefreshToken = null;
   }
 
   /// Try to restore session from stored tokens
@@ -132,7 +130,6 @@ class DirectusDataSource {
 
             // Store tokens internally for use in HTTP calls
             _restoredAccessToken = newAccessToken;
-            _restoredRefreshToken = newRefreshToken;
 
             return true;
           }
@@ -142,13 +139,11 @@ class DirectusDataSource {
       // Token refresh failed - clear stored tokens
       await _tokenStorage.clearTokens();
       _restoredAccessToken = null;
-      _restoredRefreshToken = null;
       return false;
     } catch (e) {
       // Error during refresh - clear stored tokens
       await _tokenStorage.clearTokens();
       _restoredAccessToken = null;
-      _restoredRefreshToken = null;
       return false;
     }
   }
@@ -192,7 +187,6 @@ class DirectusDataSource {
       // Token might be expired, clear stored tokens
       await _tokenStorage.clearTokens();
       _restoredAccessToken = null;
-      _restoredRefreshToken = null;
       throw DirectusException(
         code: 'NOT_AUTHENTICATED',
         message: 'Authentication required',
