@@ -13,6 +13,10 @@ analyzer:
   errors:
     # Disable false positives with Freezed @JsonKey annotations
     invalid_annotation_target: ignore
+  exclude:
+    # Generated reflectable files reference deprecated DirectusFile.fromJSON
+    # from directus_api_manager — no way to suppress at codegen level
+    - "**/*.reflectable.dart"
 
 linter:
   # The lint rules applied to this project can be customized in the

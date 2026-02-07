@@ -337,7 +337,7 @@ class _StatusBadge extends StatelessWidget {
         style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
       ),
       avatar: Icon(icon, size: 16, color: color),
-      backgroundColor: color.withOpacity(0.1),
+      backgroundColor: color.withValues(alpha: 0.1),
       visualDensity: VisualDensity.compact,
     );
   }

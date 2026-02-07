@@ -13,7 +13,7 @@ class WidgetMigrator {
   /// to transform the props. If migration fails, the original props
   /// are returned unchanged.
   ///
-  /// Returns the migrated props as a Map<String, dynamic>.
+  /// Returns the migrated props as a `Map<String, dynamic>`.
   static Map<String, dynamic> migrate(
     WidgetInstance instance,
     WidgetDefinition definition,

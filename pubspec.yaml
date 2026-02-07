@@ -34,7 +34,7 @@ dependencies:
   json_annotation: ^4.9.0
 
   # Directus Integration
-  directus_api_manager: ^1.14.2
+  directus_api_manager: ^1.14.3
 
   # Routing
   go_router: ^17.0.1

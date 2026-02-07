@@ -139,7 +139,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
     }
 
     return DropdownButtonFormField<domain.Size>(
-      value: _selectedSize,
+      initialValue: _selectedSize,
       decoration: const InputDecoration(
         labelText: 'Page Size',
       ),

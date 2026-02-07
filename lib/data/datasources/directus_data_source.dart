@@ -8,8 +8,8 @@ import 'package:oxo_menus/data/datasources/secure_token_storage.dart';
 /// This class adapts the directus_api_manager's DirectusApiManager to our repository
 /// interface, providing a clean abstraction for CRUD operations and authentication.
 ///
-/// Uses the adapter pattern to convert between our Map<String, dynamic> interface
-/// and directus_api_manager's GenericDirectusItem objects.
+/// Uses the adapter pattern to convert between our `Map<String, dynamic>` interface
+/// and directus_api_manager's `GenericDirectusItem` objects.
 class DirectusDataSource {
   final DirectusApiManager _apiManager;
   final SecureTokenStorage _tokenStorage;
@@ -91,6 +91,53 @@ class DirectusDataSource {
     _restoredAccessToken = null;
   }
 
+  /// Refresh the current session tokens
+  ///
+  /// Uses the stored refresh token to obtain new access and refresh tokens
+  /// from the Directus `/auth/refresh` endpoint.
+  /// Throws [DirectusException] if the refresh fails.
+  Future<void> refreshSession() async {
+    final refreshToken =
+        _apiManager.refreshToken ?? await _tokenStorage.getRefreshToken();
+
+    if (refreshToken == null) {
+      throw DirectusException(
+        code: 'TOKEN_EXPIRED',
+        message: 'No refresh token available',
+      );
+    }
+
+    final response = await http.post(
+      Uri.parse('$_baseUrl/auth/refresh'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'refresh_token': refreshToken, 'mode': 'json'}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      final tokenData = data['data'] as Map<String, dynamic>?;
+      final newAccessToken = tokenData?['access_token'] as String?;
+      final newRefreshToken = tokenData?['refresh_token'] as String?;
+
+      if (newAccessToken != null && newRefreshToken != null) {
+        await _tokenStorage.saveTokens(
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+        );
+        _restoredAccessToken = newAccessToken;
+        return;
+      }
+    }
+
+    // Refresh failed — clear stale tokens
+    await _tokenStorage.clearTokens();
+    _restoredAccessToken = null;
+    throw DirectusException(
+      code: 'TOKEN_EXPIRED',
+      message: 'Failed to refresh session',
+    );
+  }
+
   /// Try to restore session from stored tokens
   ///
   /// Returns true if session was restored successfully, false otherwise
@@ -100,50 +147,10 @@ class DirectusDataSource {
       return false;
     }
 
-    final refreshToken = await _tokenStorage.getRefreshToken();
-    if (refreshToken == null) {
-      return false;
-    }
-
-    // Try to refresh the access token using the stored refresh token
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/refresh'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'refresh_token': refreshToken, 'mode': 'json'}),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body) as Map<String, dynamic>;
-        final tokenData = data['data'] as Map<String, dynamic>?;
-
-        if (tokenData != null) {
-          final newAccessToken = tokenData['access_token'] as String?;
-          final newRefreshToken = tokenData['refresh_token'] as String?;
-
-          if (newAccessToken != null && newRefreshToken != null) {
-            // Save new tokens to secure storage
-            await _tokenStorage.saveTokens(
-              accessToken: newAccessToken,
-              refreshToken: newRefreshToken,
-            );
-
-            // Store tokens internally for use in HTTP calls
-            _restoredAccessToken = newAccessToken;
-
-            return true;
-          }
-        }
-      }
-
-      // Token refresh failed - clear stored tokens
-      await _tokenStorage.clearTokens();
-      _restoredAccessToken = null;
-      return false;
-    } catch (e) {
-      // Error during refresh - clear stored tokens
-      await _tokenStorage.clearTokens();
-      _restoredAccessToken = null;
+      await refreshSession();
+      return true;
+    } catch (_) {
       return false;
     }
   }
