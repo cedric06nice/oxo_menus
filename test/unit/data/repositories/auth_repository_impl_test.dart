@@ -201,16 +201,49 @@ void main() {
     });
 
     group('refreshSession', () {
-      test('should refresh session successfully', () async {
+      test('should call dataSource.refreshSession and return Success',
+          () async {
         // Arrange
-        // For now, refreshSession just returns success as it's a stub
-        // In real implementation, it would call a refresh endpoint
+        when(() => mockDataSource.refreshSession())
+            .thenAnswer((_) async {});
 
         // Act
         final result = await repository.refreshSession();
 
         // Assert
         expect(result.isSuccess, true);
+        verify(() => mockDataSource.refreshSession()).called(1);
+      });
+
+      test('should return TokenExpiredError when refresh token is invalid',
+          () async {
+        // Arrange
+        when(() => mockDataSource.refreshSession()).thenThrow(
+          MockDirectusException(
+            code: 'TOKEN_EXPIRED',
+            message: 'Token has expired',
+          ),
+        );
+
+        // Act
+        final result = await repository.refreshSession();
+
+        // Assert
+        expect(result.isFailure, true);
+        expect(result.errorOrNull, isA<TokenExpiredError>());
+      });
+
+      test('should return UnknownError when network fails', () async {
+        // Arrange
+        when(() => mockDataSource.refreshSession())
+            .thenThrow(Exception('Network error'));
+
+        // Act
+        final result = await repository.refreshSession();
+
+        // Assert
+        expect(result.isFailure, true);
+        expect(result.errorOrNull, isA<UnknownError>());
       });
     });
   });

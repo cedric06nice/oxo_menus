@@ -65,8 +65,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Result<void, DomainError>> refreshSession() async {
     try {
-      // TODO: Implement actual refresh session when Directus integration is complete
-      // For now, return success as this is a stub
+      await dataSource.refreshSession();
       return const Success(null);
     } catch (e) {
       return Failure(mapDirectusError(e));
