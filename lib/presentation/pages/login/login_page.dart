@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
@@ -15,8 +16,12 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _emailController = TextEditingController(
+    text: kDebugMode ? 'admin@example.com' : null,
+  );
+  final _passwordController = TextEditingController(
+    text: kDebugMode ? 'Admin!123' : null,
+  );
 
   @override
   void dispose() {

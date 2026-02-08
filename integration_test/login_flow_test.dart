@@ -163,7 +163,11 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Try to submit without entering credentials
+      // Clear pre-filled credentials
+      await tester.enterText(find.byKey(const Key('email_field')), '');
+      await tester.enterText(find.byKey(const Key('password_field')), '');
+
+      // Try to submit without credentials
       await tester.tap(find.byKey(const Key('login_button')));
       await tester.pump();
 

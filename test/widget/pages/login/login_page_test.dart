@@ -69,7 +69,8 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Leave email empty, enter password
+      // Clear email, enter password
+      await tester.enterText(find.byKey(const Key('email_field')), '');
       await tester.enterText(
         find.byKey(const Key('password_field')),
         'password123',
@@ -93,11 +94,12 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Enter email, leave password empty
+      // Enter email, clear password
       await tester.enterText(
         find.byKey(const Key('email_field')),
         'test@example.com',
       );
+      await tester.enterText(find.byKey(const Key('password_field')), '');
 
       // Tap login button
       await tester.tap(find.byKey(const Key('login_button')));
@@ -245,6 +247,30 @@ void main() {
       );
 
       expect(textField.keyboardType, TextInputType.emailAddress);
+    });
+
+    testWidgets('should pre-fill credentials in debug mode', (tester) async {
+      when(() => mockAuthRepository.tryRestoreSession())
+          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      final emailField = tester.widget<TextField>(
+        find.descendant(
+          of: find.byKey(const Key('email_field')),
+          matching: find.byType(TextField),
+        ),
+      );
+      final passwordField = tester.widget<TextField>(
+        find.descendant(
+          of: find.byKey(const Key('password_field')),
+          matching: find.byType(TextField),
+        ),
+      );
+
+      expect(emailField.controller?.text, 'admin@example.com');
+      expect(passwordField.controller?.text, 'Admin!123');
     });
 
     testWidgets('should not show error initially', (tester) async {
