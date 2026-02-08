@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/services.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/allergens/allergen_formatter.dart';
@@ -19,8 +18,16 @@ class GeneratePdfUseCase {
 
   /// Execute PDF generation for a menu tree
   Future<Result<Uint8List, DomainError>> execute(MenuTree menuTree) async {
+    var oxoTheme = pw.ThemeData.withFont(
+      base: pw.Font.ttf(
+        await rootBundle.load('assets/fonts/FuturaStd-Light.ttf'),
+      ),
+      bold: pw.Font.ttf(
+        await rootBundle.load('assets/fonts/FuturaStd-Book.ttf'),
+      ),
+    );
     try {
-      final pdf = pw.Document();
+      final pdf = pw.Document(theme: oxoTheme, version: PdfVersion.pdf_1_5);
 
       // Apply page size from menu config
       final pageFormat = _getPageFormat(menuTree.menu.pageSize);
@@ -79,10 +86,7 @@ class GeneratePdfUseCase {
   }
 
   /// Build a single page with containers
-  pw.Widget _buildPage(
-    PageWithContainers pageData,
-    dynamic styleConfig,
-  ) {
+  pw.Widget _buildPage(PageWithContainers pageData, dynamic styleConfig) {
     final padding = _getDoubleValue(styleConfig, 'padding') ?? 16.0;
 
     return pw.Container(
@@ -106,18 +110,6 @@ class GeneratePdfUseCase {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          // Container name (if present)
-          if (containerData.container.name != null)
-            pw.Padding(
-              padding: const pw.EdgeInsets.only(bottom: 8),
-              child: pw.Text(
-                containerData.container.name!,
-                style: pw.TextStyle(
-                  fontSize: (_getDoubleValue(styleConfig, 'fontSize') ?? 14.0) + 2,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-            ),
           // Columns in row
           if (containerData.columns.isNotEmpty)
             pw.Row(
@@ -135,10 +127,7 @@ class GeneratePdfUseCase {
   }
 
   /// Build a column with widgets
-  pw.Widget _buildColumn(
-    ColumnWithWidgets columnData,
-    dynamic styleConfig,
-  ) {
+  pw.Widget _buildColumn(ColumnWithWidgets columnData, dynamic styleConfig) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(horizontal: 4),
       child: pw.Column(
@@ -151,10 +140,7 @@ class GeneratePdfUseCase {
   }
 
   /// Build a widget based on its type
-  pw.Widget _buildWidget(
-    dynamic widget,
-    dynamic styleConfig,
-  ) {
+  pw.Widget _buildWidget(dynamic widget, dynamic styleConfig) {
     // widget is a WidgetInstance with type and props
     final type = widget.type as String;
 
@@ -171,10 +157,7 @@ class GeneratePdfUseCase {
   }
 
   /// Build dish widget in PDF
-  pw.Widget _buildDishWidget(
-    dynamic widget,
-    dynamic styleConfig,
-  ) {
+  pw.Widget _buildDishWidget(dynamic widget, dynamic styleConfig) {
     final props = DishProps.fromJson(widget.props as Map<String, dynamic>);
     final baseFontSize = _getDoubleValue(styleConfig, 'fontSize') ?? 14.0;
 
@@ -211,9 +194,7 @@ class GeneratePdfUseCase {
             pw.SizedBox(height: 4),
             pw.Text(
               props.description!,
-              style: pw.TextStyle(
-                fontSize: baseFontSize - 2,
-              ),
+              style: pw.TextStyle(fontSize: baseFontSize - 2),
             ),
           ],
           // Allergens
@@ -244,24 +225,24 @@ class GeneratePdfUseCase {
               spacing: 4,
               runSpacing: 4,
               children: props.dietary
-                  .map((diet) => pw.Container(
-                        padding: const pw.EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
+                  .map(
+                    (diet) => pw.Container(
+                      padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: const pw.BoxDecoration(
+                        color: PdfColors.green100,
+                        borderRadius: pw.BorderRadius.all(
+                          pw.Radius.circular(12),
                         ),
-                        decoration: const pw.BoxDecoration(
-                          color: PdfColors.green100,
-                          borderRadius: pw.BorderRadius.all(
-                            pw.Radius.circular(12),
-                          ),
-                        ),
-                        child: pw.Text(
-                          diet,
-                          style: pw.TextStyle(
-                            fontSize: baseFontSize - 3,
-                          ),
-                        ),
-                      ))
+                      ),
+                      child: pw.Text(
+                        diet,
+                        style: pw.TextStyle(fontSize: baseFontSize - 3),
+                      ),
+                    ),
+                  )
                   .toList(),
             ),
           ],
@@ -271,10 +252,7 @@ class GeneratePdfUseCase {
   }
 
   /// Build text widget in PDF
-  pw.Widget _buildTextWidget(
-    dynamic widget,
-    dynamic styleConfig,
-  ) {
+  pw.Widget _buildTextWidget(dynamic widget, dynamic styleConfig) {
     final props = TextProps.fromJson(widget.props as Map<String, dynamic>);
     final baseFontSize = _getDoubleValue(styleConfig, 'fontSize') ?? 14.0;
 
@@ -317,10 +295,7 @@ class GeneratePdfUseCase {
   }
 
   /// Build section widget in PDF
-  pw.Widget _buildSectionWidget(
-    dynamic widget,
-    dynamic styleConfig,
-  ) {
+  pw.Widget _buildSectionWidget(dynamic widget, dynamic styleConfig) {
     final props = SectionProps.fromJson(widget.props as Map<String, dynamic>);
     final baseFontSize = _getDoubleValue(styleConfig, 'fontSize') ?? 14.0;
 
