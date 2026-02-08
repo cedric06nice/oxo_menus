@@ -12,11 +12,15 @@
 .swiftpm/
 migrate_working_dir/
 
-# IntelliJ related
+# IDE specific files
 *.iml
 *.ipr
 *.iws
 .idea/
+.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
@@ -27,6 +31,7 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
@@ -43,6 +48,29 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# MacOS build artifacts
+macos/Pods/
+macos/Flutter/ephemeral/
+macos/Runner.xcworkspace/xcuserdata/
+macos/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+macos/DerivedData/
+
+# iOS build artifacts
+ios/Pods/
+ios/Flutter/ephemeral/
+
+# Android build artifacts
+android/.gradle/
+android/local.properties
+android/key.properties
+
+# Windows and Linux build artifacts
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+
+# Web build artifacts
+web/.dart_tool/
 
 # Environment files (except examples)
 .env
