@@ -10,6 +10,7 @@ import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late GeneratePdfUseCase useCase;
 
   setUp(() {
@@ -49,12 +50,7 @@ void main() {
         ),
         pages: [
           PageWithContainers(
-            page: entity.Page(
-              id: 1,
-              menuId: 1,
-              name: 'Page 1',
-              index: 0,
-            ),
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
             containers: [],
           ),
         ],
@@ -80,19 +76,10 @@ void main() {
         ),
         pages: [
           PageWithContainers(
-            page: entity.Page(
-              id: 1,
-              menuId: 1,
-              name: 'Page 1',
-              index: 0,
-            ),
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
             containers: [
               ContainerWithColumns(
-                container: entity.Container(
-                  id: 1,
-                  pageId: 1,
-                  index: 0,
-                ),
+                container: entity.Container(id: 1, pageId: 1, index: 0),
                 columns: [
                   ColumnWithWidgets(
                     column: entity.Column(
@@ -147,19 +134,10 @@ void main() {
         ),
         pages: [
           PageWithContainers(
-            page: entity.Page(
-              id: 1,
-              menuId: 1,
-              name: 'Page 1',
-              index: 0,
-            ),
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
             containers: [
               ContainerWithColumns(
-                container: entity.Container(
-                  id: 1,
-                  pageId: 1,
-                  index: 0,
-                ),
+                container: entity.Container(id: 1, pageId: 1, index: 0),
                 columns: [
                   ColumnWithWidgets(
                     column: entity.Column(
@@ -211,19 +189,10 @@ void main() {
         ),
         pages: [
           PageWithContainers(
-            page: entity.Page(
-              id: 1,
-              menuId: 1,
-              name: 'Page 1',
-              index: 0,
-            ),
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
             containers: [
               ContainerWithColumns(
-                container: entity.Container(
-                  id: 1,
-                  pageId: 1,
-                  index: 0,
-                ),
+                container: entity.Container(id: 1, pageId: 1, index: 0),
                 columns: [
                   ColumnWithWidgets(
                     column: entity.Column(
@@ -274,19 +243,10 @@ void main() {
         ),
         pages: [
           PageWithContainers(
-            page: entity.Page(
-              id: 1,
-              menuId: 1,
-              name: 'Page 1',
-              index: 0,
-            ),
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
             containers: [
               ContainerWithColumns(
-                container: entity.Container(
-                  id: 1,
-                  pageId: 1,
-                  index: 0,
-                ),
+                container: entity.Container(id: 1, pageId: 1, index: 0),
                 columns: [
                   ColumnWithWidgets(
                     column: entity.Column(
@@ -382,19 +342,10 @@ void main() {
         ),
         pages: [
           PageWithContainers(
-            page: entity.Page(
-              id: 1,
-              menuId: 1,
-              name: 'Page 1',
-              index: 0,
-            ),
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
             containers: [
               ContainerWithColumns(
-                container: entity.Container(
-                  id: 1,
-                  pageId: 1,
-                  index: 0,
-                ),
+                container: entity.Container(id: 1, pageId: 1, index: 0),
                 columns: [
                   ColumnWithWidgets(
                     column: entity.Column(
@@ -440,12 +391,7 @@ void main() {
         ),
         pages: [
           PageWithContainers(
-            page: entity.Page(
-              id: 1,
-              menuId: 1,
-              name: 'Page 1',
-              index: 0,
-            ),
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
             containers: [
               ContainerWithColumns(
                 container: entity.Container(
@@ -615,19 +561,10 @@ void main() {
           ),
           pages: [
             PageWithContainers(
-              page: const entity.Page(
-                id: 1,
-                menuId: 1,
-                name: 'P1',
-                index: 0,
-              ),
+              page: const entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
               containers: [
                 ContainerWithColumns(
-                  container: const entity.Container(
-                    id: 1,
-                    pageId: 1,
-                    index: 0,
-                  ),
+                  container: const entity.Container(id: 1, pageId: 1, index: 0),
                   columns: [
                     ColumnWithWidgets(
                       column: const entity.Column(
@@ -679,10 +616,7 @@ void main() {
 
       test('should render dish with empty allergens and dietary', () async {
         final result = await useCase.execute(
-          menuWithStyleAndWidget(
-            null,
-            makeDish(allergens: [], dietary: []),
-          ),
+          menuWithStyleAndWidget(null, makeDish(allergens: [], dietary: [])),
         );
         expect(result.isSuccess, true);
       });
