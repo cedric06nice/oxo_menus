@@ -6,6 +6,7 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
@@ -30,11 +31,10 @@ void main() {
       role: UserRole.user,
     );
 
-    test('should start with initial state', () {
-      // Create a new notifier to avoid the auto-check
+    test('constructor triggers session restore and sets loading', () {
+      // Constructor calls _tryRestoreSession() which immediately sets loading
       final notifier = AuthNotifier(mockAuthRepository);
-      // State will be loading because of _checkAuthStatus in constructor
-      expect(notifier.state, isA<AuthState>());
+      expect(notifier.state, const AuthState.loading());
     });
 
     test('should check auth status on initialization', () async {
@@ -100,6 +100,27 @@ void main() {
           const AuthState.error('Network unavailable'),
         );
       });
+
+      test('should clear error and authenticate on retry after failure',
+          () async {
+        // First attempt fails
+        when(() => mockAuthRepository.login(any(), any()))
+            .thenAnswer((_) async => const Failure(
+                  InvalidCredentialsError('wrong password'),
+                ));
+        await authNotifier.login('test@example.com', 'wrong');
+        expect(
+          authNotifier.state,
+          const AuthState.error('wrong password'),
+        );
+
+        // Second attempt succeeds
+        when(() => mockAuthRepository.login(any(), any()))
+            .thenAnswer((_) async => const Success(testUser));
+        await authNotifier.login('test@example.com', 'correct');
+
+        expect(authNotifier.state, const AuthState.authenticated(testUser));
+      });
     });
 
     group('logout', () {
@@ -119,6 +140,23 @@ void main() {
 
         expect(authNotifier.state, const AuthState.unauthenticated());
         verify(() => mockAuthRepository.logout()).called(1);
+      });
+
+      test('should set unauthenticated even if repo.logout fails', () async {
+        // First login
+        when(() => mockAuthRepository.login(any(), any()))
+            .thenAnswer((_) async => const Success(testUser));
+        await authNotifier.login('test@example.com', 'password');
+
+        // Logout fails on backend
+        when(() => mockAuthRepository.logout())
+            .thenAnswer((_) async => const Failure(NetworkError('offline')));
+
+        await authNotifier.logout();
+
+        // Documents current fire-and-forget behavior:
+        // state is unauthenticated regardless of repo result
+        expect(authNotifier.state, const AuthState.unauthenticated());
       });
     });
 
@@ -144,74 +182,44 @@ void main() {
     });
   });
 
-  group('AuthState pattern matching', () {
-    test('should support when pattern matching', () {
-      const state = AuthState.authenticated(
-        User(
-          id: '1',
-          email: 'test@example.com',
-          role: UserRole.user,
-        ),
-      );
+  group('currentUserProvider — via ProviderContainer', () {
+    const testUser = User(
+      id: '1',
+      email: 'test@example.com',
+      role: UserRole.user,
+    );
 
-      final result = state.when(
-        initial: () => 'initial',
-        loading: () => 'loading',
-        authenticated: (user) => 'authenticated: ${user.email}',
-        unauthenticated: () => 'unauthenticated',
-        error: (message) => 'error: $message',
-      );
+    test('should return user when session restore succeeds', () async {
+      final mock = MockAuthRepository();
+      when(() => mock.tryRestoreSession())
+          .thenAnswer((_) async => const Success(testUser));
 
-      expect(result, 'authenticated: test@example.com');
+      final container = ProviderContainer(
+        overrides: [authRepositoryProvider.overrideWithValue(mock)],
+      );
+      addTearDown(container.dispose);
+
+      // Trigger the provider and wait for async session restore
+      container.read(authProvider);
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      expect(container.read(currentUserProvider), testUser);
     });
 
-    test('should support maybeWhen pattern matching', () {
-      const state = AuthState.loading();
+    test('should return null when session restore fails', () async {
+      final mock = MockAuthRepository();
+      when(() => mock.tryRestoreSession())
+          .thenAnswer((_) async => const Failure(UnauthorizedError()));
 
-      final result = state.maybeWhen(
-        loading: () => 'loading',
-        orElse: () => 'other',
+      final container = ProviderContainer(
+        overrides: [authRepositoryProvider.overrideWithValue(mock)],
       );
+      addTearDown(container.dispose);
 
-      expect(result, 'loading');
-    });
-  });
+      container.read(authProvider);
+      await Future.delayed(const Duration(milliseconds: 100));
 
-  group('currentUserProvider', () {
-    test('should return user when authenticated', () {
-      const testUser = User(
-        id: '1',
-        email: 'test@example.com',
-        role: UserRole.user,
-      );
-
-      const state = AuthState.authenticated(testUser);
-      final user = state.maybeWhen(
-        authenticated: (user) => user,
-        orElse: () => null,
-      );
-
-      expect(user, testUser);
-    });
-
-    test('should return null when not authenticated', () {
-      const state = AuthState.unauthenticated();
-      final user = state.maybeWhen(
-        authenticated: (user) => user,
-        orElse: () => null,
-      );
-
-      expect(user, null);
-    });
-
-    test('should return null when loading', () {
-      const state = AuthState.loading();
-      final user = state.maybeWhen(
-        authenticated: (user) => user,
-        orElse: () => null,
-      );
-
-      expect(user, null);
+      expect(container.read(currentUserProvider), isNull);
     });
   });
 

@@ -390,6 +390,129 @@ void main() {
         expect(result.isFailure, true);
         expect(result.errorOrNull, isA<NotFoundError>());
       });
+
+      test('moving down (0→2) should shift intermediate indices correctly',
+          () async {
+        // Widget 1 at index 0 moves to index 2
+        // Expected: widget 2 (1→0), widget 3 (2→1), widget 1 (0→2)
+        when(() => mockDataSource.getItem<WidgetDto>(any(),
+                fields: any(named: 'fields')))
+            .thenAnswer((_) async => existingJson);
+        when(() => mockDataSource.getItems<WidgetDto>(
+              filter: any(named: 'filter'),
+              fields: any(named: 'fields'),
+              sort: any(named: 'sort'),
+            )).thenAnswer((_) async => allWidgetsInColumn);
+        when(() => mockDataSource.updateItem<WidgetDto>(any()))
+            .thenAnswer((_) async => updatedJson);
+
+        await repository.reorder(widgetId, 2);
+
+        final captured = verify(
+          () => mockDataSource.updateItem<WidgetDto>(captureAny()),
+        ).captured;
+
+        // Collect {id: newIndex} from all captured DTOs
+        final updates = <int, int>{};
+        for (final dto in captured) {
+          final d = dto as WidgetDto;
+          final id = d.id is int ? d.id as int : int.parse(d.id.toString());
+          updates[id] = d.index;
+        }
+
+        expect(updates[1], 2); // moved widget: 0→2
+        expect(updates[2], 0); // shifted: 1→0
+        expect(updates[3], 1); // shifted: 2→1
+      });
+
+      test('moving up (2→0) should shift intermediate indices correctly',
+          () async {
+        // Widget 3 at index 2 moves to index 0
+        final widgetAtIndex2Json = {
+          'id': 3,
+          'column': columnId,
+          'type_key': 'dish',
+          'version': '1.0.0',
+          'index': 2,
+          'props_json': {'name': 'Salad'},
+        };
+
+        when(() => mockDataSource.getItem<WidgetDto>(any(),
+                fields: any(named: 'fields')))
+            .thenAnswer((_) async => widgetAtIndex2Json);
+        when(() => mockDataSource.getItems<WidgetDto>(
+              filter: any(named: 'filter'),
+              fields: any(named: 'fields'),
+              sort: any(named: 'sort'),
+            )).thenAnswer((_) async => allWidgetsInColumn);
+        when(() => mockDataSource.updateItem<WidgetDto>(any()))
+            .thenAnswer((_) async => widgetAtIndex2Json);
+
+        await repository.reorder(3, 0);
+
+        final captured = verify(
+          () => mockDataSource.updateItem<WidgetDto>(captureAny()),
+        ).captured;
+
+        final updates = <int, int>{};
+        for (final dto in captured) {
+          final d = dto as WidgetDto;
+          final id = d.id is int ? d.id as int : int.parse(d.id.toString());
+          updates[id] = d.index;
+        }
+
+        expect(updates[3], 0); // moved widget: 2→0
+        expect(updates[1], 1); // shifted: 0→1
+        expect(updates[2], 2); // shifted: 1→2
+      });
+
+      test('should handle column as nested object {"id": 1}', () async {
+        final nestedColumnJson = {
+          'id': widgetId,
+          'column': {'id': columnId},
+          'type_key': 'dish',
+          'version': '1.0.0',
+          'index': 0,
+          'props_json': {'name': 'Pasta'},
+        };
+
+        when(() => mockDataSource.getItem<WidgetDto>(any(),
+                fields: any(named: 'fields')))
+            .thenAnswer((_) async => nestedColumnJson);
+        when(() => mockDataSource.getItems<WidgetDto>(
+              filter: any(named: 'filter'),
+              fields: any(named: 'fields'),
+              sort: any(named: 'sort'),
+            )).thenAnswer((_) async => allWidgetsInColumn);
+        when(() => mockDataSource.updateItem<WidgetDto>(any()))
+            .thenAnswer((_) async => updatedJson);
+
+        final result = await repository.reorder(widgetId, 2);
+
+        expect(result.isSuccess, true);
+        verify(() => mockDataSource.updateItem<WidgetDto>(any())).called(3);
+      });
+
+      test('should return ValidationError when widget has null column',
+          () async {
+        final nullColumnJson = {
+          'id': widgetId,
+          'column': null,
+          'type_key': 'dish',
+          'version': '1.0.0',
+          'index': 0,
+          'props_json': {'name': 'Pasta'},
+        };
+
+        when(() => mockDataSource.getItem<WidgetDto>(any(),
+                fields: any(named: 'fields')))
+            .thenAnswer((_) async => nullColumnJson);
+
+        final result = await repository.reorder(widgetId, 2);
+
+        expect(result.isFailure, true);
+        expect(result.errorOrNull, isA<ValidationError>());
+      });
     });
 
     group('moveTo', () {
@@ -486,6 +609,52 @@ void main() {
         // Assert
         expect(result.isFailure, true);
         expect(result.errorOrNull, isA<ValidationError>());
+      });
+
+      test('should skip source column shifts when moving within same column',
+          () async {
+        // Moving within same column: source == target, so only target shifts
+        final sameColumnJson = {
+          'id': widgetId,
+          'column': oldColumnId,
+          'type_key': 'dish',
+          'version': '1.0.0',
+          'index': 0,
+          'props_json': {'name': 'Pasta'},
+        };
+
+        final sameColumnWidgets = [
+          {'id': widgetId, 'index': 0},
+          {'id': 2, 'index': 1},
+          {'id': 3, 'index': 2},
+        ];
+
+        when(() => mockDataSource.getItem<WidgetDto>(any(),
+                fields: any(named: 'fields')))
+            .thenAnswer((_) async => sameColumnJson);
+        when(() => mockDataSource.getItems<WidgetDto>(
+              filter: any(named: 'filter'),
+              fields: any(named: 'fields'),
+              sort: any(named: 'sort'),
+            )).thenAnswer((_) async => sameColumnWidgets);
+        when(() => mockDataSource.updateItem<WidgetDto>(any()))
+            .thenAnswer((_) async => sameColumnJson);
+
+        // Move to same column at index 2
+        final result =
+            await repository.moveTo(widgetId, oldColumnId, 2);
+
+        expect(result.isSuccess, true);
+        // source != target is false, so only target column shifts + the widget itself
+        // Target: widget 3 (index 2) shifts to 3, plus the moved widget
+        verify(() => mockDataSource.updateItem<WidgetDto>(any()))
+            .called(greaterThan(0));
+        // Verify getItems called only once (target column only, no source fetch)
+        verify(() => mockDataSource.getItems<WidgetDto>(
+              filter: any(named: 'filter'),
+              fields: any(named: 'fields'),
+              sort: any(named: 'sort'),
+            )).called(1);
       });
 
       test('should return error when update fails', () async {

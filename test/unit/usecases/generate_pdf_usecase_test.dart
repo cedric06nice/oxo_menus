@@ -531,5 +531,171 @@ void main() {
       expect(result.valueOrNull, isNotNull);
       expect(result.valueOrNull!.isNotEmpty, true);
     });
+
+    group('page format resolution', () {
+      MenuTree menuWithPageSize(PageSize? pageSize) {
+        return MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Format Test',
+            status: Status.published,
+            version: '1.0.0',
+            pageSize: pageSize,
+          ),
+          pages: const [],
+        );
+      }
+
+      test('should succeed with a4 page size', () async {
+        final result = await useCase.execute(
+          menuWithPageSize(const PageSize(name: 'a4', width: 210, height: 297)),
+        );
+        expect(result.isSuccess, true);
+      });
+
+      test('should succeed with letter page size', () async {
+        final result = await useCase.execute(
+          menuWithPageSize(
+            const PageSize(name: 'letter', width: 216, height: 279),
+          ),
+        );
+        expect(result.isSuccess, true);
+      });
+
+      test('should succeed with custom page size', () async {
+        final result = await useCase.execute(
+          menuWithPageSize(
+            const PageSize(name: 'custom', width: 100, height: 200),
+          ),
+        );
+        expect(result.isSuccess, true);
+      });
+
+      test('should succeed with null pageSize (A4 default)', () async {
+        final result = await useCase.execute(menuWithPageSize(null));
+        expect(result.isSuccess, true);
+      });
+    });
+
+    group('styleConfig and widget prop variations', () {
+      WidgetInstance makeDish({
+        bool showPrice = true,
+        bool showAllergens = true,
+        List<String> allergens = const [],
+        List<String> dietary = const [],
+      }) {
+        return WidgetInstance(
+          id: 1,
+          columnId: 1,
+          type: 'dish',
+          version: '1.0.0',
+          index: 0,
+          props: {
+            'name': 'Test Dish',
+            'price': 9.99,
+            'showPrice': showPrice,
+            'showAllergens': showAllergens,
+            'allergens': allergens,
+            'dietary': dietary,
+          },
+        );
+      }
+
+      MenuTree menuWithStyleAndWidget(
+        StyleConfig? styleConfig,
+        WidgetInstance widget,
+      ) {
+        return MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Style Test',
+            status: Status.published,
+            version: '1.0.0',
+            styleConfig: styleConfig,
+          ),
+          pages: [
+            PageWithContainers(
+              page: const entity.Page(
+                id: 1,
+                menuId: 1,
+                name: 'P1',
+                index: 0,
+              ),
+              containers: [
+                ContainerWithColumns(
+                  container: const entity.Container(
+                    id: 1,
+                    pageId: 1,
+                    index: 0,
+                  ),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: const entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [widget],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+      }
+
+      test('should handle null styleConfig without crashing', () async {
+        final result = await useCase.execute(
+          menuWithStyleAndWidget(null, makeDish()),
+        );
+        expect(result.isSuccess, true);
+      });
+
+      test('should handle custom fontSize and padding', () async {
+        final result = await useCase.execute(
+          menuWithStyleAndWidget(
+            const StyleConfig(fontSize: 20.0, padding: 24.0),
+            makeDish(),
+          ),
+        );
+        expect(result.isSuccess, true);
+      });
+
+      test('should render dish with showPrice false', () async {
+        final result = await useCase.execute(
+          menuWithStyleAndWidget(null, makeDish(showPrice: false)),
+        );
+        expect(result.isSuccess, true);
+      });
+
+      test('should render dish with showAllergens false', () async {
+        final result = await useCase.execute(
+          menuWithStyleAndWidget(null, makeDish(showAllergens: false)),
+        );
+        expect(result.isSuccess, true);
+      });
+
+      test('should render dish with empty allergens and dietary', () async {
+        final result = await useCase.execute(
+          menuWithStyleAndWidget(
+            null,
+            makeDish(allergens: [], dietary: []),
+          ),
+        );
+        expect(result.isSuccess, true);
+      });
+
+      test('should render dish with dietary tags', () async {
+        final result = await useCase.execute(
+          menuWithStyleAndWidget(
+            null,
+            makeDish(dietary: ['Vegan', 'Gluten Free']),
+          ),
+        );
+        expect(result.isSuccess, true);
+      });
+    });
   });
 }

@@ -13,6 +13,13 @@ void main() {
   late MockMenuRepository mockMenuRepository;
   late MenuListNotifier menuListNotifier;
 
+  setUpAll(() {
+    registerFallbackValue(const CreateMenuInput(
+      name: 'fallback',
+      version: '1.0.0',
+    ));
+  });
+
   setUp(() {
     mockMenuRepository = MockMenuRepository();
     menuListNotifier = MenuListNotifier(mockMenuRepository);
@@ -241,6 +248,93 @@ void main() {
         expect(menuListNotifier.state.menus, menusBefore);
         expect(menuListNotifier.state.isLoading, false);
       });
+    });
+  });
+
+  group('createMenu', () {
+    const createInput = CreateMenuInput(
+      name: 'New Menu',
+      version: '1.0.0',
+    );
+
+    const createdMenu = Menu(
+      id: 10,
+      name: 'New Menu',
+      status: Status.draft,
+      version: '1.0.0',
+    );
+
+    final existingMenus = [
+      const Menu(
+        id: 1,
+        name: 'Existing Menu',
+        status: Status.published,
+        version: '1.0.0',
+      ),
+    ];
+
+    test('should return created menu and prepend to list on success',
+        () async {
+      // Load existing menus first
+      when(() => mockMenuRepository.listAll(onlyPublished: true))
+          .thenAnswer((_) async => Success(existingMenus));
+      await menuListNotifier.loadMenus(onlyPublished: true);
+
+      when(() => mockMenuRepository.create(any()))
+          .thenAnswer((_) async => const Success(createdMenu));
+
+      final result = await menuListNotifier.createMenu(createInput);
+
+      expect(result, createdMenu);
+      expect(menuListNotifier.state.menus.length, 2);
+      expect(menuListNotifier.state.menus.first, createdMenu);
+      expect(menuListNotifier.state.isLoading, false);
+      expect(menuListNotifier.state.errorMessage, isNull);
+    });
+
+    test('should return null and set error on failure', () async {
+      const error = ValidationError('Name is required');
+      when(() => mockMenuRepository.create(any()))
+          .thenAnswer((_) async => const Failure(error));
+
+      final result = await menuListNotifier.createMenu(createInput);
+
+      expect(result, isNull);
+      expect(menuListNotifier.state.isLoading, false);
+      expect(menuListNotifier.state.errorMessage, 'Name is required');
+    });
+
+    test('should set loading state during creation', () async {
+      when(() => mockMenuRepository.create(any())).thenAnswer((_) async {
+        await Future.delayed(const Duration(milliseconds: 100));
+        return const Success(createdMenu);
+      });
+
+      final states = <MenuListState>[];
+      menuListNotifier.addListener((state) => states.add(state));
+
+      final future = menuListNotifier.createMenu(createInput);
+      await Future.delayed(const Duration(milliseconds: 50));
+      expect(menuListNotifier.state.isLoading, true);
+
+      await future;
+      expect(states.any((s) => s.isLoading), true);
+      expect(menuListNotifier.state.isLoading, false);
+    });
+
+    test('should prepend new menu at first position', () async {
+      // Load existing menus
+      when(() => mockMenuRepository.listAll(onlyPublished: true))
+          .thenAnswer((_) async => Success(existingMenus));
+      await menuListNotifier.loadMenus(onlyPublished: true);
+
+      when(() => mockMenuRepository.create(any()))
+          .thenAnswer((_) async => const Success(createdMenu));
+
+      await menuListNotifier.createMenu(createInput);
+
+      expect(menuListNotifier.state.menus[0].id, 10);
+      expect(menuListNotifier.state.menus[1].id, 1);
     });
   });
 
