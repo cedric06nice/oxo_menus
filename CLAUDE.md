@@ -25,6 +25,7 @@ Menu → Page → Container → Column → WidgetInstance
 ## Widget System
 
 Plugin architecture in `domain/widget_system/`:
+
 - `WidgetDefinition<P>` — generic: `parseProps`, `render`, `defaultProps`, `migrate`
 - `WidgetRegistry` — O(1) lookup by type string
 - `WidgetMigrator` — version-based prop migration
@@ -32,6 +33,7 @@ Plugin architecture in `domain/widget_system/`:
 - `WidgetContext` — runtime editing state (isEditable, onUpdate, onDelete)
 
 Current widget types: `dish`, `section`, `text`
+
 - Props in `domain/widgets/{type}/{type}_props.dart`
 - Definitions in `presentation/widgets/{type}_widget/{type}_widget_definition.dart`
 - Each has `*_edit_dialog.dart` for editing
@@ -43,6 +45,7 @@ UK FSA 14 allergens (`UkAllergen` enum). Legacy `List<String>` → `List<Allerge
 ## State Management
 
 Riverpod with manual `Provider` declarations (not riverpod_generator for providers):
+
 - `repositories_provider.dart` — all repo providers watch `directusDataSourceProvider`
 - `usecases_provider.dart` — use case providers
 - `widget_registry_provider.dart`
@@ -110,6 +113,13 @@ All production code in this repository (Dart, Flutter, or any other language) MU
 - Skipping the red step (e.g., writing a test that already passes) is forbidden.
 - Writing production code "to be tested later" is forbidden.
 - Generating a batch of production code and then backfilling tests afterward is forbidden.
+- Tests that only increase line or branch coverage without protecting behavior are considered failures.
+- Avoid over-mocking; mock only true infrastructure boundaries.
+- Architectural rules:
+  • Domain tests must not import infrastructure, DTOs, or frameworks.
+  • Use cases may mock repositories but not entities.
+  • UI tests may mock use cases, not data sources.
+  • Violating a boundary is considered an invalid solution.
 
 ### Scope
 
