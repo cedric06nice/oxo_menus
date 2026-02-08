@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
-import 'package:oxo_menus/presentation/pages/admin_template_creator/admin_template_creator_page.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/admin_template_editor_page.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_page.dart';
 import 'package:oxo_menus/presentation/pages/home/home_page.dart';
@@ -149,11 +148,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'admin-templates',
         builder: (context, state) => const AdminTemplatesPage(),
         routes: [
-          GoRoute(
-            path: 'create',
-            name: 'admin-template-creator',
-            builder: (context, state) => const AdminTemplateCreatorPage(),
-          ),
           GoRoute(
             path: ':id',
             name: 'admin-template-editor',
