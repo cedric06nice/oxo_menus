@@ -22,7 +22,8 @@
       "Bash(dart run build_runner:*)",
       "Bash(git restore:*)",
       "Bash(dart run:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git status:*)"
     ]
   }
 }
