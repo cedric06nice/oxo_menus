@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
+import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget.dart';
 
 void main() {
   group('DishWidget', () {
-    testWidgets('should display dish name and price', (tester) async {
+    testWidgets('should display dish name uppercased and price', (tester) async {
       const props = DishProps(name: 'Pasta Carbonara', price: 12.50);
 
       await tester.pumpWidget(
@@ -21,7 +22,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Pasta Carbonara'), findsOneWidget);
+      expect(find.text('PASTA CARBONARA'), findsOneWidget);
       expect(find.text('£12.50'), findsOneWidget);
     });
 
@@ -42,7 +43,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Pasta Carbonara'), findsOneWidget);
+      expect(find.text('PASTA CARBONARA'), findsOneWidget);
       expect(find.text('£12.50'), findsNothing);
     });
 
@@ -88,7 +89,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Pasta Carbonara'), findsOneWidget);
+      expect(find.text('PASTA CARBONARA'), findsOneWidget);
       // Description should not be rendered when empty
       expect(find.byType(Chip), findsNothing);
     });
@@ -169,11 +170,11 @@ void main() {
       },
     );
 
-    testWidgets('should display dietary tags', (tester) async {
+    testWidgets('should display dietary abbreviation inline with uppercased name', (tester) async {
       const props = DishProps(
         name: 'Salad',
         price: 8.50,
-        dietary: ['Vegan', 'Gluten-Free'],
+        dietary: DietaryType.vegan,
       );
 
       await tester.pumpWidget(
@@ -187,18 +188,20 @@ void main() {
         ),
       );
 
-      expect(find.text('Vegan'), findsOneWidget);
-      expect(find.text('Gluten-Free'), findsOneWidget);
+      // Single Text widget with inline abbreviation
+      expect(find.text('SALAD (Ve)'), findsOneWidget);
+      // No Chip widgets
+      expect(find.byType(Chip), findsNothing);
     });
 
-    testWidgets('should display both allergens and dietary tags', (
+    testWidgets('should display vegetarian abbreviation inline with allergens', (
       tester,
     ) async {
       const props = DishProps(
         name: 'Mixed Dish',
         price: 15.0,
         allergens: ['Nuts'],
-        dietary: ['Vegetarian'],
+        dietary: DietaryType.vegetarian,
       );
 
       await tester.pumpWidget(
@@ -212,11 +215,12 @@ void main() {
         ),
       );
 
-      // 'Nuts' is rendered as allergen text 'NUTS', 'Vegetarian' as dietary Chip
+      // Name with dietary inline
+      expect(find.text('MIXED DISH (V)'), findsOneWidget);
+      // Allergen text
       expect(find.text('NUTS'), findsOneWidget);
-      expect(find.text('Vegetarian'), findsOneWidget);
-      // Only dietary tags render as Chips (allergens are formatted text)
-      expect(find.byType(Chip), findsOneWidget);
+      // No Chip widgets
+      expect(find.byType(Chip), findsNothing);
     });
 
     testWidgets('should open edit dialog when tapped in editable mode', (
@@ -330,6 +334,97 @@ void main() {
 
       // Verify the widget renders a Card
       expect(find.byType(Card), findsOneWidget);
+    });
+
+    testWidgets('edit dialog should show dietary dropdown with None selected by default', (tester) async {
+      const props = DishProps(name: 'Test Dish', price: 10.0);
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: DishWidget(
+              props: props,
+              context: WidgetContext(isEditable: true),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(Card));
+      await tester.pumpAndSettle();
+
+      // Should show DropdownButton for dietary
+      expect(find.byType(DropdownButton<DietaryType?>), findsOneWidget);
+      // Should not show a TextField for dietary
+      expect(find.widgetWithText(TextField, 'Dietary'), findsNothing);
+    });
+
+    testWidgets('edit dialog should pre-select current dietary value', (tester) async {
+      const props = DishProps(
+        name: 'Test Dish',
+        price: 10.0,
+        dietary: DietaryType.vegetarian,
+      );
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: DishWidget(
+              props: props,
+              context: WidgetContext(isEditable: true),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(Card));
+      await tester.pumpAndSettle();
+
+      // Verify the dropdown shows 'Vegetarian'
+      expect(find.text('Vegetarian'), findsOneWidget);
+    });
+
+    testWidgets('edit dialog dropdown should contain dietary options', (tester) async {
+      const props = DishProps(name: 'Test Dish', price: 10.0);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: DishWidget(
+              props: props,
+              context: WidgetContext(isEditable: true),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(Card));
+      await tester.pumpAndSettle();
+
+      // Verify dropdown is present
+      expect(find.byType(DropdownButton<DietaryType?>), findsOneWidget);
+
+      // Verify "None" is shown as the current selection (default)
+      expect(find.text('None'), findsOneWidget);
+    });
+
+    testWidgets('edit dialog should show pre-selected dietary in dropdown', (tester) async {
+      const props = DishProps(
+        name: 'Test Dish',
+        price: 10.0,
+        dietary: DietaryType.vegan,
+      );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: DishWidget(
+              props: props,
+              context: WidgetContext(isEditable: true),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(Card));
+      await tester.pumpAndSettle();
+
+      // Verify "Vegan" is shown as the current selection
+      expect(find.text('Vegan'), findsOneWidget);
     });
   });
 }

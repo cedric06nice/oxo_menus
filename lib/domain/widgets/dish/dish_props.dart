@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/domain/allergens/allergen_info.dart';
+import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
 
 part 'dish_props.freezed.dart';
 part 'dish_props.g.dart';
@@ -29,8 +30,8 @@ abstract class DishProps with _$DishProps {
     /// Structured allergen information with UK allergen types
     @Default([]) List<AllergenInfo> allergenInfo,
 
-    /// List of dietary tags (e.g., 'Vegetarian', 'Vegan', 'Gluten-Free')
-    @Default([]) List<String> dietary,
+    /// Dietary type (Vegetarian or Vegan)
+    DietaryType? dietary,
   }) = _DishProps;
 
   factory DishProps.fromJson(Map<String, dynamic> json) =>
@@ -49,5 +50,12 @@ abstract class DishProps with _$DishProps {
         .map((s) => AllergenInfo.fromLegacyString(s))
         .whereType<AllergenInfo>()
         .toList();
+  }
+
+  /// Display name: uppercased dish name with optional dietary abbreviation
+  String get displayName {
+    final upper = name.toUpperCase();
+    if (dietary == null) return upper;
+    return '$upper ${dietary!.abbreviation}';
   }
 }

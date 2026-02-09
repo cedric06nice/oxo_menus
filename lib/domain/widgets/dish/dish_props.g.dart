@@ -18,9 +18,7 @@ _DishProps _$DishPropsFromJson(Map<String, dynamic> json) => _DishProps(
           ?.map((e) => AllergenInfo.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  dietary:
-      (json['dietary'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-      const [],
+  dietary: $enumDecodeNullable(_$DietaryTypeEnumMap, json['dietary']),
 );
 
 Map<String, dynamic> _$DishPropsToJson(_DishProps instance) =>
@@ -30,5 +28,10 @@ Map<String, dynamic> _$DishPropsToJson(_DishProps instance) =>
       'description': instance.description,
       'allergens': instance.allergens,
       'allergenInfo': instance.allergenInfo.map((e) => e.toJson()).toList(),
-      'dietary': instance.dietary,
+      'dietary': _$DietaryTypeEnumMap[instance.dietary],
     };
+
+const _$DietaryTypeEnumMap = {
+  DietaryType.vegetarian: 'vegetarian',
+  DietaryType.vegan: 'vegan',
+};

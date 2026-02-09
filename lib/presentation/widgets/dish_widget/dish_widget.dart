@@ -28,7 +28,7 @@ class DishWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      props.name,
+                      props.displayName,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -79,27 +79,6 @@ class DishWidget extends StatelessWidget {
                       ),
                     );
                   },
-                ),
-              ],
-
-              // Dietary
-              if (props.dietary.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: props.dietary
-                      .map(
-                        (diet) => Chip(
-                          label: Text(
-                            diet,
-                            style: const TextStyle(fontSize: 11),
-                          ),
-                          visualDensity: VisualDensity.compact,
-                          backgroundColor: Colors.green[100],
-                        ),
-                      )
-                      .toList(),
                 ),
               ],
             ],

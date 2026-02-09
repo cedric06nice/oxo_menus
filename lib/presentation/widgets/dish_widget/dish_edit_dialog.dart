@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/allergens/allergen_info.dart';
+import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/presentation/widgets/allergen_selector/allergen_selector.dart';
 
@@ -18,7 +19,7 @@ class _DishEditDialogState extends State<DishEditDialog> {
   late TextEditingController _nameController;
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
-  late TextEditingController _dietaryController;
+  late DietaryType? _selectedDietary;
   late List<AllergenInfo> _selectedAllergens;
 
   @override
@@ -31,9 +32,7 @@ class _DishEditDialogState extends State<DishEditDialog> {
     _descriptionController = TextEditingController(
       text: widget.props.description ?? '',
     );
-    _dietaryController = TextEditingController(
-      text: widget.props.dietary.join(', '),
-    );
+    _selectedDietary = widget.props.dietary;
     _selectedAllergens = List.from(widget.props.effectiveAllergenInfo);
   }
 
@@ -42,7 +41,6 @@ class _DishEditDialogState extends State<DishEditDialog> {
     _nameController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
-    _dietaryController.dispose();
     super.dispose();
   }
 
@@ -63,6 +61,16 @@ class _DishEditDialogState extends State<DishEditDialog> {
             ),
             const SizedBox(height: 12),
             TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Description (optional)',
+                hintText: 'Enter description',
+              ),
+              minLines: 1,
+              maxLines: 3,
+            ),
+            const SizedBox(height: 12),
+            TextField(
               controller: _priceController,
               decoration: const InputDecoration(
                 labelText: 'Price',
@@ -74,28 +82,41 @@ class _DishEditDialogState extends State<DishEditDialog> {
               ),
             ),
             const SizedBox(height: 12),
-            TextField(
-              controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                hintText: 'Enter description',
-              ),
-              maxLines: 3,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Dietary type',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(width: 16),
+              ],
             ),
-            const SizedBox(height: 16),
+            DropdownButton<DietaryType?>(
+              value: _selectedDietary,
+              isExpanded: true,
+              items: [
+                const DropdownMenuItem<DietaryType?>(
+                  value: null,
+                  child: Text('None'),
+                ),
+                ...DietaryType.values.map(
+                  (type) => DropdownMenuItem<DietaryType?>(
+                    value: type,
+                    child: Text(type.displayName),
+                  ),
+                ),
+              ],
+              onChanged: (value) {
+                setState(() => _selectedDietary = value);
+              },
+            ),
+            const SizedBox(height: 12),
             AllergenSelector(
               initialSelection: _selectedAllergens,
               onChanged: (allergens) {
                 setState(() => _selectedAllergens = allergens);
               },
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _dietaryController,
-              decoration: const InputDecoration(
-                labelText: 'Dietary',
-                hintText: 'Comma-separated (e.g., Vegan, Gluten-Free)',
-              ),
             ),
             const SizedBox(height: 8),
           ],
@@ -120,11 +141,7 @@ class _DishEditDialogState extends State<DishEditDialog> {
           : _descriptionController.text.trim(),
       allergens: const [], // Clear legacy field
       allergenInfo: _selectedAllergens,
-      dietary: _dietaryController.text
-          .split(',')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList(),
+      dietary: _selectedDietary,
     );
 
     widget.onSave(updatedProps);

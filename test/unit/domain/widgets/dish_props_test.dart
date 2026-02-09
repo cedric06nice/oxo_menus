@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 
 void main() {
@@ -10,7 +11,7 @@ void main() {
       expect(props.price, 12.50);
       expect(props.description, isNull);
       expect(props.allergens, isEmpty);
-      expect(props.dietary, isEmpty);
+      expect(props.dietary, isNull);
     });
 
     test('should create DishProps with all fields', () {
@@ -19,14 +20,14 @@ void main() {
         price: 12.50,
         description: 'Classic Italian pasta',
         allergens: ['Dairy', 'Gluten'],
-        dietary: ['Vegetarian'],
+        dietary: DietaryType.vegetarian,
       );
 
       expect(props.name, 'Pasta Carbonara');
       expect(props.price, 12.50);
       expect(props.description, 'Classic Italian pasta');
       expect(props.allergens, ['Dairy', 'Gluten']);
-      expect(props.dietary, ['Vegetarian']);
+      expect(props.dietary, DietaryType.vegetarian);
     });
 
     test('should serialize to JSON', () {
@@ -35,7 +36,7 @@ void main() {
         price: 12.50,
         description: 'Classic Italian pasta',
         allergens: ['Dairy'],
-        dietary: ['Vegetarian'],
+        dietary: DietaryType.vegetarian,
       );
 
       final json = props.toJson();
@@ -44,7 +45,7 @@ void main() {
       expect(json['price'], 12.50);
       expect(json['description'], 'Classic Italian pasta');
       expect(json['allergens'], ['Dairy']);
-      expect(json['dietary'], ['Vegetarian']);
+      expect(json['dietary'], 'vegetarian');
     });
 
     test('should deserialize from JSON', () {
@@ -53,7 +54,7 @@ void main() {
         'price': 12.50,
         'description': 'Classic Italian pasta',
         'allergens': ['Dairy', 'Gluten'],
-        'dietary': ['Vegetarian'],
+        'dietary': 'vegetarian',
       };
 
       final props = DishProps.fromJson(json);
@@ -62,7 +63,7 @@ void main() {
       expect(props.price, 12.50);
       expect(props.description, 'Classic Italian pasta');
       expect(props.allergens, ['Dairy', 'Gluten']);
-      expect(props.dietary, ['Vegetarian']);
+      expect(props.dietary, DietaryType.vegetarian);
     });
 
     test('should deserialize from JSON with defaults', () {
@@ -74,7 +75,7 @@ void main() {
       expect(props.price, 10.0);
       expect(props.description, isNull);
       expect(props.allergens, isEmpty);
-      expect(props.dietary, isEmpty);
+      expect(props.dietary, isNull);
     });
 
     test(
@@ -125,18 +126,18 @@ void main() {
       expect(props1, isNot(equals(props3)));
     });
 
-    test('should handle empty lists in JSON', () {
+    test('should handle null dietary in JSON', () {
       final json = {
         'name': 'Dish',
         'price': 10.0,
         'allergens': <String>[],
-        'dietary': <String>[],
+        'dietary': null,
       };
 
       final props = DishProps.fromJson(json);
 
       expect(props.allergens, isEmpty);
-      expect(props.dietary, isEmpty);
+      expect(props.dietary, isNull);
     });
 
     test('should handle null description in JSON', () {
@@ -147,19 +148,70 @@ void main() {
       expect(props.description, isNull);
     });
 
-    test('should round-trip through JSON', () {
+    test('should round-trip through JSON with dietary', () {
       const original = DishProps(
-        name: 'Test Dish',
-        price: 19.99,
-        description: 'A test description',
-        allergens: ['Nuts', 'Soy'],
-        dietary: ['Vegan', 'Gluten-Free'],
+        name: 'Vegan Salad',
+        price: 9.50,
+        dietary: DietaryType.vegan,
       );
 
       final json = original.toJson();
       final deserialized = DishProps.fromJson(json);
 
       expect(deserialized, equals(original));
+    });
+
+    test('should round-trip through JSON without dietary', () {
+      const original = DishProps(
+        name: 'Test Dish',
+        price: 19.99,
+        description: 'A test description',
+        allergens: ['Nuts', 'Soy'],
+      );
+
+      final json = original.toJson();
+      final deserialized = DishProps.fromJson(json);
+
+      expect(deserialized, equals(original));
+    });
+
+    group('displayName', () {
+      test('should return uppercased name when no dietary', () {
+        const props = DishProps(name: 'Pasta Carbonara', price: 12.50);
+        expect(props.displayName, 'PASTA CARBONARA');
+      });
+
+      test('should append (V) for vegetarian', () {
+        const props = DishProps(
+          name: 'Pasta Carbonara',
+          price: 12.50,
+          dietary: DietaryType.vegetarian,
+        );
+        expect(props.displayName, 'PASTA CARBONARA (V)');
+      });
+
+      test('should append (Ve) for vegan', () {
+        const props = DishProps(
+          name: 'Garden Salad',
+          price: 8.50,
+          dietary: DietaryType.vegan,
+        );
+        expect(props.displayName, 'GARDEN SALAD (Ve)');
+      });
+
+      test('should handle empty name', () {
+        const props = DishProps(name: '', price: 0);
+        expect(props.displayName, '');
+      });
+
+      test('should handle empty name with dietary', () {
+        const props = DishProps(
+          name: '',
+          price: 0,
+          dietary: DietaryType.vegan,
+        );
+        expect(props.displayName, ' (Ve)');
+      });
     });
   });
 }

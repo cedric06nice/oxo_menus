@@ -9,6 +9,7 @@ import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
+import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -103,7 +104,7 @@ void main() {
                           'showPrice': true,
                           'showAllergens': true,
                           'allergens': ['Dairy', 'Gluten'],
-                          'dietary': ['Vegetarian'],
+                          'dietary': 'vegetarian',
                         },
                       ),
                     ],
@@ -435,7 +436,7 @@ void main() {
                           'showPrice': true,
                           'showAllergens': true,
                           'allergens': ['Dairy', 'Gluten', 'Eggs'],
-                          'dietary': [],
+                          'dietary': null,
                         },
                       ),
                     ],
@@ -700,7 +701,7 @@ void main() {
                               'showPrice': true,
                               'showAllergens': false,
                               'allergens': [],
-                              'dietary': [],
+                              'dietary': null,
                             },
                           ),
                         ],
@@ -724,13 +725,13 @@ void main() {
         bool showPrice = true,
         bool showAllergens = true,
         List<String> allergens = const [],
-        List<String> dietary = const [],
+        DietaryType? dietary,
       }) {
         return WidgetInstance(
           id: 1,
           columnId: 1,
           type: 'dish',
-          version: '1.0.0',
+          version: '3.0.0',
           index: 0,
           props: {
             'name': 'Test Dish',
@@ -738,7 +739,7 @@ void main() {
             'showPrice': showPrice,
             'showAllergens': showAllergens,
             'allergens': allergens,
-            'dietary': dietary,
+            'dietary': dietary?.name,
           },
         );
       }
@@ -812,16 +813,16 @@ void main() {
 
       test('should render dish with empty allergens and dietary', () async {
         final result = await useCase.execute(
-          menuWithStyleAndWidget(null, makeDish(allergens: [], dietary: [])),
+          menuWithStyleAndWidget(null, makeDish(allergens: [])),
         );
         expect(result.isSuccess, true);
       });
 
-      test('should render dish with dietary tags', () async {
+      test('should render dish with dietary type', () async {
         final result = await useCase.execute(
           menuWithStyleAndWidget(
             null,
-            makeDish(dietary: ['Vegan', 'Gluten Free']),
+            makeDish(dietary: DietaryType.vegan),
           ),
         );
         expect(result.isSuccess, true);

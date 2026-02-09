@@ -181,7 +181,7 @@ class GeneratePdfUseCase {
             children: [
               pw.Expanded(
                 child: pw.Text(
-                  props.name,
+                  props.displayName,
                   style: pw.TextStyle(
                     fontSize: baseFontSize,
                     fontWeight: pw.FontWeight.bold,
@@ -226,34 +226,6 @@ class GeneratePdfUseCase {
                 ),
               );
             }(),
-          ],
-          // Dietary
-          if (props.dietary.isNotEmpty) ...[
-            pw.SizedBox(height: 4),
-            pw.Wrap(
-              spacing: 4,
-              runSpacing: 4,
-              children: props.dietary
-                  .map(
-                    (diet) => pw.Container(
-                      padding: const pw.EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: const pw.BoxDecoration(
-                        color: PdfColors.green100,
-                        borderRadius: pw.BorderRadius.all(
-                          pw.Radius.circular(12),
-                        ),
-                      ),
-                      child: pw.Text(
-                        diet,
-                        style: pw.TextStyle(fontSize: baseFontSize - 3),
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
           ],
         ],
       ),
