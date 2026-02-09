@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 
 class PageStyleSection extends StatefulWidget {
@@ -16,6 +17,7 @@ class PageStyleSection extends StatefulWidget {
 }
 
 class _PageStyleSectionState extends State<PageStyleSection> {
+  late BorderType _selectedBorderType;
   late final TextEditingController _marginTopCtrl;
   late final TextEditingController _marginBottomCtrl;
   late final TextEditingController _marginLeftCtrl;
@@ -28,6 +30,7 @@ class _PageStyleSectionState extends State<PageStyleSection> {
   @override
   void initState() {
     super.initState();
+    _selectedBorderType = widget.styleConfig?.borderType ?? BorderType.none;
     _marginTopCtrl = TextEditingController(
       text: _formatValue(widget.styleConfig?.marginTop),
     );
@@ -85,6 +88,7 @@ class _PageStyleSectionState extends State<PageStyleSection> {
       paddingBottom: double.tryParse(_paddingBottomCtrl.text),
       paddingLeft: double.tryParse(_paddingLeftCtrl.text),
       paddingRight: double.tryParse(_paddingRightCtrl.text),
+      borderType: _selectedBorderType,
     ));
   }
 
@@ -110,6 +114,30 @@ class _PageStyleSectionState extends State<PageStyleSection> {
                 const SizedBox(width: 8),
                 _buildField('Right', _marginRightCtrl, 'margin_right'),
               ],
+            ),
+            const SizedBox(height: 16),
+            Text('Border', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<BorderType>(
+              key: const Key('border_type'),
+              initialValue: _selectedBorderType,
+              decoration: const InputDecoration(
+                labelText: 'Border Style',
+              ),
+              items: BorderType.values
+                  .map((type) => DropdownMenuItem(
+                        value: type,
+                        child: Text(type.label),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedBorderType = value;
+                  });
+                  _onFieldChanged();
+                }
+              },
             ),
             const SizedBox(height: 16),
             Text('Paddings', style: Theme.of(context).textTheme.titleMedium),

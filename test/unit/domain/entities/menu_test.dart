@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 
@@ -297,6 +298,42 @@ void main() {
       expect(config.paddingBottom, 12.0);
       expect(config.paddingLeft, 8.0);
       expect(config.paddingRight, 8.0);
+    });
+
+    test('should create StyleConfig with borderType', () {
+      const config = StyleConfig(borderType: BorderType.plainThin);
+
+      expect(config.borderType, BorderType.plainThin);
+    });
+
+    test('should default borderType to null', () {
+      const config = StyleConfig();
+
+      expect(config.borderType, isNull);
+    });
+
+    test('should support copyWith for borderType', () {
+      const config = StyleConfig(borderType: BorderType.none);
+
+      final updated = config.copyWith(borderType: BorderType.dropShadow);
+
+      expect(updated.borderType, BorderType.dropShadow);
+    });
+
+    test('should serialize borderType to JSON', () {
+      const config = StyleConfig(borderType: BorderType.plainThick);
+
+      final json = config.toJson();
+
+      expect(json['borderType'], 'plain_thick');
+    });
+
+    test('should deserialize borderType from JSON', () {
+      final json = {'borderType': 'double_offset'};
+
+      final config = StyleConfig.fromJson(json);
+
+      expect(config.borderType, BorderType.doubleOffset);
     });
   });
 

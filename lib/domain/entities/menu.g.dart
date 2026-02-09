@@ -63,6 +63,7 @@ _StyleConfig _$StyleConfigFromJson(Map<String, dynamic> json) => _StyleConfig(
   paddingBottom: (json['paddingBottom'] as num?)?.toDouble(),
   paddingLeft: (json['paddingLeft'] as num?)?.toDouble(),
   paddingRight: (json['paddingRight'] as num?)?.toDouble(),
+  borderType: $enumDecodeNullable(_$BorderTypeEnumMap, json['borderType']),
 );
 
 Map<String, dynamic> _$StyleConfigToJson(_StyleConfig instance) =>
@@ -81,7 +82,16 @@ Map<String, dynamic> _$StyleConfigToJson(_StyleConfig instance) =>
       'paddingBottom': instance.paddingBottom,
       'paddingLeft': instance.paddingLeft,
       'paddingRight': instance.paddingRight,
+      'borderType': _$BorderTypeEnumMap[instance.borderType],
     };
+
+const _$BorderTypeEnumMap = {
+  BorderType.none: 'none',
+  BorderType.plainThin: 'plain_thin',
+  BorderType.plainThick: 'plain_thick',
+  BorderType.doubleOffset: 'double_offset',
+  BorderType.dropShadow: 'drop_shadow',
+};
 
 _PageSize _$PageSizeFromJson(Map<String, dynamic> json) => _PageSize(
   name: json['name'] as String,

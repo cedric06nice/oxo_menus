@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/usecases/pdf_style_resolver.dart';
 import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 void main() {
   const resolver = PdfStyleResolver();
@@ -170,6 +172,83 @@ void main() {
           resolver.resolveBaseFontSize(const StyleConfig(fontSize: 18.0)),
           18.0,
         );
+      });
+    });
+
+    group('wrapWithBorder', () {
+      final child = pw.SizedBox(width: 100, height: 100);
+
+      test('should return child unchanged for null styleConfig', () {
+        final result = resolver.wrapWithBorder(child, null);
+        expect(identical(result, child), isTrue);
+      });
+
+      test('should return child unchanged for BorderType.none', () {
+        final result = resolver.wrapWithBorder(
+          child,
+          const StyleConfig(borderType: BorderType.none),
+        );
+        expect(identical(result, child), isTrue);
+      });
+
+      test('should return child unchanged when borderType is null', () {
+        final result = resolver.wrapWithBorder(
+          child,
+          const StyleConfig(),
+        );
+        expect(identical(result, child), isTrue);
+      });
+
+      test('should wrap with thin border for plainThin', () {
+        final result = resolver.wrapWithBorder(
+          child,
+          const StyleConfig(borderType: BorderType.plainThin),
+        );
+        expect(result, isA<pw.Container>());
+        final container = result as pw.Container;
+        expect(container.decoration, isNotNull);
+        final decoration = container.decoration as pw.BoxDecoration;
+        expect(decoration.border, isNotNull);
+      });
+
+      test('should wrap with thick border for plainThick', () {
+        final result = resolver.wrapWithBorder(
+          child,
+          const StyleConfig(borderType: BorderType.plainThick),
+        );
+        expect(result, isA<pw.Container>());
+        final container = result as pw.Container;
+        expect(container.decoration, isNotNull);
+      });
+
+      test('should wrap with nested containers for doubleOffset', () {
+        final result = resolver.wrapWithBorder(
+          child,
+          const StyleConfig(borderType: BorderType.doubleOffset),
+        );
+        // Outer container with border
+        expect(result, isA<pw.Container>());
+        final outer = result as pw.Container;
+        expect(outer.decoration, isNotNull);
+        // Inner container should also have a border (nested inside)
+        expect(outer.child, isA<pw.Padding>());
+        final padding = outer.child as pw.Padding;
+        expect(padding.child, isA<pw.Container>());
+        final inner = padding.child as pw.Container;
+        expect(inner.decoration, isNotNull);
+      });
+
+      test('should wrap with shadow for dropShadow', () {
+        final result = resolver.wrapWithBorder(
+          child,
+          const StyleConfig(borderType: BorderType.dropShadow),
+        );
+        expect(result, isA<pw.Container>());
+        final container = result as pw.Container;
+        expect(container.decoration, isNotNull);
+        final decoration = container.decoration as pw.BoxDecoration;
+        expect(decoration.boxShadow, isNotNull);
+        expect(decoration.boxShadow, isNotEmpty);
       });
     });
   });

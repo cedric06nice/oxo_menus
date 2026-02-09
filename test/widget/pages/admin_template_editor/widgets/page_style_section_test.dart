@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/page_style_section.dart';
 
@@ -147,6 +148,89 @@ void main() {
 
       expect(updatedConfig, isNotNull);
       expect(updatedConfig!.paddingLeft, 12.0);
+    });
+
+    testWidgets('should display Border section header', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: PageStyleSection(
+                styleConfig: const StyleConfig(),
+                onStyleChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Border'), findsOneWidget);
+    });
+
+    testWidgets('should show current border type in dropdown', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: PageStyleSection(
+                styleConfig:
+                    const StyleConfig(borderType: BorderType.plainThin),
+                onStyleChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // The dropdown should display the label of the current border type
+      expect(find.text('Plain Thin'), findsOneWidget);
+    });
+
+    testWidgets('should default to No Border when borderType is null',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: PageStyleSection(
+                styleConfig: const StyleConfig(),
+                onStyleChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('No Border'), findsOneWidget);
+    });
+
+    testWidgets('should call onStyleChanged when border type is changed',
+        (tester) async {
+      StyleConfig? updatedConfig;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: PageStyleSection(
+                styleConfig: const StyleConfig(),
+                onStyleChanged: (config) => updatedConfig = config,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Tap the dropdown to open it
+      await tester.tap(find.byKey(const Key('border_type')));
+      await tester.pumpAndSettle();
+
+      // Select 'Drop Shadow'
+      await tester.tap(find.text('Drop Shadow').last);
+      await tester.pumpAndSettle();
+
+      expect(updatedConfig, isNotNull);
+      expect(updatedConfig!.borderType, BorderType.dropShadow);
     });
   });
 }

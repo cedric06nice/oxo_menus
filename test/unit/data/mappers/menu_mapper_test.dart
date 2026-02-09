@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/data/mappers/menu_mapper.dart';
 import 'package:oxo_menus/data/models/menu_dto.dart';
+import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
@@ -258,6 +259,20 @@ void main() {
         expect(dto['style_json']['paddingLeft'], 8.0);
         expect(dto['style_json']['paddingRight'], 8.0);
       });
+
+      test('should serialize borderType in style_json', () {
+        // Arrange
+        const input = UpdateMenuInput(
+          id: 1,
+          styleConfig: StyleConfig(borderType: BorderType.dropShadow),
+        );
+
+        // Act
+        final dto = MenuMapper.toUpdateDto(input);
+
+        // Assert
+        expect(dto['style_json']['borderType'], 'drop_shadow');
+      });
     });
 
     group('per-side padding', () {
@@ -291,6 +306,27 @@ void main() {
         expect(entity.styleConfig!.paddingLeft, 8.0);
         expect(entity.styleConfig!.paddingRight, 8.0);
         expect(entity.styleConfig!.marginTop, 20.0);
+      });
+
+      test('should parse borderType from styleJson in toEntity', () {
+        // Arrange
+        final json = {
+          'id': 1,
+          'status': 'draft',
+          'name': 'Border Menu',
+          'version': '1.0.0',
+          'style_json': {
+            'borderType': 'plain_thin',
+          },
+        };
+        final dto = MenuDto(json);
+
+        // Act
+        final entity = MenuMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.styleConfig, isNotNull);
+        expect(entity.styleConfig!.borderType, BorderType.plainThin);
       });
 
       test('should map legacy single padding without per-side values', () {

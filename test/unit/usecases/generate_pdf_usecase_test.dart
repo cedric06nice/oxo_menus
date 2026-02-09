@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
@@ -644,6 +645,36 @@ void main() {
               paddingLeft: 10.0,
               paddingRight: 10.0,
             ),
+            makeDish(),
+          ),
+        );
+        expect(result.isSuccess, true);
+      });
+
+      test('should generate PDF with border type plainThick', () async {
+        final result = await useCase.execute(
+          menuWithStyleAndWidget(
+            const StyleConfig(borderType: BorderType.plainThick),
+            makeDish(),
+          ),
+        );
+        expect(result.isSuccess, true);
+      });
+
+      test('should generate PDF with border type doubleOffset', () async {
+        final result = await useCase.execute(
+          menuWithStyleAndWidget(
+            const StyleConfig(borderType: BorderType.doubleOffset),
+            makeDish(),
+          ),
+        );
+        expect(result.isSuccess, true);
+      });
+
+      test('should generate PDF with border type dropShadow', () async {
+        final result = await useCase.execute(
+          menuWithStyleAndWidget(
+            const StyleConfig(borderType: BorderType.dropShadow),
             makeDish(),
           ),
         );

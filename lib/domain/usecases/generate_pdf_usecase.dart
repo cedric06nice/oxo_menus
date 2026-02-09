@@ -65,7 +65,7 @@ class GeneratePdfUseCase {
   ) {
     final padding = _resolver.resolveContentPadding(styleConfig);
 
-    return pw.Container(
+    final content = pw.Container(
       padding: padding,
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -74,6 +74,7 @@ class GeneratePdfUseCase {
         }).toList(),
       ),
     );
+    return _resolver.wrapWithBorder(content, styleConfig);
   }
 
   /// Build a container with columns in a row

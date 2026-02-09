@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 
 part 'menu.freezed.dart';
@@ -46,6 +47,7 @@ abstract class StyleConfig with _$StyleConfig {
     double? paddingBottom,
     double? paddingLeft,
     double? paddingRight,
+    BorderType? borderType,
   }) = _StyleConfig;
 
   factory StyleConfig.fromJson(Map<String, dynamic> json) =>

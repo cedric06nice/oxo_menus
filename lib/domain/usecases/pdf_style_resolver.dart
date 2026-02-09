@@ -1,3 +1,4 @@
+import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -57,5 +58,62 @@ class PdfStyleResolver {
   /// Resolve base font size from StyleConfig.
   double resolveBaseFontSize(StyleConfig? style) {
     return style?.fontSize ?? 14.0;
+  }
+
+  /// Wrap a child widget with the appropriate border decoration.
+  /// Returns the child unchanged when no border is configured.
+  pw.Widget wrapWithBorder(pw.Widget child, StyleConfig? style) {
+    final borderType = style?.borderType;
+    if (borderType == null || borderType == BorderType.none) {
+      return child;
+    }
+
+    switch (borderType) {
+      case BorderType.none:
+        return child;
+      case BorderType.plainThin:
+        return pw.Container(
+          decoration: pw.BoxDecoration(
+            border: pw.Border.all(width: 0.5),
+          ),
+          child: child,
+        );
+      case BorderType.plainThick:
+        return pw.Container(
+          decoration: pw.BoxDecoration(
+            border: pw.Border.all(width: 2.0),
+          ),
+          child: child,
+        );
+      case BorderType.doubleOffset:
+        return pw.Container(
+          decoration: pw.BoxDecoration(
+            border: pw.Border.all(width: 0.5),
+          ),
+          child: pw.Padding(
+            padding: const pw.EdgeInsets.all(3),
+            child: pw.Container(
+              decoration: pw.BoxDecoration(
+                border: pw.Border.all(width: 0.5),
+              ),
+              child: child,
+            ),
+          ),
+        );
+      case BorderType.dropShadow:
+        return pw.Container(
+          decoration: pw.BoxDecoration(
+            border: pw.Border.all(width: 0.5),
+            boxShadow: const [
+              pw.BoxShadow(
+                color: PdfColors.grey400,
+                offset: PdfPoint(2, -2),
+                blurRadius: 3,
+              ),
+            ],
+          ),
+          child: child,
+        );
+    }
   }
 }

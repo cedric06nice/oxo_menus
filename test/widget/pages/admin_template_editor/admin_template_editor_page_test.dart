@@ -413,6 +413,7 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byKey(const Key('add_container_1')));
       await tester.tap(find.byKey(const Key('add_container_1')));
       await tester.pumpAndSettle();
 

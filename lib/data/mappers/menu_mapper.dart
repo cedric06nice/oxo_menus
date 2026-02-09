@@ -1,5 +1,6 @@
 import 'package:oxo_menus/data/models/menu_dto.dart';
 import 'package:oxo_menus/data/models/size_dto.dart';
+import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
@@ -135,6 +136,9 @@ class MenuMapper {
       paddingBottom: (json['paddingBottom'] as num?)?.toDouble(),
       paddingLeft: (json['paddingLeft'] as num?)?.toDouble(),
       paddingRight: (json['paddingRight'] as num?)?.toDouble(),
+      borderType: json['borderType'] != null
+          ? BorderTypeConverter.fromString(json['borderType'] as String)
+          : null,
     );
   }
 
@@ -162,6 +166,9 @@ class MenuMapper {
     }
     if (config.paddingLeft != null) map['paddingLeft'] = config.paddingLeft;
     if (config.paddingRight != null) map['paddingRight'] = config.paddingRight;
+    if (config.borderType != null) {
+      map['borderType'] = BorderTypeConverter.toJsonString(config.borderType!);
+    }
 
     return map;
   }
