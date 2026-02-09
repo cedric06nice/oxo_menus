@@ -42,6 +42,10 @@ abstract class StyleConfig with _$StyleConfig {
     double? marginLeft,
     double? marginRight,
     double? padding,
+    double? paddingTop,
+    double? paddingBottom,
+    double? paddingLeft,
+    double? paddingRight,
   }) = _StyleConfig;
 
   factory StyleConfig.fromJson(Map<String, dynamic> json) =>

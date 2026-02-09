@@ -462,6 +462,7 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byKey(const Key('delete_container_1')));
       await tester.tap(find.byKey(const Key('delete_container_1')));
       await tester.pumpAndSettle();
 
@@ -516,8 +517,10 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
-      // Assert - should show 2 columns
+      // Assert - should show 2 columns (scroll to make visible)
+      await tester.ensureVisible(find.byKey(const Key('column_1')));
       expect(find.byKey(const Key('column_1')), findsOneWidget);
+      await tester.ensureVisible(find.byKey(const Key('column_2')));
       expect(find.byKey(const Key('column_2')), findsOneWidget);
     });
 
@@ -565,6 +568,7 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byKey(const Key('add_column_1')));
       await tester.tap(find.byKey(const Key('add_column_1')));
       await tester.pumpAndSettle();
 
@@ -613,6 +617,7 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byKey(const Key('delete_column_1')));
       await tester.tap(find.byKey(const Key('delete_column_1')));
       await tester.pumpAndSettle();
 
@@ -658,6 +663,77 @@ void main() {
       // Assert
       verify(() => mockMenuRepository.update(any())).called(1);
       expect(find.text('Template saved'), findsOneWidget);
+    });
+
+    testWidgets('should display PageStyleSection after load', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Style Test',
+        status: Status.draft,
+        version: '1.0.0',
+        styleConfig: StyleConfig(marginTop: 20.0),
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.text('Page Style'), findsOneWidget);
+      expect(find.text('Margins'), findsOneWidget);
+      expect(find.text('Paddings'), findsOneWidget);
+    });
+
+    testWidgets('should save styleConfig when save is pressed after editing',
+        (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Style Test',
+        status: Status.draft,
+        version: '1.0.0',
+        styleConfig: StyleConfig(marginTop: 20.0),
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.update(any()),
+      ).thenAnswer((_) async => const Success(menu));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Edit margin top
+      await tester.enterText(find.byKey(const Key('margin_top')), '30');
+      await tester.pumpAndSettle();
+
+      // Press save
+      await tester.tap(find.byIcon(Icons.save));
+      await tester.pumpAndSettle();
+
+      // Assert
+      final captured =
+          verify(() => mockMenuRepository.update(captureAny()))
+              .captured
+              .single as UpdateMenuInput;
+      expect(captured.styleConfig, isNotNull);
+      expect(captured.styleConfig!.marginTop, 30.0);
     });
 
     testWidgets('should publish template', (tester) async {

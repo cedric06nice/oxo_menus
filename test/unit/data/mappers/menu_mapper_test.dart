@@ -236,6 +236,86 @@ void main() {
         expect(dto.containsKey('status'), false);
         expect(dto.containsKey('style_json'), false);
       });
+
+      test('should serialize per-side padding in style_json', () {
+        // Arrange
+        const input = UpdateMenuInput(
+          id: 1,
+          styleConfig: StyleConfig(
+            paddingTop: 10.0,
+            paddingBottom: 12.0,
+            paddingLeft: 8.0,
+            paddingRight: 8.0,
+          ),
+        );
+
+        // Act
+        final dto = MenuMapper.toUpdateDto(input);
+
+        // Assert
+        expect(dto['style_json']['paddingTop'], 10.0);
+        expect(dto['style_json']['paddingBottom'], 12.0);
+        expect(dto['style_json']['paddingLeft'], 8.0);
+        expect(dto['style_json']['paddingRight'], 8.0);
+      });
+    });
+
+    group('per-side padding', () {
+      test('should parse per-side padding from styleJson in toEntity', () {
+        // Arrange
+        final json = {
+          'id': 1,
+          'status': 'published',
+          'name': 'Menu With Padding',
+          'version': '1.0.0',
+          'style_json': {
+            'paddingTop': 10.0,
+            'paddingBottom': 12.0,
+            'paddingLeft': 8.0,
+            'paddingRight': 8.0,
+            'marginTop': 20.0,
+            'marginBottom': 20.0,
+            'marginLeft': 15.0,
+            'marginRight': 15.0,
+          },
+        };
+        final dto = MenuDto(json);
+
+        // Act
+        final entity = MenuMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.styleConfig, isNotNull);
+        expect(entity.styleConfig!.paddingTop, 10.0);
+        expect(entity.styleConfig!.paddingBottom, 12.0);
+        expect(entity.styleConfig!.paddingLeft, 8.0);
+        expect(entity.styleConfig!.paddingRight, 8.0);
+        expect(entity.styleConfig!.marginTop, 20.0);
+      });
+
+      test('should map legacy single padding without per-side values', () {
+        // Arrange
+        final json = {
+          'id': 1,
+          'status': 'draft',
+          'name': 'Legacy Menu',
+          'version': '1.0.0',
+          'style_json': {
+            'padding': 16.0,
+          },
+        };
+        final dto = MenuDto(json);
+
+        // Act
+        final entity = MenuMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.styleConfig!.padding, 16.0);
+        expect(entity.styleConfig!.paddingTop, isNull);
+        expect(entity.styleConfig!.paddingBottom, isNull);
+        expect(entity.styleConfig!.paddingLeft, isNull);
+        expect(entity.styleConfig!.paddingRight, isNull);
+      });
     });
   });
 }

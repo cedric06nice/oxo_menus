@@ -356,7 +356,7 @@ $PageSizeCopyWith<$Res>? get pageSize {
 /// @nodoc
 mixin _$StyleConfig {
 
- String? get fontFamily; double? get fontSize; String? get primaryColor; String? get secondaryColor; String? get backgroundColor; double? get marginTop; double? get marginBottom; double? get marginLeft; double? get marginRight; double? get padding;
+ String? get fontFamily; double? get fontSize; String? get primaryColor; String? get secondaryColor; String? get backgroundColor; double? get marginTop; double? get marginBottom; double? get marginLeft; double? get marginRight; double? get padding; double? get paddingTop; double? get paddingBottom; double? get paddingLeft; double? get paddingRight;
 /// Create a copy of StyleConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -369,16 +369,16 @@ $StyleConfigCopyWith<StyleConfig> get copyWith => _$StyleConfigCopyWithImpl<Styl
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StyleConfig&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.secondaryColor, secondaryColor) || other.secondaryColor == secondaryColor)&&(identical(other.backgroundColor, backgroundColor) || other.backgroundColor == backgroundColor)&&(identical(other.marginTop, marginTop) || other.marginTop == marginTop)&&(identical(other.marginBottom, marginBottom) || other.marginBottom == marginBottom)&&(identical(other.marginLeft, marginLeft) || other.marginLeft == marginLeft)&&(identical(other.marginRight, marginRight) || other.marginRight == marginRight)&&(identical(other.padding, padding) || other.padding == padding));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StyleConfig&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.secondaryColor, secondaryColor) || other.secondaryColor == secondaryColor)&&(identical(other.backgroundColor, backgroundColor) || other.backgroundColor == backgroundColor)&&(identical(other.marginTop, marginTop) || other.marginTop == marginTop)&&(identical(other.marginBottom, marginBottom) || other.marginBottom == marginBottom)&&(identical(other.marginLeft, marginLeft) || other.marginLeft == marginLeft)&&(identical(other.marginRight, marginRight) || other.marginRight == marginRight)&&(identical(other.padding, padding) || other.padding == padding)&&(identical(other.paddingTop, paddingTop) || other.paddingTop == paddingTop)&&(identical(other.paddingBottom, paddingBottom) || other.paddingBottom == paddingBottom)&&(identical(other.paddingLeft, paddingLeft) || other.paddingLeft == paddingLeft)&&(identical(other.paddingRight, paddingRight) || other.paddingRight == paddingRight));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,fontFamily,fontSize,primaryColor,secondaryColor,backgroundColor,marginTop,marginBottom,marginLeft,marginRight,padding);
+int get hashCode => Object.hash(runtimeType,fontFamily,fontSize,primaryColor,secondaryColor,backgroundColor,marginTop,marginBottom,marginLeft,marginRight,padding,paddingTop,paddingBottom,paddingLeft,paddingRight);
 
 @override
 String toString() {
-  return 'StyleConfig(fontFamily: $fontFamily, fontSize: $fontSize, primaryColor: $primaryColor, secondaryColor: $secondaryColor, backgroundColor: $backgroundColor, marginTop: $marginTop, marginBottom: $marginBottom, marginLeft: $marginLeft, marginRight: $marginRight, padding: $padding)';
+  return 'StyleConfig(fontFamily: $fontFamily, fontSize: $fontSize, primaryColor: $primaryColor, secondaryColor: $secondaryColor, backgroundColor: $backgroundColor, marginTop: $marginTop, marginBottom: $marginBottom, marginLeft: $marginLeft, marginRight: $marginRight, padding: $padding, paddingTop: $paddingTop, paddingBottom: $paddingBottom, paddingLeft: $paddingLeft, paddingRight: $paddingRight)';
 }
 
 
@@ -389,7 +389,7 @@ abstract mixin class $StyleConfigCopyWith<$Res>  {
   factory $StyleConfigCopyWith(StyleConfig value, $Res Function(StyleConfig) _then) = _$StyleConfigCopyWithImpl;
 @useResult
 $Res call({
- String? fontFamily, double? fontSize, String? primaryColor, String? secondaryColor, String? backgroundColor, double? marginTop, double? marginBottom, double? marginLeft, double? marginRight, double? padding
+ String? fontFamily, double? fontSize, String? primaryColor, String? secondaryColor, String? backgroundColor, double? marginTop, double? marginBottom, double? marginLeft, double? marginRight, double? padding, double? paddingTop, double? paddingBottom, double? paddingLeft, double? paddingRight
 });
 
 
@@ -406,7 +406,7 @@ class _$StyleConfigCopyWithImpl<$Res>
 
 /// Create a copy of StyleConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? fontFamily = freezed,Object? fontSize = freezed,Object? primaryColor = freezed,Object? secondaryColor = freezed,Object? backgroundColor = freezed,Object? marginTop = freezed,Object? marginBottom = freezed,Object? marginLeft = freezed,Object? marginRight = freezed,Object? padding = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? fontFamily = freezed,Object? fontSize = freezed,Object? primaryColor = freezed,Object? secondaryColor = freezed,Object? backgroundColor = freezed,Object? marginTop = freezed,Object? marginBottom = freezed,Object? marginLeft = freezed,Object? marginRight = freezed,Object? padding = freezed,Object? paddingTop = freezed,Object? paddingBottom = freezed,Object? paddingLeft = freezed,Object? paddingRight = freezed,}) {
   return _then(_self.copyWith(
 fontFamily: freezed == fontFamily ? _self.fontFamily : fontFamily // ignore: cast_nullable_to_non_nullable
 as String?,fontSize: freezed == fontSize ? _self.fontSize : fontSize // ignore: cast_nullable_to_non_nullable
@@ -418,6 +418,10 @@ as double?,marginBottom: freezed == marginBottom ? _self.marginBottom : marginBo
 as double?,marginLeft: freezed == marginLeft ? _self.marginLeft : marginLeft // ignore: cast_nullable_to_non_nullable
 as double?,marginRight: freezed == marginRight ? _self.marginRight : marginRight // ignore: cast_nullable_to_non_nullable
 as double?,padding: freezed == padding ? _self.padding : padding // ignore: cast_nullable_to_non_nullable
+as double?,paddingTop: freezed == paddingTop ? _self.paddingTop : paddingTop // ignore: cast_nullable_to_non_nullable
+as double?,paddingBottom: freezed == paddingBottom ? _self.paddingBottom : paddingBottom // ignore: cast_nullable_to_non_nullable
+as double?,paddingLeft: freezed == paddingLeft ? _self.paddingLeft : paddingLeft // ignore: cast_nullable_to_non_nullable
+as double?,paddingRight: freezed == paddingRight ? _self.paddingRight : paddingRight // ignore: cast_nullable_to_non_nullable
 as double?,
   ));
 }
@@ -503,10 +507,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? fontFamily,  double? fontSize,  String? primaryColor,  String? secondaryColor,  String? backgroundColor,  double? marginTop,  double? marginBottom,  double? marginLeft,  double? marginRight,  double? padding)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? fontFamily,  double? fontSize,  String? primaryColor,  String? secondaryColor,  String? backgroundColor,  double? marginTop,  double? marginBottom,  double? marginLeft,  double? marginRight,  double? padding,  double? paddingTop,  double? paddingBottom,  double? paddingLeft,  double? paddingRight)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StyleConfig() when $default != null:
-return $default(_that.fontFamily,_that.fontSize,_that.primaryColor,_that.secondaryColor,_that.backgroundColor,_that.marginTop,_that.marginBottom,_that.marginLeft,_that.marginRight,_that.padding);case _:
+return $default(_that.fontFamily,_that.fontSize,_that.primaryColor,_that.secondaryColor,_that.backgroundColor,_that.marginTop,_that.marginBottom,_that.marginLeft,_that.marginRight,_that.padding,_that.paddingTop,_that.paddingBottom,_that.paddingLeft,_that.paddingRight);case _:
   return orElse();
 
 }
@@ -524,10 +528,10 @@ return $default(_that.fontFamily,_that.fontSize,_that.primaryColor,_that.seconda
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? fontFamily,  double? fontSize,  String? primaryColor,  String? secondaryColor,  String? backgroundColor,  double? marginTop,  double? marginBottom,  double? marginLeft,  double? marginRight,  double? padding)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? fontFamily,  double? fontSize,  String? primaryColor,  String? secondaryColor,  String? backgroundColor,  double? marginTop,  double? marginBottom,  double? marginLeft,  double? marginRight,  double? padding,  double? paddingTop,  double? paddingBottom,  double? paddingLeft,  double? paddingRight)  $default,) {final _that = this;
 switch (_that) {
 case _StyleConfig():
-return $default(_that.fontFamily,_that.fontSize,_that.primaryColor,_that.secondaryColor,_that.backgroundColor,_that.marginTop,_that.marginBottom,_that.marginLeft,_that.marginRight,_that.padding);case _:
+return $default(_that.fontFamily,_that.fontSize,_that.primaryColor,_that.secondaryColor,_that.backgroundColor,_that.marginTop,_that.marginBottom,_that.marginLeft,_that.marginRight,_that.padding,_that.paddingTop,_that.paddingBottom,_that.paddingLeft,_that.paddingRight);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -544,10 +548,10 @@ return $default(_that.fontFamily,_that.fontSize,_that.primaryColor,_that.seconda
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? fontFamily,  double? fontSize,  String? primaryColor,  String? secondaryColor,  String? backgroundColor,  double? marginTop,  double? marginBottom,  double? marginLeft,  double? marginRight,  double? padding)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? fontFamily,  double? fontSize,  String? primaryColor,  String? secondaryColor,  String? backgroundColor,  double? marginTop,  double? marginBottom,  double? marginLeft,  double? marginRight,  double? padding,  double? paddingTop,  double? paddingBottom,  double? paddingLeft,  double? paddingRight)?  $default,) {final _that = this;
 switch (_that) {
 case _StyleConfig() when $default != null:
-return $default(_that.fontFamily,_that.fontSize,_that.primaryColor,_that.secondaryColor,_that.backgroundColor,_that.marginTop,_that.marginBottom,_that.marginLeft,_that.marginRight,_that.padding);case _:
+return $default(_that.fontFamily,_that.fontSize,_that.primaryColor,_that.secondaryColor,_that.backgroundColor,_that.marginTop,_that.marginBottom,_that.marginLeft,_that.marginRight,_that.padding,_that.paddingTop,_that.paddingBottom,_that.paddingLeft,_that.paddingRight);case _:
   return null;
 
 }
@@ -559,7 +563,7 @@ return $default(_that.fontFamily,_that.fontSize,_that.primaryColor,_that.seconda
 @JsonSerializable()
 
 class _StyleConfig extends StyleConfig {
-  const _StyleConfig({this.fontFamily, this.fontSize, this.primaryColor, this.secondaryColor, this.backgroundColor, this.marginTop, this.marginBottom, this.marginLeft, this.marginRight, this.padding}): super._();
+  const _StyleConfig({this.fontFamily, this.fontSize, this.primaryColor, this.secondaryColor, this.backgroundColor, this.marginTop, this.marginBottom, this.marginLeft, this.marginRight, this.padding, this.paddingTop, this.paddingBottom, this.paddingLeft, this.paddingRight}): super._();
   factory _StyleConfig.fromJson(Map<String, dynamic> json) => _$StyleConfigFromJson(json);
 
 @override final  String? fontFamily;
@@ -572,6 +576,10 @@ class _StyleConfig extends StyleConfig {
 @override final  double? marginLeft;
 @override final  double? marginRight;
 @override final  double? padding;
+@override final  double? paddingTop;
+@override final  double? paddingBottom;
+@override final  double? paddingLeft;
+@override final  double? paddingRight;
 
 /// Create a copy of StyleConfig
 /// with the given fields replaced by the non-null parameter values.
@@ -586,16 +594,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StyleConfig&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.secondaryColor, secondaryColor) || other.secondaryColor == secondaryColor)&&(identical(other.backgroundColor, backgroundColor) || other.backgroundColor == backgroundColor)&&(identical(other.marginTop, marginTop) || other.marginTop == marginTop)&&(identical(other.marginBottom, marginBottom) || other.marginBottom == marginBottom)&&(identical(other.marginLeft, marginLeft) || other.marginLeft == marginLeft)&&(identical(other.marginRight, marginRight) || other.marginRight == marginRight)&&(identical(other.padding, padding) || other.padding == padding));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StyleConfig&&(identical(other.fontFamily, fontFamily) || other.fontFamily == fontFamily)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.primaryColor, primaryColor) || other.primaryColor == primaryColor)&&(identical(other.secondaryColor, secondaryColor) || other.secondaryColor == secondaryColor)&&(identical(other.backgroundColor, backgroundColor) || other.backgroundColor == backgroundColor)&&(identical(other.marginTop, marginTop) || other.marginTop == marginTop)&&(identical(other.marginBottom, marginBottom) || other.marginBottom == marginBottom)&&(identical(other.marginLeft, marginLeft) || other.marginLeft == marginLeft)&&(identical(other.marginRight, marginRight) || other.marginRight == marginRight)&&(identical(other.padding, padding) || other.padding == padding)&&(identical(other.paddingTop, paddingTop) || other.paddingTop == paddingTop)&&(identical(other.paddingBottom, paddingBottom) || other.paddingBottom == paddingBottom)&&(identical(other.paddingLeft, paddingLeft) || other.paddingLeft == paddingLeft)&&(identical(other.paddingRight, paddingRight) || other.paddingRight == paddingRight));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,fontFamily,fontSize,primaryColor,secondaryColor,backgroundColor,marginTop,marginBottom,marginLeft,marginRight,padding);
+int get hashCode => Object.hash(runtimeType,fontFamily,fontSize,primaryColor,secondaryColor,backgroundColor,marginTop,marginBottom,marginLeft,marginRight,padding,paddingTop,paddingBottom,paddingLeft,paddingRight);
 
 @override
 String toString() {
-  return 'StyleConfig(fontFamily: $fontFamily, fontSize: $fontSize, primaryColor: $primaryColor, secondaryColor: $secondaryColor, backgroundColor: $backgroundColor, marginTop: $marginTop, marginBottom: $marginBottom, marginLeft: $marginLeft, marginRight: $marginRight, padding: $padding)';
+  return 'StyleConfig(fontFamily: $fontFamily, fontSize: $fontSize, primaryColor: $primaryColor, secondaryColor: $secondaryColor, backgroundColor: $backgroundColor, marginTop: $marginTop, marginBottom: $marginBottom, marginLeft: $marginLeft, marginRight: $marginRight, padding: $padding, paddingTop: $paddingTop, paddingBottom: $paddingBottom, paddingLeft: $paddingLeft, paddingRight: $paddingRight)';
 }
 
 
@@ -606,7 +614,7 @@ abstract mixin class _$StyleConfigCopyWith<$Res> implements $StyleConfigCopyWith
   factory _$StyleConfigCopyWith(_StyleConfig value, $Res Function(_StyleConfig) _then) = __$StyleConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String? fontFamily, double? fontSize, String? primaryColor, String? secondaryColor, String? backgroundColor, double? marginTop, double? marginBottom, double? marginLeft, double? marginRight, double? padding
+ String? fontFamily, double? fontSize, String? primaryColor, String? secondaryColor, String? backgroundColor, double? marginTop, double? marginBottom, double? marginLeft, double? marginRight, double? padding, double? paddingTop, double? paddingBottom, double? paddingLeft, double? paddingRight
 });
 
 
@@ -623,7 +631,7 @@ class __$StyleConfigCopyWithImpl<$Res>
 
 /// Create a copy of StyleConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? fontFamily = freezed,Object? fontSize = freezed,Object? primaryColor = freezed,Object? secondaryColor = freezed,Object? backgroundColor = freezed,Object? marginTop = freezed,Object? marginBottom = freezed,Object? marginLeft = freezed,Object? marginRight = freezed,Object? padding = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? fontFamily = freezed,Object? fontSize = freezed,Object? primaryColor = freezed,Object? secondaryColor = freezed,Object? backgroundColor = freezed,Object? marginTop = freezed,Object? marginBottom = freezed,Object? marginLeft = freezed,Object? marginRight = freezed,Object? padding = freezed,Object? paddingTop = freezed,Object? paddingBottom = freezed,Object? paddingLeft = freezed,Object? paddingRight = freezed,}) {
   return _then(_StyleConfig(
 fontFamily: freezed == fontFamily ? _self.fontFamily : fontFamily // ignore: cast_nullable_to_non_nullable
 as String?,fontSize: freezed == fontSize ? _self.fontSize : fontSize // ignore: cast_nullable_to_non_nullable
@@ -635,6 +643,10 @@ as double?,marginBottom: freezed == marginBottom ? _self.marginBottom : marginBo
 as double?,marginLeft: freezed == marginLeft ? _self.marginLeft : marginLeft // ignore: cast_nullable_to_non_nullable
 as double?,marginRight: freezed == marginRight ? _self.marginRight : marginRight // ignore: cast_nullable_to_non_nullable
 as double?,padding: freezed == padding ? _self.padding : padding // ignore: cast_nullable_to_non_nullable
+as double?,paddingTop: freezed == paddingTop ? _self.paddingTop : paddingTop // ignore: cast_nullable_to_non_nullable
+as double?,paddingBottom: freezed == paddingBottom ? _self.paddingBottom : paddingBottom // ignore: cast_nullable_to_non_nullable
+as double?,paddingLeft: freezed == paddingLeft ? _self.paddingLeft : paddingLeft // ignore: cast_nullable_to_non_nullable
+as double?,paddingRight: freezed == paddingRight ? _self.paddingRight : paddingRight // ignore: cast_nullable_to_non_nullable
 as double?,
   ));
 }

@@ -131,6 +131,10 @@ class MenuMapper {
       marginLeft: (json['marginLeft'] as num?)?.toDouble(),
       marginRight: (json['marginRight'] as num?)?.toDouble(),
       padding: (json['padding'] as num?)?.toDouble(),
+      paddingTop: (json['paddingTop'] as num?)?.toDouble(),
+      paddingBottom: (json['paddingBottom'] as num?)?.toDouble(),
+      paddingLeft: (json['paddingLeft'] as num?)?.toDouble(),
+      paddingRight: (json['paddingRight'] as num?)?.toDouble(),
     );
   }
 
@@ -152,6 +156,12 @@ class MenuMapper {
     if (config.marginLeft != null) map['marginLeft'] = config.marginLeft;
     if (config.marginRight != null) map['marginRight'] = config.marginRight;
     if (config.padding != null) map['padding'] = config.padding;
+    if (config.paddingTop != null) map['paddingTop'] = config.paddingTop;
+    if (config.paddingBottom != null) {
+      map['paddingBottom'] = config.paddingBottom;
+    }
+    if (config.paddingLeft != null) map['paddingLeft'] = config.paddingLeft;
+    if (config.paddingRight != null) map['paddingRight'] = config.paddingRight;
 
     return map;
   }

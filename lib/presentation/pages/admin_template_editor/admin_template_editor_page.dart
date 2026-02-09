@@ -11,6 +11,7 @@ import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/page_style_section.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 
 /// Admin Template Editor Page
@@ -235,11 +236,17 @@ class _AdminTemplateEditorPageState
     );
   }
 
+  void _onStyleChanged(StyleConfig newStyle) {
+    setState(() {
+      _menu = _menu?.copyWith(styleConfig: newStyle);
+    });
+  }
+
   Future<void> _saveTemplate() async {
     final result = await ref.read(menuRepositoryProvider).update(
           UpdateMenuInput(
             id: widget.menuId,
-            // Keep existing data for now
+            styleConfig: _menu?.styleConfig,
           ),
         );
 
@@ -302,6 +309,13 @@ class _AdminTemplateEditorPageState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Page Style Section
+              PageStyleSection(
+                styleConfig: _menu?.styleConfig,
+                onStyleChanged: _onStyleChanged,
+              ),
+              const SizedBox(height: 16),
+
               // Add Page Button
               ElevatedButton.icon(
                 key: const Key('add_page_button'),

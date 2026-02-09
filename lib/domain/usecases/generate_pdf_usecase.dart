@@ -2,7 +2,10 @@ import 'package:flutter/services.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/allergens/allergen_formatter.dart';
+import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
+import 'package:oxo_menus/domain/usecases/pdf_style_resolver.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/domain/widgets/section/section_props.dart';
 import 'package:oxo_menus/domain/widgets/text/text_props.dart';
@@ -14,7 +17,11 @@ import 'package:pdf/widgets.dart' as pw;
 /// Generates a PDF document from a MenuTree matching the exact visual layout.
 /// Uses the pdf package for client-side PDF generation.
 class GeneratePdfUseCase {
-  const GeneratePdfUseCase();
+  final PdfStyleResolver _resolver;
+
+  const GeneratePdfUseCase({
+    PdfStyleResolver resolver = const PdfStyleResolver(),
+  }) : _resolver = resolver;
 
   /// Execute PDF generation for a menu tree
   Future<Result<Uint8List, DomainError>> execute(MenuTree menuTree) async {
@@ -29,15 +36,17 @@ class GeneratePdfUseCase {
     try {
       final pdf = pw.Document(theme: oxoTheme, version: PdfVersion.pdf_1_5);
 
-      // Apply page size from menu config
-      final pageFormat = _getPageFormat(menuTree.menu.pageSize);
+      final styleConfig = menuTree.menu.styleConfig;
+      final pageFormat = _resolver.resolvePageFormat(menuTree.menu.pageSize);
+      final pageMargins = _resolver.resolvePageMargins(styleConfig);
 
       // Generate pages
       for (final pageData in menuTree.pages) {
         pdf.addPage(
           pw.Page(
             pageFormat: pageFormat,
-            build: (context) => _buildPage(pageData, menuTree.menu.styleConfig),
+            margin: pageMargins,
+            build: (context) => _buildPage(pageData, styleConfig),
           ),
         );
       }
@@ -49,48 +58,15 @@ class GeneratePdfUseCase {
     }
   }
 
-  /// Get PDF page format from menu page size configuration
-  PdfPageFormat _getPageFormat(dynamic pageSize) {
-    if (pageSize == null) return PdfPageFormat.a4;
-
-    // pageSize is a Map<String, dynamic> from JSON
-    if (pageSize is Map<String, dynamic>) {
-      final name = pageSize['name'] as String?;
-      final width = pageSize['width'] as num?;
-      final height = pageSize['height'] as num?;
-
-      // Use predefined formats if name matches
-      if (name != null) {
-        switch (name.toLowerCase()) {
-          case 'a4':
-            return PdfPageFormat.a4;
-          case 'letter':
-            return PdfPageFormat.letter;
-          case 'legal':
-            return PdfPageFormat.legal;
-          case 'a3':
-            return PdfPageFormat.a3;
-        }
-      }
-
-      // Custom size if width and height provided
-      if (width != null && height != null) {
-        return PdfPageFormat(
-          width.toDouble() * PdfPageFormat.mm,
-          height.toDouble() * PdfPageFormat.mm,
-        );
-      }
-    }
-
-    return PdfPageFormat.a4;
-  }
-
   /// Build a single page with containers
-  pw.Widget _buildPage(PageWithContainers pageData, dynamic styleConfig) {
-    final padding = _getDoubleValue(styleConfig, 'padding') ?? 16.0;
+  pw.Widget _buildPage(
+    PageWithContainers pageData,
+    StyleConfig? styleConfig,
+  ) {
+    final padding = _resolver.resolveContentPadding(styleConfig);
 
     return pw.Container(
-      padding: pw.EdgeInsets.all(padding),
+      padding: padding,
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: pageData.containers.map((containerData) {
@@ -103,7 +79,7 @@ class GeneratePdfUseCase {
   /// Build a container with columns in a row
   pw.Widget _buildContainer(
     ContainerWithColumns containerData,
-    dynamic styleConfig,
+    StyleConfig? styleConfig,
   ) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 16),
@@ -127,7 +103,10 @@ class GeneratePdfUseCase {
   }
 
   /// Build a column with widgets
-  pw.Widget _buildColumn(ColumnWithWidgets columnData, dynamic styleConfig) {
+  pw.Widget _buildColumn(
+    ColumnWithWidgets columnData,
+    StyleConfig? styleConfig,
+  ) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(horizontal: 4),
       child: pw.Column(
@@ -140,11 +119,8 @@ class GeneratePdfUseCase {
   }
 
   /// Build a widget based on its type
-  pw.Widget _buildWidget(dynamic widget, dynamic styleConfig) {
-    // widget is a WidgetInstance with type and props
-    final type = widget.type as String;
-
-    switch (type) {
+  pw.Widget _buildWidget(WidgetInstance widget, StyleConfig? styleConfig) {
+    switch (widget.type) {
       case 'dish':
         return _buildDishWidget(widget, styleConfig);
       case 'text':
@@ -157,9 +133,9 @@ class GeneratePdfUseCase {
   }
 
   /// Build dish widget in PDF
-  pw.Widget _buildDishWidget(dynamic widget, dynamic styleConfig) {
-    final props = DishProps.fromJson(widget.props as Map<String, dynamic>);
-    final baseFontSize = _getDoubleValue(styleConfig, 'fontSize') ?? 14.0;
+  pw.Widget _buildDishWidget(WidgetInstance widget, StyleConfig? styleConfig) {
+    final props = DishProps.fromJson(widget.props);
+    final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
 
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 8),
@@ -252,9 +228,9 @@ class GeneratePdfUseCase {
   }
 
   /// Build text widget in PDF
-  pw.Widget _buildTextWidget(dynamic widget, dynamic styleConfig) {
-    final props = TextProps.fromJson(widget.props as Map<String, dynamic>);
-    final baseFontSize = _getDoubleValue(styleConfig, 'fontSize') ?? 14.0;
+  pw.Widget _buildTextWidget(WidgetInstance widget, StyleConfig? styleConfig) {
+    final props = TextProps.fromJson(widget.props);
+    final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
 
     pw.TextAlign alignment;
     switch (props.align) {
@@ -295,9 +271,12 @@ class GeneratePdfUseCase {
   }
 
   /// Build section widget in PDF
-  pw.Widget _buildSectionWidget(dynamic widget, dynamic styleConfig) {
-    final props = SectionProps.fromJson(widget.props as Map<String, dynamic>);
-    final baseFontSize = _getDoubleValue(styleConfig, 'fontSize') ?? 14.0;
+  pw.Widget _buildSectionWidget(
+    WidgetInstance widget,
+    StyleConfig? styleConfig,
+  ) {
+    final props = SectionProps.fromJson(widget.props);
+    final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
 
     final title = props.uppercase ? props.title.toUpperCase() : props.title;
 
@@ -321,17 +300,5 @@ class GeneratePdfUseCase {
         ],
       ),
     );
-  }
-
-  /// Helper to safely get double value from styleConfig
-  double? _getDoubleValue(dynamic styleConfig, String key) {
-    if (styleConfig == null) return null;
-    if (styleConfig is! Map<String, dynamic>) return null;
-    final value = styleConfig[key];
-    if (value == null) return null;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is num) return value.toDouble();
-    return null;
   }
 }

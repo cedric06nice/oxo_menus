@@ -228,6 +228,76 @@ void main() {
       expect(config.fontSize, 14.0);
       expect(config.primaryColor, '#000000');
     });
+
+    test('should create StyleConfig with per-side padding fields', () {
+      const config = StyleConfig(
+        paddingTop: 10.0,
+        paddingBottom: 12.0,
+        paddingLeft: 8.0,
+        paddingRight: 8.0,
+      );
+
+      expect(config.paddingTop, 10.0);
+      expect(config.paddingBottom, 12.0);
+      expect(config.paddingLeft, 8.0);
+      expect(config.paddingRight, 8.0);
+    });
+
+    test('should default per-side padding fields to null', () {
+      const config = StyleConfig();
+
+      expect(config.paddingTop, isNull);
+      expect(config.paddingBottom, isNull);
+      expect(config.paddingLeft, isNull);
+      expect(config.paddingRight, isNull);
+    });
+
+    test('should support copyWith for per-side padding', () {
+      const config = StyleConfig(padding: 16.0);
+
+      final updated = config.copyWith(
+        paddingTop: 20.0,
+        paddingBottom: 24.0,
+      );
+
+      expect(updated.padding, 16.0);
+      expect(updated.paddingTop, 20.0);
+      expect(updated.paddingBottom, 24.0);
+      expect(updated.paddingLeft, isNull);
+      expect(updated.paddingRight, isNull);
+    });
+
+    test('should serialize per-side padding to JSON', () {
+      const config = StyleConfig(
+        paddingTop: 10.0,
+        paddingBottom: 12.0,
+        paddingLeft: 8.0,
+        paddingRight: 8.0,
+      );
+
+      final json = config.toJson();
+
+      expect(json['paddingTop'], 10.0);
+      expect(json['paddingBottom'], 12.0);
+      expect(json['paddingLeft'], 8.0);
+      expect(json['paddingRight'], 8.0);
+    });
+
+    test('should deserialize per-side padding from JSON', () {
+      final json = {
+        'paddingTop': 10.0,
+        'paddingBottom': 12.0,
+        'paddingLeft': 8.0,
+        'paddingRight': 8.0,
+      };
+
+      final config = StyleConfig.fromJson(json);
+
+      expect(config.paddingTop, 10.0);
+      expect(config.paddingBottom, 12.0);
+      expect(config.paddingLeft, 8.0);
+      expect(config.paddingRight, 8.0);
+    });
   });
 
   group('PageSize', () {

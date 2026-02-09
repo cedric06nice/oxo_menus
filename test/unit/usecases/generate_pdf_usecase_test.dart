@@ -630,6 +630,25 @@ void main() {
         );
         expect(result.isSuccess, true);
       });
+
+      test('should generate PDF with per-side padding and margins', () async {
+        final result = await useCase.execute(
+          menuWithStyleAndWidget(
+            const StyleConfig(
+              marginTop: 40.0,
+              marginBottom: 40.0,
+              marginLeft: 30.0,
+              marginRight: 30.0,
+              paddingTop: 10.0,
+              paddingBottom: 10.0,
+              paddingLeft: 10.0,
+              paddingRight: 10.0,
+            ),
+            makeDish(),
+          ),
+        );
+        expect(result.isSuccess, true);
+      });
     });
   });
 }

@@ -59,6 +59,10 @@ _StyleConfig _$StyleConfigFromJson(Map<String, dynamic> json) => _StyleConfig(
   marginLeft: (json['marginLeft'] as num?)?.toDouble(),
   marginRight: (json['marginRight'] as num?)?.toDouble(),
   padding: (json['padding'] as num?)?.toDouble(),
+  paddingTop: (json['paddingTop'] as num?)?.toDouble(),
+  paddingBottom: (json['paddingBottom'] as num?)?.toDouble(),
+  paddingLeft: (json['paddingLeft'] as num?)?.toDouble(),
+  paddingRight: (json['paddingRight'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$StyleConfigToJson(_StyleConfig instance) =>
@@ -73,6 +77,10 @@ Map<String, dynamic> _$StyleConfigToJson(_StyleConfig instance) =>
       'marginLeft': instance.marginLeft,
       'marginRight': instance.marginRight,
       'padding': instance.padding,
+      'paddingTop': instance.paddingTop,
+      'paddingBottom': instance.paddingBottom,
+      'paddingLeft': instance.paddingLeft,
+      'paddingRight': instance.paddingRight,
     };
 
 _PageSize _$PageSizeFromJson(Map<String, dynamic> json) => _PageSize(
