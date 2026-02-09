@@ -1,3 +1,4 @@
+import 'package:oxo_menus/data/mappers/display_options_mapper.dart';
 import 'package:oxo_menus/data/mappers/style_config_mapper.dart';
 import 'package:oxo_menus/data/models/menu_dto.dart';
 import 'package:oxo_menus/data/models/size_dto.dart';
@@ -24,6 +25,9 @@ class MenuMapper {
           ? StyleConfigMapper.fromJson(dto.styleJson)
           : null,
       pageSize: _mapSizeDtoToPageSize(sizeDto),
+      displayOptions: dto.displayOptionsJson.isNotEmpty
+          ? DisplayOptionsMapper.fromJson(dto.displayOptionsJson)
+          : null,
     );
   }
 
@@ -88,6 +92,11 @@ class MenuMapper {
     if (input.area != null) {
       map['area'] = _mapAreaStringToId(input.area!);
     }
+    if (input.displayOptions != null) {
+      map['display_options_json'] = DisplayOptionsMapper.toJson(
+        input.displayOptions!,
+      );
+    }
 
     return map;
   }
@@ -114,6 +123,11 @@ class MenuMapper {
     }
     if (input.area != null) {
       map['area'] = _mapAreaStringToId(input.area!);
+    }
+    if (input.displayOptions != null) {
+      map['display_options_json'] = DisplayOptionsMapper.toJson(
+        input.displayOptions!,
+      );
     }
 
     return map;

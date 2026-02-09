@@ -10,9 +10,11 @@ import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
+import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/page_style_section.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/menu_display_options_dialog.dart';
 
 /// Admin Template Editor Page
 ///
@@ -20,10 +22,7 @@ import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dar
 class AdminTemplateEditorPage extends ConsumerStatefulWidget {
   final int menuId;
 
-  const AdminTemplateEditorPage({
-    super.key,
-    required this.menuId,
-  });
+  const AdminTemplateEditorPage({super.key, required this.menuId});
 
   @override
   ConsumerState<AdminTemplateEditorPage> createState() =>
@@ -54,13 +53,15 @@ class _AdminTemplateEditorPageState
     });
 
     // Load menu
-    final menuResult =
-        await ref.read(menuRepositoryProvider).getById(widget.menuId);
+    final menuResult = await ref
+        .read(menuRepositoryProvider)
+        .getById(widget.menuId);
 
     if (menuResult.isFailure) {
       setState(() {
         _isLoading = false;
-        _errorMessage = menuResult.errorOrNull?.message ?? 'Failed to load menu';
+        _errorMessage =
+            menuResult.errorOrNull?.message ?? 'Failed to load menu';
       });
       return;
     }
@@ -68,8 +69,9 @@ class _AdminTemplateEditorPageState
     _menu = menuResult.valueOrNull!;
 
     // Load pages
-    final pagesResult =
-        await ref.read(pageRepositoryProvider).getAllForMenu(widget.menuId);
+    final pagesResult = await ref
+        .read(pageRepositoryProvider)
+        .getAllForMenu(widget.menuId);
 
     if (pagesResult.isFailure) {
       setState(() {
@@ -88,12 +90,14 @@ class _AdminTemplateEditorPageState
     _columns.clear();
 
     for (final page in _pages) {
-      final containersResult =
-          await ref.read(containerRepositoryProvider).getAllForPage(page.id);
+      final containersResult = await ref
+          .read(containerRepositoryProvider)
+          .getAllForPage(page.id);
 
       if (containersResult.isSuccess) {
-        final containers = List<entity.Container>.from(containersResult.valueOrNull!)
-          ..sort((a, b) => a.index.compareTo(b.index));
+        final containers = List<entity.Container>.from(
+          containersResult.valueOrNull!,
+        )..sort((a, b) => a.index.compareTo(b.index));
         _containers[page.id] = containers;
 
         // Load columns for each container
@@ -103,8 +107,9 @@ class _AdminTemplateEditorPageState
               .getAllForContainer(container.id);
 
           if (columnsResult.isSuccess) {
-            _columns[container.id] = List<entity.Column>.from(columnsResult.valueOrNull!)
-              ..sort((a, b) => a.index.compareTo(b.index));
+            _columns[container.id] = List<entity.Column>.from(
+              columnsResult.valueOrNull!,
+            )..sort((a, b) => a.index.compareTo(b.index));
           }
         }
       }
@@ -113,10 +118,42 @@ class _AdminTemplateEditorPageState
     setState(() {
       _isLoading = false;
     });
+
+    // Set display options in provider
+    ref.read(menuDisplayOptionsProvider.notifier).state = _menu?.displayOptions;
+  }
+
+  Future<void> _showDisplayOptionsDialog() async {
+    showDialog(
+      context: context,
+      builder: (ctx) => MenuDisplayOptionsDialog(
+        displayOptions: _menu?.displayOptions,
+        onSave: (options) async {
+          final result = await ref
+              .read(menuRepositoryProvider)
+              .update(
+                UpdateMenuInput(id: widget.menuId, displayOptions: options),
+              );
+          if (result.isSuccess) {
+            setState(() {
+              _menu = _menu?.copyWith(displayOptions: options);
+            });
+            ref.read(menuDisplayOptionsProvider.notifier).state = options;
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Display options saved')),
+              );
+            }
+          }
+        },
+      ),
+    );
   }
 
   Future<void> _addPage() async {
-    final result = await ref.read(pageRepositoryProvider).create(
+    final result = await ref
+        .read(pageRepositoryProvider)
+        .create(
           CreatePageInput(
             menuId: widget.menuId,
             name: 'Page ${_pages.length + 1}',
@@ -129,7 +166,9 @@ class _AdminTemplateEditorPageState
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to add page: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+          content: Text(
+            'Failed to add page: ${result.errorOrNull?.message ?? 'Unknown error'}',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -149,7 +188,9 @@ class _AdminTemplateEditorPageState
 
   Future<void> _addContainer(int pageId) async {
     final containers = _containers[pageId] ?? [];
-    final result = await ref.read(containerRepositoryProvider).create(
+    final result = await ref
+        .read(containerRepositoryProvider)
+        .create(
           CreateContainerInput(
             pageId: pageId,
             index: containers.length,
@@ -163,7 +204,8 @@ class _AdminTemplateEditorPageState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Failed to add container: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+            'Failed to add container: ${result.errorOrNull?.message ?? 'Unknown error'}',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -174,8 +216,9 @@ class _AdminTemplateEditorPageState
     final confirmed = await _showDeleteConfirmation();
     if (confirmed != true) return;
 
-    final result =
-        await ref.read(containerRepositoryProvider).delete(containerId);
+    final result = await ref
+        .read(containerRepositoryProvider)
+        .delete(containerId);
 
     if (result.isSuccess) {
       await _loadTemplate();
@@ -184,7 +227,9 @@ class _AdminTemplateEditorPageState
 
   Future<void> _addColumn(int containerId) async {
     final columns = _columns[containerId] ?? [];
-    final result = await ref.read(columnRepositoryProvider).create(
+    final result = await ref
+        .read(columnRepositoryProvider)
+        .create(
           CreateColumnInput(
             containerId: containerId,
             index: columns.length,
@@ -198,7 +243,8 @@ class _AdminTemplateEditorPageState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Failed to add column: ${result.errorOrNull?.message ?? 'Unknown error'}'),
+            'Failed to add column: ${result.errorOrNull?.message ?? 'Unknown error'}',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -243,10 +289,12 @@ class _AdminTemplateEditorPageState
   }
 
   Future<void> _onContainerStyleChanged(
-      int containerId, StyleConfig newStyle) async {
-    await ref.read(containerRepositoryProvider).update(
-          UpdateContainerInput(id: containerId, styleConfig: newStyle),
-        );
+    int containerId,
+    StyleConfig newStyle,
+  ) async {
+    await ref
+        .read(containerRepositoryProvider)
+        .update(UpdateContainerInput(id: containerId, styleConfig: newStyle));
     // Update local state
     for (final entry in _containers.entries) {
       final idx = entry.value.indexWhere((c) => c.id == containerId);
@@ -259,11 +307,10 @@ class _AdminTemplateEditorPageState
     }
   }
 
-  Future<void> _onColumnStyleChanged(
-      int columnId, StyleConfig newStyle) async {
-    await ref.read(columnRepositoryProvider).update(
-          UpdateColumnInput(id: columnId, styleConfig: newStyle),
-        );
+  Future<void> _onColumnStyleChanged(int columnId, StyleConfig newStyle) async {
+    await ref
+        .read(columnRepositoryProvider)
+        .update(UpdateColumnInput(id: columnId, styleConfig: newStyle));
     // Update local state
     for (final entry in _columns.entries) {
       final idx = entry.value.indexWhere((c) => c.id == columnId);
@@ -277,32 +324,28 @@ class _AdminTemplateEditorPageState
   }
 
   Future<void> _saveTemplate() async {
-    final result = await ref.read(menuRepositoryProvider).update(
-          UpdateMenuInput(
-            id: widget.menuId,
-            styleConfig: _menu?.styleConfig,
-          ),
+    final result = await ref
+        .read(menuRepositoryProvider)
+        .update(
+          UpdateMenuInput(id: widget.menuId, styleConfig: _menu?.styleConfig),
         );
 
     if (result.isSuccess && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Template saved')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Template saved')));
     }
   }
 
   Future<void> _publishTemplate() async {
-    final result = await ref.read(menuRepositoryProvider).update(
-          UpdateMenuInput(
-            id: widget.menuId,
-            status: Status.published,
-          ),
-        );
+    final result = await ref
+        .read(menuRepositoryProvider)
+        .update(UpdateMenuInput(id: widget.menuId, status: Status.published));
 
     if (result.isSuccess && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Template published')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Template published')));
       await _loadTemplate();
     }
   }
@@ -326,6 +369,12 @@ class _AdminTemplateEditorPageState
     return AuthenticatedScaffold(
       title: _menu?.name ?? 'Template Editor',
       actions: [
+        IconButton(
+          key: const Key('display_options_button'),
+          onPressed: _showDisplayOptionsDialog,
+          icon: const Icon(Icons.tune),
+          tooltip: 'Display Options',
+        ),
         IconButton(
           icon: const Icon(Icons.save),
           onPressed: _saveTemplate,
@@ -473,10 +522,12 @@ class _AdminTemplateEditorPageState
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: columns
-                    .map((column) => Expanded(
-                          flex: column.flex ?? 1,
-                          child: _buildColumnCard(column),
-                        ))
+                    .map(
+                      (column) => Expanded(
+                        flex: column.flex ?? 1,
+                        child: _buildColumnCard(column),
+                      ),
+                    )
                     .toList(),
               ),
           ],

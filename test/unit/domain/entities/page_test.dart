@@ -4,12 +4,7 @@ import 'package:oxo_menus/domain/entities/page.dart';
 void main() {
   group('Page Entity', () {
     test('should create Page with required fields', () {
-      const page = Page(
-        id: 1,
-        menuId: 1,
-        name: 'Page 1',
-        index: 0,
-      );
+      const page = Page(id: 1, menuId: 1, name: 'Page 1', index: 0);
 
       expect(page.id, 1);
       expect(page.menuId, 1);
@@ -39,17 +34,9 @@ void main() {
     });
 
     test('should support copyWith', () {
-      const page = Page(
-        id: 1,
-        menuId: 1,
-        name: 'Page 1',
-        index: 0,
-      );
+      const page = Page(id: 1, menuId: 1, name: 'Page 1', index: 0);
 
-      final updated = page.copyWith(
-        name: 'Updated Page',
-        index: 1,
-      );
+      final updated = page.copyWith(name: 'Updated Page', index: 1);
 
       expect(updated.id, 1);
       expect(updated.menuId, 1);
@@ -58,31 +45,16 @@ void main() {
     });
 
     test('should support equality', () {
-      const page1 = Page(
-        id: 1,
-        menuId: 1,
-        name: 'Page 1',
-        index: 0,
-      );
+      const page1 = Page(id: 1, menuId: 1, name: 'Page 1', index: 0);
 
-      const page2 = Page(
-        id: 1,
-        menuId: 1,
-        name: 'Page 1',
-        index: 0,
-      );
+      const page2 = Page(id: 1, menuId: 1, name: 'Page 1', index: 0);
 
       expect(page1, equals(page2));
       expect(page1.hashCode, equals(page2.hashCode));
     });
 
     test('should serialize to JSON', () {
-      const page = Page(
-        id: 1,
-        menuId: 1,
-        name: 'Page 1',
-        index: 0,
-      );
+      const page = Page(id: 1, menuId: 1, name: 'Page 1', index: 0);
 
       final json = page.toJson();
 
@@ -93,12 +65,7 @@ void main() {
     });
 
     test('should deserialize from JSON', () {
-      final json = {
-        'id': 1,
-        'menuId': 1,
-        'name': 'Page 1',
-        'index': 0,
-      };
+      final json = {'id': 1, 'menuId': 1, 'name': 'Page 1', 'index': 0};
 
       final page = Page.fromJson(json);
 

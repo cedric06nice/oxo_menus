@@ -72,7 +72,6 @@ class HomePage extends ConsumerWidget {
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           children: [
-
             _QuickActionCard(
               icon: Icons.restaurant_menu,
               title: 'OXO Menus',

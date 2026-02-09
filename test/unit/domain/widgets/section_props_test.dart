@@ -4,9 +4,7 @@ import 'package:oxo_menus/domain/widgets/section/section_props.dart';
 void main() {
   group('SectionProps', () {
     test('should create SectionProps with required fields', () {
-      const props = SectionProps(
-        title: 'Appetizers',
-      );
+      const props = SectionProps(title: 'Appetizers');
 
       expect(props.title, 'Appetizers');
       expect(props.uppercase, false);
@@ -54,9 +52,7 @@ void main() {
     });
 
     test('should deserialize from JSON with defaults', () {
-      final json = {
-        'title': 'Sides',
-      };
+      final json = {'title': 'Sides'};
 
       final props = SectionProps.fromJson(json);
 
@@ -66,15 +62,9 @@ void main() {
     });
 
     test('should support copyWith', () {
-      const original = SectionProps(
-        title: 'Original',
-        uppercase: false,
-      );
+      const original = SectionProps(title: 'Original', uppercase: false);
 
-      final modified = original.copyWith(
-        title: 'Modified',
-        uppercase: true,
-      );
+      final modified = original.copyWith(title: 'Modified', uppercase: true);
 
       expect(original.title, 'Original');
       expect(original.uppercase, false);
@@ -95,9 +85,7 @@ void main() {
         showDivider: false,
       );
 
-      const props3 = SectionProps(
-        title: 'Different',
-      );
+      const props3 = SectionProps(title: 'Different');
 
       expect(props1, equals(props2));
       expect(props1, isNot(equals(props3)));

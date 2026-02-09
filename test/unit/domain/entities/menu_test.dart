@@ -33,11 +33,7 @@ void main() {
         fontSize: 14.0,
         primaryColor: '#000000',
       );
-      const pageSize = PageSize(
-        name: 'A4',
-        width: 210.0,
-        height: 297.0,
-      );
+      const pageSize = PageSize(name: 'A4', width: 210.0, height: 297.0);
 
       final menu = Menu(
         id: 1,
@@ -74,10 +70,7 @@ void main() {
         version: '1.0.0',
       );
 
-      final updated = menu.copyWith(
-        name: 'Updated',
-        status: Status.published,
-      );
+      final updated = menu.copyWith(name: 'Updated', status: Status.published);
 
       expect(updated.id, 1);
       expect(updated.name, 'Updated');
@@ -191,10 +184,7 @@ void main() {
     });
 
     test('should support copyWith', () {
-      const config = StyleConfig(
-        fontFamily: 'Arial',
-        fontSize: 14.0,
-      );
+      const config = StyleConfig(fontFamily: 'Arial', fontSize: 14.0);
 
       final updated = config.copyWith(fontSize: 16.0);
 
@@ -256,10 +246,7 @@ void main() {
     test('should support copyWith for per-side padding', () {
       const config = StyleConfig(padding: 16.0);
 
-      final updated = config.copyWith(
-        paddingTop: 20.0,
-        paddingBottom: 24.0,
-      );
+      final updated = config.copyWith(paddingTop: 20.0, paddingBottom: 24.0);
 
       expect(updated.padding, 16.0);
       expect(updated.paddingTop, 20.0);
@@ -339,11 +326,7 @@ void main() {
 
   group('PageSize', () {
     test('should create PageSize with required fields', () {
-      const pageSize = PageSize(
-        name: 'A4',
-        width: 210.0,
-        height: 297.0,
-      );
+      const pageSize = PageSize(name: 'A4', width: 210.0, height: 297.0);
 
       expect(pageSize.name, 'A4');
       expect(pageSize.width, 210.0);
@@ -351,11 +334,7 @@ void main() {
     });
 
     test('should support copyWith', () {
-      const pageSize = PageSize(
-        name: 'A4',
-        width: 210.0,
-        height: 297.0,
-      );
+      const pageSize = PageSize(name: 'A4', width: 210.0, height: 297.0);
 
       final updated = pageSize.copyWith(name: 'Letter');
 
@@ -365,11 +344,7 @@ void main() {
     });
 
     test('should serialize to JSON', () {
-      const pageSize = PageSize(
-        name: 'A4',
-        width: 210.0,
-        height: 297.0,
-      );
+      const pageSize = PageSize(name: 'A4', width: 210.0, height: 297.0);
 
       final json = pageSize.toJson();
 
@@ -379,11 +354,7 @@ void main() {
     });
 
     test('should deserialize from JSON', () {
-      final json = {
-        'name': 'A4',
-        'width': 210.0,
-        'height': 297.0,
-      };
+      final json = {'name': 'A4', 'width': 210.0, 'height': 297.0};
 
       final pageSize = PageSize.fromJson(json);
 

@@ -7,9 +7,7 @@ import 'package:oxo_menus/presentation/widgets/section_widget/section_widget.dar
 void main() {
   group('SectionWidget', () {
     testWidgets('should display section title', (tester) async {
-      const props = SectionProps(
-        title: 'Appetizers',
-      );
+      const props = SectionProps(title: 'Appetizers');
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -25,12 +23,10 @@ void main() {
       expect(find.text('Appetizers'), findsOneWidget);
     });
 
-    testWidgets('should display title in uppercase when uppercase is true',
-        (tester) async {
-      const props = SectionProps(
-        title: 'Appetizers',
-        uppercase: true,
-      );
+    testWidgets('should display title in uppercase when uppercase is true', (
+      tester,
+    ) async {
+      const props = SectionProps(title: 'Appetizers', uppercase: true);
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -47,12 +43,10 @@ void main() {
       expect(find.text('Appetizers'), findsNothing);
     });
 
-    testWidgets('should not uppercase title when uppercase is false',
-        (tester) async {
-      const props = SectionProps(
-        title: 'Main Courses',
-        uppercase: false,
-      );
+    testWidgets('should not uppercase title when uppercase is false', (
+      tester,
+    ) async {
+      const props = SectionProps(title: 'Main Courses', uppercase: false);
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -69,12 +63,8 @@ void main() {
       expect(find.text('MAIN COURSES'), findsNothing);
     });
 
-    testWidgets('should show divider when showDivider is true',
-        (tester) async {
-      const props = SectionProps(
-        title: 'Desserts',
-        showDivider: true,
-      );
+    testWidgets('should show divider when showDivider is true', (tester) async {
+      const props = SectionProps(title: 'Desserts', showDivider: true);
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -90,12 +80,10 @@ void main() {
       expect(find.byType(Divider), findsOneWidget);
     });
 
-    testWidgets('should hide divider when showDivider is false',
-        (tester) async {
-      const props = SectionProps(
-        title: 'Beverages',
-        showDivider: false,
-      );
+    testWidgets('should hide divider when showDivider is false', (
+      tester,
+    ) async {
+      const props = SectionProps(title: 'Beverages', showDivider: false);
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -111,11 +99,10 @@ void main() {
       expect(find.byType(Divider), findsNothing);
     });
 
-    testWidgets('should open edit dialog when tapped in editable mode',
-        (tester) async {
-      const props = SectionProps(
-        title: 'Sides',
-      );
+    testWidgets('should open edit dialog when tapped in editable mode', (
+      tester,
+    ) async {
+      const props = SectionProps(title: 'Sides');
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -137,11 +124,10 @@ void main() {
       expect(find.text('Save'), findsOneWidget);
     });
 
-    testWidgets('should not open edit dialog in non-editable mode',
-        (tester) async {
-      const props = SectionProps(
-        title: 'Salads',
-      );
+    testWidgets('should not open edit dialog in non-editable mode', (
+      tester,
+    ) async {
+      const props = SectionProps(title: 'Salads');
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -161,11 +147,10 @@ void main() {
       expect(find.text('Edit Section'), findsNothing);
     });
 
-    testWidgets('should call onUpdate with updated props when saved',
-        (tester) async {
-      const props = SectionProps(
-        title: 'Original Title',
-      );
+    testWidgets('should call onUpdate with updated props when saved', (
+      tester,
+    ) async {
+      const props = SectionProps(title: 'Original Title');
 
       Map<String, dynamic>? capturedUpdate;
 
@@ -204,9 +189,7 @@ void main() {
     });
 
     testWidgets('should render with proper styling', (tester) async {
-      const props = SectionProps(
-        title: 'Test Section',
-      );
+      const props = SectionProps(title: 'Test Section');
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -224,8 +207,9 @@ void main() {
       expect(find.text('Test Section'), findsOneWidget);
     });
 
-    testWidgets('should handle both uppercase and divider options',
-        (tester) async {
+    testWidgets('should handle both uppercase and divider options', (
+      tester,
+    ) async {
       const props = SectionProps(
         title: 'featured items',
         uppercase: true,

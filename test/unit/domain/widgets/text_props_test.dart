@@ -4,9 +4,7 @@ import 'package:oxo_menus/domain/widgets/text/text_props.dart';
 void main() {
   group('TextProps', () {
     test('should create TextProps with required fields', () {
-      const props = TextProps(
-        text: 'Hello World',
-      );
+      const props = TextProps(text: 'Hello World');
 
       expect(props.text, 'Hello World');
       expect(props.align, 'left');
@@ -61,9 +59,7 @@ void main() {
     });
 
     test('should deserialize from JSON with defaults', () {
-      final json = {
-        'text': 'Simple',
-      };
+      final json = {'text': 'Simple'};
 
       final props = TextProps.fromJson(json);
 
@@ -74,10 +70,7 @@ void main() {
     });
 
     test('should support copyWith', () {
-      const original = TextProps(
-        text: 'Original',
-        align: 'left',
-      );
+      const original = TextProps(text: 'Original', align: 'left');
 
       final modified = original.copyWith(
         text: 'Modified',
@@ -94,21 +87,11 @@ void main() {
     });
 
     test('should support equality', () {
-      const props1 = TextProps(
-        text: 'Same',
-        align: 'center',
-        bold: true,
-      );
+      const props1 = TextProps(text: 'Same', align: 'center', bold: true);
 
-      const props2 = TextProps(
-        text: 'Same',
-        align: 'center',
-        bold: true,
-      );
+      const props2 = TextProps(text: 'Same', align: 'center', bold: true);
 
-      const props3 = TextProps(
-        text: 'Different',
-      );
+      const props3 = TextProps(text: 'Different');
 
       expect(props1, equals(props2));
       expect(props1, isNot(equals(props3)));

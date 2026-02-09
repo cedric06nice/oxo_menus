@@ -16,14 +16,16 @@ void main() {
   setUp(() {
     mockDataSource = MockDirectusDataSource();
     repository = WidgetRepositoryImpl(dataSource: mockDataSource);
-    registerFallbackValue(WidgetDto({
-      'id': 1,
-      'column': 1,
-      'type_key': 'dish',
-      'version': '1.0.0',
-      'index': 0,
-      'props_json': <String, dynamic>{},
-    }));
+    registerFallbackValue(
+      WidgetDto({
+        'id': 1,
+        'column': 1,
+        'type_key': 'dish',
+        'version': '1.0.0',
+        'index': 0,
+        'props_json': <String, dynamic>{},
+      }),
+    );
   });
 
   group('WidgetRepositoryImpl', () {
@@ -48,8 +50,9 @@ void main() {
 
       test('should create widget and return entity', () async {
         // Arrange
-        when(() => mockDataSource.createItem<WidgetDto>(any()))
-            .thenAnswer((_) async => createdJson);
+        when(
+          () => mockDataSource.createItem<WidgetDto>(any()),
+        ).thenAnswer((_) async => createdJson);
 
         // Act
         final result = await repository.create(input);
@@ -107,11 +110,13 @@ void main() {
 
       test('should return list of widgets for column', () async {
         // Arrange
-        when(() => mockDataSource.getItems<WidgetDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((_) async => widgetsJson);
+        when(
+          () => mockDataSource.getItems<WidgetDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => widgetsJson);
 
         // Act
         final result = await repository.getAllForColumn(columnId);
@@ -122,11 +127,13 @@ void main() {
         expect(result.valueOrNull![0].id, 1);
         expect(result.valueOrNull![1].id, 2);
 
-        final captured = verify(() => mockDataSource.getItems<WidgetDto>(
-              filter: captureAny(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).captured;
+        final captured = verify(
+          () => mockDataSource.getItems<WidgetDto>(
+            filter: captureAny(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
 
         // Verify filter includes column_id
         expect(captured[0], isNotNull);
@@ -134,11 +141,13 @@ void main() {
 
       test('should return empty list when no widgets found', () async {
         // Arrange
-        when(() => mockDataSource.getItems<WidgetDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((_) async => []);
+        when(
+          () => mockDataSource.getItems<WidgetDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => []);
 
         // Act
         final result = await repository.getAllForColumn(columnId);
@@ -160,21 +169,21 @@ void main() {
         'props_json': {
           'name': 'Pasta Carbonara',
           'price': 12.50,
-          'allergens': ['gluten', 'dairy']
+          'allergens': ['gluten', 'dairy'],
         },
-        'style_json': {
-          'fontSize': 14.0,
-          'color': '#000000',
-        },
+        'style_json': {'fontSize': 14.0, 'color': '#000000'},
         'date_created': '2024-01-15T10:30:00Z',
         'date_updated': '2024-01-16T15:45:00Z',
       };
 
       test('should return WidgetInstance entity when fetch succeeds', () async {
         // Arrange
-        when(() => mockDataSource.getItem<WidgetDto>(widgetId,
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => widgetJson);
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            widgetId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => widgetJson);
 
         // Act
         final result = await repository.getById(widgetId);
@@ -190,18 +199,24 @@ void main() {
         expect(widget.props['name'], 'Pasta Carbonara');
         expect(widget.style, isNotNull);
 
-        verify(() => mockDataSource.getItem<WidgetDto>(widgetId,
-            fields: any(named: 'fields'))).called(1);
+        verify(
+          () => mockDataSource.getItem<WidgetDto>(
+            widgetId,
+            fields: any(named: 'fields'),
+          ),
+        ).called(1);
       });
 
       test('should return NotFoundError when widget does not exist', () async {
         // Arrange
-        when(() => mockDataSource.getItem<WidgetDto>(widgetId,
-                fields: any(named: 'fields')))
-            .thenThrow(DirectusException(
-          code: 'NOT_FOUND',
-          message: 'Widget not found',
-        ));
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            widgetId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenThrow(
+          DirectusException(code: 'NOT_FOUND', message: 'Widget not found'),
+        );
 
         // Act
         final result = await repository.getById(widgetId);
@@ -238,11 +253,15 @@ void main() {
 
       test('should update widget and return entity', () async {
         // Arrange
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
-        when(() => mockDataSource.updateItem<WidgetDto>(any()))
-            .thenAnswer((_) async => updatedJson);
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.updateItem<WidgetDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
 
         // Act
         final result = await repository.update(input);
@@ -252,18 +271,19 @@ void main() {
         expect(result.valueOrNull!.id, 1);
         expect(result.valueOrNull!.props['name'], 'Updated Pasta');
 
-        verify(() => mockDataSource.updateItem<WidgetDto>(any()))
-            .called(1);
+        verify(() => mockDataSource.updateItem<WidgetDto>(any())).called(1);
       });
 
       test('should return NotFoundError when widget does not exist', () async {
         // Arrange - getItem throws because widget doesn't exist
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenThrow(DirectusException(
-          code: 'NOT_FOUND',
-          message: 'Widget not found',
-        ));
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenThrow(
+          DirectusException(code: 'NOT_FOUND', message: 'Widget not found'),
+        );
 
         // Act
         final result = await repository.update(input);
@@ -279,8 +299,9 @@ void main() {
 
       test('should delete widget successfully', () async {
         // Arrange
-        when(() => mockDataSource.deleteItem<WidgetDto>(widgetId))
-            .thenAnswer((_) async => {});
+        when(
+          () => mockDataSource.deleteItem<WidgetDto>(widgetId),
+        ).thenAnswer((_) async => {});
 
         // Act
         final result = await repository.delete(widgetId);
@@ -293,10 +314,7 @@ void main() {
       test('should return NotFoundError when widget does not exist', () async {
         // Arrange
         when(() => mockDataSource.deleteItem<WidgetDto>(widgetId)).thenThrow(
-          DirectusException(
-            code: 'NOT_FOUND',
-            message: 'Widget not found',
-          ),
+          DirectusException(code: 'NOT_FOUND', message: 'Widget not found'),
         );
 
         // Act
@@ -340,16 +358,22 @@ void main() {
 
       test('should update widget index and shift other widgets', () async {
         // Arrange
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
-        when(() => mockDataSource.getItems<WidgetDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((_) async => allWidgetsInColumn);
-        when(() => mockDataSource.updateItem<WidgetDto>(any()))
-            .thenAnswer((_) async => updatedJson);
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.getItems<WidgetDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => allWidgetsInColumn);
+        when(
+          () => mockDataSource.updateItem<WidgetDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
 
         // Act
         final result = await repository.reorder(widgetId, newIndex);
@@ -362,9 +386,12 @@ void main() {
 
       test('should return success without updates when same index', () async {
         // Arrange - widget already at index 0, trying to move to index 0
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
 
         // Act
         final result = await repository.reorder(widgetId, 0);
@@ -376,12 +403,14 @@ void main() {
 
       test('should return NotFoundError when widget does not exist', () async {
         // Arrange
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenThrow(DirectusException(
-          code: 'NOT_FOUND',
-          message: 'Widget not found',
-        ));
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenThrow(
+          DirectusException(code: 'NOT_FOUND', message: 'Widget not found'),
+        );
 
         // Act
         final result = await repository.reorder(widgetId, newIndex);
@@ -391,80 +420,96 @@ void main() {
         expect(result.errorOrNull, isA<NotFoundError>());
       });
 
-      test('moving down (0→2) should shift intermediate indices correctly',
-          () async {
-        // Widget 1 at index 0 moves to index 2
-        // Expected: widget 2 (1→0), widget 3 (2→1), widget 1 (0→2)
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
-        when(() => mockDataSource.getItems<WidgetDto>(
+      test(
+        'moving down (0→2) should shift intermediate indices correctly',
+        () async {
+          // Widget 1 at index 0 moves to index 2
+          // Expected: widget 2 (1→0), widget 3 (2→1), widget 1 (0→2)
+          when(
+            () => mockDataSource.getItem<WidgetDto>(
+              any(),
+              fields: any(named: 'fields'),
+            ),
+          ).thenAnswer((_) async => existingJson);
+          when(
+            () => mockDataSource.getItems<WidgetDto>(
               filter: any(named: 'filter'),
               fields: any(named: 'fields'),
               sort: any(named: 'sort'),
-            )).thenAnswer((_) async => allWidgetsInColumn);
-        when(() => mockDataSource.updateItem<WidgetDto>(any()))
-            .thenAnswer((_) async => updatedJson);
+            ),
+          ).thenAnswer((_) async => allWidgetsInColumn);
+          when(
+            () => mockDataSource.updateItem<WidgetDto>(any()),
+          ).thenAnswer((_) async => updatedJson);
 
-        await repository.reorder(widgetId, 2);
+          await repository.reorder(widgetId, 2);
 
-        final captured = verify(
-          () => mockDataSource.updateItem<WidgetDto>(captureAny()),
-        ).captured;
+          final captured = verify(
+            () => mockDataSource.updateItem<WidgetDto>(captureAny()),
+          ).captured;
 
-        // Collect {id: newIndex} from all captured DTOs
-        final updates = <int, int>{};
-        for (final dto in captured) {
-          final d = dto as WidgetDto;
-          final id = d.id is int ? d.id as int : int.parse(d.id.toString());
-          updates[id] = d.index;
-        }
+          // Collect {id: newIndex} from all captured DTOs
+          final updates = <int, int>{};
+          for (final dto in captured) {
+            final d = dto as WidgetDto;
+            final id = d.id is int ? d.id as int : int.parse(d.id.toString());
+            updates[id] = d.index;
+          }
 
-        expect(updates[1], 2); // moved widget: 0→2
-        expect(updates[2], 0); // shifted: 1→0
-        expect(updates[3], 1); // shifted: 2→1
-      });
+          expect(updates[1], 2); // moved widget: 0→2
+          expect(updates[2], 0); // shifted: 1→0
+          expect(updates[3], 1); // shifted: 2→1
+        },
+      );
 
-      test('moving up (2→0) should shift intermediate indices correctly',
-          () async {
-        // Widget 3 at index 2 moves to index 0
-        final widgetAtIndex2Json = {
-          'id': 3,
-          'column': columnId,
-          'type_key': 'dish',
-          'version': '1.0.0',
-          'index': 2,
-          'props_json': {'name': 'Salad'},
-        };
+      test(
+        'moving up (2→0) should shift intermediate indices correctly',
+        () async {
+          // Widget 3 at index 2 moves to index 0
+          final widgetAtIndex2Json = {
+            'id': 3,
+            'column': columnId,
+            'type_key': 'dish',
+            'version': '1.0.0',
+            'index': 2,
+            'props_json': {'name': 'Salad'},
+          };
 
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => widgetAtIndex2Json);
-        when(() => mockDataSource.getItems<WidgetDto>(
+          when(
+            () => mockDataSource.getItem<WidgetDto>(
+              any(),
+              fields: any(named: 'fields'),
+            ),
+          ).thenAnswer((_) async => widgetAtIndex2Json);
+          when(
+            () => mockDataSource.getItems<WidgetDto>(
               filter: any(named: 'filter'),
               fields: any(named: 'fields'),
               sort: any(named: 'sort'),
-            )).thenAnswer((_) async => allWidgetsInColumn);
-        when(() => mockDataSource.updateItem<WidgetDto>(any()))
-            .thenAnswer((_) async => widgetAtIndex2Json);
+            ),
+          ).thenAnswer((_) async => allWidgetsInColumn);
+          when(
+            () => mockDataSource.updateItem<WidgetDto>(any()),
+          ).thenAnswer((_) async => widgetAtIndex2Json);
 
-        await repository.reorder(3, 0);
+          await repository.reorder(3, 0);
 
-        final captured = verify(
-          () => mockDataSource.updateItem<WidgetDto>(captureAny()),
-        ).captured;
+          final captured = verify(
+            () => mockDataSource.updateItem<WidgetDto>(captureAny()),
+          ).captured;
 
-        final updates = <int, int>{};
-        for (final dto in captured) {
-          final d = dto as WidgetDto;
-          final id = d.id is int ? d.id as int : int.parse(d.id.toString());
-          updates[id] = d.index;
-        }
+          final updates = <int, int>{};
+          for (final dto in captured) {
+            final d = dto as WidgetDto;
+            final id = d.id is int ? d.id as int : int.parse(d.id.toString());
+            updates[id] = d.index;
+          }
 
-        expect(updates[3], 0); // moved widget: 2→0
-        expect(updates[1], 1); // shifted: 0→1
-        expect(updates[2], 2); // shifted: 1→2
-      });
+          expect(updates[3], 0); // moved widget: 2→0
+          expect(updates[1], 1); // shifted: 0→1
+          expect(updates[2], 2); // shifted: 1→2
+        },
+      );
 
       test('should handle column as nested object {"id": 1}', () async {
         final nestedColumnJson = {
@@ -476,16 +521,22 @@ void main() {
           'props_json': {'name': 'Pasta'},
         };
 
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => nestedColumnJson);
-        when(() => mockDataSource.getItems<WidgetDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((_) async => allWidgetsInColumn);
-        when(() => mockDataSource.updateItem<WidgetDto>(any()))
-            .thenAnswer((_) async => updatedJson);
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => nestedColumnJson);
+        when(
+          () => mockDataSource.getItems<WidgetDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => allWidgetsInColumn);
+        when(
+          () => mockDataSource.updateItem<WidgetDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
 
         final result = await repository.reorder(widgetId, 2);
 
@@ -493,26 +544,31 @@ void main() {
         verify(() => mockDataSource.updateItem<WidgetDto>(any())).called(3);
       });
 
-      test('should return ValidationError when widget has null column',
-          () async {
-        final nullColumnJson = {
-          'id': widgetId,
-          'column': null,
-          'type_key': 'dish',
-          'version': '1.0.0',
-          'index': 0,
-          'props_json': {'name': 'Pasta'},
-        };
+      test(
+        'should return ValidationError when widget has null column',
+        () async {
+          final nullColumnJson = {
+            'id': widgetId,
+            'column': null,
+            'type_key': 'dish',
+            'version': '1.0.0',
+            'index': 0,
+            'props_json': {'name': 'Pasta'},
+          };
 
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => nullColumnJson);
+          when(
+            () => mockDataSource.getItem<WidgetDto>(
+              any(),
+              fields: any(named: 'fields'),
+            ),
+          ).thenAnswer((_) async => nullColumnJson);
 
-        final result = await repository.reorder(widgetId, 2);
+          final result = await repository.reorder(widgetId, 2);
 
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<ValidationError>());
-      });
+          expect(result.isFailure, true);
+          expect(result.errorOrNull, isA<ValidationError>());
+        },
+      );
     });
 
     group('moveTo', () {
@@ -553,16 +609,21 @@ void main() {
 
       test('should move widget to new column and update indices', () async {
         // Arrange
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
 
         // Mock getItems to return different results based on filter
-        when(() => mockDataSource.getItems<WidgetDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((invocation) async {
+        when(
+          () => mockDataSource.getItems<WidgetDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((invocation) async {
           final filter =
               invocation.namedArguments[#filter] as Map<String, dynamic>?;
           if (filter != null) {
@@ -577,8 +638,9 @@ void main() {
           return [];
         });
 
-        when(() => mockDataSource.updateItem<WidgetDto>(any()))
-            .thenAnswer((_) async => updatedJson);
+        when(
+          () => mockDataSource.updateItem<WidgetDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
 
         // Act
         final result = await repository.moveTo(widgetId, newColumnId, newIndex);
@@ -599,9 +661,12 @@ void main() {
           'index': 0,
           'props_json': {'name': 'Pasta'},
         };
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => noColumnJson);
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => noColumnJson);
 
         // Act
         final result = await repository.moveTo(widgetId, newColumnId, newIndex);
@@ -611,69 +676,85 @@ void main() {
         expect(result.errorOrNull, isA<ValidationError>());
       });
 
-      test('should skip source column shifts when moving within same column',
-          () async {
-        // Moving within same column: source == target, so only target shifts
-        final sameColumnJson = {
-          'id': widgetId,
-          'column': oldColumnId,
-          'type_key': 'dish',
-          'version': '1.0.0',
-          'index': 0,
-          'props_json': {'name': 'Pasta'},
-        };
+      test(
+        'should skip source column shifts when moving within same column',
+        () async {
+          // Moving within same column: source == target, so only target shifts
+          final sameColumnJson = {
+            'id': widgetId,
+            'column': oldColumnId,
+            'type_key': 'dish',
+            'version': '1.0.0',
+            'index': 0,
+            'props_json': {'name': 'Pasta'},
+          };
 
-        final sameColumnWidgets = [
-          {'id': widgetId, 'index': 0},
-          {'id': 2, 'index': 1},
-          {'id': 3, 'index': 2},
-        ];
+          final sameColumnWidgets = [
+            {'id': widgetId, 'index': 0},
+            {'id': 2, 'index': 1},
+            {'id': 3, 'index': 2},
+          ];
 
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => sameColumnJson);
-        when(() => mockDataSource.getItems<WidgetDto>(
+          when(
+            () => mockDataSource.getItem<WidgetDto>(
+              any(),
+              fields: any(named: 'fields'),
+            ),
+          ).thenAnswer((_) async => sameColumnJson);
+          when(
+            () => mockDataSource.getItems<WidgetDto>(
               filter: any(named: 'filter'),
               fields: any(named: 'fields'),
               sort: any(named: 'sort'),
-            )).thenAnswer((_) async => sameColumnWidgets);
-        when(() => mockDataSource.updateItem<WidgetDto>(any()))
-            .thenAnswer((_) async => sameColumnJson);
+            ),
+          ).thenAnswer((_) async => sameColumnWidgets);
+          when(
+            () => mockDataSource.updateItem<WidgetDto>(any()),
+          ).thenAnswer((_) async => sameColumnJson);
 
-        // Move to same column at index 2
-        final result =
-            await repository.moveTo(widgetId, oldColumnId, 2);
+          // Move to same column at index 2
+          final result = await repository.moveTo(widgetId, oldColumnId, 2);
 
-        expect(result.isSuccess, true);
-        // source != target is false, so only target column shifts + the widget itself
-        // Target: widget 3 (index 2) shifts to 3, plus the moved widget
-        verify(() => mockDataSource.updateItem<WidgetDto>(any()))
-            .called(greaterThan(0));
-        // Verify getItems called only once (target column only, no source fetch)
-        verify(() => mockDataSource.getItems<WidgetDto>(
+          expect(result.isSuccess, true);
+          // source != target is false, so only target column shifts + the widget itself
+          // Target: widget 3 (index 2) shifts to 3, plus the moved widget
+          verify(
+            () => mockDataSource.updateItem<WidgetDto>(any()),
+          ).called(greaterThan(0));
+          // Verify getItems called only once (target column only, no source fetch)
+          verify(
+            () => mockDataSource.getItems<WidgetDto>(
               filter: any(named: 'filter'),
               fields: any(named: 'fields'),
               sort: any(named: 'sort'),
-            )).called(1);
-      });
+            ),
+          ).called(1);
+        },
+      );
 
       test('should return error when update fails', () async {
         // Arrange
-        when(() => mockDataSource.getItem<WidgetDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
 
-        when(() => mockDataSource.getItems<WidgetDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((_) async => []);
+        when(
+          () => mockDataSource.getItems<WidgetDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => []);
 
-        when(() => mockDataSource.updateItem<WidgetDto>(any()))
-            .thenThrow(DirectusException(
-          code: 'INVALID_FOREIGN_KEY',
-          message: 'Column not found',
-        ));
+        when(() => mockDataSource.updateItem<WidgetDto>(any())).thenThrow(
+          DirectusException(
+            code: 'INVALID_FOREIGN_KEY',
+            message: 'Column not found',
+          ),
+        );
 
         // Act
         final result = await repository.moveTo(widgetId, newColumnId, newIndex);

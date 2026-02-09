@@ -81,17 +81,19 @@ class _PageStyleSectionState extends State<PageStyleSection> {
 
   void _onFieldChanged() {
     final current = widget.styleConfig ?? const StyleConfig();
-    widget.onStyleChanged(current.copyWith(
-      marginTop: double.tryParse(_marginTopCtrl.text),
-      marginBottom: double.tryParse(_marginBottomCtrl.text),
-      marginLeft: double.tryParse(_marginLeftCtrl.text),
-      marginRight: double.tryParse(_marginRightCtrl.text),
-      paddingTop: double.tryParse(_paddingTopCtrl.text),
-      paddingBottom: double.tryParse(_paddingBottomCtrl.text),
-      paddingLeft: double.tryParse(_paddingLeftCtrl.text),
-      paddingRight: double.tryParse(_paddingRightCtrl.text),
-      borderType: _selectedBorderType,
-    ));
+    widget.onStyleChanged(
+      current.copyWith(
+        marginTop: double.tryParse(_marginTopCtrl.text),
+        marginBottom: double.tryParse(_marginBottomCtrl.text),
+        marginLeft: double.tryParse(_marginLeftCtrl.text),
+        marginRight: double.tryParse(_marginRightCtrl.text),
+        paddingTop: double.tryParse(_paddingTopCtrl.text),
+        paddingBottom: double.tryParse(_paddingBottomCtrl.text),
+        paddingLeft: double.tryParse(_paddingLeftCtrl.text),
+        paddingRight: double.tryParse(_paddingRightCtrl.text),
+        borderType: _selectedBorderType,
+      ),
+    );
   }
 
   @override
@@ -123,14 +125,12 @@ class _PageStyleSectionState extends State<PageStyleSection> {
             DropdownButtonFormField<BorderType>(
               key: const Key('border_type'),
               initialValue: _selectedBorderType,
-              decoration: const InputDecoration(
-                labelText: 'Border Style',
-              ),
+              decoration: const InputDecoration(labelText: 'Border Style'),
               items: BorderType.values
-                  .map((type) => DropdownMenuItem(
-                        value: type,
-                        child: Text(type.label),
-                      ))
+                  .map(
+                    (type) =>
+                        DropdownMenuItem(value: type, child: Text(type.label)),
+                  )
                   .toList(),
               onChanged: (value) {
                 if (value != null) {

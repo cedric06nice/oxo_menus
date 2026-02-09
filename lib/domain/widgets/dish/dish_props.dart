@@ -6,8 +6,7 @@ part 'dish_props.g.dart';
 
 /// Properties for the DishWidget
 ///
-/// Represents a menu dish with name, price, description, dietary information,
-/// and display preferences.
+/// Represents a menu dish with name, price, description, and dietary information.
 @freezed
 abstract class DishProps with _$DishProps {
   const DishProps._();
@@ -32,12 +31,6 @@ abstract class DishProps with _$DishProps {
 
     /// List of dietary tags (e.g., 'Vegetarian', 'Vegan', 'Gluten-Free')
     @Default([]) List<String> dietary,
-
-    /// Whether to display the price
-    @Default(true) bool showPrice,
-
-    /// Whether to display allergen information
-    @Default(true) bool showAllergens,
   }) = _DishProps;
 
   factory DishProps.fromJson(Map<String, dynamic> json) =>

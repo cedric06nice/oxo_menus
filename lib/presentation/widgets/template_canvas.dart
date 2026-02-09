@@ -29,10 +29,7 @@ class TemplateCanvas extends ConsumerWidget {
           padding: const EdgeInsets.all(24.0),
           child: Text(
             'No pages in this menu',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 16,
-            ),
+            style: TextStyle(color: Colors.grey[600], fontSize: 16),
           ),
         ),
       );
@@ -40,10 +37,7 @@ class TemplateCanvas extends ConsumerWidget {
 
     // Single page: show directly without PageView
     if (menuTree.pages.length == 1) {
-      return PageCanvas(
-        page: menuTree.pages.first,
-        isEditable: isEditable,
-      );
+      return PageCanvas(page: menuTree.pages.first, isEditable: isEditable);
     }
 
     // Multiple pages: use PageView for swipe navigation
@@ -51,10 +45,7 @@ class TemplateCanvas extends ConsumerWidget {
       itemCount: menuTree.pages.length,
       itemBuilder: (context, pageIndex) {
         final pageData = menuTree.pages[pageIndex];
-        return PageCanvas(
-          page: pageData,
-          isEditable: isEditable,
-        );
+        return PageCanvas(page: pageData, isEditable: isEditable);
       },
     );
   }
@@ -67,11 +58,7 @@ class PageCanvas extends StatelessWidget {
   final PageWithContainers page;
   final bool isEditable;
 
-  const PageCanvas({
-    super.key,
-    required this.page,
-    required this.isEditable,
-  });
+  const PageCanvas({super.key, required this.page, required this.isEditable});
 
   @override
   Widget build(BuildContext context) {
@@ -200,10 +187,7 @@ class ColumnCanvas extends ConsumerWidget {
                 padding: const EdgeInsets.all(20.0),
                 child: Text(
                   'Empty column',
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
                 ),
               ),
             ),

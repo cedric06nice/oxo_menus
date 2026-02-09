@@ -54,9 +54,7 @@ void main() {
       });
 
       test('should handle null borderType', () {
-        final json = <String, dynamic>{
-          'marginTop': 10.0,
-        };
+        final json = <String, dynamic>{'marginTop': 10.0};
 
         final config = StyleConfigMapper.fromJson(json);
 
@@ -65,10 +63,7 @@ void main() {
       });
 
       test('should parse integer margins as double', () {
-        final json = <String, dynamic>{
-          'marginTop': 10,
-          'paddingLeft': 5,
-        };
+        final json = <String, dynamic>{'marginTop': 10, 'paddingLeft': 5};
 
         final config = StyleConfigMapper.fromJson(json);
 
@@ -101,9 +96,7 @@ void main() {
       });
 
       test('should omit null fields', () {
-        const config = StyleConfig(
-          marginTop: 10.0,
-        );
+        const config = StyleConfig(marginTop: 10.0);
 
         final json = StyleConfigMapper.toJson(config);
 

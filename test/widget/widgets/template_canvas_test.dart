@@ -27,9 +27,7 @@ void main() {
       // Act
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: TemplateCanvas(menuTree: menuTree),
-          ),
+          home: Scaffold(body: TemplateCanvas(menuTree: menuTree)),
         ),
       );
 
@@ -48,12 +46,7 @@ void main() {
         ),
         pages: [
           PageWithContainers(
-            page: entity.Page(
-              id: 1,
-              menuId: 1,
-              name: 'Page 1',
-              index: 0,
-            ),
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
             containers: [],
           ),
         ],
@@ -87,21 +80,11 @@ void main() {
         ),
         pages: [
           PageWithContainers(
-            page: entity.Page(
-              id: 1,
-              menuId: 1,
-              name: 'Page 1',
-              index: 0,
-            ),
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
             containers: [],
           ),
           PageWithContainers(
-            page: entity.Page(
-              id: 2,
-              menuId: 1,
-              name: 'Page 2',
-              index: 1,
-            ),
+            page: entity.Page(id: 2, menuId: 1, name: 'Page 2', index: 1),
             containers: [],
           ),
         ],
@@ -127,12 +110,7 @@ void main() {
     testWidgets('should display page name in editable mode', (tester) async {
       // Arrange
       const pageData = PageWithContainers(
-        page: entity.Page(
-          id: 1,
-          menuId: 1,
-          name: 'Test Page',
-          index: 0,
-        ),
+        page: entity.Page(id: 1, menuId: 1, name: 'Test Page', index: 0),
         containers: [],
       );
 
@@ -140,9 +118,7 @@ void main() {
       await tester.pumpWidget(
         const ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: PageCanvas(page: pageData, isEditable: true),
-            ),
+            home: Scaffold(body: PageCanvas(page: pageData, isEditable: true)),
           ),
         ),
       );
@@ -151,16 +127,12 @@ void main() {
       expect(find.text('Test Page'), findsOneWidget);
     });
 
-    testWidgets('should not display page name in non-editable mode',
-        (tester) async {
+    testWidgets('should not display page name in non-editable mode', (
+      tester,
+    ) async {
       // Arrange
       const pageData = PageWithContainers(
-        page: entity.Page(
-          id: 1,
-          menuId: 1,
-          name: 'Test Page',
-          index: 0,
-        ),
+        page: entity.Page(id: 1, menuId: 1, name: 'Test Page', index: 0),
         containers: [],
       );
 
@@ -168,9 +140,7 @@ void main() {
       await tester.pumpWidget(
         const ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: PageCanvas(page: pageData, isEditable: false),
-            ),
+            home: Scaffold(body: PageCanvas(page: pageData, isEditable: false)),
           ),
         ),
       );
@@ -182,12 +152,7 @@ void main() {
     testWidgets('should render containers', (tester) async {
       // Arrange
       const pageData = PageWithContainers(
-        page: entity.Page(
-          id: 1,
-          menuId: 1,
-          name: 'Test Page',
-          index: 0,
-        ),
+        page: entity.Page(id: 1, menuId: 1, name: 'Test Page', index: 0),
         containers: [
           ContainerWithColumns(
             container: entity.Container(
@@ -205,9 +170,7 @@ void main() {
       await tester.pumpWidget(
         const ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: PageCanvas(page: pageData, isEditable: true),
-            ),
+            home: Scaffold(body: PageCanvas(page: pageData, isEditable: true)),
           ),
         ),
       );
@@ -219,8 +182,9 @@ void main() {
   });
 
   group('ContainerCanvas', () {
-    testWidgets('should display container name in editable mode',
-        (tester) async {
+    testWidgets('should display container name in editable mode', (
+      tester,
+    ) async {
       // Arrange
       const containerData = ContainerWithColumns(
         container: entity.Container(
@@ -237,8 +201,7 @@ void main() {
         const ProviderScope(
           child: MaterialApp(
             home: Scaffold(
-              body: ContainerCanvas(
-                  container: containerData, isEditable: true),
+              body: ContainerCanvas(container: containerData, isEditable: true),
             ),
           ),
         ),
@@ -248,8 +211,9 @@ void main() {
       expect(find.text('Test Container'), findsOneWidget);
     });
 
-    testWidgets('should not display container name in non-editable mode',
-        (tester) async {
+    testWidgets('should not display container name in non-editable mode', (
+      tester,
+    ) async {
       // Arrange
       const containerData = ContainerWithColumns(
         container: entity.Container(
@@ -267,7 +231,9 @@ void main() {
           child: MaterialApp(
             home: Scaffold(
               body: ContainerCanvas(
-                  container: containerData, isEditable: false),
+                container: containerData,
+                isEditable: false,
+              ),
             ),
           ),
         ),
@@ -280,28 +246,14 @@ void main() {
     testWidgets('should render columns in a row', (tester) async {
       // Arrange
       const containerData = ContainerWithColumns(
-        container: entity.Container(
-          id: 1,
-          pageId: 1,
-          index: 0,
-        ),
+        container: entity.Container(id: 1, pageId: 1, index: 0),
         columns: [
           ColumnWithWidgets(
-            column: entity.Column(
-              id: 1,
-              containerId: 1,
-              index: 0,
-              flex: 1,
-            ),
+            column: entity.Column(id: 1, containerId: 1, index: 0, flex: 1),
             widgets: [],
           ),
           ColumnWithWidgets(
-            column: entity.Column(
-              id: 2,
-              containerId: 1,
-              index: 1,
-              flex: 2,
-            ),
+            column: entity.Column(id: 2, containerId: 1, index: 1, flex: 2),
             widgets: [],
           ),
         ],
@@ -312,8 +264,7 @@ void main() {
         const ProviderScope(
           child: MaterialApp(
             home: Scaffold(
-              body: ContainerCanvas(
-                  container: containerData, isEditable: true),
+              body: ContainerCanvas(container: containerData, isEditable: true),
             ),
           ),
         ),
@@ -327,28 +278,14 @@ void main() {
     testWidgets('should respect column flex values', (tester) async {
       // Arrange
       const containerData = ContainerWithColumns(
-        container: entity.Container(
-          id: 1,
-          pageId: 1,
-          index: 0,
-        ),
+        container: entity.Container(id: 1, pageId: 1, index: 0),
         columns: [
           ColumnWithWidgets(
-            column: entity.Column(
-              id: 1,
-              containerId: 1,
-              index: 0,
-              flex: 1,
-            ),
+            column: entity.Column(id: 1, containerId: 1, index: 0, flex: 1),
             widgets: [],
           ),
           ColumnWithWidgets(
-            column: entity.Column(
-              id: 2,
-              containerId: 1,
-              index: 1,
-              flex: 3,
-            ),
+            column: entity.Column(id: 2, containerId: 1, index: 1, flex: 3),
             widgets: [],
           ),
         ],
@@ -359,15 +296,16 @@ void main() {
         const ProviderScope(
           child: MaterialApp(
             home: Scaffold(
-              body: ContainerCanvas(
-                  container: containerData, isEditable: true),
+              body: ContainerCanvas(container: containerData, isEditable: true),
             ),
           ),
         ),
       );
 
       // Assert
-      final expandedWidgets = tester.widgetList<Expanded>(find.byType(Expanded));
+      final expandedWidgets = tester.widgetList<Expanded>(
+        find.byType(Expanded),
+      );
       expect(expandedWidgets.length, 2);
       expect(expandedWidgets.elementAt(0).flex, 1);
       expect(expandedWidgets.elementAt(1).flex, 3);
@@ -375,15 +313,12 @@ void main() {
   });
 
   group('ColumnCanvas', () {
-    testWidgets('should display empty state in editable mode when no widgets',
-        (tester) async {
+    testWidgets('should display empty state in editable mode when no widgets', (
+      tester,
+    ) async {
       // Arrange
       const columnData = ColumnWithWidgets(
-        column: entity.Column(
-          id: 1,
-          containerId: 1,
-          index: 0,
-        ),
+        column: entity.Column(id: 1, containerId: 1, index: 0),
         widgets: [],
       );
 
@@ -402,15 +337,12 @@ void main() {
       expect(find.text('Empty column'), findsOneWidget);
     });
 
-    testWidgets('should not display empty state in non-editable mode',
-        (tester) async {
+    testWidgets('should not display empty state in non-editable mode', (
+      tester,
+    ) async {
       // Arrange
       const columnData = ColumnWithWidgets(
-        column: entity.Column(
-          id: 1,
-          containerId: 1,
-          index: 0,
-        ),
+        column: entity.Column(id: 1, containerId: 1, index: 0),
         widgets: [],
       );
 
@@ -432,11 +364,7 @@ void main() {
     testWidgets('should have visible border in editable mode', (tester) async {
       // Arrange
       const columnData = ColumnWithWidgets(
-        column: entity.Column(
-          id: 1,
-          containerId: 1,
-          index: 0,
-        ),
+        column: entity.Column(id: 1, containerId: 1, index: 0),
         widgets: [],
       );
 
@@ -452,24 +380,21 @@ void main() {
       );
 
       // Assert
-      final container = tester.widget<Container>(
-        find.byType(Container).first,
-      );
+      final container = tester.widget<Container>(find.byType(Container).first);
       final decoration = container.decoration as BoxDecoration;
       expect(decoration.border, isNotNull);
       expect(
-          (decoration.border as Border).top.color, isNot(Colors.transparent));
+        (decoration.border as Border).top.color,
+        isNot(Colors.transparent),
+      );
     });
 
-    testWidgets('should have transparent border in non-editable mode',
-        (tester) async {
+    testWidgets('should have transparent border in non-editable mode', (
+      tester,
+    ) async {
       // Arrange
       const columnData = ColumnWithWidgets(
-        column: entity.Column(
-          id: 1,
-          containerId: 1,
-          index: 0,
-        ),
+        column: entity.Column(id: 1, containerId: 1, index: 0),
         widgets: [],
       );
 
@@ -485,9 +410,7 @@ void main() {
       );
 
       // Assert
-      final container = tester.widget<Container>(
-        find.byType(Container).first,
-      );
+      final container = tester.widget<Container>(find.byType(Container).first);
       final decoration = container.decoration as BoxDecoration;
       expect(decoration.border, isNotNull);
       expect((decoration.border as Border).top.color, Colors.transparent);
@@ -496,11 +419,7 @@ void main() {
     testWidgets('should render widgets', (tester) async {
       // Arrange
       const columnData = ColumnWithWidgets(
-        column: entity.Column(
-          id: 1,
-          containerId: 1,
-          index: 0,
-        ),
+        column: entity.Column(id: 1, containerId: 1, index: 0),
         widgets: [
           WidgetInstance(
             id: 1,
@@ -534,19 +453,10 @@ void main() {
     testWidgets('should use IntrinsicHeight for columns', (tester) async {
       // Arrange
       const containerData = ContainerWithColumns(
-        container: entity.Container(
-          id: 1,
-          pageId: 1,
-          index: 0,
-        ),
+        container: entity.Container(id: 1, pageId: 1, index: 0),
         columns: [
           ColumnWithWidgets(
-            column: entity.Column(
-              id: 1,
-              containerId: 1,
-              index: 0,
-              flex: 1,
-            ),
+            column: entity.Column(id: 1, containerId: 1, index: 0, flex: 1),
             widgets: [],
           ),
         ],
@@ -557,8 +467,7 @@ void main() {
         const ProviderScope(
           child: MaterialApp(
             home: Scaffold(
-              body: ContainerCanvas(
-                  container: containerData, isEditable: true),
+              body: ContainerCanvas(container: containerData, isEditable: true),
             ),
           ),
         ),
@@ -568,16 +477,10 @@ void main() {
       expect(find.byType(IntrinsicHeight), findsOneWidget);
     });
 
-    testWidgets('should use SingleChildScrollView for page',
-        (tester) async {
+    testWidgets('should use SingleChildScrollView for page', (tester) async {
       // Arrange
       const pageData = PageWithContainers(
-        page: entity.Page(
-          id: 1,
-          menuId: 1,
-          name: 'Test Page',
-          index: 0,
-        ),
+        page: entity.Page(id: 1, menuId: 1, name: 'Test Page', index: 0),
         containers: [],
       );
 
@@ -585,9 +488,7 @@ void main() {
       await tester.pumpWidget(
         const ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: PageCanvas(page: pageData, isEditable: true),
-            ),
+            home: Scaffold(body: PageCanvas(page: pageData, isEditable: true)),
           ),
         ),
       );

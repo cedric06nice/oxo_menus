@@ -12,16 +12,10 @@ class TestProps {
   const TestProps({required this.name, required this.value});
 
   factory TestProps.fromJson(Map<String, dynamic> json) {
-    return TestProps(
-      name: json['name'] as String,
-      value: json['value'] as int,
-    );
+    return TestProps(name: json['name'] as String, value: json['value'] as int);
   }
 
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'value': value,
-      };
+  Map<String, dynamic> toJson() => {'name': name, 'value': value};
 }
 
 void main() {
@@ -192,11 +186,7 @@ void main() {
         type: 'test',
         version: '1.0.0',
         index: 0,
-        props: {
-          'name': 'test',
-          'value': 42,
-          'extra': 'data',
-        },
+        props: {'name': 'test', 'value': 42, 'extra': 'data'},
       );
 
       final definition = WidgetDefinition<TestProps>(

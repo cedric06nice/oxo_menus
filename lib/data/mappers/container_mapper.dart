@@ -14,12 +14,8 @@ class ContainerMapper {
       pageId: dto.page?.id != null ? int.parse(dto.page!.id!) : 0,
       index: dto.index,
       name: "Container ${dto.id}",
-      layout: json.isNotEmpty
-          ? _mapLayoutJsonToLayoutConfig(json)
-          : null,
-      styleConfig: json.isNotEmpty
-          ? StyleConfigMapper.fromJson(json)
-          : null,
+      layout: json.isNotEmpty ? _mapLayoutJsonToLayoutConfig(json) : null,
+      styleConfig: json.isNotEmpty ? StyleConfigMapper.fromJson(json) : null,
       dateCreated: dto.dateCreated,
       dateUpdated: dto.dateUpdated,
     );

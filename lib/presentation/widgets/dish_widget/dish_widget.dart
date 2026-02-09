@@ -9,11 +9,7 @@ class DishWidget extends StatelessWidget {
   final DishProps props;
   final WidgetContext context;
 
-  const DishWidget({
-    super.key,
-    required this.props,
-    required this.context,
-  });
+  const DishWidget({super.key, required this.props, required this.context});
 
   @override
   Widget build(BuildContext buildContext) {
@@ -39,7 +35,7 @@ class DishWidget extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (props.showPrice)
+                  if (context.displayOptions?.showPrices ?? true)
                     Text(
                       '£${props.price.toStringAsFixed(2)}',
                       style: const TextStyle(
@@ -51,24 +47,23 @@ class DishWidget extends StatelessWidget {
               ),
 
               // Description
-              if (props.description != null && props.description!.isNotEmpty) ...[
+              if (props.description != null &&
+                  props.description!.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
                   props.description!,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
 
               // Allergens
-              if (props.showAllergens) ...[
+              if (context.displayOptions?.showAllergens ?? true) ...[
                 Builder(
                   builder: (context) {
-                    final formattedAllergens = AllergenFormatter.formatForDisplay(
-                      props.effectiveAllergenInfo,
-                    );
+                    final formattedAllergens =
+                        AllergenFormatter.formatForDisplay(
+                          props.effectiveAllergenInfo,
+                        );
                     if (formattedAllergens.isEmpty) {
                       return const SizedBox.shrink();
                     }
@@ -94,14 +89,16 @@ class DishWidget extends StatelessWidget {
                   spacing: 4,
                   runSpacing: 4,
                   children: props.dietary
-                      .map((diet) => Chip(
-                            label: Text(
-                              diet,
-                              style: const TextStyle(fontSize: 11),
-                            ),
-                            visualDensity: VisualDensity.compact,
-                            backgroundColor: Colors.green[100],
-                          ))
+                      .map(
+                        (diet) => Chip(
+                          label: Text(
+                            diet,
+                            style: const TextStyle(fontSize: 11),
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          backgroundColor: Colors.green[100],
+                        ),
+                      )
                       .toList(),
                 ),
               ],

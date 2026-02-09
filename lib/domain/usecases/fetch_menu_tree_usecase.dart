@@ -50,8 +50,7 @@ class FetchMenuTreeUseCase {
     // 3. For each page, fetch containers
     final List<PageWithContainers> pagesWithContainers = [];
     for (final page in pages) {
-      final containersResult =
-          await containerRepository.getAllForPage(page.id);
+      final containersResult = await containerRepository.getAllForPage(page.id);
       if (containersResult.isFailure) {
         return Failure(containersResult.errorOrNull!);
       }
@@ -61,8 +60,9 @@ class FetchMenuTreeUseCase {
       // 4. For each container, fetch columns
       final List<ContainerWithColumns> containersWithColumns = [];
       for (final container in containers) {
-        final columnsResult =
-            await columnRepository.getAllForContainer(container.id);
+        final columnsResult = await columnRepository.getAllForContainer(
+          container.id,
+        );
         if (columnsResult.isFailure) {
           return Failure(columnsResult.errorOrNull!);
         }
@@ -72,36 +72,34 @@ class FetchMenuTreeUseCase {
         // 5. For each column, fetch widgets
         final List<ColumnWithWidgets> columnsWithWidgets = [];
         for (final column in columns) {
-          final widgetsResult =
-              await widgetRepository.getAllForColumn(column.id);
+          final widgetsResult = await widgetRepository.getAllForColumn(
+            column.id,
+          );
           if (widgetsResult.isFailure) {
             return Failure(widgetsResult.errorOrNull!);
           }
           final widgets = List<WidgetInstance>.from(widgetsResult.valueOrNull!)
             ..sort((a, b) => a.index.compareTo(b.index));
 
-          columnsWithWidgets.add(ColumnWithWidgets(
-            column: column,
-            widgets: widgets,
-          ));
+          columnsWithWidgets.add(
+            ColumnWithWidgets(column: column, widgets: widgets),
+          );
         }
 
-        containersWithColumns.add(ContainerWithColumns(
-          container: container,
-          columns: columnsWithWidgets,
-        ));
+        containersWithColumns.add(
+          ContainerWithColumns(
+            container: container,
+            columns: columnsWithWidgets,
+          ),
+        );
       }
 
-      pagesWithContainers.add(PageWithContainers(
-        page: page,
-        containers: containersWithColumns,
-      ));
+      pagesWithContainers.add(
+        PageWithContainers(page: page, containers: containersWithColumns),
+      );
     }
 
-    return Success(MenuTree(
-      menu: menu,
-      pages: pagesWithContainers,
-    ));
+    return Success(MenuTree(menu: menu, pages: pagesWithContainers));
   }
 }
 

@@ -12,19 +12,12 @@ class UserAvatarWidget extends StatelessWidget {
   final User? user;
   final double radius;
 
-  const UserAvatarWidget({
-    super.key,
-    required this.user,
-    this.radius = 20.0,
-  });
+  const UserAvatarWidget({super.key, required this.user, this.radius = 20.0});
 
   @override
   Widget build(BuildContext context) {
     if (user == null) {
-      return CircleAvatar(
-        radius: radius,
-        child: const Icon(Icons.person),
-      );
+      return CircleAvatar(radius: radius, child: const Icon(Icons.person));
     }
 
     final initials = _getInitials(user!);

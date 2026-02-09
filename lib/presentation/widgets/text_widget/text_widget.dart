@@ -8,11 +8,7 @@ class TextWidget extends StatelessWidget {
   final TextProps props;
   final WidgetContext context;
 
-  const TextWidget({
-    super.key,
-    required this.props,
-    required this.context,
-  });
+  const TextWidget({super.key, required this.props, required this.context});
 
   @override
   Widget build(BuildContext buildContext) {

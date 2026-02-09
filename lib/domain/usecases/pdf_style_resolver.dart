@@ -73,29 +73,21 @@ class PdfStyleResolver {
         return child;
       case BorderType.plainThin:
         return pw.Container(
-          decoration: pw.BoxDecoration(
-            border: pw.Border.all(width: 0.5),
-          ),
+          decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
           child: child,
         );
       case BorderType.plainThick:
         return pw.Container(
-          decoration: pw.BoxDecoration(
-            border: pw.Border.all(width: 2.0),
-          ),
+          decoration: pw.BoxDecoration(border: pw.Border.all(width: 2.0)),
           child: child,
         );
       case BorderType.doubleOffset:
         return pw.Container(
-          decoration: pw.BoxDecoration(
-            border: pw.Border.all(width: 0.5),
-          ),
+          decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
           child: pw.Padding(
             padding: const pw.EdgeInsets.all(3),
             child: pw.Container(
-              decoration: pw.BoxDecoration(
-                border: pw.Border.all(width: 0.5),
-              ),
+              decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
               child: child,
             ),
           ),

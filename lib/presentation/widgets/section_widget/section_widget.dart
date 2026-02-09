@@ -8,11 +8,7 @@ class SectionWidget extends StatelessWidget {
   final SectionProps props;
   final WidgetContext context;
 
-  const SectionWidget({
-    super.key,
-    required this.props,
-    required this.context,
-  });
+  const SectionWidget({super.key, required this.props, required this.context});
 
   @override
   Widget build(BuildContext buildContext) {
@@ -36,10 +32,7 @@ class SectionWidget extends StatelessWidget {
             // Divider
             if (props.showDivider) ...[
               const SizedBox(height: 4),
-              Divider(
-                thickness: 2,
-                color: Colors.grey[400],
-              ),
+              Divider(thickness: 2, color: Colors.grey[400]),
             ],
           ],
         ),

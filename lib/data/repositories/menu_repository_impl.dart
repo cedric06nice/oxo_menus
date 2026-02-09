@@ -27,6 +27,7 @@ class MenuRepositoryImpl implements MenuRepository {
           'user_updated',
           'name',
           'style_json',
+          'display_options_json',
           'version',
           'area.id',
           'area.date_created',
@@ -78,11 +79,11 @@ class MenuRepositoryImpl implements MenuRepository {
           'pages.containers.columns.widgets.type_key',
           'pages.containers.columns.widgets.version',
           'pages.containers.columns.widgets.props_json',
-          'pages.containers.columns.widgets.style_json'
+          'pages.containers.columns.widgets.style_json',
         ],
       );
 
-// id,name,status,version,date_created,date_updated,user_created,user_updated,style_json,area.id,area.name,size.id,size.name,size.width,size.height,size.direction,versions,pages.id,pages.status,pages.date_created,pages.date_updated,pages.user_created,pages.user_updated,pages.index,pages.menu,pages.containers.id,pages.containers.index,pages.containers.direction,pages.containers.style_json,pages.containers.columns.id,pages.containers.columns.index,pages.containers.columns.width,pages.containers.columns.style_json,pages.containers.columns.widgets.id,pages.containers.columns.widgets.index,pages.containers.columns.widgets.type_key,pages.containers.columns.widgets.version,pages.containers.columns.widgets.style_json,pages.containers.columns.widgets.props_json
+      // id,name,status,version,date_created,date_updated,user_created,user_updated,style_json,area.id,area.name,size.id,size.name,size.width,size.height,size.direction,versions,pages.id,pages.status,pages.date_created,pages.date_updated,pages.user_created,pages.user_updated,pages.index,pages.menu,pages.containers.id,pages.containers.index,pages.containers.direction,pages.containers.style_json,pages.containers.columns.id,pages.containers.columns.index,pages.containers.columns.width,pages.containers.columns.style_json,pages.containers.columns.widgets.id,pages.containers.columns.widgets.index,pages.containers.columns.widgets.type_key,pages.containers.columns.widgets.version,pages.containers.columns.widgets.style_json,pages.containers.columns.widgets.props_json
 
       final dto = MenuDto(data);
       final menu = MenuMapper.toEntity(dto);
@@ -115,6 +116,7 @@ class MenuRepositoryImpl implements MenuRepository {
           'user_updated',
           'name',
           'style_json',
+          'display_options_json',
           'version',
           'area.id',
           'area.date_created',
@@ -166,7 +168,7 @@ class MenuRepositoryImpl implements MenuRepository {
           'pages.containers.columns.widgets.type_key',
           'pages.containers.columns.widgets.version',
           'pages.containers.columns.widgets.props_json',
-          'pages.containers.columns.widgets.style_json'
+          'pages.containers.columns.widgets.style_json',
         ],
         sort: ['-date_updated'],
       );

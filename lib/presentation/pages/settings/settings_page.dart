@@ -58,18 +58,12 @@ class SettingsPage extends ConsumerWidget {
         const SizedBox(height: 16),
         Text(
           displayName,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         Text(
           user.email,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
         const SizedBox(height: 8),
         Chip(
@@ -92,10 +86,7 @@ class SettingsPage extends ConsumerWidget {
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             'Account',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
         ),
         const SizedBox(height: 8),
@@ -120,10 +111,7 @@ class SettingsPage extends ConsumerWidget {
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             'Debug',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
           ),
         ),
         const SizedBox(height: 8),

@@ -22,8 +22,9 @@ void main() {
       mockAuthRepository = MockAuthRepository();
     });
 
-    testWidgets('complete login flow - successful authentication',
-        (tester) async {
+    testWidgets('complete login flow - successful authentication', (
+      tester,
+    ) async {
       const testUser = User(
         id: '1',
         email: 'admin@example.com',
@@ -33,12 +34,14 @@ void main() {
       );
 
       // Mock initial state as unauthenticated
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       // Mock successful login
-      when(() => mockAuthRepository.login('admin@example.com', 'password123'))
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.login('admin@example.com', 'password123'),
+      ).thenAnswer((_) async => const Success(testUser));
 
       // Launch app with mocked repository
       await tester.pumpWidget(
@@ -49,9 +52,7 @@ void main() {
           child: Consumer(
             builder: (context, ref, _) {
               final router = ref.watch(appRouterProvider);
-              return MaterialApp.router(
-                routerConfig: router,
-              );
+              return MaterialApp.router(routerConfig: router);
             },
           ),
         ),
@@ -80,24 +81,26 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify login was called
-      verify(() => mockAuthRepository.login('admin@example.com', 'password123'))
-          .called(1);
+      verify(
+        () => mockAuthRepository.login('admin@example.com', 'password123'),
+      ).called(1);
 
       // Verify we're redirected to home page
       expect(find.text('Home'), findsOneWidget);
     });
 
-    testWidgets('login flow - failed authentication shows error',
-        (tester) async {
+    testWidgets('login flow - failed authentication shows error', (
+      tester,
+    ) async {
       // Mock initial state as unauthenticated
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       // Mock failed login
       when(() => mockAuthRepository.login(any(), any())).thenAnswer(
-        (_) async => const Failure(
-          InvalidCredentialsError('Invalid email or password'),
-        ),
+        (_) async =>
+            const Failure(InvalidCredentialsError('Invalid email or password')),
       );
 
       // Launch app
@@ -109,9 +112,7 @@ void main() {
           child: Consumer(
             builder: (context, ref, _) {
               final router = ref.watch(appRouterProvider);
-              return MaterialApp.router(
-                routerConfig: router,
-              );
+              return MaterialApp.router(routerConfig: router);
             },
           ),
         ),
@@ -140,10 +141,12 @@ void main() {
       expect(find.byKey(const Key('login_button')), findsOneWidget);
     });
 
-    testWidgets('login flow - form validation prevents empty submission',
-        (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+    testWidgets('login flow - form validation prevents empty submission', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -153,9 +156,7 @@ void main() {
           child: Consumer(
             builder: (context, ref, _) {
               final router = ref.watch(appRouterProvider);
-              return MaterialApp.router(
-                routerConfig: router,
-              );
+              return MaterialApp.router(routerConfig: router);
             },
           ),
         ),
@@ -178,8 +179,9 @@ void main() {
       verifyNever(() => mockAuthRepository.login(any(), any()));
     });
 
-    testWidgets('auth guard - authenticated user redirected from login',
-        (tester) async {
+    testWidgets('auth guard - authenticated user redirected from login', (
+      tester,
+    ) async {
       const testUser = User(
         id: '1',
         email: 'user@example.com',
@@ -187,8 +189,9 @@ void main() {
       );
 
       // Mock already authenticated user
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -198,9 +201,7 @@ void main() {
           child: Consumer(
             builder: (context, ref, _) {
               final router = ref.watch(appRouterProvider);
-              return MaterialApp.router(
-                routerConfig: router,
-              );
+              return MaterialApp.router(routerConfig: router);
             },
           ),
         ),

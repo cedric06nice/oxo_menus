@@ -15,16 +15,8 @@ final dishWidgetDefinition = WidgetDefinition<DishProps>(
   type: 'dish',
   version: '2.0.0',
   parseProps: (json) => DishProps.fromJson(json),
-  render: (props, context) => DishWidget(
-    props: props,
-    context: context,
-  ),
-  defaultProps: const DishProps(
-    name: 'New Dish',
-    price: 0.0,
-    showPrice: true,
-    showAllergens: true,
-  ),
+  render: (props, context) => DishWidget(props: props, context: context),
+  defaultProps: const DishProps(name: 'New Dish', price: 0.0),
   migrate: _migrateDishProps,
 );
 
@@ -54,8 +46,9 @@ DishProps _migrateDishProps(Map<String, dynamic> json) {
 
   // Create updated JSON with migrated allergen info
   final updatedJson = Map<String, dynamic>.from(json);
-  updatedJson['allergenInfo'] =
-      migratedAllergenInfo.map((a) => a.toJson()).toList();
+  updatedJson['allergenInfo'] = migratedAllergenInfo
+      .map((a) => a.toJson())
+      .toList();
   updatedJson['allergens'] = <String>[]; // Clear legacy field
 
   return DishProps.fromJson(updatedJson);

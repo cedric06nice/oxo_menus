@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 
 part 'menu.freezed.dart';
@@ -22,6 +23,7 @@ abstract class Menu with _$Menu {
     StyleConfig? styleConfig,
     PageSize? pageSize,
     String? area,
+    MenuDisplayOptions? displayOptions,
   }) = _Menu;
 
   factory Menu.fromJson(Map<String, dynamic> json) => _$MenuFromJson(json);

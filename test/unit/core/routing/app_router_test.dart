@@ -15,9 +15,13 @@ import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
+
 class MockMenuRepository extends Mock implements MenuRepository {}
+
 class MockPageRepository extends Mock implements PageRepository {}
+
 class MockContainerRepository extends Mock implements ContainerRepository {}
+
 class MockColumnRepository extends Mock implements ColumnRepository {}
 
 void main() {
@@ -35,24 +39,32 @@ void main() {
     mockColumnRepository = MockColumnRepository();
 
     // Default behavior for menu repository (return empty list)
-    when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-        .thenAnswer((_) async => const Success([]));
+    when(
+      () => mockMenuRepository.listAll(
+        onlyPublished: any(named: 'onlyPublished'),
+      ),
+    ).thenAnswer((_) async => const Success([]));
 
     // Default behavior for AdminTemplateEditorPage to prevent loading timeout
-    when(() => mockMenuRepository.getById(any()))
-        .thenAnswer((_) async => const Failure(NotFoundError()));
-    when(() => mockPageRepository.getAllForMenu(any()))
-        .thenAnswer((_) async => const Success([]));
-    when(() => mockContainerRepository.getAllForPage(any()))
-        .thenAnswer((_) async => const Success([]));
-    when(() => mockColumnRepository.getAllForContainer(any()))
-        .thenAnswer((_) async => const Success([]));
+    when(
+      () => mockMenuRepository.getById(any()),
+    ).thenAnswer((_) async => const Failure(NotFoundError()));
+    when(
+      () => mockPageRepository.getAllForMenu(any()),
+    ).thenAnswer((_) async => const Success([]));
+    when(
+      () => mockContainerRepository.getAllForPage(any()),
+    ).thenAnswer((_) async => const Success([]));
+    when(
+      () => mockColumnRepository.getAllForContainer(any()),
+    ).thenAnswer((_) async => const Success([]));
   });
 
   group('AppRouter - Route Configuration', () {
     testWidgets('should have /login route', (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -82,8 +94,9 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -113,8 +126,9 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
 
@@ -150,8 +164,9 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
 
@@ -180,15 +195,18 @@ void main() {
       expect(find.textContaining('Error:'), findsOneWidget);
     });
 
-    testWidgets('should have /admin/templates route for admins', (tester) async {
+    testWidgets('should have /admin/templates route for admins', (
+      tester,
+    ) async {
       const testUser = User(
         id: '1',
         email: 'admin@example.com',
         role: UserRole.admin,
       );
 
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
 
@@ -217,15 +235,18 @@ void main() {
       expect(find.text('No templates found'), findsOneWidget);
     });
 
-    testWidgets('should have /admin/templates/:id route for admins', (tester) async {
+    testWidgets('should have /admin/templates/:id route for admins', (
+      tester,
+    ) async {
       const testUser = User(
         id: '1',
         email: 'admin@example.com',
         role: UserRole.admin,
       );
 
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
 
@@ -235,7 +256,9 @@ void main() {
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
             pageRepositoryProvider.overrideWithValue(mockPageRepository),
-            containerRepositoryProvider.overrideWithValue(mockContainerRepository),
+            containerRepositoryProvider.overrideWithValue(
+              mockContainerRepository,
+            ),
             columnRepositoryProvider.overrideWithValue(mockColumnRepository),
           ],
           child: Consumer(
@@ -259,9 +282,12 @@ void main() {
   });
 
   group('AppRouter - Auth Guards', () {
-    testWidgets('should redirect unauthenticated users to login', (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+    testWidgets('should redirect unauthenticated users to login', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       late GoRouter router;
 
@@ -291,15 +317,18 @@ void main() {
       expect(find.byKey(const Key('login_button')), findsOneWidget);
     });
 
-    testWidgets('should redirect authenticated users away from login', (tester) async {
+    testWidgets('should redirect authenticated users away from login', (
+      tester,
+    ) async {
       const testUser = User(
         id: '1',
         email: 'test@example.com',
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
 
@@ -330,15 +359,18 @@ void main() {
   });
 
   group('AppRouter - Admin Guards', () {
-    testWidgets('should block non-admin users from admin routes', (tester) async {
+    testWidgets('should block non-admin users from admin routes', (
+      tester,
+    ) async {
       const testUser = User(
         id: '1',
         email: 'user@example.com',
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
 
@@ -368,15 +400,18 @@ void main() {
       expect(find.text('No templates found'), findsNothing);
     });
 
-    testWidgets('should allow admin users to access admin routes', (tester) async {
+    testWidgets('should allow admin users to access admin routes', (
+      tester,
+    ) async {
       const testUser = User(
         id: '1',
         email: 'admin@example.com',
         role: UserRole.admin,
       );
 
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
 
@@ -414,8 +449,9 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
 
@@ -444,15 +480,18 @@ void main() {
       expect(find.textContaining('Error:'), findsOneWidget);
     });
 
-    testWidgets('should support deep linking to admin template editor', (tester) async {
+    testWidgets('should support deep linking to admin template editor', (
+      tester,
+    ) async {
       const testUser = User(
         id: '1',
         email: 'admin@example.com',
         role: UserRole.admin,
       );
 
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       late GoRouter router;
 
@@ -462,7 +501,9 @@ void main() {
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
             pageRepositoryProvider.overrideWithValue(mockPageRepository),
-            containerRepositoryProvider.overrideWithValue(mockContainerRepository),
+            containerRepositoryProvider.overrideWithValue(
+              mockContainerRepository,
+            ),
             columnRepositoryProvider.overrideWithValue(mockColumnRepository),
           ],
           child: Consumer(
@@ -484,9 +525,12 @@ void main() {
       expect(find.textContaining('Error:'), findsOneWidget);
     });
 
-    testWidgets('should redirect deep link to login if unauthenticated', (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+    testWidgets('should redirect deep link to login if unauthenticated', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       late GoRouter router;
 

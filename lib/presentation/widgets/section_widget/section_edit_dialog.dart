@@ -71,10 +71,7 @@ class _SectionEditDialogState extends State<SectionEditDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: _handleSave,
-          child: const Text('Save'),
-        ),
+        ElevatedButton(onPressed: _handleSave, child: const Text('Save')),
       ],
     );
   }

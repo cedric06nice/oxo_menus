@@ -24,12 +24,8 @@ void main() {
 
   Widget createWidgetUnderTest({required User user}) {
     return ProviderScope(
-      overrides: [
-        currentUserProvider.overrideWithValue(user),
-      ],
-      child: const MaterialApp(
-        home: SettingsPage(),
-      ),
+      overrides: [currentUserProvider.overrideWithValue(user)],
+      child: const MaterialApp(home: SettingsPage()),
     );
   }
 
@@ -42,8 +38,9 @@ void main() {
       expect(find.text('Show as non-admin user'), findsOneWidget);
     });
 
-    testWidgets('should not show debug section for regular user',
-        (tester) async {
+    testWidgets('should not show debug section for regular user', (
+      tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest(user: regularUser));
       await tester.pumpAndSettle();
 
@@ -51,8 +48,9 @@ void main() {
       expect(find.text('Show as non-admin user'), findsNothing);
     });
 
-    testWidgets('switch should be off by default for admin user',
-        (tester) async {
+    testWidgets('switch should be off by default for admin user', (
+      tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest(user: adminUser));
       await tester.pumpAndSettle();
 
@@ -62,8 +60,9 @@ void main() {
       expect(switchWidget.value, false);
     });
 
-    testWidgets('tapping switch should toggle adminViewAsUserProvider',
-        (tester) async {
+    testWidgets('tapping switch should toggle adminViewAsUserProvider', (
+      tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest(user: adminUser));
       await tester.pumpAndSettle();
 

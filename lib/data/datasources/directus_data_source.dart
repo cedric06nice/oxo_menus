@@ -21,9 +21,9 @@ class DirectusDataSource {
   DirectusDataSource({
     required String baseUrl,
     SecureTokenStorage? tokenStorage,
-  })  : _apiManager = DirectusApiManager(baseURL: baseUrl),
-        _tokenStorage = tokenStorage ?? SecureTokenStorage(),
-        _baseUrl = baseUrl;
+  }) : _apiManager = DirectusApiManager(baseURL: baseUrl),
+       _tokenStorage = tokenStorage ?? SecureTokenStorage(),
+       _baseUrl = baseUrl;
 
   /// Get the current access token (from api manager or restored session)
   String? get _currentAccessToken =>
@@ -38,10 +38,7 @@ class DirectusDataSource {
     required String email,
     required String password,
   }) async {
-    final result = await _apiManager.loginDirectusUser(
-      email,
-      password,
-    );
+    final result = await _apiManager.loginDirectusUser(email, password);
 
     switch (result.type) {
       case DirectusLoginResultType.success:
@@ -182,9 +179,7 @@ class DirectusDataSource {
 
     final response = await http.get(
       url,
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
+      headers: {'Authorization': 'Bearer $accessToken'},
     );
 
     if (response.statusCode == 200) {
@@ -219,10 +214,7 @@ class DirectusDataSource {
     );
 
     if (item == null) {
-      throw DirectusException(
-        code: 'NOT_FOUND',
-        message: 'Item not found',
-      );
+      throw DirectusException(code: 'NOT_FOUND', message: 'Item not found');
     }
 
     return item.getRawData();
@@ -248,10 +240,7 @@ class DirectusDataSource {
       sortProperties = sort.map((sortStr) {
         final isDescending = sortStr.startsWith('-');
         final fieldName = isDescending ? sortStr.substring(1) : sortStr;
-        return SortProperty(
-          fieldName,
-          ascending: !isDescending,
-        );
+        return SortProperty(fieldName, ascending: !isDescending);
       }).toList();
     }
 
@@ -270,9 +259,7 @@ class DirectusDataSource {
   Future<Map<String, dynamic>> createItem<T extends DirectusItem>(
     T newItem,
   ) async {
-    final result = await _apiManager.createNewItem<T>(
-      objectToCreate: newItem,
-    );
+    final result = await _apiManager.createNewItem<T>(objectToCreate: newItem);
 
     if (!result.isSuccess || result.createdItem == null) {
       throw DirectusException(
@@ -297,9 +284,7 @@ class DirectusDataSource {
 
   /// Delete an item from a collection
   Future<void> deleteItem<T extends DirectusItem>(int id) async {
-    final success = await _apiManager.deleteItem<T>(
-      objectId: id.toString(),
-    );
+    final success = await _apiManager.deleteItem<T>(objectId: id.toString());
 
     if (!success) {
       throw DirectusException(
@@ -481,7 +466,6 @@ class DirectusDataSource {
         return null;
     }
   }
-
 }
 
 /// Custom exception class for Directus errors

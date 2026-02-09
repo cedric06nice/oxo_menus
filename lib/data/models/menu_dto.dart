@@ -15,6 +15,9 @@ class MenuDto extends DirectusItem {
   String? get userUpdated => getValue(forKey: "user_updated");
   Map<String, dynamic> get styleJson =>
       Map<String, dynamic>.from(getValue(forKey: "style_json") ?? const {});
+  Map<String, dynamic> get displayOptionsJson => Map<String, dynamic>.from(
+    getValue(forKey: "display_options_json") ?? const {},
+  );
 
   AreaDto? get area {
     final raw = getValue(forKey: "area");
@@ -91,6 +94,7 @@ class MenuDto extends DirectusItem {
     List<VersionDto> versions = const [],
     List<PageDto>? pages,
     SizeDto? size,
+    Map<String, dynamic>? displayOptionsJson,
   }) : super.newItem() {
     setValue(name, forKey: "name");
     setValue(version, forKey: "version");
@@ -100,6 +104,7 @@ class MenuDto extends DirectusItem {
     setValue(versions, forKey: "versions");
     setValue(pages, forKey: "pages");
     setValue(size, forKey: "size");
+    setValue(displayOptionsJson, forKey: "display_options_json");
   }
 
   MenuDto(super.rawReceivedData);

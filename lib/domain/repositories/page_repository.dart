@@ -43,9 +43,6 @@ abstract class CreatePageInput with _$CreatePageInput {
 abstract class UpdatePageInput with _$UpdatePageInput {
   const UpdatePageInput._();
 
-  const factory UpdatePageInput({
-    required int id,
-    String? name,
-    int? index,
-  }) = _UpdatePageInput;
+  const factory UpdatePageInput({required int id, String? name, int? index}) =
+      _UpdatePageInput;
 }

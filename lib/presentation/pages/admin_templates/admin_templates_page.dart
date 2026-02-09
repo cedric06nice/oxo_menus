@@ -18,8 +18,7 @@ class AdminTemplatesPage extends ConsumerStatefulWidget {
   const AdminTemplatesPage({super.key});
 
   @override
-  ConsumerState<AdminTemplatesPage> createState() =>
-      _AdminTemplatesPageState();
+  ConsumerState<AdminTemplatesPage> createState() => _AdminTemplatesPageState();
 }
 
 class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
@@ -51,9 +50,7 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
           _buildStatusFilters(),
 
           // Templates list
-          Expanded(
-            child: _buildTemplatesList(state),
-          ),
+          Expanded(child: _buildTemplatesList(state)),
         ],
       ),
     );
@@ -98,9 +95,9 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
   }
 
   void _filterByStatus(String status) {
-    ref.read(adminTemplatesProvider.notifier).loadTemplates(
-          statusFilter: status,
-        );
+    ref
+        .read(adminTemplatesProvider.notifier)
+        .loadTemplates(statusFilter: status);
   }
 
   Widget _buildTemplatesList(dynamic state) {
@@ -178,9 +175,7 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Delete'),
           ),
         ],
@@ -194,9 +189,7 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Template "${template.name}" deleted'),
-          ),
+          SnackBar(content: Text('Template "${template.name}" deleted')),
         );
       }
     }
@@ -259,10 +252,7 @@ class _TemplateCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Updated: ${_formatDate(template.dateUpdated!)}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
             ],
           ],

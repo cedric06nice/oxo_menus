@@ -8,11 +8,7 @@ class DishEditDialog extends StatefulWidget {
   final DishProps props;
   final void Function(DishProps) onSave;
 
-  const DishEditDialog({
-    super.key,
-    required this.props,
-    required this.onSave,
-  });
+  const DishEditDialog({super.key, required this.props, required this.onSave});
 
   @override
   State<DishEditDialog> createState() => _DishEditDialogState();
@@ -24,22 +20,21 @@ class _DishEditDialogState extends State<DishEditDialog> {
   late TextEditingController _descriptionController;
   late TextEditingController _dietaryController;
   late List<AllergenInfo> _selectedAllergens;
-  late bool _showPrice;
-  late bool _showAllergens;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.props.name);
-    _priceController =
-        TextEditingController(text: widget.props.price.toString());
-    _descriptionController =
-        TextEditingController(text: widget.props.description ?? '');
-    _dietaryController =
-        TextEditingController(text: widget.props.dietary.join(', '));
+    _priceController = TextEditingController(
+      text: widget.props.price.toString(),
+    );
+    _descriptionController = TextEditingController(
+      text: widget.props.description ?? '',
+    );
+    _dietaryController = TextEditingController(
+      text: widget.props.dietary.join(', '),
+    );
     _selectedAllergens = List.from(widget.props.effectiveAllergenInfo);
-    _showPrice = widget.props.showPrice;
-    _showAllergens = widget.props.showAllergens;
   }
 
   @override
@@ -74,8 +69,9 @@ class _DishEditDialogState extends State<DishEditDialog> {
                 hintText: 'Enter price',
                 prefixText: '£',
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -102,18 +98,6 @@ class _DishEditDialogState extends State<DishEditDialog> {
               ),
             ),
             const SizedBox(height: 8),
-            SwitchListTile(
-              title: const Text('Show Price'),
-              value: _showPrice,
-              onChanged: (value) => setState(() => _showPrice = value),
-              dense: true,
-            ),
-            SwitchListTile(
-              title: const Text('Show Allergens'),
-              value: _showAllergens,
-              onChanged: (value) => setState(() => _showAllergens = value),
-              dense: true,
-            ),
           ],
         ),
       ),
@@ -122,10 +106,7 @@ class _DishEditDialogState extends State<DishEditDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: _handleSave,
-          child: const Text('Save'),
-        ),
+        ElevatedButton(onPressed: _handleSave, child: const Text('Save')),
       ],
     );
   }
@@ -144,8 +125,6 @@ class _DishEditDialogState extends State<DishEditDialog> {
           .map((s) => s.trim())
           .where((s) => s.isNotEmpty)
           .toList(),
-      showPrice: _showPrice,
-      showAllergens: _showAllergens,
     );
 
     widget.onSave(updatedProps);

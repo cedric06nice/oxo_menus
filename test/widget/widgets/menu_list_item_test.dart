@@ -20,11 +20,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MenuListItem(
-              menu: testMenu,
-              isAdmin: false,
-              onTap: () {},
-            ),
+            body: MenuListItem(menu: testMenu, isAdmin: false, onTap: () {}),
           ),
         ),
       );
@@ -38,11 +34,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MenuListItem(
-              menu: testMenu,
-              isAdmin: true,
-              onTap: () {},
-            ),
+            body: MenuListItem(menu: testMenu, isAdmin: true, onTap: () {}),
           ),
         ),
       );
@@ -56,11 +48,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MenuListItem(
-              menu: testMenu,
-              isAdmin: true,
-              onTap: () {},
-            ),
+            body: MenuListItem(menu: testMenu, isAdmin: true, onTap: () {}),
           ),
         ),
       );
@@ -74,11 +62,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MenuListItem(
-              menu: testMenu,
-              isAdmin: true,
-              onTap: () {},
-            ),
+            body: MenuListItem(menu: testMenu, isAdmin: true, onTap: () {}),
           ),
         ),
       );
@@ -130,16 +114,14 @@ void main() {
       expect(find.byIcon(Icons.delete), findsOneWidget);
     });
 
-    testWidgets('should not show delete icon for regular users', (tester) async {
+    testWidgets('should not show delete icon for regular users', (
+      tester,
+    ) async {
       // Act
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MenuListItem(
-              menu: testMenu,
-              isAdmin: false,
-              onTap: () {},
-            ),
+            body: MenuListItem(menu: testMenu, isAdmin: false, onTap: () {}),
           ),
         ),
       );
@@ -173,7 +155,9 @@ void main() {
       expect(deleteTapped, true);
     });
 
-    testWidgets('should not call onTap when delete icon tapped', (tester) async {
+    testWidgets('should not call onTap when delete icon tapped', (
+      tester,
+    ) async {
       // Arrange
       bool tapped = false;
       bool deleteTapped = false;
@@ -200,7 +184,9 @@ void main() {
       expect(tapped, false); // onTap should not be called
     });
 
-    testWidgets('should display draft status with different color', (tester) async {
+    testWidgets('should display draft status with different color', (
+      tester,
+    ) async {
       // Arrange
       const draftMenu = Menu(
         id: 2,
@@ -213,11 +199,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MenuListItem(
-              menu: draftMenu,
-              isAdmin: true,
-              onTap: () {},
-            ),
+            body: MenuListItem(menu: draftMenu, isAdmin: true, onTap: () {}),
           ),
         ),
       );
@@ -230,7 +212,9 @@ void main() {
       expect(chipFinder, findsOneWidget);
     });
 
-    testWidgets('should display archived status with different color', (tester) async {
+    testWidgets('should display archived status with different color', (
+      tester,
+    ) async {
       // Arrange
       const archivedMenu = Menu(
         id: 3,
@@ -243,11 +227,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MenuListItem(
-              menu: archivedMenu,
-              isAdmin: true,
-              onTap: () {},
-            ),
+            body: MenuListItem(menu: archivedMenu, isAdmin: true, onTap: () {}),
           ),
         ),
       );
@@ -287,11 +267,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MenuListItem(
-              menu: testMenu,
-              isAdmin: false,
-              onTap: () {},
-            ),
+            body: MenuListItem(menu: testMenu, isAdmin: false, onTap: () {}),
           ),
         ),
       );
@@ -305,11 +281,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: MenuListItem(
-              menu: testMenu,
-              isAdmin: false,
-              onTap: () {},
-            ),
+            body: MenuListItem(menu: testMenu, isAdmin: false, onTap: () {}),
           ),
         ),
       );

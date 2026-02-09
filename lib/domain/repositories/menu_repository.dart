@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 
 part 'menu_repository.freezed.dart';
@@ -36,6 +37,7 @@ abstract class CreateMenuInput with _$CreateMenuInput {
     StyleConfig? styleConfig,
     int? sizeId,
     String? area,
+    MenuDisplayOptions? displayOptions,
   }) = _CreateMenuInput;
 }
 
@@ -52,5 +54,6 @@ abstract class UpdateMenuInput with _$UpdateMenuInput {
     StyleConfig? styleConfig,
     PageSize? pageSize,
     String? area,
+    MenuDisplayOptions? displayOptions,
   }) = _UpdateMenuInput;
 }

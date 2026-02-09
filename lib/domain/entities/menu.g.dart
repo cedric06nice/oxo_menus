@@ -26,6 +26,11 @@ _Menu _$MenuFromJson(Map<String, dynamic> json) => _Menu(
       ? null
       : PageSize.fromJson(json['pageSize'] as Map<String, dynamic>),
   area: json['area'] as String?,
+  displayOptions: json['displayOptions'] == null
+      ? null
+      : MenuDisplayOptions.fromJson(
+          json['displayOptions'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$MenuToJson(_Menu instance) => <String, dynamic>{
@@ -40,6 +45,7 @@ Map<String, dynamic> _$MenuToJson(_Menu instance) => <String, dynamic>{
   'styleConfig': instance.styleConfig,
   'pageSize': instance.pageSize,
   'area': instance.area,
+  'displayOptions': instance.displayOptions,
 };
 
 const _$StatusEnumMap = {

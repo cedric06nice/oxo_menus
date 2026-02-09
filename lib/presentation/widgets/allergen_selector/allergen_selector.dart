@@ -58,8 +58,7 @@ class _AllergenSelectorState extends State<AllergenSelector> {
   }
 
   void _notifyChange() {
-    final selected =
-        _selections.values.whereType<AllergenInfo>().toList();
+    final selected = _selections.values.whereType<AllergenInfo>().toList();
     widget.onChanged(selected);
   }
 
@@ -68,10 +67,7 @@ class _AllergenSelectorState extends State<AllergenSelector> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Allergens',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
+        Text('Allergens', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         ...UkAllergen.values.map((allergen) => _buildAllergenTile(allergen)),
       ],
@@ -100,7 +96,8 @@ class _AllergenSelectorState extends State<AllergenSelector> {
                         _selections[allergen] = AllergenInfo(
                           allergen: allergen,
                           mayContain: false,
-                          details: _detailsControllers[allergen]?.text.isEmpty ==
+                          details:
+                              _detailsControllers[allergen]?.text.isEmpty ==
                                   true
                               ? null
                               : _detailsControllers[allergen]?.text,

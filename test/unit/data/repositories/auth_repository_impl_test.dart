@@ -49,10 +49,9 @@ void main() {
 
       test('should login successfully and return user', () async {
         // Arrange
-        when(() => mockDataSource.login(
-              email: email,
-              password: password,
-            )).thenAnswer((_) async => loginResponseJson);
+        when(
+          () => mockDataSource.login(email: email, password: password),
+        ).thenAnswer((_) async => loginResponseJson);
 
         // Act
         final result = await repository.login(email, password);
@@ -66,37 +65,38 @@ void main() {
         expect(user.lastName, 'User');
         expect(user.role, UserRole.admin);
 
-        verify(() => mockDataSource.login(email: email, password: password))
-            .called(1);
+        verify(
+          () => mockDataSource.login(email: email, password: password),
+        ).called(1);
       });
 
-      test('should return InvalidCredentialsError when credentials are invalid',
-          () async {
-        // Arrange
-        when(() => mockDataSource.login(
-              email: email,
-              password: password,
-            )).thenThrow(
-          MockDirectusException(
-            code: 'INVALID_CREDENTIALS',
-            message: 'Invalid email or password',
-          ),
-        );
+      test(
+        'should return InvalidCredentialsError when credentials are invalid',
+        () async {
+          // Arrange
+          when(
+            () => mockDataSource.login(email: email, password: password),
+          ).thenThrow(
+            MockDirectusException(
+              code: 'INVALID_CREDENTIALS',
+              message: 'Invalid email or password',
+            ),
+          );
 
-        // Act
-        final result = await repository.login(email, password);
+          // Act
+          final result = await repository.login(email, password);
 
-        // Assert
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<InvalidCredentialsError>());
-      });
+          // Assert
+          expect(result.isFailure, true);
+          expect(result.errorOrNull, isA<InvalidCredentialsError>());
+        },
+      );
 
       test('should return NetworkError when network fails', () async {
         // Arrange
-        when(() => mockDataSource.login(
-              email: email,
-              password: password,
-            )).thenThrow(Exception('Network error'));
+        when(
+          () => mockDataSource.login(email: email, password: password),
+        ).thenThrow(Exception('Network error'));
 
         // Act
         final result = await repository.login(email, password);
@@ -122,8 +122,9 @@ void main() {
 
       test('should return error when logout fails', () async {
         // Arrange
-        when(() => mockDataSource.logout())
-            .thenThrow(Exception('Logout failed'));
+        when(
+          () => mockDataSource.logout(),
+        ).thenThrow(Exception('Logout failed'));
 
         // Act
         final result = await repository.logout();
@@ -146,8 +147,9 @@ void main() {
 
       test('should return current user when authenticated', () async {
         // Arrange
-        when(() => mockDataSource.getCurrentUser())
-            .thenAnswer((_) async => userJson);
+        when(
+          () => mockDataSource.getCurrentUser(),
+        ).thenAnswer((_) async => userJson);
 
         // Act
         final result = await repository.getCurrentUser();
@@ -201,42 +203,46 @@ void main() {
     });
 
     group('refreshSession', () {
-      test('should call dataSource.refreshSession and return Success',
-          () async {
-        // Arrange
-        when(() => mockDataSource.refreshSession())
-            .thenAnswer((_) async {});
+      test(
+        'should call dataSource.refreshSession and return Success',
+        () async {
+          // Arrange
+          when(() => mockDataSource.refreshSession()).thenAnswer((_) async {});
 
-        // Act
-        final result = await repository.refreshSession();
+          // Act
+          final result = await repository.refreshSession();
 
-        // Assert
-        expect(result.isSuccess, true);
-        verify(() => mockDataSource.refreshSession()).called(1);
-      });
+          // Assert
+          expect(result.isSuccess, true);
+          verify(() => mockDataSource.refreshSession()).called(1);
+        },
+      );
 
-      test('should return TokenExpiredError when refresh token is invalid',
-          () async {
-        // Arrange
-        when(() => mockDataSource.refreshSession()).thenThrow(
-          MockDirectusException(
-            code: 'TOKEN_EXPIRED',
-            message: 'Token has expired',
-          ),
-        );
+      test(
+        'should return TokenExpiredError when refresh token is invalid',
+        () async {
+          // Arrange
+          when(() => mockDataSource.refreshSession()).thenThrow(
+            MockDirectusException(
+              code: 'TOKEN_EXPIRED',
+              message: 'Token has expired',
+            ),
+          );
 
-        // Act
-        final result = await repository.refreshSession();
+          // Act
+          final result = await repository.refreshSession();
 
-        // Assert
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<TokenExpiredError>());
-      });
+          // Assert
+          expect(result.isFailure, true);
+          expect(result.errorOrNull, isA<TokenExpiredError>());
+        },
+      );
 
       test('should return UnknownError when network fails', () async {
         // Arrange
-        when(() => mockDataSource.refreshSession())
-            .thenThrow(Exception('Network error'));
+        when(
+          () => mockDataSource.refreshSession(),
+        ).thenThrow(Exception('Network error'));
 
         // Act
         final result = await repository.refreshSession();

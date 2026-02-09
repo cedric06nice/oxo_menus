@@ -19,8 +19,14 @@ void main() {
   group('BorderTypeConverter', () {
     test('should convert string to BorderType', () {
       expect(BorderTypeConverter.fromString('none'), BorderType.none);
-      expect(BorderTypeConverter.fromString('plain_thin'), BorderType.plainThin);
-      expect(BorderTypeConverter.fromString('plain_thick'), BorderType.plainThick);
+      expect(
+        BorderTypeConverter.fromString('plain_thin'),
+        BorderType.plainThin,
+      );
+      expect(
+        BorderTypeConverter.fromString('plain_thick'),
+        BorderType.plainThick,
+      );
       expect(
         BorderTypeConverter.fromString('double_offset'),
         BorderType.doubleOffset,

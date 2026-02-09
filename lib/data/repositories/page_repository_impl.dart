@@ -38,7 +38,7 @@ class PageRepositoryImpl implements PageRepository {
     try {
       final data = await dataSource.getItems<PageDto>(
         filter: {
-          'menu': {'_eq': menuId}
+          'menu': {'_eq': menuId},
         },
         fields: [
           'id',
@@ -74,7 +74,7 @@ class PageRepositoryImpl implements PageRepository {
           'containers.columns.widgets.type_key',
           'containers.columns.widgets.version',
           'containers.columns.widgets.props_json',
-          'containers.columns.widgets.style_json'
+          'containers.columns.widgets.style_json',
         ],
         sort: ['index'],
       );
@@ -129,7 +129,7 @@ class PageRepositoryImpl implements PageRepository {
           'containers.columns.widgets.type_key',
           'containers.columns.widgets.version',
           'containers.columns.widgets.props_json',
-          'containers.columns.widgets.style_json'
+          'containers.columns.widgets.style_json',
         ],
       );
 

@@ -117,10 +117,7 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
 /// ```
 final currentUserProvider = Provider<User?>((ref) {
   final authState = ref.watch(authProvider);
-  return authState.maybeWhen(
-    authenticated: (user) => user,
-    orElse: () => null,
-  );
+  return authState.maybeWhen(authenticated: (user) => user, orElse: () => null);
 });
 
 /// Admin "view as user" override provider

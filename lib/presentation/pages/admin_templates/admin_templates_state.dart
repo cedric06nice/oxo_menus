@@ -10,6 +10,7 @@ abstract class AdminTemplatesState with _$AdminTemplatesState {
     @Default([]) List<Menu> templates,
     @Default(false) bool isLoading,
     String? errorMessage,
-    @Default('all') String statusFilter, // 'all', 'draft', 'published', 'archived'
+    @Default('all')
+    String statusFilter, // 'all', 'draft', 'published', 'archived'
   }) = _AdminTemplatesState;
 }

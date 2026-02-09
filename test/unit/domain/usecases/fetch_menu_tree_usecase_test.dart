@@ -60,10 +60,12 @@ void main() {
 
     test('should return menu tree when all fetches succeed', () async {
       // Arrange
-      when(() => mockMenuRepo.getById(menuId))
-          .thenAnswer((_) async => const Success(mockMenu));
-      when(() => mockPageRepo.getAllForMenu(menuId))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       final result = await useCase.execute(menuId);
@@ -80,8 +82,9 @@ void main() {
     test('should return failure when menu fetch fails', () async {
       // Arrange
       const error = NotFoundError('Menu not found');
-      when(() => mockMenuRepo.getById(menuId))
-          .thenAnswer((_) async => const Failure(error));
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Failure(error));
 
       // Act
       final result = await useCase.execute(menuId);
@@ -97,10 +100,12 @@ void main() {
     test('should return failure when pages fetch fails', () async {
       // Arrange
       const error = NetworkError('Network error');
-      when(() => mockMenuRepo.getById(menuId))
-          .thenAnswer((_) async => const Success(mockMenu));
-      when(() => mockPageRepo.getAllForMenu(menuId))
-          .thenAnswer((_) async => const Failure(error));
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Failure(error));
 
       // Act
       final result = await useCase.execute(menuId);
@@ -122,12 +127,15 @@ void main() {
         const Page(id: 3, menuId: menuId, name: 'Page 3', index: 3),
       ];
 
-      when(() => mockMenuRepo.getById(menuId))
-          .thenAnswer((_) async => const Success(mockMenu));
-      when(() => mockPageRepo.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage(any()))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepo.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       final result = await useCase.execute(menuId);
@@ -147,12 +155,15 @@ void main() {
       ];
       const error = ServerError('Server error');
 
-      when(() => mockMenuRepo.getById(menuId))
-          .thenAnswer((_) async => const Success(mockMenu));
-      when(() => mockPageRepo.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage(1))
-          .thenAnswer((_) async => const Failure(error));
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepo.getAllForPage(1),
+      ).thenAnswer((_) async => const Failure(error));
 
       // Act
       final result = await useCase.execute(menuId);
@@ -172,22 +183,27 @@ void main() {
         const Container(id: 1, pageId: 1, index: 1, name: 'Container 1'),
       ];
 
-      when(() => mockMenuRepo.getById(menuId))
-          .thenAnswer((_) async => const Success(mockMenu));
-      when(() => mockPageRepo.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage(1))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepo.getAllForContainer(any()))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepo.getAllForPage(1),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepo.getAllForContainer(any()),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       final result = await useCase.execute(menuId);
 
       // Assert
       expect(result.isSuccess, true);
-      final sortedContainers =
-          result.valueOrNull!.pages[0].containers.map((c) => c.container).toList();
+      final sortedContainers = result.valueOrNull!.pages[0].containers
+          .map((c) => c.container)
+          .toList();
       expect(sortedContainers[0].id, 1);
       expect(sortedContainers[1].id, 2);
     });
@@ -202,14 +218,18 @@ void main() {
       ];
       const error = ValidationError('Invalid column data');
 
-      when(() => mockMenuRepo.getById(menuId))
-          .thenAnswer((_) async => const Success(mockMenu));
-      when(() => mockPageRepo.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage(1))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepo.getAllForContainer(1))
-          .thenAnswer((_) async => const Failure(error));
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepo.getAllForPage(1),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepo.getAllForContainer(1),
+      ).thenAnswer((_) async => const Failure(error));
 
       // Act
       final result = await useCase.execute(menuId);
@@ -233,24 +253,28 @@ void main() {
         const Column(id: 2, containerId: 1, index: 2, flex: 1),
       ];
 
-      when(() => mockMenuRepo.getById(menuId))
-          .thenAnswer((_) async => const Success(mockMenu));
-      when(() => mockPageRepo.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage(1))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepo.getAllForContainer(1))
-          .thenAnswer((_) async => Success(columns));
-      when(() => mockWidgetRepo.getAllForColumn(any()))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepo.getAllForPage(1),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepo.getAllForContainer(1),
+      ).thenAnswer((_) async => Success(columns));
+      when(
+        () => mockWidgetRepo.getAllForColumn(any()),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       final result = await useCase.execute(menuId);
 
       // Assert
       expect(result.isSuccess, true);
-      final sortedColumns = result
-          .valueOrNull!.pages[0].containers[0].columns
+      final sortedColumns = result.valueOrNull!.pages[0].containers[0].columns
           .map((c) => c.column)
           .toList();
       expect(sortedColumns[0].id, 1);
@@ -266,21 +290,24 @@ void main() {
       final containers = [
         const Container(id: 1, pageId: 1, index: 1, name: 'Container 1'),
       ];
-      final columns = [
-        const Column(id: 1, containerId: 1, index: 1, flex: 1),
-      ];
+      final columns = [const Column(id: 1, containerId: 1, index: 1, flex: 1)];
       const error = UnknownError('Unknown error');
 
-      when(() => mockMenuRepo.getById(menuId))
-          .thenAnswer((_) async => const Success(mockMenu));
-      when(() => mockPageRepo.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage(1))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepo.getAllForContainer(1))
-          .thenAnswer((_) async => Success(columns));
-      when(() => mockWidgetRepo.getAllForColumn(1))
-          .thenAnswer((_) async => const Failure(error));
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepo.getAllForPage(1),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepo.getAllForContainer(1),
+      ).thenAnswer((_) async => Success(columns));
+      when(
+        () => mockWidgetRepo.getAllForColumn(1),
+      ).thenAnswer((_) async => const Failure(error));
 
       // Act
       final result = await useCase.execute(menuId);
@@ -298,9 +325,7 @@ void main() {
       final containers = [
         const Container(id: 1, pageId: 1, index: 1, name: 'Container 1'),
       ];
-      final columns = [
-        const Column(id: 1, containerId: 1, index: 1, flex: 1),
-      ];
+      final columns = [const Column(id: 1, containerId: 1, index: 1, flex: 1)];
       final widgets = [
         const WidgetInstance(
           id: 2,
@@ -320,16 +345,21 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepo.getById(menuId))
-          .thenAnswer((_) async => const Success(mockMenu));
-      when(() => mockPageRepo.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage(1))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepo.getAllForContainer(1))
-          .thenAnswer((_) async => Success(columns));
-      when(() => mockWidgetRepo.getAllForColumn(1))
-          .thenAnswer((_) async => Success(widgets));
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepo.getAllForPage(1),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepo.getAllForContainer(1),
+      ).thenAnswer((_) async => Success(columns));
+      when(
+        () => mockWidgetRepo.getAllForColumn(1),
+      ).thenAnswer((_) async => Success(widgets));
 
       // Act
       final result = await useCase.execute(menuId);
@@ -350,9 +380,7 @@ void main() {
       final containers = [
         const Container(id: 1, pageId: 1, index: 1, name: 'Container 1'),
       ];
-      final columns = [
-        const Column(id: 1, containerId: 1, index: 1, flex: 1),
-      ];
+      final columns = [const Column(id: 1, containerId: 1, index: 1, flex: 1)];
       final widgets = [
         const WidgetInstance(
           id: 1,
@@ -364,16 +392,21 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepo.getById(menuId))
-          .thenAnswer((_) async => const Success(mockMenu));
-      when(() => mockPageRepo.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepo.getAllForPage(1))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepo.getAllForContainer(1))
-          .thenAnswer((_) async => Success(columns));
-      when(() => mockWidgetRepo.getAllForColumn(1))
-          .thenAnswer((_) async => Success(widgets));
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepo.getAllForPage(1),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepo.getAllForContainer(1),
+      ).thenAnswer((_) async => Success(columns));
+      when(
+        () => mockWidgetRepo.getAllForColumn(1),
+      ).thenAnswer((_) async => Success(widgets));
 
       // Act
       final result = await useCase.execute(menuId);
@@ -408,10 +441,12 @@ void main() {
 
     test('should handle empty collections at each level', () async {
       // Arrange
-      when(() => mockMenuRepo.getById(menuId))
-          .thenAnswer((_) async => const Success(mockMenu));
-      when(() => mockPageRepo.getAllForMenu(menuId))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       final result = await useCase.execute(menuId);

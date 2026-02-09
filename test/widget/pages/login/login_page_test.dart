@@ -20,20 +20,17 @@ void main() {
 
   Widget createWidgetUnderTest() {
     return ProviderScope(
-      overrides: [
-        authRepositoryProvider.overrideWithValue(mockAuthRepository),
-      ],
-      child: const MaterialApp(
-        home: LoginPage(),
-      ),
+      overrides: [authRepositoryProvider.overrideWithValue(mockAuthRepository)],
+      child: const MaterialApp(home: LoginPage()),
     );
   }
 
   group('LoginPage', () {
     testWidgets('should display app title', (tester) async {
       // Mock getCurrentUser to return unauthenticated
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -42,8 +39,9 @@ void main() {
     });
 
     testWidgets('should display email and password fields', (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -53,8 +51,9 @@ void main() {
     });
 
     testWidgets('should display login button', (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -63,8 +62,9 @@ void main() {
     });
 
     testWidgets('should validate empty email', (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -88,8 +88,9 @@ void main() {
     });
 
     testWidgets('should validate empty password', (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -119,10 +120,12 @@ void main() {
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
-      when(() => mockAuthRepository.login(any(), any()))
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.login(any(), any()),
+      ).thenAnswer((_) async => const Success(testUser));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -142,22 +145,26 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify login was called with correct credentials
-      verify(() => mockAuthRepository.login('test@example.com', 'password123'))
-          .called(1);
+      verify(
+        () => mockAuthRepository.login('test@example.com', 'password123'),
+      ).called(1);
     });
 
-    testWidgets('should successfully login and call repository',
-        (tester) async {
+    testWidgets('should successfully login and call repository', (
+      tester,
+    ) async {
       const testUser = User(
         id: '1',
         email: 'test@example.com',
         role: UserRole.user,
       );
 
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
-      when(() => mockAuthRepository.login(any(), any()))
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.login(any(), any()),
+      ).thenAnswer((_) async => const Success(testUser));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -177,18 +184,20 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify login was called
-      verify(() => mockAuthRepository.login('test@example.com', 'password123'))
-          .called(1);
+      verify(
+        () => mockAuthRepository.login('test@example.com', 'password123'),
+      ).called(1);
     });
 
-    testWidgets('should display error message on login failure',
-        (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+    testWidgets('should display error message on login failure', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
       when(() => mockAuthRepository.login(any(), any())).thenAnswer(
-        (_) async => const Failure(
-          InvalidCredentialsError('Invalid credentials'),
-        ),
+        (_) async =>
+            const Failure(InvalidCredentialsError('Invalid credentials')),
       );
 
       await tester.pumpWidget(createWidgetUnderTest());
@@ -213,8 +222,9 @@ void main() {
     });
 
     testWidgets('should hide password text', (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -230,10 +240,12 @@ void main() {
       expect(textField.obscureText, isTrue);
     });
 
-    testWidgets('should have email keyboard type for email field',
-        (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+    testWidgets('should have email keyboard type for email field', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -250,8 +262,9 @@ void main() {
     });
 
     testWidgets('should pre-fill credentials in debug mode', (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
@@ -274,8 +287,9 @@ void main() {
     });
 
     testWidgets('should not show error initially', (tester) async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();

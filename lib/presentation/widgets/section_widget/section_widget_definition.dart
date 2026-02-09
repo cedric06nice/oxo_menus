@@ -10,10 +10,7 @@ final sectionWidgetDefinition = WidgetDefinition<SectionProps>(
   type: 'section',
   version: '1.0.0',
   parseProps: (json) => SectionProps.fromJson(json),
-  render: (props, context) => SectionWidget(
-    props: props,
-    context: context,
-  ),
+  render: (props, context) => SectionWidget(props: props, context: context),
   defaultProps: const SectionProps(
     title: 'New Section',
     uppercase: false,

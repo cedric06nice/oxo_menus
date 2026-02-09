@@ -123,10 +123,7 @@ void main() {
       });
 
       test('UnknownError should be created with message and details', () {
-        const error = UnknownError(
-          'Something went wrong',
-          {'code': 500},
-        );
+        const error = UnknownError('Something went wrong', {'code': 500});
 
         expect(error, isA<DomainError>());
         expect(error.message, 'Something went wrong');
@@ -163,13 +160,15 @@ void main() {
         expect(error1, isNot(equals(error2)));
       });
 
-      test('Errors with same message but different details should not be equal',
-          () {
-        const error1 = ValidationError('Invalid', details: {'a': 1});
-        const error2 = ValidationError('Invalid', details: {'b': 2});
+      test(
+        'Errors with same message but different details should not be equal',
+        () {
+          const error1 = ValidationError('Invalid', details: {'a': 1});
+          const error2 = ValidationError('Invalid', details: {'b': 2});
 
-        expect(error1, isNot(equals(error2)));
-      });
+          expect(error1, isNot(equals(error2)));
+        },
+      );
 
       test('Errors with same message and details should be equal', () {
         const error1 = ValidationError('Invalid', details: {'a': 1});

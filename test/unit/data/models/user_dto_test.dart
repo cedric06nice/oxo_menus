@@ -29,10 +29,7 @@ void main() {
 
       test('should deserialize with only required fields', () {
         // Arrange
-        final json = {
-          'id': 'user-2',
-          'email': 'user@example.com',
-        };
+        final json = {'id': 'user-2', 'email': 'user@example.com'};
 
         // Act
         final dto = UserDto.fromJson(json);
@@ -53,10 +50,7 @@ void main() {
           'email': 'admin@example.com',
           'first_name': 'Admin',
           'last_name': 'User',
-          'role': {
-            'id': 'role-uuid-abc',
-            'name': 'Administrator',
-          },
+          'role': {'id': 'role-uuid-abc', 'name': 'Administrator'},
         };
 
         // Act
@@ -84,7 +78,10 @@ void main() {
         // Assert
         expect(dto.id, 'user-4');
         expect(dto.email, 'user@example.com');
-        expect(dto.role, 'uuid-1234-5678-90ab-cdef'); // UUID string passed through
+        expect(
+          dto.role,
+          'uuid-1234-5678-90ab-cdef',
+        ); // UUID string passed through
       });
     });
 
@@ -124,10 +121,7 @@ void main() {
         );
 
         // Act
-        final updated = dto.copyWith(
-          firstName: 'Jane',
-          role: 'user',
-        );
+        final updated = dto.copyWith(firstName: 'Jane', role: 'user');
 
         // Assert
         expect(updated.id, dto.id);
@@ -141,15 +135,9 @@ void main() {
     group('equality', () {
       test('should be equal for same values', () {
         // Arrange
-        const dto1 = UserDto(
-          id: 'user-1',
-          email: 'test@example.com',
-        );
+        const dto1 = UserDto(id: 'user-1', email: 'test@example.com');
 
-        const dto2 = UserDto(
-          id: 'user-1',
-          email: 'test@example.com',
-        );
+        const dto2 = UserDto(id: 'user-1', email: 'test@example.com');
 
         // Assert
         expect(dto1, equals(dto2));

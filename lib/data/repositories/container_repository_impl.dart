@@ -16,7 +16,8 @@ class ContainerRepositoryImpl implements ContainerRepository {
 
   @override
   Future<Result<Container, DomainError>> create(
-      CreateContainerInput input) async {
+    CreateContainerInput input,
+  ) async {
     try {
       final item = ContainerDto.newItem(
         index: input.index,
@@ -53,12 +54,11 @@ class ContainerRepositoryImpl implements ContainerRepository {
   }
 
   @override
-  Future<Result<List<Container>, DomainError>> getAllForPage(
-      int pageId) async {
+  Future<Result<List<Container>, DomainError>> getAllForPage(int pageId) async {
     try {
       final data = await dataSource.getItems<ContainerDto>(
         filter: {
-          'page': {'_eq': pageId}
+          'page': {'_eq': pageId},
         },
         fields: [
           'id',
@@ -87,7 +87,7 @@ class ContainerRepositoryImpl implements ContainerRepository {
           'columns.widgets.type_key',
           'columns.widgets.version',
           'columns.widgets.props_json',
-          'columns.widgets.style_json'
+          'columns.widgets.style_json',
         ],
         sort: ['index'],
       );
@@ -135,7 +135,7 @@ class ContainerRepositoryImpl implements ContainerRepository {
           'columns.widgets.type_key',
           'columns.widgets.version',
           'columns.widgets.props_json',
-          'columns.widgets.style_json'
+          'columns.widgets.style_json',
         ],
       );
 
@@ -150,7 +150,8 @@ class ContainerRepositoryImpl implements ContainerRepository {
 
   @override
   Future<Result<Container, DomainError>> update(
-      UpdateContainerInput input) async {
+    UpdateContainerInput input,
+  ) async {
     try {
       // First fetch the existing item
       final existingData = await dataSource.getItem<ContainerDto>(input.id);
@@ -198,7 +199,9 @@ class ContainerRepositoryImpl implements ContainerRepository {
 
   @override
   Future<Result<void, DomainError>> reorder(
-      int containerId, int newIndex) async {
+    int containerId,
+    int newIndex,
+  ) async {
     try {
       // First fetch the existing item
       final existingData = await dataSource.getItem<ContainerDto>(containerId);
@@ -215,7 +218,10 @@ class ContainerRepositoryImpl implements ContainerRepository {
 
   @override
   Future<Result<void, DomainError>> moveTo(
-      int containerId, int newPageId, int index) async {
+    int containerId,
+    int newPageId,
+    int index,
+  ) async {
     try {
       // First fetch the existing item
       final existingData = await dataSource.getItem<ContainerDto>(containerId);

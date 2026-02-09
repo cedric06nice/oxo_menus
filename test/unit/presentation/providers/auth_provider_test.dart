@@ -17,8 +17,9 @@ void main() {
   setUp(() {
     mockAuthRepository = MockAuthRepository();
     // Mock tryRestoreSession (called by constructor) to return unauthenticated by default
-    when(() => mockAuthRepository.tryRestoreSession())
-        .thenAnswer((_) async => const Failure(UnauthorizedError()));
+    when(
+      () => mockAuthRepository.tryRestoreSession(),
+    ).thenAnswer((_) async => const Failure(UnauthorizedError()));
     authNotifier = AuthNotifier(mockAuthRepository);
   });
 
@@ -46,8 +47,9 @@ void main() {
     });
 
     test('should set authenticated state when user is logged in', () async {
-      when(() => mockAuthRepository.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       final newNotifier = AuthNotifier(mockAuthRepository);
       await Future.delayed(const Duration(milliseconds: 100));
@@ -56,26 +58,31 @@ void main() {
     });
 
     group('login', () {
-      test('should set loading state then authenticated on successful login',
-          () async {
-        when(() => mockAuthRepository.login(any(), any()))
-            .thenAnswer((_) async => const Success(testUser));
+      test(
+        'should set loading state then authenticated on successful login',
+        () async {
+          when(
+            () => mockAuthRepository.login(any(), any()),
+          ).thenAnswer((_) async => const Success(testUser));
 
-        final states = <AuthState>[];
-        authNotifier.addListener((state) => states.add(state));
+          final states = <AuthState>[];
+          authNotifier.addListener((state) => states.add(state));
 
-        await authNotifier.login('test@example.com', 'password');
+          await authNotifier.login('test@example.com', 'password');
 
-        expect(states, contains(const AuthState.loading()));
-        expect(authNotifier.state, const AuthState.authenticated(testUser));
-        verify(() => mockAuthRepository.login('test@example.com', 'password'))
-            .called(1);
-      });
+          expect(states, contains(const AuthState.loading()));
+          expect(authNotifier.state, const AuthState.authenticated(testUser));
+          verify(
+            () => mockAuthRepository.login('test@example.com', 'password'),
+          ).called(1);
+        },
+      );
 
       test('should set error state on failed login', () async {
         const error = InvalidCredentialsError('Invalid email or password');
-        when(() => mockAuthRepository.login(any(), any()))
-            .thenAnswer((_) async => const Failure(error));
+        when(
+          () => mockAuthRepository.login(any(), any()),
+        ).thenAnswer((_) async => const Failure(error));
 
         await authNotifier.login('test@example.com', 'wrong_password');
 
@@ -90,8 +97,9 @@ void main() {
 
       test('should handle network errors', () async {
         const error = NetworkError('Network unavailable');
-        when(() => mockAuthRepository.login(any(), any()))
-            .thenAnswer((_) async => const Failure(error));
+        when(
+          () => mockAuthRepository.login(any(), any()),
+        ).thenAnswer((_) async => const Failure(error));
 
         await authNotifier.login('test@example.com', 'password');
 
@@ -101,40 +109,42 @@ void main() {
         );
       });
 
-      test('should clear error and authenticate on retry after failure',
-          () async {
-        // First attempt fails
-        when(() => mockAuthRepository.login(any(), any()))
-            .thenAnswer((_) async => const Failure(
-                  InvalidCredentialsError('wrong password'),
-                ));
-        await authNotifier.login('test@example.com', 'wrong');
-        expect(
-          authNotifier.state,
-          const AuthState.error('wrong password'),
-        );
+      test(
+        'should clear error and authenticate on retry after failure',
+        () async {
+          // First attempt fails
+          when(() => mockAuthRepository.login(any(), any())).thenAnswer(
+            (_) async =>
+                const Failure(InvalidCredentialsError('wrong password')),
+          );
+          await authNotifier.login('test@example.com', 'wrong');
+          expect(authNotifier.state, const AuthState.error('wrong password'));
 
-        // Second attempt succeeds
-        when(() => mockAuthRepository.login(any(), any()))
-            .thenAnswer((_) async => const Success(testUser));
-        await authNotifier.login('test@example.com', 'correct');
+          // Second attempt succeeds
+          when(
+            () => mockAuthRepository.login(any(), any()),
+          ).thenAnswer((_) async => const Success(testUser));
+          await authNotifier.login('test@example.com', 'correct');
 
-        expect(authNotifier.state, const AuthState.authenticated(testUser));
-      });
+          expect(authNotifier.state, const AuthState.authenticated(testUser));
+        },
+      );
     });
 
     group('logout', () {
       test('should set unauthenticated state after logout', () async {
         // First login
-        when(() => mockAuthRepository.login(any(), any()))
-            .thenAnswer((_) async => const Success(testUser));
+        when(
+          () => mockAuthRepository.login(any(), any()),
+        ).thenAnswer((_) async => const Success(testUser));
         await authNotifier.login('test@example.com', 'password');
 
         expect(authNotifier.state, const AuthState.authenticated(testUser));
 
         // Then logout
-        when(() => mockAuthRepository.logout())
-            .thenAnswer((_) async => const Success(null));
+        when(
+          () => mockAuthRepository.logout(),
+        ).thenAnswer((_) async => const Success(null));
 
         await authNotifier.logout();
 
@@ -144,13 +154,15 @@ void main() {
 
       test('should set unauthenticated even if repo.logout fails', () async {
         // First login
-        when(() => mockAuthRepository.login(any(), any()))
-            .thenAnswer((_) async => const Success(testUser));
+        when(
+          () => mockAuthRepository.login(any(), any()),
+        ).thenAnswer((_) async => const Success(testUser));
         await authNotifier.login('test@example.com', 'password');
 
         // Logout fails on backend
-        when(() => mockAuthRepository.logout())
-            .thenAnswer((_) async => const Failure(NetworkError('offline')));
+        when(
+          () => mockAuthRepository.logout(),
+        ).thenAnswer((_) async => const Failure(NetworkError('offline')));
 
         await authNotifier.logout();
 
@@ -162,18 +174,22 @@ void main() {
 
     group('refresh', () {
       test('should reload current user', () async {
-        when(() => mockAuthRepository.getCurrentUser())
-            .thenAnswer((_) async => const Success(testUser));
+        when(
+          () => mockAuthRepository.getCurrentUser(),
+        ).thenAnswer((_) async => const Success(testUser));
 
         await authNotifier.refresh();
 
         expect(authNotifier.state, const AuthState.authenticated(testUser));
-        verify(() => mockAuthRepository.getCurrentUser()).called(greaterThan(0));
+        verify(
+          () => mockAuthRepository.getCurrentUser(),
+        ).called(greaterThan(0));
       });
 
       test('should set unauthenticated if no user', () async {
-        when(() => mockAuthRepository.getCurrentUser())
-            .thenAnswer((_) async => const Failure(UnauthorizedError()));
+        when(
+          () => mockAuthRepository.getCurrentUser(),
+        ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
         await authNotifier.refresh();
 
@@ -191,8 +207,9 @@ void main() {
 
     test('should return user when session restore succeeds', () async {
       final mock = MockAuthRepository();
-      when(() => mock.tryRestoreSession())
-          .thenAnswer((_) async => const Success(testUser));
+      when(
+        () => mock.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
 
       final container = ProviderContainer(
         overrides: [authRepositoryProvider.overrideWithValue(mock)],
@@ -208,8 +225,9 @@ void main() {
 
     test('should return null when session restore fails', () async {
       final mock = MockAuthRepository();
-      when(() => mock.tryRestoreSession())
-          .thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mock.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
 
       final container = ProviderContainer(
         overrides: [authRepositoryProvider.overrideWithValue(mock)],
@@ -245,10 +263,7 @@ void main() {
     });
 
     test('should return false when user has no role', () {
-      const userNoRole = User(
-        id: '1',
-        email: 'user@example.com',
-      );
+      const userNoRole = User(id: '1', email: 'user@example.com');
 
       expect(userNoRole.role == UserRole.admin, false);
     });

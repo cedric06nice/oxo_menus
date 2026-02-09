@@ -3,6 +3,7 @@ import 'package:oxo_menus/data/mappers/menu_mapper.dart';
 import 'package:oxo_menus/data/models/menu_dto.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 
@@ -315,9 +316,7 @@ void main() {
           'status': 'draft',
           'name': 'Border Menu',
           'version': '1.0.0',
-          'style_json': {
-            'borderType': 'plain_thin',
-          },
+          'style_json': {'borderType': 'plain_thin'},
         };
         final dto = MenuDto(json);
 
@@ -336,9 +335,7 @@ void main() {
           'status': 'draft',
           'name': 'Legacy Menu',
           'version': '1.0.0',
-          'style_json': {
-            'padding': 16.0,
-          },
+          'style_json': {'padding': 16.0},
         };
         final dto = MenuDto(json);
 
@@ -352,6 +349,141 @@ void main() {
         expect(entity.styleConfig!.paddingLeft, isNull);
         expect(entity.styleConfig!.paddingRight, isNull);
       });
+    });
+
+    group('displayOptions mapping', () {
+      test(
+        'toEntity - DTO with display_options_json maps to Menu.displayOptions',
+        () {
+          // Arrange
+          final json = {
+            'id': 1,
+            'status': 'draft',
+            'name': 'Menu',
+            'version': '1.0.0',
+            'display_options_json': {
+              'showPrices': false,
+              'showAllergens': true,
+            },
+          };
+          final dto = MenuDto(json);
+
+          // Act
+          final entity = MenuMapper.toEntity(dto);
+
+          // Assert
+          expect(entity.displayOptions, isNotNull);
+          expect(entity.displayOptions!.showPrices, false);
+          expect(entity.displayOptions!.showAllergens, true);
+        },
+      );
+
+      test('toEntity - DTO without display_options_json maps to null', () {
+        // Arrange
+        final dto = MenuDto({
+          'id': 1,
+          'status': 'draft',
+          'name': 'Menu',
+          'version': '1.0.0',
+        });
+
+        // Act
+        final entity = MenuMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.displayOptions, isNull);
+      });
+
+      test('toEntity - DTO with empty display_options_json maps to null', () {
+        // Arrange
+        final json = {
+          'id': 1,
+          'status': 'draft',
+          'name': 'Menu',
+          'version': '1.0.0',
+          'display_options_json': <String, dynamic>{},
+        };
+        final dto = MenuDto(json);
+
+        // Act
+        final entity = MenuMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.displayOptions, isNull);
+      });
+
+      test(
+        'toCreateDto - CreateMenuInput with displayOptions includes display_options_json',
+        () {
+          // Arrange
+          const input = CreateMenuInput(
+            name: 'Menu',
+            version: '1.0.0',
+            displayOptions: MenuDisplayOptions(
+              showPrices: true,
+              showAllergens: false,
+            ),
+          );
+
+          // Act
+          final dto = MenuMapper.toCreateDto(input);
+
+          // Assert
+          expect(dto['display_options_json'], isNotNull);
+          expect(dto['display_options_json']['showPrices'], true);
+          expect(dto['display_options_json']['showAllergens'], false);
+        },
+      );
+
+      test(
+        'toCreateDto - CreateMenuInput without displayOptions omits display_options_json',
+        () {
+          // Arrange
+          const input = CreateMenuInput(name: 'Menu', version: '1.0.0');
+
+          // Act
+          final dto = MenuMapper.toCreateDto(input);
+
+          // Assert
+          expect(dto.containsKey('display_options_json'), false);
+        },
+      );
+
+      test(
+        'toUpdateDto - UpdateMenuInput with displayOptions includes display_options_json',
+        () {
+          // Arrange
+          const input = UpdateMenuInput(
+            id: 1,
+            displayOptions: MenuDisplayOptions(
+              showPrices: false,
+              showAllergens: false,
+            ),
+          );
+
+          // Act
+          final dto = MenuMapper.toUpdateDto(input);
+
+          // Assert
+          expect(dto['display_options_json'], isNotNull);
+          expect(dto['display_options_json']['showPrices'], false);
+          expect(dto['display_options_json']['showAllergens'], false);
+        },
+      );
+
+      test(
+        'toUpdateDto - UpdateMenuInput without displayOptions omits display_options_json',
+        () {
+          // Arrange
+          const input = UpdateMenuInput(id: 1, name: 'Updated Menu');
+
+          // Act
+          final dto = MenuMapper.toUpdateDto(input);
+
+          // Assert
+          expect(dto.containsKey('display_options_json'), false);
+        },
+      );
     });
   });
 }

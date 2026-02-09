@@ -3,6 +3,7 @@ import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/allergens/allergen_formatter.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/pdf_style_resolver.dart';
@@ -37,6 +38,7 @@ class GeneratePdfUseCase {
       final pdf = pw.Document(theme: oxoTheme, version: PdfVersion.pdf_1_5);
 
       final styleConfig = menuTree.menu.styleConfig;
+      final displayOptions = menuTree.menu.displayOptions;
       final pageFormat = _resolver.resolvePageFormat(menuTree.menu.pageSize);
       final pageMargins = _resolver.resolvePageMargins(styleConfig);
 
@@ -46,7 +48,8 @@ class GeneratePdfUseCase {
           pw.Page(
             pageFormat: pageFormat,
             margin: pageMargins,
-            build: (context) => _buildPage(pageData, styleConfig),
+            build: (context) =>
+                _buildPage(pageData, styleConfig, displayOptions),
           ),
         );
       }
@@ -62,6 +65,7 @@ class GeneratePdfUseCase {
   pw.Widget _buildPage(
     PageWithContainers pageData,
     StyleConfig? styleConfig,
+    MenuDisplayOptions? displayOptions,
   ) {
     final padding = _resolver.resolveContentPadding(styleConfig);
 
@@ -70,7 +74,7 @@ class GeneratePdfUseCase {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: pageData.containers.map((containerData) {
-          return _buildContainer(containerData, styleConfig);
+          return _buildContainer(containerData, styleConfig, displayOptions);
         }).toList(),
       ),
     );
@@ -81,6 +85,7 @@ class GeneratePdfUseCase {
   pw.Widget _buildContainer(
     ContainerWithColumns containerData,
     StyleConfig? styleConfig,
+    MenuDisplayOptions? displayOptions,
   ) {
     final containerStyle = containerData.container.styleConfig;
     final margin = containerStyle != null
@@ -103,7 +108,7 @@ class GeneratePdfUseCase {
               children: containerData.columns.map((columnData) {
                 return pw.Expanded(
                   flex: columnData.column.flex ?? 1,
-                  child: _buildColumn(columnData, styleConfig),
+                  child: _buildColumn(columnData, styleConfig, displayOptions),
                 );
               }).toList(),
             ),
@@ -117,6 +122,7 @@ class GeneratePdfUseCase {
   pw.Widget _buildColumn(
     ColumnWithWidgets columnData,
     StyleConfig? styleConfig,
+    MenuDisplayOptions? displayOptions,
   ) {
     final columnStyle = columnData.column.styleConfig;
     final padding = columnStyle != null
@@ -128,7 +134,7 @@ class GeneratePdfUseCase {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: columnData.widgets.map((widget) {
-          return _buildWidget(widget, styleConfig);
+          return _buildWidget(widget, styleConfig, displayOptions);
         }).toList(),
       ),
     );
@@ -136,10 +142,14 @@ class GeneratePdfUseCase {
   }
 
   /// Build a widget based on its type
-  pw.Widget _buildWidget(WidgetInstance widget, StyleConfig? styleConfig) {
+  pw.Widget _buildWidget(
+    WidgetInstance widget,
+    StyleConfig? styleConfig,
+    MenuDisplayOptions? displayOptions,
+  ) {
     switch (widget.type) {
       case 'dish':
-        return _buildDishWidget(widget, styleConfig);
+        return _buildDishWidget(widget, styleConfig, displayOptions);
       case 'text':
         return _buildTextWidget(widget, styleConfig);
       case 'section':
@@ -150,9 +160,15 @@ class GeneratePdfUseCase {
   }
 
   /// Build dish widget in PDF
-  pw.Widget _buildDishWidget(WidgetInstance widget, StyleConfig? styleConfig) {
+  pw.Widget _buildDishWidget(
+    WidgetInstance widget,
+    StyleConfig? styleConfig,
+    MenuDisplayOptions? displayOptions,
+  ) {
     final props = DishProps.fromJson(widget.props);
     final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
+    final showPrice = displayOptions?.showPrices ?? true;
+    final showAllergens = displayOptions?.showAllergens ?? true;
 
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 8),
@@ -172,7 +188,7 @@ class GeneratePdfUseCase {
                   ),
                 ),
               ),
-              if (props.showPrice)
+              if (showPrice)
                 pw.Text(
                   '£${props.price.toStringAsFixed(2)}',
                   style: pw.TextStyle(
@@ -191,7 +207,7 @@ class GeneratePdfUseCase {
             ),
           ],
           // Allergens
-          if (props.showAllergens) ...[
+          if (showAllergens) ...[
             () {
               final formattedAllergens = AllergenFormatter.formatForDisplay(
                 props.effectiveAllergenInfo,

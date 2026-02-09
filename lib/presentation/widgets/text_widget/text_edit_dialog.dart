@@ -6,11 +6,7 @@ class TextEditDialog extends StatefulWidget {
   final TextProps props;
   final void Function(TextProps) onSave;
 
-  const TextEditDialog({
-    super.key,
-    required this.props,
-    required this.onSave,
-  });
+  const TextEditDialog({super.key, required this.props, required this.onSave});
 
   @override
   State<TextEditDialog> createState() => _TextEditDialogState();
@@ -56,9 +52,7 @@ class _TextEditDialogState extends State<TextEditDialog> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _align,
-              decoration: const InputDecoration(
-                labelText: 'Alignment',
-              ),
+              decoration: const InputDecoration(labelText: 'Alignment'),
               items: const [
                 DropdownMenuItem(value: 'left', child: Text('Left')),
                 DropdownMenuItem(value: 'center', child: Text('Center')),
@@ -91,10 +85,7 @@ class _TextEditDialogState extends State<TextEditDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: _handleSave,
-          child: const Text('Save'),
-        ),
+        ElevatedButton(onPressed: _handleSave, child: const Text('Save')),
       ],
     );
   }

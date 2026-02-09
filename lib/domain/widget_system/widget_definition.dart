@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 
 /// Context provided to widgets during rendering
 ///
@@ -14,10 +15,14 @@ class WidgetContext {
   /// Callback to delete the widget
   final VoidCallback? onDelete;
 
+  /// Menu-level display options
+  final MenuDisplayOptions? displayOptions;
+
   const WidgetContext({
     required this.isEditable,
     this.onUpdate,
     this.onDelete,
+    this.displayOptions,
   });
 }
 

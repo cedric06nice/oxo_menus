@@ -13,10 +13,7 @@ void main() {
       });
 
       test('should create with mayContain', () {
-        const info = AllergenInfo(
-          allergen: UkAllergen.eggs,
-          mayContain: true,
-        );
+        const info = AllergenInfo(allergen: UkAllergen.eggs, mayContain: true);
         expect(info.allergen, UkAllergen.eggs);
         expect(info.mayContain, true);
         expect(info.details, isNull);

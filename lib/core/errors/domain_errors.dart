@@ -95,5 +95,5 @@ final class ServerError extends DomainError {
 /// Error thrown when an unknown or unexpected error occurs.
 final class UnknownError extends DomainError {
   const UnknownError([super.message = 'Unknown error', dynamic details])
-      : super(details: details);
+    : super(details: details);
 }

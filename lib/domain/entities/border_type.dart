@@ -13,12 +13,12 @@ enum BorderType {
   dropShadow;
 
   String get label => switch (this) {
-        none => 'No Border',
-        plainThin => 'Plain Thin',
-        plainThick => 'Plain Thick',
-        doubleOffset => 'Offset Double Border',
-        dropShadow => 'Drop Shadow',
-      };
+    none => 'No Border',
+    plainThin => 'Plain Thin',
+    plainThick => 'Plain Thick',
+    doubleOffset => 'Offset Double Border',
+    dropShadow => 'Drop Shadow',
+  };
 }
 
 extension BorderTypeConverter on BorderType {

@@ -634,8 +634,9 @@ void main() {
   });
 
   group('AdminTemplateEditorPage - Container/Column Style Sections', () {
-    testWidgets('should show Container Style section in container card',
-        (tester) async {
+    testWidgets('should show Container Style section in container card', (
+      tester,
+    ) async {
       // Arrange
       const menuId = 1;
       const pageId = 1;
@@ -646,8 +647,7 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(
-            id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
       ];
       final containers = [
         const entity.Container(
@@ -658,14 +658,18 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(pageId))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepository.getAllForContainer(any()))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(any()),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -676,8 +680,9 @@ void main() {
       expect(find.text('Container Style'), findsOneWidget);
     });
 
-    testWidgets('should show Column Style section in column card',
-        (tester) async {
+    testWidgets('should show Column Style section in column card', (
+      tester,
+    ) async {
       // Arrange
       const menuId = 1;
       const pageId = 1;
@@ -689,25 +694,27 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(
-            id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
       ];
       final containers = [
         const entity.Container(id: containerId, pageId: pageId, index: 0),
       ];
       final columns = [
-        const entity.Column(
-            id: 1, containerId: containerId, index: 0, flex: 1),
+        const entity.Column(id: 1, containerId: containerId, index: 0, flex: 1),
       ];
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(pageId))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepository.getAllForContainer(containerId))
-          .thenAnswer((_) async => Success(columns));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(containerId),
+      ).thenAnswer((_) async => Success(columns));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -780,8 +787,9 @@ void main() {
       expect(find.text('Paddings'), findsOneWidget);
     });
 
-    testWidgets('should save styleConfig when save is pressed after editing',
-        (tester) async {
+    testWidgets('should save styleConfig when save is pressed after editing', (
+      tester,
+    ) async {
       // Arrange
       const menuId = 1;
       const menu = Menu(
@@ -816,9 +824,8 @@ void main() {
 
       // Assert
       final captured =
-          verify(() => mockMenuRepository.update(captureAny()))
-              .captured
-              .single as UpdateMenuInput;
+          verify(() => mockMenuRepository.update(captureAny())).captured.single
+              as UpdateMenuInput;
       expect(captured.styleConfig, isNotNull);
       expect(captured.styleConfig!.marginTop, 30.0);
     });

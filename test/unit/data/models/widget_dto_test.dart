@@ -98,10 +98,7 @@ void main() {
           'index': 1,
           'type_key': 'text',
           'version': '1.0.0',
-          'column': {
-            'id': 5,
-            'width': 300,
-          },
+          'column': {'id': 5, 'width': 300},
         };
 
         // Act

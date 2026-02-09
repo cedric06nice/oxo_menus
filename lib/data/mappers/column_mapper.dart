@@ -10,13 +10,13 @@ class ColumnMapper {
     final json = dto.styleJson;
     return Column(
       id: int.parse(idString),
-      containerId: dto.container?.id != null ? int.parse(dto.container!.id!) : 0,
+      containerId: dto.container?.id != null
+          ? int.parse(dto.container!.id!)
+          : 0,
       index: dto.index,
       flex: null, // Don't hardcode flex - DTO doesn't have this field
       width: dto.width.toDouble(),
-      styleConfig: json.isNotEmpty
-          ? StyleConfigMapper.fromJson(json)
-          : null,
+      styleConfig: json.isNotEmpty ? StyleConfigMapper.fromJson(json) : null,
       dateCreated: dto.dateCreated,
       dateUpdated: dto.dateUpdated,
     );

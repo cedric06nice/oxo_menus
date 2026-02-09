@@ -109,19 +109,21 @@ void main() {
         );
       });
 
-      test('should sort both definite and may-contain groups alphabetically',
-          () {
-        const allergens = [
-          AllergenInfo(allergen: UkAllergen.soya),
-          AllergenInfo(allergen: UkAllergen.celery),
-          AllergenInfo(allergen: UkAllergen.milk, mayContain: true),
-          AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
-        ];
-        expect(
-          AllergenFormatter.formatForDisplay(allergens),
-          'CELERY, SOYA, MAY CONTAIN EGGS, MILK',
-        );
-      });
+      test(
+        'should sort both definite and may-contain groups alphabetically',
+        () {
+          const allergens = [
+            AllergenInfo(allergen: UkAllergen.soya),
+            AllergenInfo(allergen: UkAllergen.celery),
+            AllergenInfo(allergen: UkAllergen.milk, mayContain: true),
+            AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
+          ];
+          expect(
+            AllergenFormatter.formatForDisplay(allergens),
+            'CELERY, SOYA, MAY CONTAIN EGGS, MILK',
+          );
+        },
+      );
 
       test('should ignore empty details', () {
         const allergens = [
@@ -134,10 +136,7 @@ void main() {
         const allergens = [
           AllergenInfo(allergen: UkAllergen.gluten, details: '  wheat  '),
         ];
-        expect(
-          AllergenFormatter.formatForDisplay(allergens),
-          'GLUTEN [wheat]',
-        );
+        expect(AllergenFormatter.formatForDisplay(allergens), 'GLUTEN [wheat]');
       });
 
       test('should handle all 14 allergens', () {

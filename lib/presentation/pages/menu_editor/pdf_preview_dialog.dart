@@ -12,10 +12,7 @@ import 'package:printing/printing.dart';
 class PdfPreviewDialog extends ConsumerWidget {
   final int menuId;
 
-  const PdfPreviewDialog({
-    super.key,
-    required this.menuId,
-  });
+  const PdfPreviewDialog({super.key, required this.menuId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -86,9 +83,7 @@ class PdfPreviewDialog extends ConsumerWidget {
                   }
 
                   if (!snapshot.hasData || snapshot.data == null) {
-                    return const Center(
-                      child: Text('No PDF data available'),
-                    );
+                    return const Center(child: Text('No PDF data available'));
                   }
 
                   return PdfPreview(
@@ -110,23 +105,27 @@ class PdfPreviewDialog extends ConsumerWidget {
   Future<Uint8List?> _generatePdf(WidgetRef ref) async {
     try {
       // Fetch menu tree
-      final menuTreeResult = await ref.read(
-        fetchMenuTreeUseCaseProvider,
-      ).execute(menuId);
+      final menuTreeResult = await ref
+          .read(fetchMenuTreeUseCaseProvider)
+          .execute(menuId);
 
       if (menuTreeResult.isFailure) {
-        throw Exception(menuTreeResult.errorOrNull?.message ?? 'Failed to load menu');
+        throw Exception(
+          menuTreeResult.errorOrNull?.message ?? 'Failed to load menu',
+        );
       }
 
       final menuTree = menuTreeResult.valueOrNull!;
 
       // Generate PDF
-      final pdfResult = await ref.read(
-        generatePdfUseCaseProvider,
-      ).execute(menuTree);
+      final pdfResult = await ref
+          .read(generatePdfUseCaseProvider)
+          .execute(menuTree);
 
       if (pdfResult.isFailure) {
-        throw Exception(pdfResult.errorOrNull?.message ?? 'Failed to generate PDF');
+        throw Exception(
+          pdfResult.errorOrNull?.message ?? 'Failed to generate PDF',
+        );
       }
 
       return pdfResult.valueOrNull!;
@@ -160,9 +159,9 @@ class PdfPreviewDialog extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error downloading PDF: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error downloading PDF: $e')));
       }
     }
   }
@@ -180,14 +179,12 @@ class PdfPreviewDialog extends ConsumerWidget {
         return;
       }
 
-      await Printing.layoutPdf(
-        onLayout: (format) async => bytes,
-      );
+      await Printing.layoutPdf(onLayout: (format) async => bytes);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error printing PDF: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error printing PDF: $e')));
       }
     }
   }

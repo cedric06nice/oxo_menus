@@ -21,8 +21,6 @@ _DishProps _$DishPropsFromJson(Map<String, dynamic> json) => _DishProps(
   dietary:
       (json['dietary'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
-  showPrice: json['showPrice'] as bool? ?? true,
-  showAllergens: json['showAllergens'] as bool? ?? true,
 );
 
 Map<String, dynamic> _$DishPropsToJson(_DishProps instance) =>
@@ -33,6 +31,4 @@ Map<String, dynamic> _$DishPropsToJson(_DishProps instance) =>
       'allergens': instance.allergens,
       'allergenInfo': instance.allergenInfo.map((e) => e.toJson()).toList(),
       'dietary': instance.dietary,
-      'showPrice': instance.showPrice,
-      'showAllergens': instance.showAllergens,
     };

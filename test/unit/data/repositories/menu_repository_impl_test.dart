@@ -17,12 +17,14 @@ void main() {
   setUp(() {
     mockDataSource = MockDirectusDataSource();
     repository = MenuRepositoryImpl(dataSource: mockDataSource);
-    registerFallbackValue(MenuDto({
-      'id': 1,
-      'name': 'fallback',
-      'status': 'draft',
-      'version': '1.0.0',
-    }));
+    registerFallbackValue(
+      MenuDto({
+        'id': 1,
+        'name': 'fallback',
+        'status': 'draft',
+        'version': '1.0.0',
+      }),
+    );
   });
 
   group('MenuRepositoryImpl', () {
@@ -37,23 +39,19 @@ void main() {
         'date_updated': '2024-01-16T15:45:00Z',
         'user_created': 'user-123',
         'user_updated': 'user-456',
-        'style_json': {
-          'fontFamily': 'Arial',
-          'fontSize': 14.0,
-        },
+        'style_json': {'fontFamily': 'Arial', 'fontSize': 14.0},
         'area': 1, // int ID maps to 'dining' in MenuDto
-        'size': {
-          'id': 1,
-          'name': 'A4',
-          'width': 210.0,
-          'height': 297.0,
-        },
+        'size': {'id': 1, 'name': 'A4', 'width': 210.0, 'height': 297.0},
       };
 
       test('should return Menu entity when fetch succeeds', () async {
         // Arrange
-        when(() => mockDataSource.getItem<MenuDto>(menuId, fields: any(named: 'fields')))
-            .thenAnswer((_) async => menuJson);
+        when(
+          () => mockDataSource.getItem<MenuDto>(
+            menuId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => menuJson);
 
         // Act
         final result = await repository.getById(menuId);
@@ -68,17 +66,24 @@ void main() {
         expect(menu.styleConfig, isNotNull);
         expect(menu.pageSize, isNotNull);
 
-        verify(() => mockDataSource.getItem<MenuDto>(menuId, fields: any(named: 'fields')))
-            .called(1);
+        verify(
+          () => mockDataSource.getItem<MenuDto>(
+            menuId,
+            fields: any(named: 'fields'),
+          ),
+        ).called(1);
       });
 
       test('should return NotFoundError when menu does not exist', () async {
         // Arrange
-        when(() => mockDataSource.getItem<MenuDto>(menuId, fields: any(named: 'fields')))
-            .thenThrow(DirectusException(
-          code: 'NOT_FOUND',
-          message: 'Menu not found',
-        ));
+        when(
+          () => mockDataSource.getItem<MenuDto>(
+            menuId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenThrow(
+          DirectusException(code: 'NOT_FOUND', message: 'Menu not found'),
+        );
 
         // Act
         final result = await repository.getById(menuId);
@@ -91,8 +96,12 @@ void main() {
 
       test('should return UnknownError when network fails', () async {
         // Arrange
-        when(() => mockDataSource.getItem<MenuDto>(menuId, fields: any(named: 'fields')))
-            .thenThrow(Exception('Network error'));
+        when(
+          () => mockDataSource.getItem<MenuDto>(
+            menuId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenThrow(Exception('Network error'));
 
         // Act
         final result = await repository.getById(menuId);
@@ -105,27 +114,19 @@ void main() {
 
     group('listAll', () {
       final menusJson = [
-        {
-          'id': 1,
-          'name': 'Menu 1',
-          'status': 'published',
-          'version': '1.0.0',
-        },
-        {
-          'id': 2,
-          'name': 'Menu 2',
-          'status': 'published',
-          'version': '1.0.0',
-        },
+        {'id': 1, 'name': 'Menu 1', 'status': 'published', 'version': '1.0.0'},
+        {'id': 2, 'name': 'Menu 2', 'status': 'published', 'version': '1.0.0'},
       ];
 
       test('should return list of menus when onlyPublished is true', () async {
         // Arrange
-        when(() => mockDataSource.getItems<MenuDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((_) async => menusJson);
+        when(
+          () => mockDataSource.getItems<MenuDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => menusJson);
 
         // Act
         final result = await repository.listAll(onlyPublished: true);
@@ -136,11 +137,13 @@ void main() {
         expect(result.valueOrNull![0].id, 1);
         expect(result.valueOrNull![1].id, 2);
 
-        final captured = verify(() => mockDataSource.getItems<MenuDto>(
-              filter: captureAny(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).captured;
+        final captured = verify(
+          () => mockDataSource.getItems<MenuDto>(
+            filter: captureAny(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
 
         // Verify filter includes published status
         expect(captured[0], isNotNull);
@@ -149,11 +152,13 @@ void main() {
 
       test('should return all menus when onlyPublished is false', () async {
         // Arrange
-        when(() => mockDataSource.getItems<MenuDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((_) async => menusJson);
+        when(
+          () => mockDataSource.getItems<MenuDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => menusJson);
 
         // Act
         final result = await repository.listAll(onlyPublished: false);
@@ -162,11 +167,13 @@ void main() {
         expect(result.isSuccess, true);
         expect(result.valueOrNull!.length, 2);
 
-        final captured = verify(() => mockDataSource.getItems<MenuDto>(
-              filter: captureAny(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).captured;
+        final captured = verify(
+          () => mockDataSource.getItems<MenuDto>(
+            filter: captureAny(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
 
         // Verify no filter when onlyPublished is false
         expect(captured[0], isNull);
@@ -189,8 +196,9 @@ void main() {
 
       test('should create menu and return entity', () async {
         // Arrange
-        when(() => mockDataSource.createItem<MenuDto>(any()))
-            .thenAnswer((_) async => createdJson);
+        when(
+          () => mockDataSource.createItem<MenuDto>(any()),
+        ).thenAnswer((_) async => createdJson);
 
         // Act
         final result = await repository.create(input);
@@ -245,11 +253,15 @@ void main() {
 
       test('should update menu and return entity', () async {
         // Arrange
-        when(() => mockDataSource.getItem<MenuDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
-        when(() => mockDataSource.updateItem<MenuDto>(any()))
-            .thenAnswer((_) async => updatedJson);
+        when(
+          () => mockDataSource.getItem<MenuDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.updateItem<MenuDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
 
         // Act
         final result = await repository.update(input);
@@ -265,12 +277,14 @@ void main() {
 
       test('should return NotFoundError when menu does not exist', () async {
         // Arrange - getItem throws because menu doesn't exist
-        when(() => mockDataSource.getItem<MenuDto>(any(),
-                fields: any(named: 'fields')))
-            .thenThrow(DirectusException(
-          code: 'NOT_FOUND',
-          message: 'Menu not found',
-        ));
+        when(
+          () => mockDataSource.getItem<MenuDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenThrow(
+          DirectusException(code: 'NOT_FOUND', message: 'Menu not found'),
+        );
 
         // Act
         final result = await repository.update(input);
@@ -286,8 +300,9 @@ void main() {
 
       test('should delete menu successfully', () async {
         // Arrange
-        when(() => mockDataSource.deleteItem<MenuDto>(menuId))
-            .thenAnswer((_) async => {});
+        when(
+          () => mockDataSource.deleteItem<MenuDto>(menuId),
+        ).thenAnswer((_) async => {});
 
         // Act
         final result = await repository.delete(menuId);
@@ -300,10 +315,7 @@ void main() {
       test('should return NotFoundError when menu does not exist', () async {
         // Arrange
         when(() => mockDataSource.deleteItem<MenuDto>(menuId)).thenThrow(
-          DirectusException(
-            code: 'NOT_FOUND',
-            message: 'Menu not found',
-          ),
+          DirectusException(code: 'NOT_FOUND', message: 'Menu not found'),
         );
 
         // Act

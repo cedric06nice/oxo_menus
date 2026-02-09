@@ -4,18 +4,13 @@ import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 void main() {
   group('DishProps', () {
     test('should create DishProps with required fields', () {
-      const props = DishProps(
-        name: 'Pasta Carbonara',
-        price: 12.50,
-      );
+      const props = DishProps(name: 'Pasta Carbonara', price: 12.50);
 
       expect(props.name, 'Pasta Carbonara');
       expect(props.price, 12.50);
       expect(props.description, isNull);
       expect(props.allergens, isEmpty);
       expect(props.dietary, isEmpty);
-      expect(props.showPrice, true);
-      expect(props.showAllergens, true);
     });
 
     test('should create DishProps with all fields', () {
@@ -25,8 +20,6 @@ void main() {
         description: 'Classic Italian pasta',
         allergens: ['Dairy', 'Gluten'],
         dietary: ['Vegetarian'],
-        showPrice: false,
-        showAllergens: false,
       );
 
       expect(props.name, 'Pasta Carbonara');
@@ -34,8 +27,6 @@ void main() {
       expect(props.description, 'Classic Italian pasta');
       expect(props.allergens, ['Dairy', 'Gluten']);
       expect(props.dietary, ['Vegetarian']);
-      expect(props.showPrice, false);
-      expect(props.showAllergens, false);
     });
 
     test('should serialize to JSON', () {
@@ -54,8 +45,6 @@ void main() {
       expect(json['description'], 'Classic Italian pasta');
       expect(json['allergens'], ['Dairy']);
       expect(json['dietary'], ['Vegetarian']);
-      expect(json['showPrice'], true);
-      expect(json['showAllergens'], true);
     });
 
     test('should deserialize from JSON', () {
@@ -65,8 +54,6 @@ void main() {
         'description': 'Classic Italian pasta',
         'allergens': ['Dairy', 'Gluten'],
         'dietary': ['Vegetarian'],
-        'showPrice': false,
-        'showAllergens': false,
       };
 
       final props = DishProps.fromJson(json);
@@ -76,15 +63,10 @@ void main() {
       expect(props.description, 'Classic Italian pasta');
       expect(props.allergens, ['Dairy', 'Gluten']);
       expect(props.dietary, ['Vegetarian']);
-      expect(props.showPrice, false);
-      expect(props.showAllergens, false);
     });
 
     test('should deserialize from JSON with defaults', () {
-      final json = {
-        'name': 'Simple Dish',
-        'price': 10.0,
-      };
+      final json = {'name': 'Simple Dish', 'price': 10.0};
 
       final props = DishProps.fromJson(json);
 
@@ -93,20 +75,30 @@ void main() {
       expect(props.description, isNull);
       expect(props.allergens, isEmpty);
       expect(props.dietary, isEmpty);
-      expect(props.showPrice, true);
-      expect(props.showAllergens, true);
     });
 
-    test('should support copyWith', () {
-      const original = DishProps(
-        name: 'Original',
-        price: 10.0,
-      );
+    test(
+      'should deserialize from legacy JSON with showPrice/showAllergens (backward compatibility)',
+      () {
+        final json = {
+          'name': 'Pasta Carbonara',
+          'price': 12.50,
+          'showPrice': false,
+          'showAllergens': false,
+        };
 
-      final modified = original.copyWith(
-        name: 'Modified',
-        price: 15.0,
-      );
+        // Should parse successfully, ignoring unknown fields
+        final props = DishProps.fromJson(json);
+
+        expect(props.name, 'Pasta Carbonara');
+        expect(props.price, 12.50);
+      },
+    );
+
+    test('should support copyWith', () {
+      const original = DishProps(name: 'Original', price: 10.0);
+
+      final modified = original.copyWith(name: 'Modified', price: 15.0);
 
       expect(original.name, 'Original');
       expect(original.price, 10.0);
@@ -127,10 +119,7 @@ void main() {
         allergens: ['Dairy'],
       );
 
-      const props3 = DishProps(
-        name: 'Pizza',
-        price: 12.50,
-      );
+      const props3 = DishProps(name: 'Pizza', price: 12.50);
 
       expect(props1, equals(props2));
       expect(props1, isNot(equals(props3)));
@@ -151,11 +140,7 @@ void main() {
     });
 
     test('should handle null description in JSON', () {
-      final json = {
-        'name': 'Dish',
-        'price': 10.0,
-        'description': null,
-      };
+      final json = {'name': 'Dish', 'price': 10.0, 'description': null};
 
       final props = DishProps.fromJson(json);
 
@@ -169,8 +154,6 @@ void main() {
         description: 'A test description',
         allergens: ['Nuts', 'Soy'],
         dietary: ['Vegan', 'Gluten-Free'],
-        showPrice: false,
-        showAllergens: true,
       );
 
       final json = original.toJson();

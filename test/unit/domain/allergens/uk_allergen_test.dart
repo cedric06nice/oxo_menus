@@ -26,8 +26,11 @@ void main() {
 
       for (final allergen in UkAllergen.values) {
         if (allergen != UkAllergen.gluten && allergen != UkAllergen.nuts) {
-          expect(allergen.supportsDetails, false,
-              reason: '${allergen.name} should not support details');
+          expect(
+            allergen.supportsDetails,
+            false,
+            reason: '${allergen.name} should not support details',
+          );
         }
       }
     });

@@ -38,16 +38,10 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
 
     result.fold(
       onSuccess: (menus) {
-        state = state.copyWith(
-          menus: menus,
-          isLoading: false,
-        );
+        state = state.copyWith(menus: menus, isLoading: false);
       },
       onFailure: (error) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: error.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: error.message);
       },
     );
   }
@@ -94,17 +88,11 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
 
     return result.fold(
       onSuccess: (menu) {
-        state = state.copyWith(
-          menus: [menu, ...state.menus],
-          isLoading: false,
-        );
+        state = state.copyWith(menus: [menu, ...state.menus], isLoading: false);
         return menu;
       },
       onFailure: (error) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: error.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: error.message);
         return null;
       },
     );
@@ -135,8 +123,9 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
 ///   },
 /// );
 /// ```
-final menuListProvider =
-    StateNotifierProvider<MenuListNotifier, MenuListState>((ref) {
-  final menuRepository = ref.watch(menuRepositoryProvider);
-  return MenuListNotifier(menuRepository);
-});
+final menuListProvider = StateNotifierProvider<MenuListNotifier, MenuListState>(
+  (ref) {
+    final menuRepository = ref.watch(menuRepositoryProvider);
+    return MenuListNotifier(menuRepository);
+  },
+);

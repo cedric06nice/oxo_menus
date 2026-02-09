@@ -32,10 +32,11 @@ void main() {
     mockSizeRepository = MockSizeRepository();
 
     // Default behavior for size repository
-    when(() => mockSizeRepository.getAll())
-        .thenAnswer((_) async => const Success([
-              domain.Size(id: 1, name: 'A4', width: 210, height: 297),
-            ]));
+    when(() => mockSizeRepository.getAll()).thenAnswer(
+      (_) async => const Success([
+        domain.Size(id: 1, name: 'A4', width: 210, height: 297),
+      ]),
+    );
   });
 
   setUpAll(() {
@@ -70,11 +71,16 @@ void main() {
   group('MenuListPage - Initial State', () {
     testWidgets('should show loading indicator initially', (tester) async {
       // Arrange
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => Future.delayed(
-                const Duration(milliseconds: 100),
-                () => const Success([]),
-              ));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer(
+        (_) async => Future.delayed(
+          const Duration(milliseconds: 100),
+          () => const Success([]),
+        ),
+      );
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest());
@@ -89,8 +95,11 @@ void main() {
 
     testWidgets('should have app bar with title', (tester) async {
       // Arrange
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest());
@@ -102,8 +111,11 @@ void main() {
 
     testWidgets('should show add button for admin users', (tester) async {
       // Arrange
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
@@ -115,8 +127,11 @@ void main() {
 
     testWidgets('should not show add button for regular users', (tester) async {
       // Arrange
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: false));
@@ -130,8 +145,11 @@ void main() {
   group('MenuListPage - Empty State', () {
     testWidgets('should show empty message when no menus', (tester) async {
       // Arrange
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest());
@@ -161,8 +179,11 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => Success(menus));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest());
@@ -174,10 +195,13 @@ void main() {
       expect(find.byType(ListView), findsOneWidget);
     });
 
-    testWidgets('should load only published menus for regular users', (tester) async {
+    testWidgets('should load only published menus for regular users', (
+      tester,
+    ) async {
       // Arrange
-      when(() => mockMenuRepository.listAll(onlyPublished: true))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: true),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: false));
@@ -189,8 +213,9 @@ void main() {
 
     testWidgets('should load all menus for admin users', (tester) async {
       // Arrange
-      when(() => mockMenuRepository.listAll(onlyPublished: false))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: false),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
@@ -204,8 +229,11 @@ void main() {
   group('MenuListPage - Error Handling', () {
     testWidgets('should show error message when loading fails', (tester) async {
       // Arrange
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => const Failure(NetworkError('Network error')));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Failure(NetworkError('Network error')));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest());
@@ -218,7 +246,9 @@ void main() {
   });
 
   group('MenuListPage - Navigation', () {
-    testWidgets('should navigate to menu editor when menu is tapped', (tester) async {
+    testWidgets('should navigate to menu editor when menu is tapped', (
+      tester,
+    ) async {
       // Arrange
       final menus = [
         const Menu(
@@ -229,8 +259,11 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => Success(menus));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
       when(() => mockRouter.push(any())).thenAnswer((_) async => null);
 
       // Act
@@ -244,10 +277,15 @@ void main() {
       verify(() => mockRouter.push('/menus/123')).called(1);
     });
 
-    testWidgets('should open create template dialog when add button tapped', (tester) async {
+    testWidgets('should open create template dialog when add button tapped', (
+      tester,
+    ) async {
       // Arrange
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
@@ -273,8 +311,11 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => Success(menus));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
@@ -284,7 +325,9 @@ void main() {
       expect(find.byIcon(Icons.delete), findsOneWidget);
     });
 
-    testWidgets('should not show delete button for regular users', (tester) async {
+    testWidgets('should not show delete button for regular users', (
+      tester,
+    ) async {
       // Arrange
       final menus = [
         const Menu(
@@ -295,8 +338,11 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => Success(menus));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: false));
@@ -306,7 +352,9 @@ void main() {
       expect(find.byIcon(Icons.delete), findsNothing);
     });
 
-    testWidgets('should show confirmation dialog when delete is tapped', (tester) async {
+    testWidgets('should show confirmation dialog when delete is tapped', (
+      tester,
+    ) async {
       // Arrange
       final menus = [
         const Menu(
@@ -317,8 +365,11 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => Success(menus));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
@@ -330,7 +381,10 @@ void main() {
       // Assert
       expect(find.byType(AlertDialog), findsOneWidget);
       expect(find.text('Delete Menu'), findsOneWidget);
-      expect(find.text('Are you sure you want to delete "Summer Menu"?'), findsOneWidget);
+      expect(
+        find.text('Are you sure you want to delete "Summer Menu"?'),
+        findsOneWidget,
+      );
       expect(find.text('Cancel'), findsOneWidget);
       expect(find.text('Delete'), findsOneWidget);
     });
@@ -346,10 +400,14 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => Success(menus));
-      when(() => mockMenuRepository.delete(1))
-          .thenAnswer((_) async => const Success(null));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
+      when(
+        () => mockMenuRepository.delete(1),
+      ).thenAnswer((_) async => const Success(null));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
@@ -363,7 +421,10 @@ void main() {
 
       // Assert
       verify(() => mockMenuRepository.delete(1)).called(1);
-      expect(find.text('Summer Menu'), findsNothing); // Menu should be removed from list
+      expect(
+        find.text('Summer Menu'),
+        findsNothing,
+      ); // Menu should be removed from list
     });
 
     testWidgets('should not delete menu when cancelled', (tester) async {
@@ -377,8 +438,11 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => Success(menus));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
@@ -392,7 +456,10 @@ void main() {
 
       // Assert
       verifyNever(() => mockMenuRepository.delete(any()));
-      expect(find.text('Summer Menu'), findsOneWidget); // Menu should still be there
+      expect(
+        find.text('Summer Menu'),
+        findsOneWidget,
+      ); // Menu should still be there
     });
   });
 
@@ -408,19 +475,18 @@ void main() {
         ),
       ];
 
-      when(() => mockMenuRepository.listAll(onlyPublished: any(named: 'onlyPublished')))
-          .thenAnswer((_) async => Success(menus));
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
       // Perform pull to refresh gesture on the scrollable content
-      await tester.fling(
-        find.byType(ListView),
-        const Offset(0, 300),
-        1000,
-      );
+      await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
       await tester.pumpAndSettle();
 
       // Assert - loadMenus should be called twice (initial + refresh)

@@ -80,8 +80,9 @@ void main() {
       expect(paddingTopField.controller?.text, '10');
     });
 
-    testWidgets('should display empty fields when styleConfig is null',
-        (tester) async {
+    testWidgets('should display empty fields when styleConfig is null', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -102,8 +103,9 @@ void main() {
       expect(marginTopField.controller?.text, '');
     });
 
-    testWidgets('should call onStyleChanged when margin top is edited',
-        (tester) async {
+    testWidgets('should call onStyleChanged when margin top is edited', (
+      tester,
+    ) async {
       StyleConfig? updatedConfig;
 
       await tester.pumpWidget(
@@ -126,8 +128,9 @@ void main() {
       expect(updatedConfig!.marginTop, 25.0);
     });
 
-    testWidgets('should call onStyleChanged when padding left is edited',
-        (tester) async {
+    testWidgets('should call onStyleChanged when padding left is edited', (
+      tester,
+    ) async {
       StyleConfig? updatedConfig;
 
       await tester.pumpWidget(
@@ -173,8 +176,9 @@ void main() {
           home: Scaffold(
             body: SingleChildScrollView(
               child: PageStyleSection(
-                styleConfig:
-                    const StyleConfig(borderType: BorderType.plainThin),
+                styleConfig: const StyleConfig(
+                  borderType: BorderType.plainThin,
+                ),
                 onStyleChanged: (_) {},
               ),
             ),
@@ -186,8 +190,9 @@ void main() {
       expect(find.text('Plain Thin'), findsOneWidget);
     });
 
-    testWidgets('should default to No Border when borderType is null',
-        (tester) async {
+    testWidgets('should default to No Border when borderType is null', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -223,8 +228,9 @@ void main() {
       expect(find.text('Page Style'), findsNothing);
     });
 
-    testWidgets('should call onStyleChanged when border type is changed',
-        (tester) async {
+    testWidgets('should call onStyleChanged when border type is changed', (
+      tester,
+    ) async {
       StyleConfig? updatedConfig;
 
       await tester.pumpWidget(

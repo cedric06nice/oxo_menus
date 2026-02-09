@@ -11,9 +11,11 @@ import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/menu_display_options_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
 
 /// Data class for drag operations - represents either a new widget type or an existing widget
@@ -164,10 +166,40 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     setState(() {
       _isLoading = false;
     });
+
+    // Set display options in provider
+    ref.read(menuDisplayOptionsProvider.notifier).state = _menu?.displayOptions;
   }
 
   Future<void> _showPdf() async {
     context.push('/menus/pdf/${widget.menuId}');
+  }
+
+  Future<void> _showDisplayOptionsDialog() async {
+    showDialog(
+      context: context,
+      builder: (ctx) => MenuDisplayOptionsDialog(
+        displayOptions: _menu?.displayOptions,
+        onSave: (options) async {
+          final result = await ref
+              .read(menuRepositoryProvider)
+              .update(
+                UpdateMenuInput(id: widget.menuId, displayOptions: options),
+              );
+          if (result.isSuccess) {
+            setState(() {
+              _menu = _menu?.copyWith(displayOptions: options);
+            });
+            ref.read(menuDisplayOptionsProvider.notifier).state = options;
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Display options saved')),
+              );
+            }
+          }
+        },
+      ),
+    );
   }
 
   Future<void> _saveMenu() async {
@@ -208,6 +240,12 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     return AuthenticatedScaffold(
       title: _menu?.name ?? 'Menu Editor',
       actions: [
+        IconButton(
+          key: const Key('display_options_button'),
+          onPressed: _showDisplayOptionsDialog,
+          icon: const Icon(Icons.tune),
+          tooltip: 'Display Options',
+        ),
         IconButton(
           key: const Key('show_pdf_button'),
           onPressed: _showPdf,

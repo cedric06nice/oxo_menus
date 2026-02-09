@@ -44,12 +44,7 @@ void main() {
 
       test('should handle width and height as int', () {
         // Arrange
-        final json = {
-          'id': 3,
-          'name': 'Custom',
-          'width': 200,
-          'height': 300,
-        };
+        final json = {'id': 3, 'name': 'Custom', 'width': 200, 'height': 300};
 
         // Act
         final dto = SizeDto(json);

@@ -86,8 +86,9 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
             sizeId: result.sizeId,
           );
 
-          final createdMenu =
-              await ref.read(menuListProvider.notifier).createMenu(input);
+          final createdMenu = await ref
+              .read(menuListProvider.notifier)
+              .createMenu(input);
 
           if (createdMenu != null && mounted) {
             context.push('/admin/templates/${createdMenu.id}');

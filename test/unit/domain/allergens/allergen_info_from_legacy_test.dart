@@ -196,10 +196,7 @@ void main() {
 
     group('other mappings', () {
       test('should map "egg" (singular) to eggs', () {
-        expect(
-          AllergenInfo.fromLegacyString('egg')!.allergen,
-          UkAllergen.eggs,
-        );
+        expect(AllergenInfo.fromLegacyString('egg')!.allergen, UkAllergen.eggs);
       });
 
       test('should map "sesame seeds" to sesame', () {

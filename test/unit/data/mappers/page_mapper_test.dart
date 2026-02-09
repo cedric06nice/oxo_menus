@@ -30,10 +30,7 @@ void main() {
 
       test('should convert PageDto with minimal fields', () {
         // Arrange
-        final dto = PageDto({
-          'id': 2,
-          'index': 1,
-        });
+        final dto = PageDto({'id': 2, 'index': 1});
 
         // Act
         final entity = PageMapper.toEntity(dto);
@@ -51,10 +48,7 @@ void main() {
 
         // Act & Assert
         for (var i = 0; i < indexes.length; i++) {
-          final dto = PageDto({
-            'id': i + 1,
-            'index': indexes[i],
-          });
+          final dto = PageDto({'id': i + 1, 'index': indexes[i]});
           final entity = PageMapper.toEntity(dto);
           expect(entity.name, 'Page ${indexes[i]}');
         }
@@ -86,12 +80,7 @@ void main() {
 
       test('should convert Page with minimal fields', () {
         // Arrange
-        final entity = Page(
-          id: 2,
-          menuId: 3,
-          name: 'Main Course',
-          index: 1,
-        );
+        final entity = Page(id: 2, menuId: 3, name: 'Main Course', index: 1);
 
         // Act
         final dto = PageMapper.toDto(entity);

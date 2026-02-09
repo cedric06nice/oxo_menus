@@ -4,10 +4,7 @@ import 'package:oxo_menus/domain/entities/user.dart';
 void main() {
   group('User Entity', () {
     test('should create User with required fields', () {
-      const user = User(
-        id: '1',
-        email: 'test@example.com',
-      );
+      const user = User(id: '1', email: 'test@example.com');
 
       expect(user.id, '1');
       expect(user.email, 'test@example.com');
@@ -42,10 +39,7 @@ void main() {
         role: UserRole.user,
       );
 
-      final updated = user.copyWith(
-        firstName: 'Jane',
-        role: UserRole.admin,
-      );
+      final updated = user.copyWith(firstName: 'Jane', role: UserRole.admin);
 
       expect(updated.id, '1');
       expect(updated.email, 'test@example.com');
@@ -54,15 +48,9 @@ void main() {
     });
 
     test('should support equality', () {
-      const user1 = User(
-        id: '1',
-        email: 'test@example.com',
-      );
+      const user1 = User(id: '1', email: 'test@example.com');
 
-      const user2 = User(
-        id: '1',
-        email: 'test@example.com',
-      );
+      const user2 = User(id: '1', email: 'test@example.com');
 
       expect(user1, equals(user2));
       expect(user1.hashCode, equals(user2.hashCode));

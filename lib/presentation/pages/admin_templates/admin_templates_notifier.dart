@@ -8,7 +8,7 @@ class AdminTemplatesNotifier extends StateNotifier<AdminTemplatesState> {
   final MenuRepository _menuRepository;
 
   AdminTemplatesNotifier(this._menuRepository)
-      : super(const AdminTemplatesState());
+    : super(const AdminTemplatesState());
 
   /// Load templates from repository with optional status filter
   Future<void> loadTemplates({String? statusFilter}) async {
@@ -36,16 +36,10 @@ class AdminTemplatesNotifier extends StateNotifier<AdminTemplatesState> {
               .toList();
         }
 
-        state = state.copyWith(
-          templates: templates,
-          isLoading: false,
-        );
+        state = state.copyWith(templates: templates, isLoading: false);
       },
       onFailure: (error) {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: error.message,
-        );
+        state = state.copyWith(isLoading: false, errorMessage: error.message);
       },
     );
   }

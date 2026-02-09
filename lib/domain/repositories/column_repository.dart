@@ -12,9 +12,7 @@ abstract class ColumnRepository {
   Future<Result<Column, DomainError>> create(CreateColumnInput input);
 
   /// Get all columns for a container
-  Future<Result<List<Column>, DomainError>> getAllForContainer(
-    int containerId,
-  );
+  Future<Result<List<Column>, DomainError>> getAllForContainer(int containerId);
 
   /// Get column by ID
   Future<Result<Column, DomainError>> getById(int id);

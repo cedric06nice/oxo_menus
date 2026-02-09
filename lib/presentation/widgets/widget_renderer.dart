@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
+import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 
 /// Widget Renderer
@@ -25,6 +26,7 @@ class WidgetRenderer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final registry = ref.watch(widgetRegistryProvider);
+    final displayOptions = ref.watch(menuDisplayOptionsProvider);
     final definition = registry.getDefinition(widgetInstance.type);
 
     if (definition == null) {
@@ -44,6 +46,7 @@ class WidgetRenderer extends ConsumerWidget {
         isEditable: isEditable,
         onUpdate: onUpdate,
         onDelete: onDelete,
+        displayOptions: displayOptions,
       );
 
       // Render the widget by calling the render function

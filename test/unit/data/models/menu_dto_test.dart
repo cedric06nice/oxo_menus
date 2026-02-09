@@ -197,9 +197,7 @@ void main() {
           "versions": [
             {
               "id": 1,
-              "snapshot_json": {
-                'someKey': 'someValue',
-              },
+              "snapshot_json": {'someKey': 'someValue'},
               "date_created": "2025-11-13T10:25:31.830Z",
               "date_updated": null,
               "user_created": "f8205fcc-3816-4a93-9010-76df1a1f4a90",
@@ -330,7 +328,7 @@ void main() {
             "height": 297,
             "direction": "portrait",
             "menus": [1],
-          }
+          },
         };
 
         // Act

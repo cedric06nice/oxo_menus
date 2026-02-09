@@ -10,10 +10,7 @@ final textWidgetDefinition = WidgetDefinition<TextProps>(
   type: 'text',
   version: '1.0.0',
   parseProps: (json) => TextProps.fromJson(json),
-  render: (props, context) => TextWidget(
-    props: props,
-    context: context,
-  ),
+  render: (props, context) => TextWidget(props: props, context: context),
   defaultProps: const TextProps(
     text: 'New Text',
     align: 'left',

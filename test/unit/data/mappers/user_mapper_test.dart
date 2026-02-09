@@ -27,11 +27,7 @@ void main() {
       });
 
       test('should map null role to null', () {
-        const dto = UserDto(
-          id: 'usr-2',
-          email: 'guest@oxo.uk',
-          role: null,
-        );
+        const dto = UserDto(id: 'usr-2', email: 'guest@oxo.uk', role: null);
 
         final user = UserMapper.toEntity(dto);
 
@@ -39,10 +35,7 @@ void main() {
       });
 
       test('should map null optional fields', () {
-        const dto = UserDto(
-          id: 'usr-3',
-          email: 'min@oxo.uk',
-        );
+        const dto = UserDto(id: 'usr-3', email: 'min@oxo.uk');
 
         final user = UserMapper.toEntity(dto);
 
@@ -59,10 +52,13 @@ void main() {
         expect(UserMapper.toEntity(dto).role, UserRole.admin);
       });
 
-      test('should map "Administrator" to UserRole.admin (case-insensitive)', () {
-        const dto = UserDto(id: '1', email: 'a@b.c', role: 'Administrator');
-        expect(UserMapper.toEntity(dto).role, UserRole.admin);
-      });
+      test(
+        'should map "Administrator" to UserRole.admin (case-insensitive)',
+        () {
+          const dto = UserDto(id: '1', email: 'a@b.c', role: 'Administrator');
+          expect(UserMapper.toEntity(dto).role, UserRole.admin);
+        },
+      );
 
       test('should map "ADMIN" to UserRole.admin (uppercase)', () {
         const dto = UserDto(id: '1', email: 'a@b.c', role: 'ADMIN');
@@ -98,10 +94,13 @@ void main() {
         expect(UserMapper.toEntity(dto).role, UserRole.user);
       });
 
-      test('should map unknown role string to UserRole.user (safe default)', () {
-        const dto = UserDto(id: '1', email: 'a@b.c', role: 'chef');
-        expect(UserMapper.toEntity(dto).role, UserRole.user);
-      });
+      test(
+        'should map unknown role string to UserRole.user (safe default)',
+        () {
+          const dto = UserDto(id: '1', email: 'a@b.c', role: 'chef');
+          expect(UserMapper.toEntity(dto).role, UserRole.user);
+        },
+      );
 
       test('should handle whitespace in role string', () {
         const dto = UserDto(id: '1', email: 'a@b.c', role: '  admin  ');

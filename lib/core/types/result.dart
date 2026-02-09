@@ -73,15 +73,15 @@ extension ResultX<T, E> on Result<T, E> {
 
   /// Returns the value if this is a [Success], `null` otherwise.
   T? get valueOrNull => switch (this) {
-        Success(:final value) => value,
-        Failure() => null,
-      };
+    Success(:final value) => value,
+    Failure() => null,
+  };
 
   /// Returns the error if this is a [Failure], `null` otherwise.
   E? get errorOrNull => switch (this) {
-        Success() => null,
-        Failure(:final error) => error,
-      };
+    Success() => null,
+    Failure(:final error) => error,
+  };
 
   /// Transforms this Result by applying the appropriate function.
   ///
@@ -90,29 +90,28 @@ extension ResultX<T, E> on Result<T, E> {
   R fold<R>({
     required R Function(T value) onSuccess,
     required R Function(E error) onFailure,
-  }) =>
-      switch (this) {
-        Success(:final value) => onSuccess(value),
-        Failure(:final error) => onFailure(error),
-      };
+  }) => switch (this) {
+    Success(:final value) => onSuccess(value),
+    Failure(:final error) => onFailure(error),
+  };
 
   /// Maps the success value to a new type while preserving the error type.
   ///
   /// If this is a [Success], applies [transform] to the value.
   /// If this is a [Failure], returns the error unchanged.
   Result<R, E> map<R>(R Function(T value) transform) => switch (this) {
-        Success(:final value) => Success(transform(value)),
-        Failure(:final error) => Failure(error),
-      };
+    Success(:final value) => Success(transform(value)),
+    Failure(:final error) => Failure(error),
+  };
 
   /// Maps the error to a new type while preserving the success type.
   ///
   /// If this is a [Success], returns the value unchanged.
   /// If this is a [Failure], applies [transform] to the error.
   Result<T, F> mapError<F>(F Function(E error) transform) => switch (this) {
-        Success(:final value) => Success(value),
-        Failure(:final error) => Failure(transform(error)),
-      };
+    Success(:final value) => Success(value),
+    Failure(:final error) => Failure(transform(error)),
+  };
 
   /// Chains another operation that returns a Result.
   ///

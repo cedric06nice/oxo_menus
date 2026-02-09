@@ -146,12 +146,7 @@ void main() {
           'index': 0,
           'status': 'published',
           'containers': [
-            {
-              "id": 1,
-              "index": 0,
-              "direction": "landscape",
-              "style_json": {},
-            },
+            {"id": 1, "index": 0, "direction": "landscape", "style_json": {}},
           ],
         };
 

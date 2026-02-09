@@ -16,10 +16,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Result<User, DomainError>> login(String email, String password) async {
     try {
-      final response = await dataSource.login(
-        email: email,
-        password: password,
-      );
+      final response = await dataSource.login(email: email, password: password);
 
       // Extract user data from login response
       final userData = response['user'] as Map<String, dynamic>?;
@@ -77,9 +74,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final restored = await dataSource.tryRestoreSession();
       if (!restored) {
-        return const Failure(
-          TokenExpiredError('No valid session to restore'),
-        );
+        return const Failure(TokenExpiredError('No valid session to restore'));
       }
 
       // Session restored, fetch the current user

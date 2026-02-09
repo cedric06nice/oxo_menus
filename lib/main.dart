@@ -6,11 +6,7 @@ import 'main.reflectable.dart';
 void main() {
   initializeReflectable();
 
-  runApp(
-    const ProviderScope(
-      child: MyApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends ConsumerWidget {

@@ -30,9 +30,11 @@ class AllergenFormatter {
 
     // Sort each list alphabetically by short name
     definite.sort(
-        (a, b) => a.allergen.shortName.compareTo(b.allergen.shortName));
+      (a, b) => a.allergen.shortName.compareTo(b.allergen.shortName),
+    );
     mayContain.sort(
-        (a, b) => a.allergen.shortName.compareTo(b.allergen.shortName));
+      (a, b) => a.allergen.shortName.compareTo(b.allergen.shortName),
+    );
 
     final parts = <String>[];
 
@@ -43,8 +45,9 @@ class AllergenFormatter {
 
     // Add may-contain allergens with prefix
     if (mayContain.isNotEmpty) {
-      final mayContainParts =
-          mayContain.map((info) => _formatSingleAllergen(info)).join(', ');
+      final mayContainParts = mayContain
+          .map((info) => _formatSingleAllergen(info))
+          .join(', ');
       parts.add('MAY CONTAIN $mayContainParts');
     }
 

@@ -9,10 +9,7 @@ import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 class TemplateCreateDialog extends ConsumerStatefulWidget {
   final void Function(TemplateCreateResult) onSave;
 
-  const TemplateCreateDialog({
-    super.key,
-    required this.onSave,
-  });
+  const TemplateCreateDialog({super.key, required this.onSave});
 
   @override
   ConsumerState<TemplateCreateDialog> createState() =>
@@ -140,14 +137,13 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
 
     return DropdownButtonFormField<domain.Size>(
       initialValue: _selectedSize,
-      decoration: const InputDecoration(
-        labelText: 'Page Size',
-      ),
+      decoration: const InputDecoration(labelText: 'Page Size'),
       items: _sizes.map((domain.Size size) {
         return DropdownMenuItem<domain.Size>(
           value: size,
           child: Text(
-              '${size.name} (${size.width.toInt()}x${size.height.toInt()} mm)'),
+            '${size.name} (${size.width.toInt()}x${size.height.toInt()} mm)',
+          ),
         );
       }).toList(),
       onChanged: (size) {
@@ -170,8 +166,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
 
     if (name.isEmpty || version.isEmpty || _selectedSize == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please fill in all required fields')),
+        const SnackBar(content: Text('Please fill in all required fields')),
       );
       return;
     }

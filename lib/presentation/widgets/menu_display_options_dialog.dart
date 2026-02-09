@@ -1,0 +1,70 @@
+import 'package:flutter/material.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
+
+/// Dialog for editing menu-level display options
+class MenuDisplayOptionsDialog extends StatefulWidget {
+  final MenuDisplayOptions? displayOptions;
+  final ValueChanged<MenuDisplayOptions> onSave;
+
+  const MenuDisplayOptionsDialog({
+    super.key,
+    this.displayOptions,
+    required this.onSave,
+  });
+
+  @override
+  State<MenuDisplayOptionsDialog> createState() =>
+      _MenuDisplayOptionsDialogState();
+}
+
+class _MenuDisplayOptionsDialogState extends State<MenuDisplayOptionsDialog> {
+  late bool _showPrices;
+  late bool _showAllergens;
+
+  @override
+  void initState() {
+    super.initState();
+    _showPrices = widget.displayOptions?.showPrices ?? true;
+    _showAllergens = widget.displayOptions?.showAllergens ?? true;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Display Options'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SwitchListTile(
+            title: const Text('Show Prices'),
+            subtitle: const Text('Display prices for all dishes'),
+            value: _showPrices,
+            onChanged: (value) => setState(() => _showPrices = value),
+          ),
+          SwitchListTile(
+            title: const Text('Show Allergens'),
+            subtitle: const Text('Display allergen information for all dishes'),
+            value: _showAllergens,
+            onChanged: (value) => setState(() => _showAllergens = value),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(onPressed: _handleSave, child: const Text('Save')),
+      ],
+    );
+  }
+
+  void _handleSave() {
+    final options = MenuDisplayOptions(
+      showPrices: _showPrices,
+      showAllergens: _showAllergens,
+    );
+    widget.onSave(options);
+    Navigator.of(context).pop();
+  }
+}

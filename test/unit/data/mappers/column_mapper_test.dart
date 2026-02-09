@@ -34,11 +34,7 @@ void main() {
 
       test('should handle null container field', () {
         // Arrange
-        final dto = ColumnDto({
-          'id': 2,
-          'index': 1,
-          'width': 150,
-        });
+        final dto = ColumnDto({'id': 2, 'index': 1, 'width': 150});
 
         // Act
         final entity = ColumnMapper.toEntity(dto);
@@ -134,12 +130,7 @@ void main() {
 
       test('should handle null width by converting to 0', () {
         // Arrange
-        final entity = Column(
-          id: 2,
-          containerId: 3,
-          index: 1,
-          width: null,
-        );
+        final entity = Column(id: 2, containerId: 3, index: 1, width: null);
 
         // Act
         final dto = ColumnMapper.toDto(entity);
@@ -172,12 +163,7 @@ void main() {
 
       test('should have empty style_json when styleConfig is null', () {
         // Arrange
-        final entity = Column(
-          id: 5,
-          containerId: 1,
-          index: 0,
-          width: 100.0,
-        );
+        final entity = Column(id: 5, containerId: 1, index: 0, width: 100.0);
 
         // Act
         final dto = ColumnMapper.toDto(entity);
@@ -188,12 +174,7 @@ void main() {
 
       test('should round double width to int', () {
         // Arrange
-        final entity = Column(
-          id: 3,
-          containerId: 1,
-          index: 0,
-          width: 175.7,
-        );
+        final entity = Column(id: 3, containerId: 1, index: 0, width: 175.7);
 
         // Act
         final dto = ColumnMapper.toDto(entity);

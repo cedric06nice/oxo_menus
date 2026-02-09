@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget.dart';
@@ -7,10 +8,7 @@ import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget.dart';
 void main() {
   group('DishWidget', () {
     testWidgets('should display dish name and price', (tester) async {
-      const props = DishProps(
-        name: 'Pasta Carbonara',
-        price: 12.50,
-      );
+      const props = DishProps(name: 'Pasta Carbonara', price: 12.50);
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -28,18 +26,17 @@ void main() {
     });
 
     testWidgets('should hide price when showPrice is false', (tester) async {
-      const props = DishProps(
-        name: 'Pasta Carbonara',
-        price: 12.50,
-        showPrice: false,
-      );
+      const props = DishProps(name: 'Pasta Carbonara', price: 12.50);
 
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: WidgetContext(isEditable: false),
+              context: WidgetContext(
+                isEditable: false,
+                displayOptions: MenuDisplayOptions(showPrices: false),
+              ),
             ),
           ),
         ),
@@ -67,8 +64,10 @@ void main() {
         ),
       );
 
-      expect(find.text('Classic Italian pasta with bacon and cream'),
-          findsOneWidget);
+      expect(
+        find.text('Classic Italian pasta with bacon and cream'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('should not display empty description', (tester) async {
@@ -99,7 +98,6 @@ void main() {
         name: 'Pasta Carbonara',
         price: 12.50,
         allergens: ['Dairy', 'Gluten'],
-        showAllergens: true,
       );
 
       await tester.pumpWidget(
@@ -118,13 +116,13 @@ void main() {
       expect(find.text('GLUTEN, MILK'), findsOneWidget);
     });
 
-    testWidgets('should hide allergens when showAllergens is false',
-        (tester) async {
+    testWidgets('should hide allergens when showAllergens is false', (
+      tester,
+    ) async {
       const props = DishProps(
         name: 'Pasta Carbonara',
         price: 12.50,
         allergens: ['Dairy', 'Gluten'],
-        showAllergens: false,
       );
 
       await tester.pumpWidget(
@@ -132,7 +130,10 @@ void main() {
           home: Scaffold(
             body: DishWidget(
               props: props,
-              context: WidgetContext(isEditable: false),
+              context: WidgetContext(
+                isEditable: false,
+                displayOptions: MenuDisplayOptions(showAllergens: false),
+              ),
             ),
           ),
         ),
@@ -141,6 +142,32 @@ void main() {
       // Allergen text should not be present when showAllergens is false
       expect(find.text('GLUTEN, MILK'), findsNothing);
     });
+
+    testWidgets(
+      'should default to showing prices and allergens when displayOptions is null',
+      (tester) async {
+        const props = DishProps(
+          name: 'Pasta Carbonara',
+          price: 12.50,
+          allergens: ['Dairy', 'Gluten'],
+        );
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: DishWidget(
+                props: props,
+                context: WidgetContext(isEditable: false),
+              ),
+            ),
+          ),
+        );
+
+        // Both price and allergens should be shown by default
+        expect(find.text('£12.50'), findsOneWidget);
+        expect(find.text('GLUTEN, MILK'), findsOneWidget);
+      },
+    );
 
     testWidgets('should display dietary tags', (tester) async {
       const props = DishProps(
@@ -164,8 +191,9 @@ void main() {
       expect(find.text('Gluten-Free'), findsOneWidget);
     });
 
-    testWidgets('should display both allergens and dietary tags',
-        (tester) async {
+    testWidgets('should display both allergens and dietary tags', (
+      tester,
+    ) async {
       const props = DishProps(
         name: 'Mixed Dish',
         price: 15.0,
@@ -191,12 +219,10 @@ void main() {
       expect(find.byType(Chip), findsOneWidget);
     });
 
-    testWidgets('should open edit dialog when tapped in editable mode',
-        (tester) async {
-      const props = DishProps(
-        name: 'Pasta Carbonara',
-        price: 12.50,
-      );
+    testWidgets('should open edit dialog when tapped in editable mode', (
+      tester,
+    ) async {
+      const props = DishProps(name: 'Pasta Carbonara', price: 12.50);
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -218,12 +244,10 @@ void main() {
       expect(find.text('Save'), findsOneWidget);
     });
 
-    testWidgets('should not open edit dialog in non-editable mode',
-        (tester) async {
-      const props = DishProps(
-        name: 'Pasta Carbonara',
-        price: 12.50,
-      );
+    testWidgets('should not open edit dialog in non-editable mode', (
+      tester,
+    ) async {
+      const props = DishProps(name: 'Pasta Carbonara', price: 12.50);
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -243,12 +267,10 @@ void main() {
       expect(find.text('Edit Dish'), findsNothing);
     });
 
-    testWidgets('should call onUpdate with updated props when saved',
-        (tester) async {
-      const props = DishProps(
-        name: 'Pasta Carbonara',
-        price: 12.50,
-      );
+    testWidgets('should call onUpdate with updated props when saved', (
+      tester,
+    ) async {
+      const props = DishProps(name: 'Pasta Carbonara', price: 12.50);
 
       Map<String, dynamic>? capturedUpdate;
 
@@ -272,7 +294,9 @@ void main() {
 
       // Modify the name
       await tester.enterText(
-          find.widgetWithText(TextField, 'Name'), 'Updated Pasta');
+        find.widgetWithText(TextField, 'Name'),
+        'Updated Pasta',
+      );
 
       // Save
       await tester.tap(find.text('Save'));
@@ -285,10 +309,7 @@ void main() {
     });
 
     testWidgets('should render card with proper styling', (tester) async {
-      const props = DishProps(
-        name: 'Test Dish',
-        price: 10.0,
-      );
+      const props = DishProps(name: 'Test Dish', price: 10.0);
 
       await tester.pumpWidget(
         const MaterialApp(
@@ -302,7 +323,10 @@ void main() {
       );
 
       final card = tester.widget<Card>(find.byType(Card));
-      expect(card.margin, const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0));
+      expect(
+        card.margin,
+        const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      );
 
       // Verify the widget renders a Card
       expect(find.byType(Card), findsOneWidget);

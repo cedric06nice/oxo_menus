@@ -43,11 +43,7 @@ void main() {
 
       test('should convert ContainerDto with minimal fields', () {
         // Arrange
-        final dto = ContainerDto({
-          'id': 2,
-          'index': 1,
-          'status': 'draft',
-        });
+        final dto = ContainerDto({'id': 2, 'index': 1, 'status': 'draft'});
 
         // Act
         final entity = ContainerMapper.toEntity(dto);
@@ -255,9 +251,7 @@ void main() {
 
       test('should handle partial LayoutConfig', () {
         // Arrange
-        final config = LayoutConfig(
-          direction: 'row',
-        );
+        final config = LayoutConfig(direction: 'row');
 
         // Act
         final json = ContainerMapper.layoutConfigToJson(config);

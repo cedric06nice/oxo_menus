@@ -18,21 +18,14 @@ void main() {
   setUp(() {
     mockDataSource = MockDirectusDataSource();
     repository = ColumnRepositoryImpl(dataSource: mockDataSource);
-    registerFallbackValue(ColumnDto({
-      'id': 1,
-      'container': 1,
-      'index': 0,
-      'width': 100,
-    }));
+    registerFallbackValue(
+      ColumnDto({'id': 1, 'container': 1, 'index': 0, 'width': 100}),
+    );
   });
 
   group('ColumnRepositoryImpl', () {
     group('create', () {
-      const input = CreateColumnInput(
-        containerId: 1,
-        index: 0,
-        flex: 1,
-      );
+      const input = CreateColumnInput(containerId: 1, index: 0, flex: 1);
 
       final createdJson = {
         'id': 2,
@@ -44,8 +37,9 @@ void main() {
 
       test('should create column and return entity', () async {
         // Arrange
-        when(() => mockDataSource.createItem<ColumnDto>(any()))
-            .thenAnswer((_) async => createdJson);
+        when(
+          () => mockDataSource.createItem<ColumnDto>(any()),
+        ).thenAnswer((_) async => createdJson);
 
         // Act
         final result = await repository.create(input);
@@ -72,17 +66,15 @@ void main() {
           ),
         );
 
-        when(() => mockDataSource.createItem<ColumnDto>(any()))
-            .thenAnswer((_) async => {
-                  'id': 3,
-                  'container': 1,
-                  'index': 0,
-                  'width': 100,
-                  'style_json': {
-                    'marginTop': 5.0,
-                    'borderType': 'plain_thin',
-                  },
-                });
+        when(() => mockDataSource.createItem<ColumnDto>(any())).thenAnswer(
+          (_) async => {
+            'id': 3,
+            'container': 1,
+            'index': 0,
+            'width': 100,
+            'style_json': {'marginTop': 5.0, 'borderType': 'plain_thin'},
+          },
+        );
 
         // Act
         await repository.create(inputWithStyle);
@@ -117,27 +109,19 @@ void main() {
     group('getAllForContainer', () {
       const containerId = 1;
       final columnsJson = [
-        {
-          'id': 1,
-          'container': containerId,
-          'index': 0,
-          'width': 100,
-        },
-        {
-          'id': 2,
-          'container': containerId,
-          'index': 1,
-          'width': 200,
-        },
+        {'id': 1, 'container': containerId, 'index': 0, 'width': 100},
+        {'id': 2, 'container': containerId, 'index': 1, 'width': 200},
       ];
 
       test('should return list of columns for container', () async {
         // Arrange
-        when(() => mockDataSource.getItems<ColumnDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((_) async => columnsJson);
+        when(
+          () => mockDataSource.getItems<ColumnDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => columnsJson);
 
         // Act
         final result = await repository.getAllForContainer(containerId);
@@ -148,11 +132,13 @@ void main() {
         expect(result.valueOrNull![0].id, 1);
         expect(result.valueOrNull![1].id, 2);
 
-        final captured = verify(() => mockDataSource.getItems<ColumnDto>(
-              filter: captureAny(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).captured;
+        final captured = verify(
+          () => mockDataSource.getItems<ColumnDto>(
+            filter: captureAny(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
 
         // Verify filter includes container_id
         expect(captured[0], isNotNull);
@@ -160,11 +146,13 @@ void main() {
 
       test('should return empty list when no columns found', () async {
         // Arrange
-        when(() => mockDataSource.getItems<ColumnDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((_) async => []);
+        when(
+          () => mockDataSource.getItems<ColumnDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => []);
 
         // Act
         final result = await repository.getAllForContainer(containerId);
@@ -188,9 +176,12 @@ void main() {
 
       test('should return Column entity when fetch succeeds', () async {
         // Arrange
-        when(() => mockDataSource.getItem<ColumnDto>(columnId,
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => columnJson);
+        when(
+          () => mockDataSource.getItem<ColumnDto>(
+            columnId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => columnJson);
 
         // Act
         final result = await repository.getById(columnId);
@@ -203,18 +194,24 @@ void main() {
         expect(column.index, 0);
         expect(column.width, 200.0);
 
-        verify(() => mockDataSource.getItem<ColumnDto>(columnId,
-            fields: any(named: 'fields'))).called(1);
+        verify(
+          () => mockDataSource.getItem<ColumnDto>(
+            columnId,
+            fields: any(named: 'fields'),
+          ),
+        ).called(1);
       });
 
       test('should return NotFoundError when column does not exist', () async {
         // Arrange
-        when(() => mockDataSource.getItem<ColumnDto>(columnId,
-                fields: any(named: 'fields')))
-            .thenThrow(DirectusException(
-          code: 'NOT_FOUND',
-          message: 'Column not found',
-        ));
+        when(
+          () => mockDataSource.getItem<ColumnDto>(
+            columnId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenThrow(
+          DirectusException(code: 'NOT_FOUND', message: 'Column not found'),
+        );
 
         // Act
         final result = await repository.getById(columnId);
@@ -226,32 +223,23 @@ void main() {
     });
 
     group('update', () {
-      const input = UpdateColumnInput(
-        id: 1,
-        flex: 2,
-      );
+      const input = UpdateColumnInput(id: 1, flex: 2);
 
-      final existingJson = {
-        'id': 1,
-        'container': 1,
-        'index': 0,
-        'width': 100,
-      };
+      final existingJson = {'id': 1, 'container': 1, 'index': 0, 'width': 100};
 
-      final updatedJson = {
-        'id': 1,
-        'container': 1,
-        'index': 0,
-        'width': 100,
-      };
+      final updatedJson = {'id': 1, 'container': 1, 'index': 0, 'width': 100};
 
       test('should update column and return entity', () async {
         // Arrange
-        when(() => mockDataSource.getItem<ColumnDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
-        when(() => mockDataSource.updateItem<ColumnDto>(any()))
-            .thenAnswer((_) async => updatedJson);
+        when(
+          () => mockDataSource.getItem<ColumnDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.updateItem<ColumnDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
 
         // Act
         final result = await repository.update(input);
@@ -260,56 +248,60 @@ void main() {
         expect(result.isSuccess, true);
         expect(result.valueOrNull!.id, 1);
 
-        verify(() => mockDataSource.updateItem<ColumnDto>(any()))
-            .called(1);
+        verify(() => mockDataSource.updateItem<ColumnDto>(any())).called(1);
       });
 
-      test('should set style_json on DTO when update input has styleConfig',
-          () async {
-        // Arrange
-        const inputWithStyle = UpdateColumnInput(
-          id: 1,
-          styleConfig: StyleConfig(
-            paddingLeft: 12.0,
-            borderType: BorderType.dropShadow,
-          ),
-        );
+      test(
+        'should set style_json on DTO when update input has styleConfig',
+        () async {
+          // Arrange
+          const inputWithStyle = UpdateColumnInput(
+            id: 1,
+            styleConfig: StyleConfig(
+              paddingLeft: 12.0,
+              borderType: BorderType.dropShadow,
+            ),
+          );
 
-        when(() => mockDataSource.getItem<ColumnDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
-        when(() => mockDataSource.updateItem<ColumnDto>(any()))
-            .thenAnswer((_) async => {
-                  'id': 1,
-                  'container': 1,
-                  'index': 0,
-                  'width': 100,
-                  'style_json': {
-                    'paddingLeft': 12.0,
-                    'borderType': 'drop_shadow',
-                  },
-                });
+          when(
+            () => mockDataSource.getItem<ColumnDto>(
+              any(),
+              fields: any(named: 'fields'),
+            ),
+          ).thenAnswer((_) async => existingJson);
+          when(() => mockDataSource.updateItem<ColumnDto>(any())).thenAnswer(
+            (_) async => {
+              'id': 1,
+              'container': 1,
+              'index': 0,
+              'width': 100,
+              'style_json': {'paddingLeft': 12.0, 'borderType': 'drop_shadow'},
+            },
+          );
 
-        // Act
-        await repository.update(inputWithStyle);
+          // Act
+          await repository.update(inputWithStyle);
 
-        // Assert — capture the DTO sent to updateItem and verify style_json
-        final captured = verify(
-          () => mockDataSource.updateItem<ColumnDto>(captureAny()),
-        ).captured;
-        final dto = captured.first as ColumnDto;
-        expect(dto.styleJson['paddingLeft'], 12.0);
-        expect(dto.styleJson['borderType'], 'drop_shadow');
-      });
+          // Assert — capture the DTO sent to updateItem and verify style_json
+          final captured = verify(
+            () => mockDataSource.updateItem<ColumnDto>(captureAny()),
+          ).captured;
+          final dto = captured.first as ColumnDto;
+          expect(dto.styleJson['paddingLeft'], 12.0);
+          expect(dto.styleJson['borderType'], 'drop_shadow');
+        },
+      );
 
       test('should return NotFoundError when column does not exist', () async {
         // Arrange
-        when(() => mockDataSource.getItem<ColumnDto>(any(),
-                fields: any(named: 'fields')))
-            .thenThrow(DirectusException(
-          code: 'NOT_FOUND',
-          message: 'Column not found',
-        ));
+        when(
+          () => mockDataSource.getItem<ColumnDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenThrow(
+          DirectusException(code: 'NOT_FOUND', message: 'Column not found'),
+        );
 
         // Act
         final result = await repository.update(input);
@@ -325,8 +317,9 @@ void main() {
 
       test('should delete column successfully', () async {
         // Arrange
-        when(() => mockDataSource.deleteItem<ColumnDto>(columnId))
-            .thenAnswer((_) async => {});
+        when(
+          () => mockDataSource.deleteItem<ColumnDto>(columnId),
+        ).thenAnswer((_) async => {});
 
         // Act
         final result = await repository.delete(columnId);
@@ -339,10 +332,7 @@ void main() {
       test('should return NotFoundError when column does not exist', () async {
         // Arrange
         when(() => mockDataSource.deleteItem<ColumnDto>(columnId)).thenThrow(
-          DirectusException(
-            code: 'NOT_FOUND',
-            message: 'Column not found',
-          ),
+          DirectusException(code: 'NOT_FOUND', message: 'Column not found'),
         );
 
         // Act
@@ -374,11 +364,15 @@ void main() {
 
       test('should update column index successfully', () async {
         // Arrange
-        when(() => mockDataSource.getItem<ColumnDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
-        when(() => mockDataSource.updateItem<ColumnDto>(any()))
-            .thenAnswer((_) async => updatedJson);
+        when(
+          () => mockDataSource.getItem<ColumnDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.updateItem<ColumnDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
 
         // Act
         final result = await repository.reorder(columnId, newIndex);
@@ -390,12 +384,14 @@ void main() {
 
       test('should return NotFoundError when column does not exist', () async {
         // Arrange
-        when(() => mockDataSource.getItem<ColumnDto>(any(),
-                fields: any(named: 'fields')))
-            .thenThrow(DirectusException(
-          code: 'NOT_FOUND',
-          message: 'Column not found',
-        ));
+        when(
+          () => mockDataSource.getItem<ColumnDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenThrow(
+          DirectusException(code: 'NOT_FOUND', message: 'Column not found'),
+        );
 
         // Act
         final result = await repository.reorder(columnId, newIndex);

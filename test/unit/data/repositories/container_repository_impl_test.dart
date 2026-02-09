@@ -18,12 +18,9 @@ void main() {
   setUp(() {
     mockDataSource = MockDirectusDataSource();
     repository = ContainerRepositoryImpl(dataSource: mockDataSource);
-    registerFallbackValue(ContainerDto({
-      'id': 1,
-      'page': 1,
-      'index': 0,
-      'status': 'draft',
-    }));
+    registerFallbackValue(
+      ContainerDto({'id': 1, 'page': 1, 'index': 0, 'status': 'draft'}),
+    );
   });
 
   group('ContainerRepositoryImpl', () {
@@ -45,8 +42,9 @@ void main() {
 
       test('should create container and return entity', () async {
         // Arrange
-        when(() => mockDataSource.createItem<ContainerDto>(any()))
-            .thenAnswer((_) async => createdJson);
+        when(
+          () => mockDataSource.createItem<ContainerDto>(any()),
+        ).thenAnswer((_) async => createdJson);
 
         // Act
         final result = await repository.create(input);
@@ -74,17 +72,15 @@ void main() {
           ),
         );
 
-        when(() => mockDataSource.createItem<ContainerDto>(any()))
-            .thenAnswer((_) async => {
-                  'id': 3,
-                  'page': 1,
-                  'index': 0,
-                  'status': 'published',
-                  'style_json': {
-                    'marginTop': 10.0,
-                    'borderType': 'plain_thin',
-                  },
-                });
+        when(() => mockDataSource.createItem<ContainerDto>(any())).thenAnswer(
+          (_) async => {
+            'id': 3,
+            'page': 1,
+            'index': 0,
+            'status': 'published',
+            'style_json': {'marginTop': 10.0, 'borderType': 'plain_thin'},
+          },
+        );
 
         // Act
         await repository.create(inputWithStyle);
@@ -119,27 +115,19 @@ void main() {
     group('getAllForPage', () {
       const pageId = 1;
       final containersJson = [
-        {
-          'id': 1,
-          'page': pageId,
-          'index': 0,
-          'status': 'draft',
-        },
-        {
-          'id': 2,
-          'page': pageId,
-          'index': 1,
-          'status': 'draft',
-        },
+        {'id': 1, 'page': pageId, 'index': 0, 'status': 'draft'},
+        {'id': 2, 'page': pageId, 'index': 1, 'status': 'draft'},
       ];
 
       test('should return list of containers for page', () async {
         // Arrange
-        when(() => mockDataSource.getItems<ContainerDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((_) async => containersJson);
+        when(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => containersJson);
 
         // Act
         final result = await repository.getAllForPage(pageId);
@@ -150,11 +138,13 @@ void main() {
         expect(result.valueOrNull![0].id, 1);
         expect(result.valueOrNull![1].id, 2);
 
-        final captured = verify(() => mockDataSource.getItems<ContainerDto>(
-              filter: captureAny(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).captured;
+        final captured = verify(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: captureAny(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
 
         // Verify filter includes page_id
         expect(captured[0], isNotNull);
@@ -162,11 +152,13 @@ void main() {
 
       test('should return empty list when no containers found', () async {
         // Arrange
-        when(() => mockDataSource.getItems<ContainerDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((_) async => []);
+        when(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => []);
 
         // Act
         final result = await repository.getAllForPage(pageId);
@@ -185,19 +177,19 @@ void main() {
         'index': 0,
         'status': 'draft',
         // ContainerMapper reads layout from style_json
-        'style_json': {
-          'direction': 'row',
-          'alignment': 'center',
-        },
+        'style_json': {'direction': 'row', 'alignment': 'center'},
         'date_created': '2024-01-15T10:30:00Z',
         'date_updated': '2024-01-16T15:45:00Z',
       };
 
       test('should return Container entity when fetch succeeds', () async {
         // Arrange
-        when(() => mockDataSource.getItem<ContainerDto>(containerId,
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => containerJson);
+        when(
+          () => mockDataSource.getItem<ContainerDto>(
+            containerId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => containerJson);
 
         // Act
         final result = await repository.getById(containerId);
@@ -212,56 +204,58 @@ void main() {
         expect(container.index, 0);
         expect(container.layout, isNotNull);
 
-        verify(() => mockDataSource.getItem<ContainerDto>(containerId,
-            fields: any(named: 'fields'))).called(1);
+        verify(
+          () => mockDataSource.getItem<ContainerDto>(
+            containerId,
+            fields: any(named: 'fields'),
+          ),
+        ).called(1);
       });
 
-      test('should return NotFoundError when container does not exist',
-          () async {
-        // Arrange
-        when(() => mockDataSource.getItem<ContainerDto>(containerId,
-                fields: any(named: 'fields')))
-            .thenThrow(DirectusException(
-          code: 'NOT_FOUND',
-          message: 'Container not found',
-        ));
+      test(
+        'should return NotFoundError when container does not exist',
+        () async {
+          // Arrange
+          when(
+            () => mockDataSource.getItem<ContainerDto>(
+              containerId,
+              fields: any(named: 'fields'),
+            ),
+          ).thenThrow(
+            DirectusException(
+              code: 'NOT_FOUND',
+              message: 'Container not found',
+            ),
+          );
 
-        // Act
-        final result = await repository.getById(containerId);
+          // Act
+          final result = await repository.getById(containerId);
 
-        // Assert
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<NotFoundError>());
-      });
+          // Assert
+          expect(result.isFailure, true);
+          expect(result.errorOrNull, isA<NotFoundError>());
+        },
+      );
     });
 
     group('update', () {
-      const input = UpdateContainerInput(
-        id: 1,
-        name: 'Updated Header',
-      );
+      const input = UpdateContainerInput(id: 1, name: 'Updated Header');
 
-      final existingJson = {
-        'id': 1,
-        'page': 1,
-        'index': 0,
-        'status': 'draft',
-      };
+      final existingJson = {'id': 1, 'page': 1, 'index': 0, 'status': 'draft'};
 
-      final updatedJson = {
-        'id': 1,
-        'page': 1,
-        'index': 0,
-        'status': 'draft',
-      };
+      final updatedJson = {'id': 1, 'page': 1, 'index': 0, 'status': 'draft'};
 
       test('should update container and return entity', () async {
         // Arrange
-        when(() => mockDataSource.getItem<ContainerDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
-        when(() => mockDataSource.updateItem<ContainerDto>(any()))
-            .thenAnswer((_) async => updatedJson);
+        when(
+          () => mockDataSource.getItem<ContainerDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.updateItem<ContainerDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
 
         // Act
         final result = await repository.update(input);
@@ -272,65 +266,74 @@ void main() {
         // ContainerMapper generates name as "Container {id}"
         expect(result.valueOrNull!.name, 'Container 1');
 
-        verify(() => mockDataSource.updateItem<ContainerDto>(any()))
-            .called(1);
+        verify(() => mockDataSource.updateItem<ContainerDto>(any())).called(1);
       });
 
-      test('should set style_json on DTO when update input has styleConfig',
-          () async {
-        // Arrange
-        const inputWithStyle = UpdateContainerInput(
-          id: 1,
-          styleConfig: StyleConfig(
-            paddingLeft: 8.0,
-            borderType: BorderType.dropShadow,
-          ),
-        );
+      test(
+        'should set style_json on DTO when update input has styleConfig',
+        () async {
+          // Arrange
+          const inputWithStyle = UpdateContainerInput(
+            id: 1,
+            styleConfig: StyleConfig(
+              paddingLeft: 8.0,
+              borderType: BorderType.dropShadow,
+            ),
+          );
 
-        when(() => mockDataSource.getItem<ContainerDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
-        when(() => mockDataSource.updateItem<ContainerDto>(any()))
-            .thenAnswer((_) async => {
-                  'id': 1,
-                  'page': 1,
-                  'index': 0,
-                  'status': 'draft',
-                  'style_json': {
-                    'paddingLeft': 8.0,
-                    'borderType': 'drop_shadow',
-                  },
-                });
+          when(
+            () => mockDataSource.getItem<ContainerDto>(
+              any(),
+              fields: any(named: 'fields'),
+            ),
+          ).thenAnswer((_) async => existingJson);
+          when(() => mockDataSource.updateItem<ContainerDto>(any())).thenAnswer(
+            (_) async => {
+              'id': 1,
+              'page': 1,
+              'index': 0,
+              'status': 'draft',
+              'style_json': {'paddingLeft': 8.0, 'borderType': 'drop_shadow'},
+            },
+          );
 
-        // Act
-        await repository.update(inputWithStyle);
+          // Act
+          await repository.update(inputWithStyle);
 
-        // Assert — capture the DTO sent to updateItem and verify style_json
-        final captured = verify(
-          () => mockDataSource.updateItem<ContainerDto>(captureAny()),
-        ).captured;
-        final dto = captured.first as ContainerDto;
-        expect(dto.styleJson['paddingLeft'], 8.0);
-        expect(dto.styleJson['borderType'], 'drop_shadow');
-      });
+          // Assert — capture the DTO sent to updateItem and verify style_json
+          final captured = verify(
+            () => mockDataSource.updateItem<ContainerDto>(captureAny()),
+          ).captured;
+          final dto = captured.first as ContainerDto;
+          expect(dto.styleJson['paddingLeft'], 8.0);
+          expect(dto.styleJson['borderType'], 'drop_shadow');
+        },
+      );
 
-      test('should return NotFoundError when container does not exist',
-          () async {
-        // Arrange
-        when(() => mockDataSource.getItem<ContainerDto>(any(),
-                fields: any(named: 'fields')))
-            .thenThrow(DirectusException(
-          code: 'NOT_FOUND',
-          message: 'Container not found',
-        ));
+      test(
+        'should return NotFoundError when container does not exist',
+        () async {
+          // Arrange
+          when(
+            () => mockDataSource.getItem<ContainerDto>(
+              any(),
+              fields: any(named: 'fields'),
+            ),
+          ).thenThrow(
+            DirectusException(
+              code: 'NOT_FOUND',
+              message: 'Container not found',
+            ),
+          );
 
-        // Act
-        final result = await repository.update(input);
+          // Act
+          final result = await repository.update(input);
 
-        // Assert
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<NotFoundError>());
-      });
+          // Assert
+          expect(result.isFailure, true);
+          expect(result.errorOrNull, isA<NotFoundError>());
+        },
+      );
     });
 
     group('delete', () {
@@ -338,34 +341,41 @@ void main() {
 
       test('should delete container successfully', () async {
         // Arrange
-        when(() => mockDataSource.deleteItem<ContainerDto>(containerId))
-            .thenAnswer((_) async => {});
+        when(
+          () => mockDataSource.deleteItem<ContainerDto>(containerId),
+        ).thenAnswer((_) async => {});
 
         // Act
         final result = await repository.delete(containerId);
 
         // Assert
         expect(result.isSuccess, true);
-        verify(() => mockDataSource.deleteItem<ContainerDto>(containerId))
-            .called(1);
+        verify(
+          () => mockDataSource.deleteItem<ContainerDto>(containerId),
+        ).called(1);
       });
 
-      test('should return NotFoundError when container does not exist',
-          () async {
-        // Arrange
-        when(() => mockDataSource.deleteItem<ContainerDto>(containerId))
-            .thenThrow(DirectusException(
-          code: 'NOT_FOUND',
-          message: 'Container not found',
-        ));
+      test(
+        'should return NotFoundError when container does not exist',
+        () async {
+          // Arrange
+          when(
+            () => mockDataSource.deleteItem<ContainerDto>(containerId),
+          ).thenThrow(
+            DirectusException(
+              code: 'NOT_FOUND',
+              message: 'Container not found',
+            ),
+          );
 
-        // Act
-        final result = await repository.delete(containerId);
+          // Act
+          final result = await repository.delete(containerId);
 
-        // Assert
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<NotFoundError>());
-      });
+          // Assert
+          expect(result.isFailure, true);
+          expect(result.errorOrNull, isA<NotFoundError>());
+        },
+      );
     });
 
     group('reorder', () {
@@ -388,11 +398,15 @@ void main() {
 
       test('should update container index successfully', () async {
         // Arrange
-        when(() => mockDataSource.getItem<ContainerDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
-        when(() => mockDataSource.updateItem<ContainerDto>(any()))
-            .thenAnswer((_) async => updatedJson);
+        when(
+          () => mockDataSource.getItem<ContainerDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.updateItem<ContainerDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
 
         // Act
         final result = await repository.reorder(containerId, newIndex);
@@ -402,23 +416,30 @@ void main() {
         verify(() => mockDataSource.updateItem<ContainerDto>(any())).called(1);
       });
 
-      test('should return NotFoundError when container does not exist',
-          () async {
-        // Arrange
-        when(() => mockDataSource.getItem<ContainerDto>(any(),
-                fields: any(named: 'fields')))
-            .thenThrow(DirectusException(
-          code: 'NOT_FOUND',
-          message: 'Container not found',
-        ));
+      test(
+        'should return NotFoundError when container does not exist',
+        () async {
+          // Arrange
+          when(
+            () => mockDataSource.getItem<ContainerDto>(
+              any(),
+              fields: any(named: 'fields'),
+            ),
+          ).thenThrow(
+            DirectusException(
+              code: 'NOT_FOUND',
+              message: 'Container not found',
+            ),
+          );
 
-        // Act
-        final result = await repository.reorder(containerId, newIndex);
+          // Act
+          final result = await repository.reorder(containerId, newIndex);
 
-        // Assert
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<NotFoundError>());
-      });
+          // Assert
+          expect(result.isFailure, true);
+          expect(result.errorOrNull, isA<NotFoundError>());
+        },
+      );
     });
 
     group('moveTo', () {
@@ -442,39 +463,57 @@ void main() {
 
       test('should move container to new page successfully', () async {
         // Arrange
-        when(() => mockDataSource.getItem<ContainerDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
-        when(() => mockDataSource.updateItem<ContainerDto>(any()))
-            .thenAnswer((_) async => updatedJson);
+        when(
+          () => mockDataSource.getItem<ContainerDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.updateItem<ContainerDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
 
         // Act
-        final result = await repository.moveTo(containerId, newPageId, newIndex);
+        final result = await repository.moveTo(
+          containerId,
+          newPageId,
+          newIndex,
+        );
 
         // Assert
         expect(result.isSuccess, true);
         verify(() => mockDataSource.updateItem<ContainerDto>(any())).called(1);
       });
 
-      test('should return ValidationError when new page does not exist',
-          () async {
-        // Arrange
-        when(() => mockDataSource.getItem<ContainerDto>(any(),
-                fields: any(named: 'fields')))
-            .thenAnswer((_) async => existingJson);
-        when(() => mockDataSource.updateItem<ContainerDto>(any()))
-            .thenThrow(DirectusException(
-          code: 'INVALID_FOREIGN_KEY',
-          message: 'Page not found',
-        ));
+      test(
+        'should return ValidationError when new page does not exist',
+        () async {
+          // Arrange
+          when(
+            () => mockDataSource.getItem<ContainerDto>(
+              any(),
+              fields: any(named: 'fields'),
+            ),
+          ).thenAnswer((_) async => existingJson);
+          when(() => mockDataSource.updateItem<ContainerDto>(any())).thenThrow(
+            DirectusException(
+              code: 'INVALID_FOREIGN_KEY',
+              message: 'Page not found',
+            ),
+          );
 
-        // Act
-        final result = await repository.moveTo(containerId, newPageId, newIndex);
+          // Act
+          final result = await repository.moveTo(
+            containerId,
+            newPageId,
+            newIndex,
+          );
 
-        // Assert
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<ValidationError>());
-      });
+          // Assert
+          expect(result.isFailure, true);
+          expect(result.errorOrNull, isA<ValidationError>());
+        },
+      );
     });
   });
 }

@@ -68,13 +68,16 @@ void main() {
         expect(margins.right, 0.0);
       });
 
-      test('should return zero margins for StyleConfig with no margin values', () {
-        final margins = resolver.resolvePageMargins(const StyleConfig());
-        expect(margins.top, 0.0);
-        expect(margins.bottom, 0.0);
-        expect(margins.left, 0.0);
-        expect(margins.right, 0.0);
-      });
+      test(
+        'should return zero margins for StyleConfig with no margin values',
+        () {
+          final margins = resolver.resolvePageMargins(const StyleConfig());
+          expect(margins.top, 0.0);
+          expect(margins.bottom, 0.0);
+          expect(margins.left, 0.0);
+          expect(margins.right, 0.0);
+        },
+      );
 
       test('should read margin values from StyleConfig', () {
         final margins = resolver.resolvePageMargins(
@@ -146,10 +149,7 @@ void main() {
 
       test('should fall back to single padding for unset sides', () {
         final padding = resolver.resolveContentPadding(
-          const StyleConfig(
-            padding: 12.0,
-            paddingTop: 20.0,
-          ),
+          const StyleConfig(padding: 12.0, paddingTop: 20.0),
         );
         expect(padding.top, 20.0);
         expect(padding.bottom, 12.0);
@@ -192,10 +192,7 @@ void main() {
       });
 
       test('should return child unchanged when borderType is null', () {
-        final result = resolver.wrapWithBorder(
-          child,
-          const StyleConfig(),
-        );
+        final result = resolver.wrapWithBorder(child, const StyleConfig());
         expect(identical(result, child), isTrue);
       });
 

@@ -14,10 +14,9 @@ void main() {
   late MenuListNotifier menuListNotifier;
 
   setUpAll(() {
-    registerFallbackValue(const CreateMenuInput(
-      name: 'fallback',
-      version: '1.0.0',
-    ));
+    registerFallbackValue(
+      const CreateMenuInput(name: 'fallback', version: '1.0.0'),
+    );
   });
 
   setUp(() {
@@ -55,8 +54,9 @@ void main() {
 
     group('loadMenus', () {
       test('should load menus successfully', () async {
-        when(() => mockMenuRepository.listAll(onlyPublished: true))
-            .thenAnswer((_) async => Success(testMenus));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: true),
+        ).thenAnswer((_) async => Success(testMenus));
 
         await menuListNotifier.loadMenus(onlyPublished: true);
 
@@ -67,20 +67,23 @@ void main() {
       });
 
       test('should load all menus when onlyPublished is false', () async {
-        when(() => mockMenuRepository.listAll(onlyPublished: false))
-            .thenAnswer((_) async => Success(testMenus));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: false),
+        ).thenAnswer((_) async => Success(testMenus));
 
         await menuListNotifier.loadMenus(onlyPublished: false);
 
         expect(menuListNotifier.state.menus, testMenus);
         expect(menuListNotifier.state.isLoading, false);
-        verify(() => mockMenuRepository.listAll(onlyPublished: false))
-            .called(1);
+        verify(
+          () => mockMenuRepository.listAll(onlyPublished: false),
+        ).called(1);
       });
 
       test('should set loading state during load', () async {
-        when(() => mockMenuRepository.listAll(onlyPublished: true))
-            .thenAnswer((_) async {
+        when(() => mockMenuRepository.listAll(onlyPublished: true)).thenAnswer((
+          _,
+        ) async {
           await Future.delayed(const Duration(milliseconds: 100));
           return Success(testMenus);
         });
@@ -102,8 +105,9 @@ void main() {
 
       test('should handle errors when loading fails', () async {
         const error = NetworkError('Failed to fetch menus');
-        when(() => mockMenuRepository.listAll(onlyPublished: true))
-            .thenAnswer((_) async => const Failure(error));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: true),
+        ).thenAnswer((_) async => const Failure(error));
 
         await menuListNotifier.loadMenus(onlyPublished: true);
 
@@ -115,14 +119,16 @@ void main() {
 
       test('should clear error message when loading succeeds', () async {
         // First fail
-        when(() => mockMenuRepository.listAll(onlyPublished: true))
-            .thenAnswer((_) async => const Failure(NetworkError('Error')));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: true),
+        ).thenAnswer((_) async => const Failure(NetworkError('Error')));
         await menuListNotifier.loadMenus(onlyPublished: true);
         expect(menuListNotifier.state.errorMessage, 'Error');
 
         // Then succeed
-        when(() => mockMenuRepository.listAll(onlyPublished: true))
-            .thenAnswer((_) async => Success(testMenus));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: true),
+        ).thenAnswer((_) async => Success(testMenus));
         await menuListNotifier.loadMenus(onlyPublished: true);
 
         expect(menuListNotifier.state.errorMessage, null);
@@ -133,15 +139,17 @@ void main() {
     group('deleteMenu', () {
       test('should delete menu successfully', () async {
         // First load some menus
-        when(() => mockMenuRepository.listAll(onlyPublished: true))
-            .thenAnswer((_) async => Success(testMenus));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: true),
+        ).thenAnswer((_) async => Success(testMenus));
         await menuListNotifier.loadMenus(onlyPublished: true);
 
         expect(menuListNotifier.state.menus.length, 3);
 
         // Then delete one
-        when(() => mockMenuRepository.delete(1))
-            .thenAnswer((_) async => const Success(null));
+        when(
+          () => mockMenuRepository.delete(1),
+        ).thenAnswer((_) async => const Success(null));
 
         await menuListNotifier.deleteMenu(1);
 
@@ -153,14 +161,16 @@ void main() {
 
       test('should handle delete errors', () async {
         // First load some menus
-        when(() => mockMenuRepository.listAll(onlyPublished: true))
-            .thenAnswer((_) async => Success(testMenus));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: true),
+        ).thenAnswer((_) async => Success(testMenus));
         await menuListNotifier.loadMenus(onlyPublished: true);
 
         // Then fail to delete
         const error = ServerError('Failed to delete menu');
-        when(() => mockMenuRepository.delete(1))
-            .thenAnswer((_) async => const Failure(error));
+        when(
+          () => mockMenuRepository.delete(1),
+        ).thenAnswer((_) async => const Failure(error));
 
         await menuListNotifier.deleteMenu(1);
 
@@ -173,13 +183,15 @@ void main() {
 
       test('should handle deleting non-existent menu', () async {
         // Load menus
-        when(() => mockMenuRepository.listAll(onlyPublished: true))
-            .thenAnswer((_) async => Success(testMenus));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: true),
+        ).thenAnswer((_) async => Success(testMenus));
         await menuListNotifier.loadMenus(onlyPublished: true);
 
         // Delete a menu that doesn't exist in local state
-        when(() => mockMenuRepository.delete(999))
-            .thenAnswer((_) async => const Success(null));
+        when(
+          () => mockMenuRepository.delete(999),
+        ).thenAnswer((_) async => const Success(null));
 
         await menuListNotifier.deleteMenu(999);
 
@@ -191,8 +203,9 @@ void main() {
 
     group('refresh', () {
       test('should reload menus', () async {
-        when(() => mockMenuRepository.listAll(onlyPublished: true))
-            .thenAnswer((_) async => Success(testMenus));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: true),
+        ).thenAnswer((_) async => Success(testMenus));
 
         await menuListNotifier.refresh(onlyPublished: true);
 
@@ -202,21 +215,24 @@ void main() {
       });
 
       test('should pass onlyPublished parameter', () async {
-        when(() => mockMenuRepository.listAll(onlyPublished: false))
-            .thenAnswer((_) async => Success(testMenus));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: false),
+        ).thenAnswer((_) async => Success(testMenus));
 
         await menuListNotifier.refresh(onlyPublished: false);
 
-        verify(() => mockMenuRepository.listAll(onlyPublished: false))
-            .called(1);
+        verify(
+          () => mockMenuRepository.listAll(onlyPublished: false),
+        ).called(1);
       });
     });
 
     group('clearError', () {
       test('should clear error message', () async {
         // Set an error
-        when(() => mockMenuRepository.listAll(onlyPublished: true))
-            .thenAnswer((_) async => const Failure(NetworkError('Error')));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: true),
+        ).thenAnswer((_) async => const Failure(NetworkError('Error')));
         await menuListNotifier.loadMenus(onlyPublished: true);
 
         expect(menuListNotifier.state.errorMessage, 'Error');
@@ -229,13 +245,15 @@ void main() {
 
       test('should not affect other state properties', () async {
         // Load menus
-        when(() => mockMenuRepository.listAll(onlyPublished: true))
-            .thenAnswer((_) async => Success(testMenus));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: true),
+        ).thenAnswer((_) async => Success(testMenus));
         await menuListNotifier.loadMenus(onlyPublished: true);
 
         // Set an error
-        when(() => mockMenuRepository.delete(1))
-            .thenAnswer((_) async => const Failure(ServerError('Error')));
+        when(
+          () => mockMenuRepository.delete(1),
+        ).thenAnswer((_) async => const Failure(ServerError('Error')));
         await menuListNotifier.deleteMenu(1);
 
         expect(menuListNotifier.state.errorMessage, 'Error');
@@ -252,10 +270,7 @@ void main() {
   });
 
   group('createMenu', () {
-    const createInput = CreateMenuInput(
-      name: 'New Menu',
-      version: '1.0.0',
-    );
+    const createInput = CreateMenuInput(name: 'New Menu', version: '1.0.0');
 
     const createdMenu = Menu(
       id: 10,
@@ -273,15 +288,16 @@ void main() {
       ),
     ];
 
-    test('should return created menu and prepend to list on success',
-        () async {
+    test('should return created menu and prepend to list on success', () async {
       // Load existing menus first
-      when(() => mockMenuRepository.listAll(onlyPublished: true))
-          .thenAnswer((_) async => Success(existingMenus));
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: true),
+      ).thenAnswer((_) async => Success(existingMenus));
       await menuListNotifier.loadMenus(onlyPublished: true);
 
-      when(() => mockMenuRepository.create(any()))
-          .thenAnswer((_) async => const Success(createdMenu));
+      when(
+        () => mockMenuRepository.create(any()),
+      ).thenAnswer((_) async => const Success(createdMenu));
 
       final result = await menuListNotifier.createMenu(createInput);
 
@@ -294,8 +310,9 @@ void main() {
 
     test('should return null and set error on failure', () async {
       const error = ValidationError('Name is required');
-      when(() => mockMenuRepository.create(any()))
-          .thenAnswer((_) async => const Failure(error));
+      when(
+        () => mockMenuRepository.create(any()),
+      ).thenAnswer((_) async => const Failure(error));
 
       final result = await menuListNotifier.createMenu(createInput);
 
@@ -324,12 +341,14 @@ void main() {
 
     test('should prepend new menu at first position', () async {
       // Load existing menus
-      when(() => mockMenuRepository.listAll(onlyPublished: true))
-          .thenAnswer((_) async => Success(existingMenus));
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: true),
+      ).thenAnswer((_) async => Success(existingMenus));
       await menuListNotifier.loadMenus(onlyPublished: true);
 
-      when(() => mockMenuRepository.create(any()))
-          .thenAnswer((_) async => const Success(createdMenu));
+      when(
+        () => mockMenuRepository.create(any()),
+      ).thenAnswer((_) async => const Success(createdMenu));
 
       await menuListNotifier.createMenu(createInput);
 
