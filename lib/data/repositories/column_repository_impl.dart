@@ -3,6 +3,7 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/mappers/error_mapper.dart';
 import 'package:oxo_menus/data/mappers/column_mapper.dart';
+import 'package:oxo_menus/data/mappers/style_config_mapper.dart';
 import 'package:oxo_menus/data/models/column_dto.dart';
 import 'package:oxo_menus/domain/entities/column.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
@@ -24,6 +25,12 @@ class ColumnRepositoryImpl implements ColumnRepository {
 
       if (input.flex != null) {
         item.setValue(input.flex, forKey: 'flex');
+      }
+      if (input.styleConfig != null) {
+        item.setValue(
+          StyleConfigMapper.toJson(input.styleConfig!),
+          forKey: 'style_json',
+        );
       }
 
       final data = await dataSource.createItem<ColumnDto>(item);
@@ -133,6 +140,12 @@ class ColumnRepositoryImpl implements ColumnRepository {
       }
       if (input.width != null) {
         item.setValue(input.width, forKey: 'width');
+      }
+      if (input.styleConfig != null) {
+        item.setValue(
+          StyleConfigMapper.toJson(input.styleConfig!),
+          forKey: 'style_json',
+        );
       }
 
       final data = await dataSource.updateItem<ColumnDto>(item);

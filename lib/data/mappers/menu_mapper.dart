@@ -1,6 +1,6 @@
+import 'package:oxo_menus/data/mappers/style_config_mapper.dart';
 import 'package:oxo_menus/data/models/menu_dto.dart';
 import 'package:oxo_menus/data/models/size_dto.dart';
-import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
@@ -21,7 +21,7 @@ class MenuMapper {
       userCreated: dto.userCreated,
       userUpdated: dto.userUpdated,
       styleConfig: dto.styleJson.isNotEmpty
-          ? _mapStyleJsonToStyleConfig(dto.styleJson)
+          ? StyleConfigMapper.fromJson(dto.styleJson)
           : null,
       pageSize: _mapSizeDtoToPageSize(sizeDto),
     );
@@ -57,7 +57,7 @@ class MenuMapper {
       'user_updated': entity.userUpdated,
       'version': entity.version,
       'style_json': entity.styleConfig != null
-          ? _mapStyleConfigToJson(entity.styleConfig!)
+          ? StyleConfigMapper.toJson(entity.styleConfig!)
           : null,
       'size': entity.pageSize != null
           ? _mapPageSizeToJson(entity.pageSize!)
@@ -80,7 +80,7 @@ class MenuMapper {
 
     // Only add optional fields if they're not null
     if (input.styleConfig != null) {
-      map['style_json'] = _mapStyleConfigToJson(input.styleConfig!);
+      map['style_json'] = StyleConfigMapper.toJson(input.styleConfig!);
     }
     if (input.sizeId != null) {
       map['size'] = input.sizeId;
@@ -107,67 +107,13 @@ class MenuMapper {
       map['status'] = StatusConverter.mapStatusToString(input.status!);
     }
     if (input.styleConfig != null) {
-      map['style_json'] = _mapStyleConfigToJson(input.styleConfig!);
+      map['style_json'] = StyleConfigMapper.toJson(input.styleConfig!);
     }
     if (input.pageSize != null) {
       map['size'] = _mapPageSizeToJson(input.pageSize!);
     }
     if (input.area != null) {
       map['area'] = _mapAreaStringToId(input.area!);
-    }
-
-    return map;
-  }
-
-  /// Map style_json to StyleConfig entity
-  static StyleConfig _mapStyleJsonToStyleConfig(Map<String, dynamic> json) {
-    return StyleConfig(
-      fontFamily: json['fontFamily'] as String?,
-      fontSize: (json['fontSize'] as num?)?.toDouble(),
-      primaryColor: json['primaryColor'] as String?,
-      secondaryColor: json['secondaryColor'] as String?,
-      backgroundColor: json['backgroundColor'] as String?,
-      marginTop: (json['marginTop'] as num?)?.toDouble(),
-      marginBottom: (json['marginBottom'] as num?)?.toDouble(),
-      marginLeft: (json['marginLeft'] as num?)?.toDouble(),
-      marginRight: (json['marginRight'] as num?)?.toDouble(),
-      padding: (json['padding'] as num?)?.toDouble(),
-      paddingTop: (json['paddingTop'] as num?)?.toDouble(),
-      paddingBottom: (json['paddingBottom'] as num?)?.toDouble(),
-      paddingLeft: (json['paddingLeft'] as num?)?.toDouble(),
-      paddingRight: (json['paddingRight'] as num?)?.toDouble(),
-      borderType: json['borderType'] != null
-          ? BorderTypeConverter.fromString(json['borderType'] as String)
-          : null,
-    );
-  }
-
-  /// Map StyleConfig entity to JSON
-  static Map<String, dynamic> _mapStyleConfigToJson(StyleConfig config) {
-    final map = <String, dynamic>{};
-
-    if (config.fontFamily != null) map['fontFamily'] = config.fontFamily;
-    if (config.fontSize != null) map['fontSize'] = config.fontSize;
-    if (config.primaryColor != null) map['primaryColor'] = config.primaryColor;
-    if (config.secondaryColor != null) {
-      map['secondaryColor'] = config.secondaryColor;
-    }
-    if (config.backgroundColor != null) {
-      map['backgroundColor'] = config.backgroundColor;
-    }
-    if (config.marginTop != null) map['marginTop'] = config.marginTop;
-    if (config.marginBottom != null) map['marginBottom'] = config.marginBottom;
-    if (config.marginLeft != null) map['marginLeft'] = config.marginLeft;
-    if (config.marginRight != null) map['marginRight'] = config.marginRight;
-    if (config.padding != null) map['padding'] = config.padding;
-    if (config.paddingTop != null) map['paddingTop'] = config.paddingTop;
-    if (config.paddingBottom != null) {
-      map['paddingBottom'] = config.paddingBottom;
-    }
-    if (config.paddingLeft != null) map['paddingLeft'] = config.paddingLeft;
-    if (config.paddingRight != null) map['paddingRight'] = config.paddingRight;
-    if (config.borderType != null) {
-      map['borderType'] = BorderTypeConverter.toJsonString(config.borderType!);
     }
 
     return map;

@@ -1,18 +1,24 @@
+import 'package:oxo_menus/data/mappers/style_config_mapper.dart';
 import 'package:oxo_menus/data/models/container_dto.dart';
 import 'package:oxo_menus/domain/entities/container.dart';
+import 'package:oxo_menus/domain/entities/menu.dart';
 
 /// Mapper for converting between Container entity and ContainerDto
 class ContainerMapper {
   /// Convert ContainerDto to Container entity
   static Container toEntity(ContainerDto dto) {
     String idString = dto.id ?? '0';
+    final json = dto.styleJson;
     return Container(
       id: int.parse(idString),
       pageId: dto.page?.id != null ? int.parse(dto.page!.id!) : 0,
       index: dto.index,
       name: "Container ${dto.id}",
-      layout: dto.styleJson.isNotEmpty
-          ? _mapLayoutJsonToLayoutConfig(dto.styleJson)
+      layout: json.isNotEmpty
+          ? _mapLayoutJsonToLayoutConfig(json)
+          : null,
+      styleConfig: json.isNotEmpty
+          ? StyleConfigMapper.fromJson(json)
           : null,
       dateCreated: dto.dateCreated,
       dateUpdated: dto.dateUpdated,
@@ -26,15 +32,29 @@ class ContainerMapper {
       'page': entity.pageId,
       'index': entity.index,
       'name': entity.name,
-      'style_json': entity.layout != null
-          ? layoutConfigToJson(entity.layout!)
-          : null,
+      'style_json': _mergeStyleJson(entity.layout, entity.styleConfig),
       'date_created': entity.dateCreated?.toIso8601String(),
       'date_updated': entity.dateUpdated?.toIso8601String(),
     });
   }
 
   // ===== Private helper methods =====
+
+  /// Merge layout config and style config into a single JSON map for style_json.
+  static Map<String, dynamic>? _mergeStyleJson(
+    LayoutConfig? layout,
+    StyleConfig? styleConfig,
+  ) {
+    if (layout == null && styleConfig == null) return null;
+    final json = <String, dynamic>{};
+    if (layout != null) {
+      json.addAll(layoutConfigToJson(layout));
+    }
+    if (styleConfig != null) {
+      json.addAll(StyleConfigMapper.toJson(styleConfig));
+    }
+    return json.isEmpty ? null : json;
+  }
 
   /// Map layout_json to LayoutConfig
   static LayoutConfig _mapLayoutJsonToLayoutConfig(Map<String, dynamic> json) {

@@ -12,6 +12,9 @@ _Column _$ColumnFromJson(Map<String, dynamic> json) => _Column(
   index: (json['index'] as num).toInt(),
   flex: (json['flex'] as num?)?.toInt(),
   width: (json['width'] as num?)?.toDouble(),
+  styleConfig: json['styleConfig'] == null
+      ? null
+      : StyleConfig.fromJson(json['styleConfig'] as Map<String, dynamic>),
   dateCreated: json['dateCreated'] == null
       ? null
       : DateTime.parse(json['dateCreated'] as String),
@@ -26,6 +29,7 @@ Map<String, dynamic> _$ColumnToJson(_Column instance) => <String, dynamic>{
   'index': instance.index,
   'flex': instance.flex,
   'width': instance.width,
+  'styleConfig': instance.styleConfig,
   'dateCreated': instance.dateCreated?.toIso8601String(),
   'dateUpdated': instance.dateUpdated?.toIso8601String(),
 };

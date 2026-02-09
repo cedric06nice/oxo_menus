@@ -82,8 +82,17 @@ class GeneratePdfUseCase {
     ContainerWithColumns containerData,
     StyleConfig? styleConfig,
   ) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 16),
+    final containerStyle = containerData.container.styleConfig;
+    final margin = containerStyle != null
+        ? _resolver.resolvePageMargins(containerStyle)
+        : const pw.EdgeInsets.only(bottom: 16);
+    final padding = containerStyle != null
+        ? _resolver.resolveContentPadding(containerStyle)
+        : pw.EdgeInsets.zero;
+
+    pw.Widget content = pw.Container(
+      margin: margin,
+      padding: padding,
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
@@ -101,6 +110,7 @@ class GeneratePdfUseCase {
         ],
       ),
     );
+    return _resolver.wrapWithBorder(content, containerStyle);
   }
 
   /// Build a column with widgets
@@ -108,8 +118,13 @@ class GeneratePdfUseCase {
     ColumnWithWidgets columnData,
     StyleConfig? styleConfig,
   ) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 4),
+    final columnStyle = columnData.column.styleConfig;
+    final padding = columnStyle != null
+        ? _resolver.resolveContentPadding(columnStyle)
+        : const pw.EdgeInsets.symmetric(horizontal: 4);
+
+    pw.Widget content = pw.Padding(
+      padding: padding,
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: columnData.widgets.map((widget) {
@@ -117,6 +132,7 @@ class GeneratePdfUseCase {
         }).toList(),
       ),
     );
+    return _resolver.wrapWithBorder(content, columnStyle);
   }
 
   /// Build a widget based on its type

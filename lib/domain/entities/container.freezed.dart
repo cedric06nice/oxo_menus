@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Container {
 
- int get id; int get pageId; int get index; String? get name; LayoutConfig? get layout; DateTime? get dateCreated; DateTime? get dateUpdated;
+ int get id; int get pageId; int get index; String? get name; LayoutConfig? get layout; StyleConfig? get styleConfig; DateTime? get dateCreated; DateTime? get dateUpdated;
 /// Create a copy of Container
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ContainerCopyWith<Container> get copyWith => _$ContainerCopyWithImpl<Container>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Container&&(identical(other.id, id) || other.id == id)&&(identical(other.pageId, pageId) || other.pageId == pageId)&&(identical(other.index, index) || other.index == index)&&(identical(other.name, name) || other.name == name)&&(identical(other.layout, layout) || other.layout == layout)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Container&&(identical(other.id, id) || other.id == id)&&(identical(other.pageId, pageId) || other.pageId == pageId)&&(identical(other.index, index) || other.index == index)&&(identical(other.name, name) || other.name == name)&&(identical(other.layout, layout) || other.layout == layout)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,pageId,index,name,layout,dateCreated,dateUpdated);
+int get hashCode => Object.hash(runtimeType,id,pageId,index,name,layout,styleConfig,dateCreated,dateUpdated);
 
 @override
 String toString() {
-  return 'Container(id: $id, pageId: $pageId, index: $index, name: $name, layout: $layout, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
+  return 'Container(id: $id, pageId: $pageId, index: $index, name: $name, layout: $layout, styleConfig: $styleConfig, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $ContainerCopyWith<$Res>  {
   factory $ContainerCopyWith(Container value, $Res Function(Container) _then) = _$ContainerCopyWithImpl;
 @useResult
 $Res call({
- int id, int pageId, int index, String? name, LayoutConfig? layout, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int pageId, int index, String? name, LayoutConfig? layout, StyleConfig? styleConfig, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
-$LayoutConfigCopyWith<$Res>? get layout;
+$LayoutConfigCopyWith<$Res>? get layout;$StyleConfigCopyWith<$Res>? get styleConfig;
 
 }
 /// @nodoc
@@ -65,14 +65,15 @@ class _$ContainerCopyWithImpl<$Res>
 
 /// Create a copy of Container
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? pageId = null,Object? index = null,Object? name = freezed,Object? layout = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? pageId = null,Object? index = null,Object? name = freezed,Object? layout = freezed,Object? styleConfig = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,pageId: null == pageId ? _self.pageId : pageId // ignore: cast_nullable_to_non_nullable
 as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,layout: freezed == layout ? _self.layout : layout // ignore: cast_nullable_to_non_nullable
-as LayoutConfig?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
+as LayoutConfig?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
+as StyleConfig?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
 as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -88,6 +89,18 @@ $LayoutConfigCopyWith<$Res>? get layout {
 
   return $LayoutConfigCopyWith<$Res>(_self.layout!, (value) {
     return _then(_self.copyWith(layout: value));
+  });
+}/// Create a copy of Container
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StyleConfigCopyWith<$Res>? get styleConfig {
+    if (_self.styleConfig == null) {
+    return null;
+  }
+
+  return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
+    return _then(_self.copyWith(styleConfig: value));
   });
 }
 }
@@ -171,10 +184,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int pageId,  int index,  String? name,  LayoutConfig? layout,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int pageId,  int index,  String? name,  LayoutConfig? layout,  StyleConfig? styleConfig,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Container() when $default != null:
-return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.styleConfig,_that.dateCreated,_that.dateUpdated);case _:
   return orElse();
 
 }
@@ -192,10 +205,10 @@ return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int pageId,  int index,  String? name,  LayoutConfig? layout,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int pageId,  int index,  String? name,  LayoutConfig? layout,  StyleConfig? styleConfig,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
 switch (_that) {
 case _Container():
-return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.styleConfig,_that.dateCreated,_that.dateUpdated);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -212,10 +225,10 @@ return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int pageId,  int index,  String? name,  LayoutConfig? layout,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int pageId,  int index,  String? name,  LayoutConfig? layout,  StyleConfig? styleConfig,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
 switch (_that) {
 case _Container() when $default != null:
-return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.styleConfig,_that.dateCreated,_that.dateUpdated);case _:
   return null;
 
 }
@@ -227,7 +240,7 @@ return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.
 @JsonSerializable()
 
 class _Container extends Container {
-  const _Container({required this.id, required this.pageId, required this.index, this.name, this.layout, this.dateCreated, this.dateUpdated}): super._();
+  const _Container({required this.id, required this.pageId, required this.index, this.name, this.layout, this.styleConfig, this.dateCreated, this.dateUpdated}): super._();
   factory _Container.fromJson(Map<String, dynamic> json) => _$ContainerFromJson(json);
 
 @override final  int id;
@@ -235,6 +248,7 @@ class _Container extends Container {
 @override final  int index;
 @override final  String? name;
 @override final  LayoutConfig? layout;
+@override final  StyleConfig? styleConfig;
 @override final  DateTime? dateCreated;
 @override final  DateTime? dateUpdated;
 
@@ -251,16 +265,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Container&&(identical(other.id, id) || other.id == id)&&(identical(other.pageId, pageId) || other.pageId == pageId)&&(identical(other.index, index) || other.index == index)&&(identical(other.name, name) || other.name == name)&&(identical(other.layout, layout) || other.layout == layout)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Container&&(identical(other.id, id) || other.id == id)&&(identical(other.pageId, pageId) || other.pageId == pageId)&&(identical(other.index, index) || other.index == index)&&(identical(other.name, name) || other.name == name)&&(identical(other.layout, layout) || other.layout == layout)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,pageId,index,name,layout,dateCreated,dateUpdated);
+int get hashCode => Object.hash(runtimeType,id,pageId,index,name,layout,styleConfig,dateCreated,dateUpdated);
 
 @override
 String toString() {
-  return 'Container(id: $id, pageId: $pageId, index: $index, name: $name, layout: $layout, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
+  return 'Container(id: $id, pageId: $pageId, index: $index, name: $name, layout: $layout, styleConfig: $styleConfig, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
 }
 
 
@@ -271,11 +285,11 @@ abstract mixin class _$ContainerCopyWith<$Res> implements $ContainerCopyWith<$Re
   factory _$ContainerCopyWith(_Container value, $Res Function(_Container) _then) = __$ContainerCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int pageId, int index, String? name, LayoutConfig? layout, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int pageId, int index, String? name, LayoutConfig? layout, StyleConfig? styleConfig, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
-@override $LayoutConfigCopyWith<$Res>? get layout;
+@override $LayoutConfigCopyWith<$Res>? get layout;@override $StyleConfigCopyWith<$Res>? get styleConfig;
 
 }
 /// @nodoc
@@ -288,14 +302,15 @@ class __$ContainerCopyWithImpl<$Res>
 
 /// Create a copy of Container
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? pageId = null,Object? index = null,Object? name = freezed,Object? layout = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? pageId = null,Object? index = null,Object? name = freezed,Object? layout = freezed,Object? styleConfig = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_Container(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,pageId: null == pageId ? _self.pageId : pageId // ignore: cast_nullable_to_non_nullable
 as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,layout: freezed == layout ? _self.layout : layout // ignore: cast_nullable_to_non_nullable
-as LayoutConfig?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
+as LayoutConfig?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
+as StyleConfig?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
 as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -312,6 +327,18 @@ $LayoutConfigCopyWith<$Res>? get layout {
 
   return $LayoutConfigCopyWith<$Res>(_self.layout!, (value) {
     return _then(_self.copyWith(layout: value));
+  });
+}/// Create a copy of Container
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StyleConfigCopyWith<$Res>? get styleConfig {
+    if (_self.styleConfig == null) {
+    return null;
+  }
+
+  return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
+    return _then(_self.copyWith(styleConfig: value));
   });
 }
 }

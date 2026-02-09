@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart';
+import 'package:oxo_menus/domain/entities/menu.dart';
 
 part 'column_repository.freezed.dart';
 
@@ -38,6 +39,7 @@ abstract class CreateColumnInput with _$CreateColumnInput {
     required int index,
     int? flex,
     double? width,
+    StyleConfig? styleConfig,
   }) = _CreateColumnInput;
 }
 
@@ -51,5 +53,6 @@ abstract class UpdateColumnInput with _$UpdateColumnInput {
     int? index,
     int? flex,
     double? width,
+    StyleConfig? styleConfig,
   }) = _UpdateColumnInput;
 }

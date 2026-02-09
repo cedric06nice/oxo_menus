@@ -5,6 +5,8 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/models/container_dto.dart';
 import 'package:oxo_menus/data/repositories/container_repository_impl.dart';
+import 'package:oxo_menus/domain/entities/border_type.dart';
+import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 
 class MockDirectusDataSource extends Mock implements DirectusDataSource {}
@@ -58,6 +60,42 @@ void main() {
         expect(result.valueOrNull!.index, 0);
 
         verify(() => mockDataSource.createItem<ContainerDto>(any())).called(1);
+      });
+
+      test('should set style_json on DTO when input has styleConfig', () async {
+        // Arrange
+        const inputWithStyle = CreateContainerInput(
+          pageId: 1,
+          index: 0,
+          direction: 'row',
+          styleConfig: StyleConfig(
+            marginTop: 10.0,
+            borderType: BorderType.plainThin,
+          ),
+        );
+
+        when(() => mockDataSource.createItem<ContainerDto>(any()))
+            .thenAnswer((_) async => {
+                  'id': 3,
+                  'page': 1,
+                  'index': 0,
+                  'status': 'published',
+                  'style_json': {
+                    'marginTop': 10.0,
+                    'borderType': 'plain_thin',
+                  },
+                });
+
+        // Act
+        await repository.create(inputWithStyle);
+
+        // Assert — capture the DTO sent to createItem and verify style_json
+        final captured = verify(
+          () => mockDataSource.createItem<ContainerDto>(captureAny()),
+        ).captured;
+        final dto = captured.first as ContainerDto;
+        expect(dto.styleJson['marginTop'], 10.0);
+        expect(dto.styleJson['borderType'], 'plain_thin');
       });
 
       test('should return ValidationError when creation fails', () async {
@@ -236,6 +274,44 @@ void main() {
 
         verify(() => mockDataSource.updateItem<ContainerDto>(any()))
             .called(1);
+      });
+
+      test('should set style_json on DTO when update input has styleConfig',
+          () async {
+        // Arrange
+        const inputWithStyle = UpdateContainerInput(
+          id: 1,
+          styleConfig: StyleConfig(
+            paddingLeft: 8.0,
+            borderType: BorderType.dropShadow,
+          ),
+        );
+
+        when(() => mockDataSource.getItem<ContainerDto>(any(),
+                fields: any(named: 'fields')))
+            .thenAnswer((_) async => existingJson);
+        when(() => mockDataSource.updateItem<ContainerDto>(any()))
+            .thenAnswer((_) async => {
+                  'id': 1,
+                  'page': 1,
+                  'index': 0,
+                  'status': 'draft',
+                  'style_json': {
+                    'paddingLeft': 8.0,
+                    'borderType': 'drop_shadow',
+                  },
+                });
+
+        // Act
+        await repository.update(inputWithStyle);
+
+        // Assert — capture the DTO sent to updateItem and verify style_json
+        final captured = verify(
+          () => mockDataSource.updateItem<ContainerDto>(captureAny()),
+        ).captured;
+        final dto = captured.first as ContainerDto;
+        expect(dto.styleJson['paddingLeft'], 8.0);
+        expect(dto.styleJson['borderType'], 'drop_shadow');
       });
 
       test('should return NotFoundError when container does not exist',

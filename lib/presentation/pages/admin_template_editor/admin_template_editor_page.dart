@@ -242,6 +242,40 @@ class _AdminTemplateEditorPageState
     });
   }
 
+  Future<void> _onContainerStyleChanged(
+      int containerId, StyleConfig newStyle) async {
+    await ref.read(containerRepositoryProvider).update(
+          UpdateContainerInput(id: containerId, styleConfig: newStyle),
+        );
+    // Update local state
+    for (final entry in _containers.entries) {
+      final idx = entry.value.indexWhere((c) => c.id == containerId);
+      if (idx != -1) {
+        setState(() {
+          entry.value[idx] = entry.value[idx].copyWith(styleConfig: newStyle);
+        });
+        break;
+      }
+    }
+  }
+
+  Future<void> _onColumnStyleChanged(
+      int columnId, StyleConfig newStyle) async {
+    await ref.read(columnRepositoryProvider).update(
+          UpdateColumnInput(id: columnId, styleConfig: newStyle),
+        );
+    // Update local state
+    for (final entry in _columns.entries) {
+      final idx = entry.value.indexWhere((c) => c.id == columnId);
+      if (idx != -1) {
+        setState(() {
+          entry.value[idx] = entry.value[idx].copyWith(styleConfig: newStyle);
+        });
+        break;
+      }
+    }
+  }
+
   Future<void> _saveTemplate() async {
     final result = await ref.read(menuRepositoryProvider).update(
           UpdateMenuInput(
@@ -410,6 +444,21 @@ class _AdminTemplateEditorPageState
             ),
             const SizedBox(height: 8),
 
+            // Container Style Section (collapsible)
+            ExpansionTile(
+              title: const Text('Container Style'),
+              tilePadding: EdgeInsets.zero,
+              childrenPadding: EdgeInsets.zero,
+              children: [
+                PageStyleSection(
+                  title: 'Container Style',
+                  styleConfig: container.styleConfig,
+                  onStyleChanged: (newStyle) =>
+                      _onContainerStyleChanged(container.id, newStyle),
+                ),
+              ],
+            ),
+
             // Add Column Button
             ElevatedButton.icon(
               key: Key('add_column_${container.id}'),
@@ -467,6 +516,20 @@ class _AdminTemplateEditorPageState
             ],
           ),
           const SizedBox(height: 8),
+          // Column Style Section (collapsible)
+          ExpansionTile(
+            title: const Text('Column Style'),
+            tilePadding: EdgeInsets.zero,
+            childrenPadding: EdgeInsets.zero,
+            children: [
+              PageStyleSection(
+                title: 'Column Style',
+                styleConfig: column.styleConfig,
+                onStyleChanged: (newStyle) =>
+                    _onColumnStyleChanged(column.id, newStyle),
+              ),
+            ],
+          ),
           Container(
             height: 80,
             color: Colors.grey[200],

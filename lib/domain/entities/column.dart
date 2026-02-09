@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:oxo_menus/domain/entities/menu.dart';
 
 part 'column.freezed.dart';
 part 'column.g.dart';
@@ -14,6 +15,7 @@ abstract class Column with _$Column {
     required int index,
     int? flex,
     double? width,
+    StyleConfig? styleConfig,
     DateTime? dateCreated,
     DateTime? dateUpdated,
   }) = _Column;

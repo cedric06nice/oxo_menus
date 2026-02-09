@@ -3,6 +3,7 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/mappers/error_mapper.dart';
 import 'package:oxo_menus/data/mappers/container_mapper.dart';
+import 'package:oxo_menus/data/mappers/style_config_mapper.dart';
 import 'package:oxo_menus/data/models/container_dto.dart';
 import 'package:oxo_menus/domain/entities/container.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
@@ -31,6 +32,12 @@ class ContainerRepositoryImpl implements ContainerRepository {
         item.setValue(
           ContainerMapper.layoutConfigToJson(input.layout!),
           forKey: 'layout_json',
+        );
+      }
+      if (input.styleConfig != null) {
+        item.setValue(
+          StyleConfigMapper.toJson(input.styleConfig!),
+          forKey: 'style_json',
         );
       }
 
@@ -159,6 +166,12 @@ class ContainerRepositoryImpl implements ContainerRepository {
         item.setValue(
           ContainerMapper.layoutConfigToJson(input.layout!),
           forKey: 'layout_json',
+        );
+      }
+      if (input.styleConfig != null) {
+        item.setValue(
+          StyleConfigMapper.toJson(input.styleConfig!),
+          forKey: 'style_json',
         );
       }
 

@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreateColumnInput {
 
- int get containerId; int get index; int? get flex; double? get width;
+ int get containerId; int get index; int? get flex; double? get width; StyleConfig? get styleConfig;
 /// Create a copy of CreateColumnInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $CreateColumnInputCopyWith<CreateColumnInput> get copyWith => _$CreateColumnInpu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateColumnInput&&(identical(other.containerId, containerId) || other.containerId == containerId)&&(identical(other.index, index) || other.index == index)&&(identical(other.flex, flex) || other.flex == flex)&&(identical(other.width, width) || other.width == width));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateColumnInput&&(identical(other.containerId, containerId) || other.containerId == containerId)&&(identical(other.index, index) || other.index == index)&&(identical(other.flex, flex) || other.flex == flex)&&(identical(other.width, width) || other.width == width)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,containerId,index,flex,width);
+int get hashCode => Object.hash(runtimeType,containerId,index,flex,width,styleConfig);
 
 @override
 String toString() {
-  return 'CreateColumnInput(containerId: $containerId, index: $index, flex: $flex, width: $width)';
+  return 'CreateColumnInput(containerId: $containerId, index: $index, flex: $flex, width: $width, styleConfig: $styleConfig)';
 }
 
 
@@ -45,11 +45,11 @@ abstract mixin class $CreateColumnInputCopyWith<$Res>  {
   factory $CreateColumnInputCopyWith(CreateColumnInput value, $Res Function(CreateColumnInput) _then) = _$CreateColumnInputCopyWithImpl;
 @useResult
 $Res call({
- int containerId, int index, int? flex, double? width
+ int containerId, int index, int? flex, double? width, StyleConfig? styleConfig
 });
 
 
-
+$StyleConfigCopyWith<$Res>? get styleConfig;
 
 }
 /// @nodoc
@@ -62,16 +62,29 @@ class _$CreateColumnInputCopyWithImpl<$Res>
 
 /// Create a copy of CreateColumnInput
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? containerId = null,Object? index = null,Object? flex = freezed,Object? width = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? containerId = null,Object? index = null,Object? flex = freezed,Object? width = freezed,Object? styleConfig = freezed,}) {
   return _then(_self.copyWith(
 containerId: null == containerId ? _self.containerId : containerId // ignore: cast_nullable_to_non_nullable
 as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,flex: freezed == flex ? _self.flex : flex // ignore: cast_nullable_to_non_nullable
 as int?,width: freezed == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
+as StyleConfig?,
   ));
 }
+/// Create a copy of CreateColumnInput
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StyleConfigCopyWith<$Res>? get styleConfig {
+    if (_self.styleConfig == null) {
+    return null;
+  }
 
+  return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
+    return _then(_self.copyWith(styleConfig: value));
+  });
+}
 }
 
 
@@ -153,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int containerId,  int index,  int? flex,  double? width)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int containerId,  int index,  int? flex,  double? width,  StyleConfig? styleConfig)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateColumnInput() when $default != null:
-return $default(_that.containerId,_that.index,_that.flex,_that.width);case _:
+return $default(_that.containerId,_that.index,_that.flex,_that.width,_that.styleConfig);case _:
   return orElse();
 
 }
@@ -174,10 +187,10 @@ return $default(_that.containerId,_that.index,_that.flex,_that.width);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int containerId,  int index,  int? flex,  double? width)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int containerId,  int index,  int? flex,  double? width,  StyleConfig? styleConfig)  $default,) {final _that = this;
 switch (_that) {
 case _CreateColumnInput():
-return $default(_that.containerId,_that.index,_that.flex,_that.width);case _:
+return $default(_that.containerId,_that.index,_that.flex,_that.width,_that.styleConfig);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -194,10 +207,10 @@ return $default(_that.containerId,_that.index,_that.flex,_that.width);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int containerId,  int index,  int? flex,  double? width)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int containerId,  int index,  int? flex,  double? width,  StyleConfig? styleConfig)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateColumnInput() when $default != null:
-return $default(_that.containerId,_that.index,_that.flex,_that.width);case _:
+return $default(_that.containerId,_that.index,_that.flex,_that.width,_that.styleConfig);case _:
   return null;
 
 }
@@ -209,13 +222,14 @@ return $default(_that.containerId,_that.index,_that.flex,_that.width);case _:
 
 
 class _CreateColumnInput extends CreateColumnInput {
-  const _CreateColumnInput({required this.containerId, required this.index, this.flex, this.width}): super._();
+  const _CreateColumnInput({required this.containerId, required this.index, this.flex, this.width, this.styleConfig}): super._();
   
 
 @override final  int containerId;
 @override final  int index;
 @override final  int? flex;
 @override final  double? width;
+@override final  StyleConfig? styleConfig;
 
 /// Create a copy of CreateColumnInput
 /// with the given fields replaced by the non-null parameter values.
@@ -227,16 +241,16 @@ _$CreateColumnInputCopyWith<_CreateColumnInput> get copyWith => __$CreateColumnI
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateColumnInput&&(identical(other.containerId, containerId) || other.containerId == containerId)&&(identical(other.index, index) || other.index == index)&&(identical(other.flex, flex) || other.flex == flex)&&(identical(other.width, width) || other.width == width));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateColumnInput&&(identical(other.containerId, containerId) || other.containerId == containerId)&&(identical(other.index, index) || other.index == index)&&(identical(other.flex, flex) || other.flex == flex)&&(identical(other.width, width) || other.width == width)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,containerId,index,flex,width);
+int get hashCode => Object.hash(runtimeType,containerId,index,flex,width,styleConfig);
 
 @override
 String toString() {
-  return 'CreateColumnInput(containerId: $containerId, index: $index, flex: $flex, width: $width)';
+  return 'CreateColumnInput(containerId: $containerId, index: $index, flex: $flex, width: $width, styleConfig: $styleConfig)';
 }
 
 
@@ -247,11 +261,11 @@ abstract mixin class _$CreateColumnInputCopyWith<$Res> implements $CreateColumnI
   factory _$CreateColumnInputCopyWith(_CreateColumnInput value, $Res Function(_CreateColumnInput) _then) = __$CreateColumnInputCopyWithImpl;
 @override @useResult
 $Res call({
- int containerId, int index, int? flex, double? width
+ int containerId, int index, int? flex, double? width, StyleConfig? styleConfig
 });
 
 
-
+@override $StyleConfigCopyWith<$Res>? get styleConfig;
 
 }
 /// @nodoc
@@ -264,23 +278,36 @@ class __$CreateColumnInputCopyWithImpl<$Res>
 
 /// Create a copy of CreateColumnInput
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? containerId = null,Object? index = null,Object? flex = freezed,Object? width = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? containerId = null,Object? index = null,Object? flex = freezed,Object? width = freezed,Object? styleConfig = freezed,}) {
   return _then(_CreateColumnInput(
 containerId: null == containerId ? _self.containerId : containerId // ignore: cast_nullable_to_non_nullable
 as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,flex: freezed == flex ? _self.flex : flex // ignore: cast_nullable_to_non_nullable
 as int?,width: freezed == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
+as StyleConfig?,
   ));
 }
 
+/// Create a copy of CreateColumnInput
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StyleConfigCopyWith<$Res>? get styleConfig {
+    if (_self.styleConfig == null) {
+    return null;
+  }
 
+  return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
+    return _then(_self.copyWith(styleConfig: value));
+  });
+}
 }
 
 /// @nodoc
 mixin _$UpdateColumnInput {
 
- int get id; int? get index; int? get flex; double? get width;
+ int get id; int? get index; int? get flex; double? get width; StyleConfig? get styleConfig;
 /// Create a copy of UpdateColumnInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -291,16 +318,16 @@ $UpdateColumnInputCopyWith<UpdateColumnInput> get copyWith => _$UpdateColumnInpu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateColumnInput&&(identical(other.id, id) || other.id == id)&&(identical(other.index, index) || other.index == index)&&(identical(other.flex, flex) || other.flex == flex)&&(identical(other.width, width) || other.width == width));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateColumnInput&&(identical(other.id, id) || other.id == id)&&(identical(other.index, index) || other.index == index)&&(identical(other.flex, flex) || other.flex == flex)&&(identical(other.width, width) || other.width == width)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,index,flex,width);
+int get hashCode => Object.hash(runtimeType,id,index,flex,width,styleConfig);
 
 @override
 String toString() {
-  return 'UpdateColumnInput(id: $id, index: $index, flex: $flex, width: $width)';
+  return 'UpdateColumnInput(id: $id, index: $index, flex: $flex, width: $width, styleConfig: $styleConfig)';
 }
 
 
@@ -311,11 +338,11 @@ abstract mixin class $UpdateColumnInputCopyWith<$Res>  {
   factory $UpdateColumnInputCopyWith(UpdateColumnInput value, $Res Function(UpdateColumnInput) _then) = _$UpdateColumnInputCopyWithImpl;
 @useResult
 $Res call({
- int id, int? index, int? flex, double? width
+ int id, int? index, int? flex, double? width, StyleConfig? styleConfig
 });
 
 
-
+$StyleConfigCopyWith<$Res>? get styleConfig;
 
 }
 /// @nodoc
@@ -328,16 +355,29 @@ class _$UpdateColumnInputCopyWithImpl<$Res>
 
 /// Create a copy of UpdateColumnInput
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? index = freezed,Object? flex = freezed,Object? width = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? index = freezed,Object? flex = freezed,Object? width = freezed,Object? styleConfig = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,index: freezed == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int?,flex: freezed == flex ? _self.flex : flex // ignore: cast_nullable_to_non_nullable
 as int?,width: freezed == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
+as StyleConfig?,
   ));
 }
+/// Create a copy of UpdateColumnInput
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StyleConfigCopyWith<$Res>? get styleConfig {
+    if (_self.styleConfig == null) {
+    return null;
+  }
 
+  return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
+    return _then(_self.copyWith(styleConfig: value));
+  });
+}
 }
 
 
@@ -419,10 +459,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int? index,  int? flex,  double? width)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int? index,  int? flex,  double? width,  StyleConfig? styleConfig)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdateColumnInput() when $default != null:
-return $default(_that.id,_that.index,_that.flex,_that.width);case _:
+return $default(_that.id,_that.index,_that.flex,_that.width,_that.styleConfig);case _:
   return orElse();
 
 }
@@ -440,10 +480,10 @@ return $default(_that.id,_that.index,_that.flex,_that.width);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int? index,  int? flex,  double? width)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int? index,  int? flex,  double? width,  StyleConfig? styleConfig)  $default,) {final _that = this;
 switch (_that) {
 case _UpdateColumnInput():
-return $default(_that.id,_that.index,_that.flex,_that.width);case _:
+return $default(_that.id,_that.index,_that.flex,_that.width,_that.styleConfig);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -460,10 +500,10 @@ return $default(_that.id,_that.index,_that.flex,_that.width);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int? index,  int? flex,  double? width)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int? index,  int? flex,  double? width,  StyleConfig? styleConfig)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdateColumnInput() when $default != null:
-return $default(_that.id,_that.index,_that.flex,_that.width);case _:
+return $default(_that.id,_that.index,_that.flex,_that.width,_that.styleConfig);case _:
   return null;
 
 }
@@ -475,13 +515,14 @@ return $default(_that.id,_that.index,_that.flex,_that.width);case _:
 
 
 class _UpdateColumnInput extends UpdateColumnInput {
-  const _UpdateColumnInput({required this.id, this.index, this.flex, this.width}): super._();
+  const _UpdateColumnInput({required this.id, this.index, this.flex, this.width, this.styleConfig}): super._();
   
 
 @override final  int id;
 @override final  int? index;
 @override final  int? flex;
 @override final  double? width;
+@override final  StyleConfig? styleConfig;
 
 /// Create a copy of UpdateColumnInput
 /// with the given fields replaced by the non-null parameter values.
@@ -493,16 +534,16 @@ _$UpdateColumnInputCopyWith<_UpdateColumnInput> get copyWith => __$UpdateColumnI
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateColumnInput&&(identical(other.id, id) || other.id == id)&&(identical(other.index, index) || other.index == index)&&(identical(other.flex, flex) || other.flex == flex)&&(identical(other.width, width) || other.width == width));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateColumnInput&&(identical(other.id, id) || other.id == id)&&(identical(other.index, index) || other.index == index)&&(identical(other.flex, flex) || other.flex == flex)&&(identical(other.width, width) || other.width == width)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,index,flex,width);
+int get hashCode => Object.hash(runtimeType,id,index,flex,width,styleConfig);
 
 @override
 String toString() {
-  return 'UpdateColumnInput(id: $id, index: $index, flex: $flex, width: $width)';
+  return 'UpdateColumnInput(id: $id, index: $index, flex: $flex, width: $width, styleConfig: $styleConfig)';
 }
 
 
@@ -513,11 +554,11 @@ abstract mixin class _$UpdateColumnInputCopyWith<$Res> implements $UpdateColumnI
   factory _$UpdateColumnInputCopyWith(_UpdateColumnInput value, $Res Function(_UpdateColumnInput) _then) = __$UpdateColumnInputCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int? index, int? flex, double? width
+ int id, int? index, int? flex, double? width, StyleConfig? styleConfig
 });
 
 
-
+@override $StyleConfigCopyWith<$Res>? get styleConfig;
 
 }
 /// @nodoc
@@ -530,17 +571,30 @@ class __$UpdateColumnInputCopyWithImpl<$Res>
 
 /// Create a copy of UpdateColumnInput
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? index = freezed,Object? flex = freezed,Object? width = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? index = freezed,Object? flex = freezed,Object? width = freezed,Object? styleConfig = freezed,}) {
   return _then(_UpdateColumnInput(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,index: freezed == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int?,flex: freezed == flex ? _self.flex : flex // ignore: cast_nullable_to_non_nullable
 as int?,width: freezed == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
-as double?,
+as double?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
+as StyleConfig?,
   ));
 }
 
+/// Create a copy of UpdateColumnInput
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$StyleConfigCopyWith<$Res>? get styleConfig {
+    if (_self.styleConfig == null) {
+    return null;
+  }
 
+  return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
+    return _then(_self.copyWith(styleConfig: value));
+  });
+}
 }
 
 // dart format on

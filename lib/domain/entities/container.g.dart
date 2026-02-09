@@ -14,6 +14,9 @@ _Container _$ContainerFromJson(Map<String, dynamic> json) => _Container(
   layout: json['layout'] == null
       ? null
       : LayoutConfig.fromJson(json['layout'] as Map<String, dynamic>),
+  styleConfig: json['styleConfig'] == null
+      ? null
+      : StyleConfig.fromJson(json['styleConfig'] as Map<String, dynamic>),
   dateCreated: json['dateCreated'] == null
       ? null
       : DateTime.parse(json['dateCreated'] as String),
@@ -29,6 +32,7 @@ Map<String, dynamic> _$ContainerToJson(_Container instance) =>
       'index': instance.index,
       'name': instance.name,
       'layout': instance.layout,
+      'styleConfig': instance.styleConfig,
       'dateCreated': instance.dateCreated?.toIso8601String(),
       'dateUpdated': instance.dateUpdated?.toIso8601String(),
     };

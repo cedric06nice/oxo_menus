@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/container.dart';
+import 'package:oxo_menus/domain/entities/menu.dart';
 
 part 'container_repository.freezed.dart';
 
@@ -44,6 +45,7 @@ abstract class CreateContainerInput with _$CreateContainerInput {
     required String direction,
     String? name,
     LayoutConfig? layout,
+    StyleConfig? styleConfig,
   }) = _CreateContainerInput;
 }
 
@@ -57,5 +59,6 @@ abstract class UpdateContainerInput with _$UpdateContainerInput {
     String? name,
     int? index,
     LayoutConfig? layout,
+    StyleConfig? styleConfig,
   }) = _UpdateContainerInput;
 }

@@ -5,6 +5,8 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/models/column_dto.dart';
 import 'package:oxo_menus/data/repositories/column_repository_impl.dart';
+import 'package:oxo_menus/domain/entities/border_type.dart';
+import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 
 class MockDirectusDataSource extends Mock implements DirectusDataSource {}
@@ -57,6 +59,41 @@ void main() {
         expect(result.valueOrNull!.width, 100.0);
 
         verify(() => mockDataSource.createItem<ColumnDto>(any())).called(1);
+      });
+
+      test('should set style_json on DTO when input has styleConfig', () async {
+        // Arrange
+        const inputWithStyle = CreateColumnInput(
+          containerId: 1,
+          index: 0,
+          styleConfig: StyleConfig(
+            marginTop: 5.0,
+            borderType: BorderType.plainThin,
+          ),
+        );
+
+        when(() => mockDataSource.createItem<ColumnDto>(any()))
+            .thenAnswer((_) async => {
+                  'id': 3,
+                  'container': 1,
+                  'index': 0,
+                  'width': 100,
+                  'style_json': {
+                    'marginTop': 5.0,
+                    'borderType': 'plain_thin',
+                  },
+                });
+
+        // Act
+        await repository.create(inputWithStyle);
+
+        // Assert — capture the DTO sent to createItem and verify style_json
+        final captured = verify(
+          () => mockDataSource.createItem<ColumnDto>(captureAny()),
+        ).captured;
+        final dto = captured.first as ColumnDto;
+        expect(dto.styleJson['marginTop'], 5.0);
+        expect(dto.styleJson['borderType'], 'plain_thin');
       });
 
       test('should return ValidationError when creation fails', () async {
@@ -225,6 +262,44 @@ void main() {
 
         verify(() => mockDataSource.updateItem<ColumnDto>(any()))
             .called(1);
+      });
+
+      test('should set style_json on DTO when update input has styleConfig',
+          () async {
+        // Arrange
+        const inputWithStyle = UpdateColumnInput(
+          id: 1,
+          styleConfig: StyleConfig(
+            paddingLeft: 12.0,
+            borderType: BorderType.dropShadow,
+          ),
+        );
+
+        when(() => mockDataSource.getItem<ColumnDto>(any(),
+                fields: any(named: 'fields')))
+            .thenAnswer((_) async => existingJson);
+        when(() => mockDataSource.updateItem<ColumnDto>(any()))
+            .thenAnswer((_) async => {
+                  'id': 1,
+                  'container': 1,
+                  'index': 0,
+                  'width': 100,
+                  'style_json': {
+                    'paddingLeft': 12.0,
+                    'borderType': 'drop_shadow',
+                  },
+                });
+
+        // Act
+        await repository.update(inputWithStyle);
+
+        // Assert — capture the DTO sent to updateItem and verify style_json
+        final captured = verify(
+          () => mockDataSource.updateItem<ColumnDto>(captureAny()),
+        ).captured;
+        final dto = captured.first as ColumnDto;
+        expect(dto.styleJson['paddingLeft'], 12.0);
+        expect(dto.styleJson['borderType'], 'drop_shadow');
       });
 
       test('should return NotFoundError when column does not exist', () async {

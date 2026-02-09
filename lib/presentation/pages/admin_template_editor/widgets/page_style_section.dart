@@ -3,11 +3,13 @@ import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 
 class PageStyleSection extends StatefulWidget {
+  final String title;
   final StyleConfig? styleConfig;
   final ValueChanged<StyleConfig> onStyleChanged;
 
   const PageStyleSection({
     super.key,
+    this.title = 'Page Style',
     required this.styleConfig,
     required this.onStyleChanged,
   });
@@ -100,7 +102,7 @@ class _PageStyleSectionState extends State<PageStyleSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Page Style', style: Theme.of(context).textTheme.titleLarge),
+            Text(widget.title, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
             Text('Margins', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),

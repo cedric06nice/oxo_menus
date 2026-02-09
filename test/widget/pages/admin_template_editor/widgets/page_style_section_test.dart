@@ -204,6 +204,25 @@ void main() {
       expect(find.text('No Border'), findsOneWidget);
     });
 
+    testWidgets('should display custom title when provided', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: PageStyleSection(
+                title: 'Container Style',
+                styleConfig: const StyleConfig(),
+                onStyleChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Container Style'), findsOneWidget);
+      expect(find.text('Page Style'), findsNothing);
+    });
+
     testWidgets('should call onStyleChanged when border type is changed',
         (tester) async {
       StyleConfig? updatedConfig;

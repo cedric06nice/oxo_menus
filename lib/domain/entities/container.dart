@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:oxo_menus/domain/entities/menu.dart';
 
 part 'container.freezed.dart';
 part 'container.g.dart';
@@ -14,6 +15,7 @@ abstract class Container with _$Container {
     required int index,
     String? name,
     LayoutConfig? layout,
+    StyleConfig? styleConfig,
     DateTime? dateCreated,
     DateTime? dateUpdated,
   }) = _Container;

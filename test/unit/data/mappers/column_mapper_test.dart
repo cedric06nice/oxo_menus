@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/data/mappers/column_mapper.dart';
 import 'package:oxo_menus/data/models/column_dto.dart';
+import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/column.dart';
+import 'package:oxo_menus/domain/entities/menu.dart';
 
 void main() {
   group('ColumnMapper', () {
@@ -45,6 +47,46 @@ void main() {
         expect(entity.id, 2);
         expect(entity.containerId, 0); // Defaults to 0 when null
         expect(entity.flex, isNull);
+      });
+
+      test('should parse styleConfig from style_json', () {
+        // Arrange
+        final dto = ColumnDto({
+          'id': 4,
+          'index': 0,
+          'width': 100,
+          'container': 1,
+          'style_json': {
+            'marginTop': 10.0,
+            'paddingLeft': 8.0,
+            'borderType': 'drop_shadow',
+          },
+        });
+
+        // Act
+        final entity = ColumnMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.styleConfig, isNotNull);
+        expect(entity.styleConfig!.marginTop, 10.0);
+        expect(entity.styleConfig!.paddingLeft, 8.0);
+        expect(entity.styleConfig!.borderType, BorderType.dropShadow);
+      });
+
+      test('should have null styleConfig when style_json is empty', () {
+        // Arrange
+        final dto = ColumnDto({
+          'id': 5,
+          'index': 0,
+          'width': 100,
+          'container': 1,
+        });
+
+        // Act
+        final entity = ColumnMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.styleConfig, isNull);
       });
 
       test('should convert width to double', () {
@@ -105,6 +147,43 @@ void main() {
         // Assert
         expect(dto.id, '2');
         expect(dto.width, 0); // null converted to 0
+      });
+
+      test('should serialize styleConfig into style_json', () {
+        // Arrange
+        final entity = Column(
+          id: 4,
+          containerId: 1,
+          index: 0,
+          width: 100.0,
+          styleConfig: StyleConfig(
+            marginTop: 10.0,
+            borderType: BorderType.plainThick,
+          ),
+        );
+
+        // Act
+        final dto = ColumnMapper.toDto(entity);
+
+        // Assert
+        expect(dto.styleJson['marginTop'], 10.0);
+        expect(dto.styleJson['borderType'], 'plain_thick');
+      });
+
+      test('should have empty style_json when styleConfig is null', () {
+        // Arrange
+        final entity = Column(
+          id: 5,
+          containerId: 1,
+          index: 0,
+          width: 100.0,
+        );
+
+        // Act
+        final dto = ColumnMapper.toDto(entity);
+
+        // Assert
+        expect(dto.styleJson, isEmpty);
       });
 
       test('should round double width to int', () {

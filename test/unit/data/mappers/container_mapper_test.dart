@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/data/mappers/container_mapper.dart';
 import 'package:oxo_menus/data/models/container_dto.dart';
+import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/container.dart';
+import 'package:oxo_menus/domain/entities/menu.dart';
 
 void main() {
   group('ContainerMapper', () {
@@ -56,6 +58,50 @@ void main() {
         expect(entity.index, 1);
         expect(entity.name, 'Container 2');
         expect(entity.layout, isNull);
+      });
+
+      test('should parse styleConfig from style_json', () {
+        // Arrange
+        final dto = ContainerDto({
+          'id': 4,
+          'index': 0,
+          'status': 'published',
+          'page': 1,
+          'style_json': {
+            'direction': 'row',
+            'marginTop': 10.0,
+            'paddingLeft': 8.0,
+            'borderType': 'plain_thin',
+          },
+        });
+
+        // Act
+        final entity = ContainerMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.styleConfig, isNotNull);
+        expect(entity.styleConfig!.marginTop, 10.0);
+        expect(entity.styleConfig!.paddingLeft, 8.0);
+        expect(entity.styleConfig!.borderType, BorderType.plainThin);
+        // Layout should still be parsed too
+        expect(entity.layout, isNotNull);
+        expect(entity.layout!.direction, 'row');
+      });
+
+      test('should have null styleConfig when style_json is empty', () {
+        // Arrange
+        final dto = ContainerDto({
+          'id': 5,
+          'index': 0,
+          'status': 'published',
+          'page': 1,
+        });
+
+        // Act
+        final entity = ContainerMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.styleConfig, isNull);
       });
 
       test('should handle null layout_json', () {
@@ -125,6 +171,49 @@ void main() {
         expect(dto.page?.id, '3');
         expect(dto.index, 1);
         expect(dto.styleJson, isEmpty);
+      });
+
+      test('should serialize styleConfig into style_json', () {
+        // Arrange
+        final entity = Container(
+          id: 4,
+          pageId: 1,
+          index: 0,
+          name: 'Styled Container',
+          layout: LayoutConfig(direction: 'row'),
+          styleConfig: StyleConfig(
+            marginTop: 10.0,
+            borderType: BorderType.dropShadow,
+          ),
+        );
+
+        // Act
+        final dto = ContainerMapper.toDto(entity);
+
+        // Assert
+        expect(dto.styleJson['marginTop'], 10.0);
+        expect(dto.styleJson['borderType'], 'drop_shadow');
+        // Layout fields should also be present
+        expect(dto.styleJson['direction'], 'row');
+      });
+
+      test('should serialize only layout when styleConfig is null', () {
+        // Arrange
+        final entity = Container(
+          id: 5,
+          pageId: 1,
+          index: 0,
+          name: 'Layout Only',
+          layout: LayoutConfig(direction: 'column', spacing: 8.0),
+        );
+
+        // Act
+        final dto = ContainerMapper.toDto(entity);
+
+        // Assert
+        expect(dto.styleJson['direction'], 'column');
+        expect(dto.styleJson['spacing'], 8.0);
+        expect(dto.styleJson.containsKey('marginTop'), false);
       });
 
       test('should handle null layout', () {
