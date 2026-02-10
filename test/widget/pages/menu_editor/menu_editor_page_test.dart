@@ -435,8 +435,8 @@ void main() {
     });
   });
 
-  group('MenuEditorPage - Header/Footer Display', () {
-    testWidgets('should display header containers from MenuTree', (
+  group('MenuEditorPage - Header/Footer Exclusion', () {
+    testWidgets('should not display header page containers', (
       tester,
     ) async {
       // Arrange
@@ -463,18 +463,6 @@ void main() {
           type: entity.PageType.content,
         ),
       ];
-      final headerContainer = const entity.Container(
-        id: 101,
-        pageId: 99,
-        index: 0,
-        name: 'Header Container',
-      );
-      final contentContainer = const entity.Container(
-        id: 1,
-        pageId: 1,
-        index: 0,
-        name: 'Content Container',
-      );
 
       when(
         () => mockMenuRepository.getById(menuId),
@@ -483,11 +471,15 @@ void main() {
         () => mockPageRepository.getAllForMenu(menuId),
       ).thenAnswer((_) async => Success(pages));
       when(
-        () => mockContainerRepository.getAllForPage(99),
-      ).thenAnswer((_) async => Success([headerContainer]));
-      when(
         () => mockContainerRepository.getAllForPage(1),
-      ).thenAnswer((_) async => Success([contentContainer]));
+      ).thenAnswer((_) async => const Success([
+            entity.Container(
+              id: 1,
+              pageId: 1,
+              index: 0,
+              name: 'Content Container',
+            ),
+          ]));
       when(
         () => mockColumnRepository.getAllForContainer(any()),
       ).thenAnswer((_) async => const Success([]));
@@ -496,12 +488,12 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.text('Header Container'), findsOneWidget);
-      expect(find.text('Content Container'), findsOneWidget);
+      // Assert — content is shown, header is not
+      expect(find.text('Page 1'), findsOneWidget);
+      expect(find.text('Header'), findsNothing);
     });
 
-    testWidgets('should display footer containers from MenuTree', (
+    testWidgets('should not display footer page containers', (
       tester,
     ) async {
       // Arrange
@@ -528,18 +520,6 @@ void main() {
           type: entity.PageType.footer,
         ),
       ];
-      final contentContainer = const entity.Container(
-        id: 1,
-        pageId: 1,
-        index: 0,
-        name: 'Content Container',
-      );
-      final footerContainer = const entity.Container(
-        id: 102,
-        pageId: 98,
-        index: 0,
-        name: 'Footer Container',
-      );
 
       when(
         () => mockMenuRepository.getById(menuId),
@@ -549,10 +529,14 @@ void main() {
       ).thenAnswer((_) async => Success(pages));
       when(
         () => mockContainerRepository.getAllForPage(1),
-      ).thenAnswer((_) async => Success([contentContainer]));
-      when(
-        () => mockContainerRepository.getAllForPage(98),
-      ).thenAnswer((_) async => Success([footerContainer]));
+      ).thenAnswer((_) async => const Success([
+            entity.Container(
+              id: 1,
+              pageId: 1,
+              index: 0,
+              name: 'Content Container',
+            ),
+          ]));
       when(
         () => mockColumnRepository.getAllForContainer(any()),
       ).thenAnswer((_) async => const Success([]));
@@ -561,9 +545,9 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.text('Content Container'), findsOneWidget);
-      expect(find.text('Footer Container'), findsOneWidget);
+      // Assert — content is shown, footer is not
+      expect(find.text('Page 1'), findsOneWidget);
+      expect(find.text('Footer'), findsNothing);
     });
   });
 

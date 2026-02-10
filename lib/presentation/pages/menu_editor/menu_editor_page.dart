@@ -117,7 +117,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     }
 
     _pages = List<entity.Page>.from(pagesResult.valueOrNull!)
-      ..sort((a, b) => a.index.compareTo(b.index));
+      ..sort((a, b) => a.index.compareTo(b.index))
+      ..removeWhere((page) => page.type != entity.PageType.content);
 
     // Load containers for each page
     _containers.clear();
