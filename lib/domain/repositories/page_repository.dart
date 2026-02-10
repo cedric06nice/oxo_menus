@@ -35,6 +35,7 @@ abstract class CreatePageInput with _$CreatePageInput {
     required int menuId,
     required String name,
     required int index,
+    @Default(PageType.content) PageType type,
   }) = _CreatePageInput;
 }
 

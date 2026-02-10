@@ -20,6 +20,7 @@ class PageRepositoryImpl implements PageRepository {
         index: input.index,
         menu: input.menuId,
         status: 'draft',
+        type: input.type.name,
       );
 
       final data = await dataSource.createItem<PageDto>(item);
@@ -43,6 +44,7 @@ class PageRepositoryImpl implements PageRepository {
         fields: [
           'id',
           'status',
+          'type',
           'date_created',
           'date_updated',
           'user_created',
@@ -98,6 +100,7 @@ class PageRepositoryImpl implements PageRepository {
         fields: [
           'id',
           'status',
+          'type',
           'date_created',
           'date_updated',
           'user_created',

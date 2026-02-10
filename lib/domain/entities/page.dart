@@ -3,6 +3,13 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'page.freezed.dart';
 part 'page.g.dart';
 
+/// Type of page in a menu
+enum PageType {
+  content,
+  header,
+  footer,
+}
+
 /// Represents a page within a menu.
 @freezed
 abstract class Page with _$Page {
@@ -13,6 +20,7 @@ abstract class Page with _$Page {
     required int menuId,
     required String name,
     required int index,
+    @Default(PageType.content) PageType type,
     DateTime? dateCreated,
     DateTime? dateUpdated,
   }) = _Page;

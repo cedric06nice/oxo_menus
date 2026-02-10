@@ -320,6 +320,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find and tap delete button for page
+      await tester.ensureVisible(find.byKey(const Key('delete_page_1')));
       await tester.tap(find.byKey(const Key('delete_page_1')));
       await tester.pumpAndSettle();
 
@@ -723,6 +724,455 @@ void main() {
       // Assert
       await tester.ensureVisible(find.text('Column Style'));
       expect(find.text('Column Style'), findsOneWidget);
+    });
+  });
+
+  group('AdminTemplateEditorPage - Header Management', () {
+    testWidgets('should show Add Header button when no header page exists', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final contentPages = [
+        const entity.Page(
+          id: 1,
+          menuId: menuId,
+          name: 'Page 1',
+          index: 0,
+          type: entity.PageType.content,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(contentPages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.byKey(const Key('add_header_button')), findsOneWidget);
+    });
+
+    testWidgets('should create header page when Add Header button tapped', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const headerPage = entity.Page(
+        id: 2,
+        menuId: menuId,
+        name: 'Header',
+        index: 0,
+        type: entity.PageType.header,
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockPageRepository.create(any()),
+      ).thenAnswer((_) async => const Success(headerPage));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('add_header_button')));
+      await tester.pumpAndSettle();
+
+      // Assert
+      final captured =
+          verify(() => mockPageRepository.create(captureAny())).captured.single
+              as CreatePageInput;
+      expect(captured.type, entity.PageType.header);
+      expect(captured.name, 'Header');
+    });
+
+    testWidgets('should hide Add Header button when header page exists', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(
+          id: 1,
+          menuId: menuId,
+          name: 'Header',
+          index: 0,
+          type: entity.PageType.header,
+        ),
+        const entity.Page(
+          id: 2,
+          menuId: menuId,
+          name: 'Page 1',
+          index: 1,
+          type: entity.PageType.content,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.byKey(const Key('add_header_button')), findsNothing);
+    });
+
+    testWidgets('should show header card when header page exists', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(
+          id: 1,
+          menuId: menuId,
+          name: 'Header',
+          index: 0,
+          type: entity.PageType.header,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.text('Header'), findsOneWidget);
+      expect(find.byKey(const Key('delete_header_button')), findsOneWidget);
+    });
+
+    testWidgets('should delete header page when Delete Header button tapped', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(
+          id: 1,
+          menuId: menuId,
+          name: 'Header',
+          index: 0,
+          type: entity.PageType.header,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockPageRepository.delete(1),
+      ).thenAnswer((_) async => const Success(null));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('delete_header_button')));
+      await tester.pumpAndSettle();
+
+      // Confirm deletion
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      // Assert
+      verify(() => mockPageRepository.delete(1)).called(1);
+    });
+  });
+
+  group('AdminTemplateEditorPage - Footer Management', () {
+    testWidgets('should show Add Footer button when no footer page exists', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final contentPages = [
+        const entity.Page(
+          id: 1,
+          menuId: menuId,
+          name: 'Page 1',
+          index: 0,
+          type: entity.PageType.content,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(contentPages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.byKey(const Key('add_footer_button')), findsOneWidget);
+    });
+
+    testWidgets('should create footer page when Add Footer button tapped', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const footerPage = entity.Page(
+        id: 2,
+        menuId: menuId,
+        name: 'Footer',
+        index: 0,
+        type: entity.PageType.footer,
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockPageRepository.create(any()),
+      ).thenAnswer((_) async => const Success(footerPage));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byKey(const Key('add_footer_button')));
+      await tester.tap(find.byKey(const Key('add_footer_button')));
+      await tester.pumpAndSettle();
+
+      // Assert
+      final captured =
+          verify(() => mockPageRepository.create(captureAny())).captured.single
+              as CreatePageInput;
+      expect(captured.type, entity.PageType.footer);
+      expect(captured.name, 'Footer');
+    });
+
+    testWidgets('should hide Add Footer button when footer page exists', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(
+          id: 1,
+          menuId: menuId,
+          name: 'Page 1',
+          index: 0,
+          type: entity.PageType.content,
+        ),
+        const entity.Page(
+          id: 2,
+          menuId: menuId,
+          name: 'Footer',
+          index: 1,
+          type: entity.PageType.footer,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.byKey(const Key('add_footer_button')), findsNothing);
+    });
+
+    testWidgets('should show footer card when footer page exists', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(
+          id: 1,
+          menuId: menuId,
+          name: 'Footer',
+          index: 0,
+          type: entity.PageType.footer,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      await tester.ensureVisible(find.text('Footer'));
+      expect(find.text('Footer'), findsOneWidget);
+      expect(find.byKey(const Key('delete_footer_button')), findsOneWidget);
+    });
+
+    testWidgets('should delete footer page when Delete Footer button tapped', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(
+          id: 1,
+          menuId: menuId,
+          name: 'Footer',
+          index: 0,
+          type: entity.PageType.footer,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockPageRepository.delete(1),
+      ).thenAnswer((_) async => const Success(null));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.byKey(const Key('delete_footer_button')));
+      await tester.tap(find.byKey(const Key('delete_footer_button')));
+      await tester.pumpAndSettle();
+
+      // Confirm deletion
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      // Assert
+      verify(() => mockPageRepository.delete(1)).called(1);
     });
   });
 

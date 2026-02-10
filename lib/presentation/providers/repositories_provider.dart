@@ -3,6 +3,7 @@ import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/repositories/auth_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/column_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/container_repository_impl.dart';
+import 'package:oxo_menus/data/repositories/file_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/menu_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/page_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/size_repository_impl.dart';
@@ -10,6 +11,7 @@ import 'package:oxo_menus/data/repositories/widget_repository_impl.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
+import 'package:oxo_menus/domain/repositories/file_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
@@ -88,4 +90,12 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 final sizeRepositoryProvider = Provider<SizeRepository>((ref) {
   final dataSource = ref.watch(directusDataSourceProvider);
   return SizeRepositoryImpl(dataSource: dataSource);
+});
+
+/// File repository provider
+///
+/// Provides the FileRepository implementation for managing file uploads
+final fileRepositoryProvider = Provider<FileRepository>((ref) {
+  final dataSource = ref.watch(directusDataSourceProvider);
+  return FileRepositoryImpl(dataSource);
 });

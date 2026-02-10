@@ -7,6 +7,7 @@ import 'package:oxo_menus/data/models/menu_dto.dart';
 class PageDto extends DirectusItem {
   int get index => getValue(forKey: "index");
   String get status => getValue(forKey: "status");
+  String get type => getValue(forKey: "type") ?? 'content';
   DateTime? get dateCreated => getOptionalDateTime(forKey: "date_created");
   DateTime? get dateUpdated => getOptionalDateTime(forKey: "date_updated");
   String? get userUpdated => getValue(forKey: "user_updated");
@@ -49,11 +50,13 @@ class PageDto extends DirectusItem {
     String? status,
     int? menu,
     List<int>? containers,
+    String? type,
   }) : super.newItem() {
     setValue(index, forKey: "index");
     setValue(status, forKey: "status");
     setValue(menu, forKey: "menu");
     setValue(containers, forKey: "containers");
+    setValue(type ?? 'content', forKey: "type");
   }
 
   PageDto(super.rawReceivedData);

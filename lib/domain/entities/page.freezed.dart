@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Page {
 
- int get id; int get menuId; String get name; int get index; DateTime? get dateCreated; DateTime? get dateUpdated;
+ int get id; int get menuId; String get name; int get index; PageType get type; DateTime? get dateCreated; DateTime? get dateUpdated;
 /// Create a copy of Page
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $PageCopyWith<Page> get copyWith => _$PageCopyWithImpl<Page>(this as Page, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Page&&(identical(other.id, id) || other.id == id)&&(identical(other.menuId, menuId) || other.menuId == menuId)&&(identical(other.name, name) || other.name == name)&&(identical(other.index, index) || other.index == index)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Page&&(identical(other.id, id) || other.id == id)&&(identical(other.menuId, menuId) || other.menuId == menuId)&&(identical(other.name, name) || other.name == name)&&(identical(other.index, index) || other.index == index)&&(identical(other.type, type) || other.type == type)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,menuId,name,index,dateCreated,dateUpdated);
+int get hashCode => Object.hash(runtimeType,id,menuId,name,index,type,dateCreated,dateUpdated);
 
 @override
 String toString() {
-  return 'Page(id: $id, menuId: $menuId, name: $name, index: $index, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
+  return 'Page(id: $id, menuId: $menuId, name: $name, index: $index, type: $type, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $PageCopyWith<$Res>  {
   factory $PageCopyWith(Page value, $Res Function(Page) _then) = _$PageCopyWithImpl;
 @useResult
 $Res call({
- int id, int menuId, String name, int index, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int menuId, String name, int index, PageType type, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -65,13 +65,14 @@ class _$PageCopyWithImpl<$Res>
 
 /// Create a copy of Page
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? menuId = null,Object? name = null,Object? index = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? menuId = null,Object? name = null,Object? index = null,Object? type = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,menuId: null == menuId ? _self.menuId : menuId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
-as int,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
+as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as PageType,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
 as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -158,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int menuId,  String name,  int index,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int menuId,  String name,  int index,  PageType type,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Page() when $default != null:
-return $default(_that.id,_that.menuId,_that.name,_that.index,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.menuId,_that.name,_that.index,_that.type,_that.dateCreated,_that.dateUpdated);case _:
   return orElse();
 
 }
@@ -179,10 +180,10 @@ return $default(_that.id,_that.menuId,_that.name,_that.index,_that.dateCreated,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int menuId,  String name,  int index,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int menuId,  String name,  int index,  PageType type,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
 switch (_that) {
 case _Page():
-return $default(_that.id,_that.menuId,_that.name,_that.index,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.menuId,_that.name,_that.index,_that.type,_that.dateCreated,_that.dateUpdated);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +200,10 @@ return $default(_that.id,_that.menuId,_that.name,_that.index,_that.dateCreated,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int menuId,  String name,  int index,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int menuId,  String name,  int index,  PageType type,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
 switch (_that) {
 case _Page() when $default != null:
-return $default(_that.id,_that.menuId,_that.name,_that.index,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.menuId,_that.name,_that.index,_that.type,_that.dateCreated,_that.dateUpdated);case _:
   return null;
 
 }
@@ -214,13 +215,14 @@ return $default(_that.id,_that.menuId,_that.name,_that.index,_that.dateCreated,_
 @JsonSerializable()
 
 class _Page extends Page {
-  const _Page({required this.id, required this.menuId, required this.name, required this.index, this.dateCreated, this.dateUpdated}): super._();
+  const _Page({required this.id, required this.menuId, required this.name, required this.index, this.type = PageType.content, this.dateCreated, this.dateUpdated}): super._();
   factory _Page.fromJson(Map<String, dynamic> json) => _$PageFromJson(json);
 
 @override final  int id;
 @override final  int menuId;
 @override final  String name;
 @override final  int index;
+@override@JsonKey() final  PageType type;
 @override final  DateTime? dateCreated;
 @override final  DateTime? dateUpdated;
 
@@ -237,16 +239,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Page&&(identical(other.id, id) || other.id == id)&&(identical(other.menuId, menuId) || other.menuId == menuId)&&(identical(other.name, name) || other.name == name)&&(identical(other.index, index) || other.index == index)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Page&&(identical(other.id, id) || other.id == id)&&(identical(other.menuId, menuId) || other.menuId == menuId)&&(identical(other.name, name) || other.name == name)&&(identical(other.index, index) || other.index == index)&&(identical(other.type, type) || other.type == type)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,menuId,name,index,dateCreated,dateUpdated);
+int get hashCode => Object.hash(runtimeType,id,menuId,name,index,type,dateCreated,dateUpdated);
 
 @override
 String toString() {
-  return 'Page(id: $id, menuId: $menuId, name: $name, index: $index, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
+  return 'Page(id: $id, menuId: $menuId, name: $name, index: $index, type: $type, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
 }
 
 
@@ -257,7 +259,7 @@ abstract mixin class _$PageCopyWith<$Res> implements $PageCopyWith<$Res> {
   factory _$PageCopyWith(_Page value, $Res Function(_Page) _then) = __$PageCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int menuId, String name, int index, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int menuId, String name, int index, PageType type, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -274,13 +276,14 @@ class __$PageCopyWithImpl<$Res>
 
 /// Create a copy of Page
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? menuId = null,Object? name = null,Object? index = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? menuId = null,Object? name = null,Object? index = null,Object? type = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_Page(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,menuId: null == menuId ? _self.menuId : menuId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
-as int,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
+as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as PageType,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
 as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));

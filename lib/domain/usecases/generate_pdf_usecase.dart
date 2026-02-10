@@ -8,6 +8,7 @@ import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/pdf_style_resolver.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
+import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/domain/widgets/section/section_props.dart';
 import 'package:oxo_menus/domain/widgets/text/text_props.dart';
 import 'package:pdf/pdf.dart';
@@ -42,14 +43,19 @@ class GeneratePdfUseCase {
       final pageFormat = _resolver.resolvePageFormat(menuTree.menu.pageSize);
       final pageMargins = _resolver.resolvePageMargins(styleConfig);
 
-      // Generate pages
+      // Generate pages with header/footer
       for (final pageData in menuTree.pages) {
         pdf.addPage(
           pw.Page(
             pageFormat: pageFormat,
             margin: pageMargins,
-            build: (context) =>
-                _buildPage(pageData, styleConfig, displayOptions),
+            build: (context) => _buildPageWithHeaderFooter(
+              pageData,
+              menuTree.headerPage,
+              menuTree.footerPage,
+              styleConfig,
+              displayOptions,
+            ),
           ),
         );
       }
@@ -61,21 +67,53 @@ class GeneratePdfUseCase {
     }
   }
 
-  /// Build a single page with containers
-  pw.Widget _buildPage(
+  /// Build a page with header, content, and footer
+  pw.Widget _buildPageWithHeaderFooter(
     PageWithContainers pageData,
+    PageWithContainers? headerPage,
+    PageWithContainers? footerPage,
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
   ) {
+    final children = <pw.Widget>[];
+
+    // Add header if present
+    if (headerPage != null) {
+      children.addAll(
+        headerPage.containers.map((containerData) {
+          return _buildContainer(containerData, styleConfig, displayOptions);
+        }),
+      );
+    }
+
+    // Add main content
+    children.addAll(
+      pageData.containers.map((containerData) {
+        return _buildContainer(containerData, styleConfig, displayOptions);
+      }),
+    );
+
+    // Add spacer to push footer to bottom
+    if (footerPage != null && children.isNotEmpty) {
+      children.add(pw.Spacer());
+    }
+
+    // Add footer if present
+    if (footerPage != null) {
+      children.addAll(
+        footerPage.containers.map((containerData) {
+          return _buildContainer(containerData, styleConfig, displayOptions);
+        }),
+      );
+    }
+
     final padding = _resolver.resolveContentPadding(styleConfig);
 
     final content = pw.Container(
       padding: padding,
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: pageData.containers.map((containerData) {
-          return _buildContainer(containerData, styleConfig, displayOptions);
-        }).toList(),
+        children: children,
       ),
     );
     return _resolver.wrapWithBorder(content, styleConfig);
@@ -154,6 +192,8 @@ class GeneratePdfUseCase {
         return _buildTextWidget(widget, styleConfig);
       case 'section':
         return _buildSectionWidget(widget, styleConfig);
+      case 'image':
+        return _buildImageWidget(widget, styleConfig);
       default:
         return pw.SizedBox();
     }
@@ -303,6 +343,60 @@ class GeneratePdfUseCase {
             pw.Divider(thickness: 1),
           ],
         ],
+      ),
+    );
+  }
+
+  /// Build image widget in PDF
+  ///
+  /// Note: Currently renders a placeholder. Full image rendering would require
+  /// fetching image bytes from Directus server, which needs HTTP client injection.
+  pw.Widget _buildImageWidget(
+    WidgetInstance widget,
+    StyleConfig? styleConfig,
+  ) {
+    final props = ImageProps.fromJson(widget.props);
+    final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
+
+    // Determine alignment
+    pw.Alignment alignment;
+    switch (props.align.toLowerCase()) {
+      case 'left':
+        alignment = pw.Alignment.centerLeft;
+        break;
+      case 'right':
+        alignment = pw.Alignment.centerRight;
+        break;
+      case 'center':
+      default:
+        alignment = pw.Alignment.center;
+        break;
+    }
+
+    // Render placeholder for now
+    // TODO: Implement actual image fetching and rendering
+    return pw.Container(
+      margin: const pw.EdgeInsets.symmetric(vertical: 8),
+      child: pw.Align(
+        alignment: alignment,
+        child: pw.Container(
+          width: props.width ?? 100,
+          height: props.height ?? 100,
+          decoration: pw.BoxDecoration(
+            border: pw.Border.all(color: PdfColors.grey400),
+            color: PdfColors.grey200,
+          ),
+          child: pw.Center(
+            child: pw.Text(
+              '[Image: ${props.fileId}]',
+              style: pw.TextStyle(
+                fontSize: baseFontSize - 2,
+                color: PdfColors.grey600,
+              ),
+              textAlign: pw.TextAlign.center,
+            ),
+          ),
+        ),
       ),
     );
   }

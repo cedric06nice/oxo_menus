@@ -32,6 +32,8 @@ class AdminTemplateEditorPage extends ConsumerStatefulWidget {
 class _AdminTemplateEditorPageState
     extends ConsumerState<AdminTemplateEditorPage> {
   Menu? _menu;
+  entity.Page? _headerPage;
+  entity.Page? _footerPage;
   List<entity.Page> _pages = [];
   final Map<int, List<entity.Container>> _containers = {};
   final Map<int, List<entity.Column>> _columns = {};
@@ -82,14 +84,33 @@ class _AdminTemplateEditorPageState
       return;
     }
 
-    _pages = List<entity.Page>.from(pagesResult.valueOrNull!)
+    final allPages = List<entity.Page>.from(pagesResult.valueOrNull!)
       ..sort((a, b) => a.index.compareTo(b.index));
+
+    // Separate pages by type
+    _headerPage = null;
+    _footerPage = null;
+    _pages = [];
+
+    for (final page in allPages) {
+      switch (page.type) {
+        case entity.PageType.header:
+          _headerPage = page;
+          break;
+        case entity.PageType.footer:
+          _footerPage = page;
+          break;
+        case entity.PageType.content:
+          _pages.add(page);
+          break;
+      }
+    }
 
     // Load containers for each page
     _containers.clear();
     _columns.clear();
 
-    for (final page in _pages) {
+    for (final page in allPages) {
       final containersResult = await ref
           .read(containerRepositoryProvider)
           .getAllForPage(page.id);
@@ -180,6 +201,80 @@ class _AdminTemplateEditorPageState
     if (confirmed != true) return;
 
     final result = await ref.read(pageRepositoryProvider).delete(pageId);
+
+    if (result.isSuccess) {
+      await _loadTemplate();
+    }
+  }
+
+  Future<void> _addHeader() async {
+    final result = await ref.read(pageRepositoryProvider).create(
+          CreatePageInput(
+            menuId: widget.menuId,
+            name: 'Header',
+            index: 0,
+            type: entity.PageType.header,
+          ),
+        );
+
+    if (result.isSuccess) {
+      await _loadTemplate();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to add header: ${result.errorOrNull?.message ?? 'Unknown error'}',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteHeader() async {
+    if (_headerPage == null) return;
+
+    final confirmed = await _showDeleteConfirmation();
+    if (confirmed != true) return;
+
+    final result = await ref.read(pageRepositoryProvider).delete(_headerPage!.id);
+
+    if (result.isSuccess) {
+      await _loadTemplate();
+    }
+  }
+
+  Future<void> _addFooter() async {
+    final result = await ref.read(pageRepositoryProvider).create(
+          CreatePageInput(
+            menuId: widget.menuId,
+            name: 'Footer',
+            index: 0,
+            type: entity.PageType.footer,
+          ),
+        );
+
+    if (result.isSuccess) {
+      await _loadTemplate();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to add footer: ${result.errorOrNull?.message ?? 'Unknown error'}',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteFooter() async {
+    if (_footerPage == null) return;
+
+    final confirmed = await _showDeleteConfirmation();
+    if (confirmed != true) return;
+
+    final result = await ref.read(pageRepositoryProvider).delete(_footerPage!.id);
 
     if (result.isSuccess) {
       await _loadTemplate();
@@ -399,6 +494,18 @@ class _AdminTemplateEditorPageState
               ),
               const SizedBox(height: 16),
 
+              // Header Section
+              if (_headerPage == null)
+                ElevatedButton.icon(
+                  key: const Key('add_header_button'),
+                  onPressed: _addHeader,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Header'),
+                )
+              else
+                _buildPageCard(_headerPage!),
+              const SizedBox(height: 16),
+
               // Add Page Button
               ElevatedButton.icon(
                 key: const Key('add_page_button'),
@@ -410,6 +517,18 @@ class _AdminTemplateEditorPageState
 
               // Pages List
               ..._pages.map((page) => _buildPageCard(page)),
+
+              // Footer Section
+              const SizedBox(height: 16),
+              if (_footerPage == null)
+                ElevatedButton.icon(
+                  key: const Key('add_footer_button'),
+                  onPressed: _addFooter,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Footer'),
+                )
+              else
+                _buildPageCard(_footerPage!),
             ],
           ),
         ),
@@ -419,6 +538,23 @@ class _AdminTemplateEditorPageState
 
   Widget _buildPageCard(entity.Page page) {
     final containers = _containers[page.id] ?? [];
+    final isHeader = page.type == entity.PageType.header;
+    final isFooter = page.type == entity.PageType.footer;
+
+    // Determine delete button key and action
+    final String deleteKey;
+    final VoidCallback deleteAction;
+
+    if (isHeader) {
+      deleteKey = 'delete_header_button';
+      deleteAction = _deleteHeader;
+    } else if (isFooter) {
+      deleteKey = 'delete_footer_button';
+      deleteAction = _deleteFooter;
+    } else {
+      deleteKey = 'delete_page_${page.id}';
+      deleteAction = () => _deletePage(page.id);
+    }
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -437,9 +573,9 @@ class _AdminTemplateEditorPageState
                   ),
                 ),
                 IconButton(
-                  key: Key('delete_page_${page.id}'),
+                  key: Key(deleteKey),
                   icon: const Icon(Icons.delete),
-                  onPressed: () => _deletePage(page.id),
+                  onPressed: deleteAction,
                   tooltip: 'Delete Page',
                 ),
               ],

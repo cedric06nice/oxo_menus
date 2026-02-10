@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:directus_api_manager/directus_api_manager.dart';
 import 'package:http/http.dart' as http;
 import 'package:oxo_menus/data/datasources/secure_token_storage.dart';
@@ -290,6 +291,62 @@ class DirectusDataSource {
       throw DirectusException(
         code: 'DELETE_FAILED',
         message: 'Failed to delete item',
+      );
+    }
+  }
+
+  // ===== File Operations =====
+
+  /// Upload a file to Directus and return the file ID
+  Future<String> uploadFile(Uint8List bytes, String filename) async {
+    final accessToken = _currentAccessToken;
+
+    if (accessToken == null || accessToken.isEmpty) {
+      throw DirectusException(
+        code: 'NOT_AUTHENTICATED',
+        message: 'No access token available',
+      );
+    }
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$_baseUrl/files'),
+    );
+
+    request.headers['Authorization'] = 'Bearer $accessToken';
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'file',
+        bytes,
+        filename: filename,
+      ),
+    );
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      final fileData = data['data'] as Map<String, dynamic>?;
+      final fileId = fileData?['id'] as String?;
+
+      if (fileId != null) {
+        return fileId;
+      } else {
+        throw DirectusException(
+          code: 'UPLOAD_FAILED',
+          message: 'File uploaded but no ID returned',
+        );
+      }
+    } else if (response.statusCode == 401) {
+      throw DirectusException(
+        code: 'NOT_AUTHENTICATED',
+        message: 'Authentication required',
+      );
+    } else {
+      throw DirectusException(
+        code: 'UPLOAD_FAILED',
+        message: 'Failed to upload file: ${response.statusCode}',
       );
     }
   }

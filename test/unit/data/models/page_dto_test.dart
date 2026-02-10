@@ -3,6 +3,45 @@ import 'package:oxo_menus/data/models/page_dto.dart';
 
 void main() {
   group('PageDto', () {
+    group('type field', () {
+      test('should return type when present', () {
+        final dto = PageDto({'id': 1, 'index': 0, 'type': 'header', 'status': 'published'});
+
+        expect(dto.type, 'header');
+      });
+
+      test('should default to content when type is null', () {
+        final dto = PageDto({'id': 1, 'index': 0, 'type': null, 'status': 'published'});
+
+        expect(dto.type, 'content');
+      });
+
+      test('should default to content when type is missing', () {
+        final dto = PageDto({'id': 1, 'index': 0, 'status': 'published'});
+
+        expect(dto.type, 'content');
+      });
+
+      test('newItem should set type parameter', () {
+        final dto = PageDto.newItem(
+          index: 0,
+          menu: 1,
+          type: 'footer',
+        );
+
+        expect(dto.getValue(forKey: 'type'), 'footer');
+      });
+
+      test('newItem should default type to content', () {
+        final dto = PageDto.newItem(
+          index: 0,
+          menu: 1,
+        );
+
+        expect(dto.getValue(forKey: 'type'), 'content');
+      });
+    });
+
     group('fromJson', () {
       test('should deserialise with only required fields', () {
         // Arrange

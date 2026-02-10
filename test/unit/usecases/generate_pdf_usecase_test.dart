@@ -877,5 +877,294 @@ void main() {
         expect(result.isSuccess, true);
       });
     });
+
+    group('Image widget rendering', () {
+      test('should handle image widget without crashing', () async {
+        // Arrange
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Menu with Image',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'image',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {
+                            'fileId': 'test-image-123',
+                            'align': 'center',
+                            'fit': 'contain',
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        // Act
+        final result = await useCase.execute(menuTree);
+
+        // Assert
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull, isNotNull);
+        expect(result.valueOrNull!.isNotEmpty, true);
+      });
+    });
+
+    group('Header and Footer rendering', () {
+      test('should render header on all content pages', () async {
+        // Arrange
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Menu with Header',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [],
+            ),
+            PageWithContainers(
+              page: entity.Page(id: 2, menuId: 1, name: 'Page 2', index: 1),
+              containers: [],
+            ),
+          ],
+          headerPage: PageWithContainers(
+            page: entity.Page(
+              id: 99,
+              menuId: 1,
+              name: 'Header',
+              index: -1,
+              type: entity.PageType.header,
+            ),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 99, pageId: 99, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 99,
+                      containerId: 99,
+                      index: 0,
+                      flex: 1,
+                    ),
+                    widgets: [
+                      WidgetInstance(
+                        id: 99,
+                        columnId: 99,
+                        type: 'text',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {
+                          'text': 'HEADER',
+                          'align': 'center',
+                          'bold': true,
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+
+        // Act
+        final result = await useCase.execute(menuTree);
+
+        // Assert
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull, isNotNull);
+        expect(result.valueOrNull!.isNotEmpty, true);
+      });
+
+      test('should render footer on all content pages', () async {
+        // Arrange
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Menu with Footer',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [],
+            ),
+          ],
+          footerPage: PageWithContainers(
+            page: entity.Page(
+              id: 98,
+              menuId: 1,
+              name: 'Footer',
+              index: -1,
+              type: entity.PageType.footer,
+            ),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 98, pageId: 98, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 98,
+                      containerId: 98,
+                      index: 0,
+                      flex: 1,
+                    ),
+                    widgets: [
+                      WidgetInstance(
+                        id: 98,
+                        columnId: 98,
+                        type: 'text',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {
+                          'text': 'FOOTER',
+                          'align': 'center',
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+
+        // Act
+        final result = await useCase.execute(menuTree);
+
+        // Assert
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull, isNotNull);
+        expect(result.valueOrNull!.isNotEmpty, true);
+      });
+
+      test('should render both header and footer on all pages', () async {
+        // Arrange
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Menu with Header and Footer',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [],
+            ),
+          ],
+          headerPage: PageWithContainers(
+            page: entity.Page(
+              id: 99,
+              menuId: 1,
+              name: 'Header',
+              index: -1,
+              type: entity.PageType.header,
+            ),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 99, pageId: 99, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 99,
+                      containerId: 99,
+                      index: 0,
+                      flex: 1,
+                    ),
+                    widgets: [
+                      WidgetInstance(
+                        id: 99,
+                        columnId: 99,
+                        type: 'text',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {
+                          'text': 'HEADER',
+                          'align': 'center',
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          footerPage: PageWithContainers(
+            page: entity.Page(
+              id: 98,
+              menuId: 1,
+              name: 'Footer',
+              index: -1,
+              type: entity.PageType.footer,
+            ),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 98, pageId: 98, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 98,
+                      containerId: 98,
+                      index: 0,
+                      flex: 1,
+                    ),
+                    widgets: [
+                      WidgetInstance(
+                        id: 98,
+                        columnId: 98,
+                        type: 'text',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {
+                          'text': 'FOOTER',
+                          'align': 'center',
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+
+        // Act
+        final result = await useCase.execute(menuTree);
+
+        // Assert
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull, isNotNull);
+        expect(result.valueOrNull!.isNotEmpty, true);
+      });
+    });
   });
 }

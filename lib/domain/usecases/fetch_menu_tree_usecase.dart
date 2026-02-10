@@ -47,7 +47,7 @@ class FetchMenuTreeUseCase {
     final pages = List<Page>.from(pagesResult.valueOrNull!)
       ..sort((a, b) => a.index.compareTo(b.index));
 
-    // 3. For each page, fetch containers
+    // 3. For each page, fetch containers and build hierarchy
     final List<PageWithContainers> pagesWithContainers = [];
     for (final page in pages) {
       final containersResult = await containerRepository.getAllForPage(page.id);
@@ -99,7 +99,31 @@ class FetchMenuTreeUseCase {
       );
     }
 
-    return Success(MenuTree(menu: menu, pages: pagesWithContainers));
+    // 6. Separate pages by type
+    PageWithContainers? headerPage;
+    PageWithContainers? footerPage;
+    final contentPages = <PageWithContainers>[];
+
+    for (final pageWithContainers in pagesWithContainers) {
+      switch (pageWithContainers.page.type) {
+        case PageType.header:
+          headerPage = pageWithContainers;
+          break;
+        case PageType.footer:
+          footerPage = pageWithContainers;
+          break;
+        case PageType.content:
+          contentPages.add(pageWithContainers);
+          break;
+      }
+    }
+
+    return Success(MenuTree(
+      menu: menu,
+      pages: contentPages,
+      headerPage: headerPage,
+      footerPage: footerPage,
+    ));
   }
 }
 
@@ -111,6 +135,8 @@ abstract class MenuTree with _$MenuTree {
   const factory MenuTree({
     required Menu menu,
     required List<PageWithContainers> pages,
+    PageWithContainers? headerPage,
+    PageWithContainers? footerPage,
   }) = _MenuTree;
 }
 

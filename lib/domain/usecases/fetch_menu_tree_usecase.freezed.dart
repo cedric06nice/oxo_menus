@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MenuTree {
 
- Menu get menu; List<PageWithContainers> get pages;
+ Menu get menu; List<PageWithContainers> get pages; PageWithContainers? get headerPage; PageWithContainers? get footerPage;
 /// Create a copy of MenuTree
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $MenuTreeCopyWith<MenuTree> get copyWith => _$MenuTreeCopyWithImpl<MenuTree>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MenuTree&&(identical(other.menu, menu) || other.menu == menu)&&const DeepCollectionEquality().equals(other.pages, pages));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MenuTree&&(identical(other.menu, menu) || other.menu == menu)&&const DeepCollectionEquality().equals(other.pages, pages)&&(identical(other.headerPage, headerPage) || other.headerPage == headerPage)&&(identical(other.footerPage, footerPage) || other.footerPage == footerPage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,menu,const DeepCollectionEquality().hash(pages));
+int get hashCode => Object.hash(runtimeType,menu,const DeepCollectionEquality().hash(pages),headerPage,footerPage);
 
 @override
 String toString() {
-  return 'MenuTree(menu: $menu, pages: $pages)';
+  return 'MenuTree(menu: $menu, pages: $pages, headerPage: $headerPage, footerPage: $footerPage)';
 }
 
 
@@ -45,11 +45,11 @@ abstract mixin class $MenuTreeCopyWith<$Res>  {
   factory $MenuTreeCopyWith(MenuTree value, $Res Function(MenuTree) _then) = _$MenuTreeCopyWithImpl;
 @useResult
 $Res call({
- Menu menu, List<PageWithContainers> pages
+ Menu menu, List<PageWithContainers> pages, PageWithContainers? headerPage, PageWithContainers? footerPage
 });
 
 
-$MenuCopyWith<$Res> get menu;
+$MenuCopyWith<$Res> get menu;$PageWithContainersCopyWith<$Res>? get headerPage;$PageWithContainersCopyWith<$Res>? get footerPage;
 
 }
 /// @nodoc
@@ -62,11 +62,13 @@ class _$MenuTreeCopyWithImpl<$Res>
 
 /// Create a copy of MenuTree
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? menu = null,Object? pages = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? menu = null,Object? pages = null,Object? headerPage = freezed,Object? footerPage = freezed,}) {
   return _then(_self.copyWith(
 menu: null == menu ? _self.menu : menu // ignore: cast_nullable_to_non_nullable
 as Menu,pages: null == pages ? _self.pages : pages // ignore: cast_nullable_to_non_nullable
-as List<PageWithContainers>,
+as List<PageWithContainers>,headerPage: freezed == headerPage ? _self.headerPage : headerPage // ignore: cast_nullable_to_non_nullable
+as PageWithContainers?,footerPage: freezed == footerPage ? _self.footerPage : footerPage // ignore: cast_nullable_to_non_nullable
+as PageWithContainers?,
   ));
 }
 /// Create a copy of MenuTree
@@ -77,6 +79,30 @@ $MenuCopyWith<$Res> get menu {
   
   return $MenuCopyWith<$Res>(_self.menu, (value) {
     return _then(_self.copyWith(menu: value));
+  });
+}/// Create a copy of MenuTree
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PageWithContainersCopyWith<$Res>? get headerPage {
+    if (_self.headerPage == null) {
+    return null;
+  }
+
+  return $PageWithContainersCopyWith<$Res>(_self.headerPage!, (value) {
+    return _then(_self.copyWith(headerPage: value));
+  });
+}/// Create a copy of MenuTree
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PageWithContainersCopyWith<$Res>? get footerPage {
+    if (_self.footerPage == null) {
+    return null;
+  }
+
+  return $PageWithContainersCopyWith<$Res>(_self.footerPage!, (value) {
+    return _then(_self.copyWith(footerPage: value));
   });
 }
 }
@@ -160,10 +186,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Menu menu,  List<PageWithContainers> pages)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Menu menu,  List<PageWithContainers> pages,  PageWithContainers? headerPage,  PageWithContainers? footerPage)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MenuTree() when $default != null:
-return $default(_that.menu,_that.pages);case _:
+return $default(_that.menu,_that.pages,_that.headerPage,_that.footerPage);case _:
   return orElse();
 
 }
@@ -181,10 +207,10 @@ return $default(_that.menu,_that.pages);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Menu menu,  List<PageWithContainers> pages)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Menu menu,  List<PageWithContainers> pages,  PageWithContainers? headerPage,  PageWithContainers? footerPage)  $default,) {final _that = this;
 switch (_that) {
 case _MenuTree():
-return $default(_that.menu,_that.pages);case _:
+return $default(_that.menu,_that.pages,_that.headerPage,_that.footerPage);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +227,10 @@ return $default(_that.menu,_that.pages);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Menu menu,  List<PageWithContainers> pages)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Menu menu,  List<PageWithContainers> pages,  PageWithContainers? headerPage,  PageWithContainers? footerPage)?  $default,) {final _that = this;
 switch (_that) {
 case _MenuTree() when $default != null:
-return $default(_that.menu,_that.pages);case _:
+return $default(_that.menu,_that.pages,_that.headerPage,_that.footerPage);case _:
   return null;
 
 }
@@ -216,7 +242,7 @@ return $default(_that.menu,_that.pages);case _:
 
 
 class _MenuTree extends MenuTree {
-  const _MenuTree({required this.menu, required final  List<PageWithContainers> pages}): _pages = pages,super._();
+  const _MenuTree({required this.menu, required final  List<PageWithContainers> pages, this.headerPage, this.footerPage}): _pages = pages,super._();
   
 
 @override final  Menu menu;
@@ -227,6 +253,8 @@ class _MenuTree extends MenuTree {
   return EqualUnmodifiableListView(_pages);
 }
 
+@override final  PageWithContainers? headerPage;
+@override final  PageWithContainers? footerPage;
 
 /// Create a copy of MenuTree
 /// with the given fields replaced by the non-null parameter values.
@@ -238,16 +266,16 @@ _$MenuTreeCopyWith<_MenuTree> get copyWith => __$MenuTreeCopyWithImpl<_MenuTree>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MenuTree&&(identical(other.menu, menu) || other.menu == menu)&&const DeepCollectionEquality().equals(other._pages, _pages));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MenuTree&&(identical(other.menu, menu) || other.menu == menu)&&const DeepCollectionEquality().equals(other._pages, _pages)&&(identical(other.headerPage, headerPage) || other.headerPage == headerPage)&&(identical(other.footerPage, footerPage) || other.footerPage == footerPage));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,menu,const DeepCollectionEquality().hash(_pages));
+int get hashCode => Object.hash(runtimeType,menu,const DeepCollectionEquality().hash(_pages),headerPage,footerPage);
 
 @override
 String toString() {
-  return 'MenuTree(menu: $menu, pages: $pages)';
+  return 'MenuTree(menu: $menu, pages: $pages, headerPage: $headerPage, footerPage: $footerPage)';
 }
 
 
@@ -258,11 +286,11 @@ abstract mixin class _$MenuTreeCopyWith<$Res> implements $MenuTreeCopyWith<$Res>
   factory _$MenuTreeCopyWith(_MenuTree value, $Res Function(_MenuTree) _then) = __$MenuTreeCopyWithImpl;
 @override @useResult
 $Res call({
- Menu menu, List<PageWithContainers> pages
+ Menu menu, List<PageWithContainers> pages, PageWithContainers? headerPage, PageWithContainers? footerPage
 });
 
 
-@override $MenuCopyWith<$Res> get menu;
+@override $MenuCopyWith<$Res> get menu;@override $PageWithContainersCopyWith<$Res>? get headerPage;@override $PageWithContainersCopyWith<$Res>? get footerPage;
 
 }
 /// @nodoc
@@ -275,11 +303,13 @@ class __$MenuTreeCopyWithImpl<$Res>
 
 /// Create a copy of MenuTree
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? menu = null,Object? pages = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? menu = null,Object? pages = null,Object? headerPage = freezed,Object? footerPage = freezed,}) {
   return _then(_MenuTree(
 menu: null == menu ? _self.menu : menu // ignore: cast_nullable_to_non_nullable
 as Menu,pages: null == pages ? _self._pages : pages // ignore: cast_nullable_to_non_nullable
-as List<PageWithContainers>,
+as List<PageWithContainers>,headerPage: freezed == headerPage ? _self.headerPage : headerPage // ignore: cast_nullable_to_non_nullable
+as PageWithContainers?,footerPage: freezed == footerPage ? _self.footerPage : footerPage // ignore: cast_nullable_to_non_nullable
+as PageWithContainers?,
   ));
 }
 
@@ -291,6 +321,30 @@ $MenuCopyWith<$Res> get menu {
   
   return $MenuCopyWith<$Res>(_self.menu, (value) {
     return _then(_self.copyWith(menu: value));
+  });
+}/// Create a copy of MenuTree
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PageWithContainersCopyWith<$Res>? get headerPage {
+    if (_self.headerPage == null) {
+    return null;
+  }
+
+  return $PageWithContainersCopyWith<$Res>(_self.headerPage!, (value) {
+    return _then(_self.copyWith(headerPage: value));
+  });
+}/// Create a copy of MenuTree
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PageWithContainersCopyWith<$Res>? get footerPage {
+    if (_self.footerPage == null) {
+    return null;
+  }
+
+  return $PageWithContainersCopyWith<$Res>(_self.footerPage!, (value) {
+    return _then(_self.copyWith(footerPage: value));
   });
 }
 }

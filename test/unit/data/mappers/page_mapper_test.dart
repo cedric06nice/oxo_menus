@@ -5,6 +5,32 @@ import 'package:oxo_menus/domain/entities/page.dart';
 
 void main() {
   group('PageMapper', () {
+    group('toEntity type mapping', () {
+      test('should map type header to PageType.header', () {
+        final dto = PageDto({'id': 1, 'index': 0, 'type': 'header'});
+
+        final entity = PageMapper.toEntity(dto);
+
+        expect(entity.type, PageType.header);
+      });
+
+      test('should map type content to PageType.content', () {
+        final dto = PageDto({'id': 1, 'index': 0, 'type': 'content'});
+
+        final entity = PageMapper.toEntity(dto);
+
+        expect(entity.type, PageType.content);
+      });
+
+      test('should default missing type to PageType.content', () {
+        final dto = PageDto({'id': 1, 'index': 0});
+
+        final entity = PageMapper.toEntity(dto);
+
+        expect(entity.type, PageType.content);
+      });
+    });
+
     group('toEntity', () {
       test('should convert PageDto to Page with all fields', () {
         // Arrange

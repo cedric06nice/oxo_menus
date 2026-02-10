@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definition.dart';
+import 'package:oxo_menus/presentation/widgets/image_widget/image_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/section_widget/section_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/text_widget/text_widget_definition.dart';
 
@@ -24,6 +25,7 @@ final widgetRegistryProvider = Provider<WidgetRegistry>((ref) {
 
   // Register all built-in widgets
   registry.register(dishWidgetDefinition);
+  registry.register(imageWidgetDefinition);
   registry.register(sectionWidgetDefinition);
   registry.register(textWidgetDefinition);
 

@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreatePageInput {
 
- int get menuId; String get name; int get index;
+ int get menuId; String get name; int get index; PageType get type;
 /// Create a copy of CreatePageInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $CreatePageInputCopyWith<CreatePageInput> get copyWith => _$CreatePageInputCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreatePageInput&&(identical(other.menuId, menuId) || other.menuId == menuId)&&(identical(other.name, name) || other.name == name)&&(identical(other.index, index) || other.index == index));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreatePageInput&&(identical(other.menuId, menuId) || other.menuId == menuId)&&(identical(other.name, name) || other.name == name)&&(identical(other.index, index) || other.index == index)&&(identical(other.type, type) || other.type == type));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,menuId,name,index);
+int get hashCode => Object.hash(runtimeType,menuId,name,index,type);
 
 @override
 String toString() {
-  return 'CreatePageInput(menuId: $menuId, name: $name, index: $index)';
+  return 'CreatePageInput(menuId: $menuId, name: $name, index: $index, type: $type)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $CreatePageInputCopyWith<$Res>  {
   factory $CreatePageInputCopyWith(CreatePageInput value, $Res Function(CreatePageInput) _then) = _$CreatePageInputCopyWithImpl;
 @useResult
 $Res call({
- int menuId, String name, int index
+ int menuId, String name, int index, PageType type
 });
 
 
@@ -62,12 +62,13 @@ class _$CreatePageInputCopyWithImpl<$Res>
 
 /// Create a copy of CreatePageInput
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? menuId = null,Object? name = null,Object? index = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? menuId = null,Object? name = null,Object? index = null,Object? type = null,}) {
   return _then(_self.copyWith(
 menuId: null == menuId ? _self.menuId : menuId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
-as int,
+as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as PageType,
   ));
 }
 
@@ -152,10 +153,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int menuId,  String name,  int index)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int menuId,  String name,  int index,  PageType type)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreatePageInput() when $default != null:
-return $default(_that.menuId,_that.name,_that.index);case _:
+return $default(_that.menuId,_that.name,_that.index,_that.type);case _:
   return orElse();
 
 }
@@ -173,10 +174,10 @@ return $default(_that.menuId,_that.name,_that.index);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int menuId,  String name,  int index)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int menuId,  String name,  int index,  PageType type)  $default,) {final _that = this;
 switch (_that) {
 case _CreatePageInput():
-return $default(_that.menuId,_that.name,_that.index);case _:
+return $default(_that.menuId,_that.name,_that.index,_that.type);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -193,10 +194,10 @@ return $default(_that.menuId,_that.name,_that.index);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int menuId,  String name,  int index)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int menuId,  String name,  int index,  PageType type)?  $default,) {final _that = this;
 switch (_that) {
 case _CreatePageInput() when $default != null:
-return $default(_that.menuId,_that.name,_that.index);case _:
+return $default(_that.menuId,_that.name,_that.index,_that.type);case _:
   return null;
 
 }
@@ -208,12 +209,13 @@ return $default(_that.menuId,_that.name,_that.index);case _:
 
 
 class _CreatePageInput extends CreatePageInput {
-  const _CreatePageInput({required this.menuId, required this.name, required this.index}): super._();
+  const _CreatePageInput({required this.menuId, required this.name, required this.index, this.type = PageType.content}): super._();
   
 
 @override final  int menuId;
 @override final  String name;
 @override final  int index;
+@override@JsonKey() final  PageType type;
 
 /// Create a copy of CreatePageInput
 /// with the given fields replaced by the non-null parameter values.
@@ -225,16 +227,16 @@ _$CreatePageInputCopyWith<_CreatePageInput> get copyWith => __$CreatePageInputCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreatePageInput&&(identical(other.menuId, menuId) || other.menuId == menuId)&&(identical(other.name, name) || other.name == name)&&(identical(other.index, index) || other.index == index));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreatePageInput&&(identical(other.menuId, menuId) || other.menuId == menuId)&&(identical(other.name, name) || other.name == name)&&(identical(other.index, index) || other.index == index)&&(identical(other.type, type) || other.type == type));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,menuId,name,index);
+int get hashCode => Object.hash(runtimeType,menuId,name,index,type);
 
 @override
 String toString() {
-  return 'CreatePageInput(menuId: $menuId, name: $name, index: $index)';
+  return 'CreatePageInput(menuId: $menuId, name: $name, index: $index, type: $type)';
 }
 
 
@@ -245,7 +247,7 @@ abstract mixin class _$CreatePageInputCopyWith<$Res> implements $CreatePageInput
   factory _$CreatePageInputCopyWith(_CreatePageInput value, $Res Function(_CreatePageInput) _then) = __$CreatePageInputCopyWithImpl;
 @override @useResult
 $Res call({
- int menuId, String name, int index
+ int menuId, String name, int index, PageType type
 });
 
 
@@ -262,12 +264,13 @@ class __$CreatePageInputCopyWithImpl<$Res>
 
 /// Create a copy of CreatePageInput
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? menuId = null,Object? name = null,Object? index = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? menuId = null,Object? name = null,Object? index = null,Object? type = null,}) {
   return _then(_CreatePageInput(
 menuId: null == menuId ? _self.menuId : menuId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
-as int,
+as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
+as PageType,
   ));
 }
 

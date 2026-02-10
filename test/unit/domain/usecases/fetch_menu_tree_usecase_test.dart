@@ -50,6 +50,56 @@ void main() {
   });
 
   group('FetchMenuTreeUseCase', () {
+    test('MenuTree should support optional headerPage and footerPage', () {
+      const menu = Menu(id: 1, name: 'Test', status: Status.published, version: '1.0.0');
+      const header = Page(id: 2, menuId: 1, name: 'Header', index: 0, type: PageType.header);
+
+      final tree1 = MenuTree(menu: menu, pages: const []);
+      final tree2 = MenuTree(
+        menu: menu,
+        pages: const [],
+        headerPage: PageWithContainers(page: header, containers: const []),
+      );
+
+      expect(tree1.headerPage, isNull);
+      expect(tree1.footerPage, isNull);
+      expect(tree2.headerPage, isNotNull);
+      expect(tree2.footerPage, isNull);
+    });
+
+    test('execute should separate pages by type', () async {
+      // Arrange
+      const testMenuId = 1;
+      const testMenu = Menu(id: testMenuId, name: 'Test Menu', status: Status.published, version: '1.0.0');
+      const headerPage = Page(id: 1, menuId: testMenuId, name: 'Header', index: 0, type: PageType.header);
+      const contentPage1 = Page(id: 2, menuId: testMenuId, name: 'Page 1', index: 1, type: PageType.content);
+      const contentPage2 = Page(id: 3, menuId: testMenuId, name: 'Page 2', index: 2, type: PageType.content);
+      const footerPage = Page(id: 4, menuId: testMenuId, name: 'Footer', index: 3, type: PageType.footer);
+
+      when(() => mockMenuRepo.getById(testMenuId)).thenAnswer((_) async => const Success(testMenu));
+      when(() => mockPageRepo.getAllForMenu(testMenuId))
+          .thenAnswer((_) async => const Success([headerPage, contentPage1, contentPage2, footerPage]));
+      when(() => mockContainerRepo.getAllForPage(any())).thenAnswer((_) async => const Success([]));
+
+      // Act
+      final result = await useCase.execute(testMenuId);
+
+      // Assert
+      expect(result.isSuccess, true);
+      final tree = result.valueOrNull!;
+
+      // Only content pages in main pages list
+      expect(tree.pages.length, 2);
+      expect(tree.pages[0].page.type, PageType.content);
+      expect(tree.pages[1].page.type, PageType.content);
+
+      // Header and footer separated
+      expect(tree.headerPage, isNotNull);
+      expect(tree.headerPage!.page.type, PageType.header);
+      expect(tree.footerPage, isNotNull);
+      expect(tree.footerPage!.page.type, PageType.footer);
+    });
+
     const menuId = 1;
     const mockMenu = Menu(
       id: menuId,

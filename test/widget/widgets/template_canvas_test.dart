@@ -449,6 +449,229 @@ void main() {
     });
   });
 
+  group('PageCanvas - Header/Footer', () {
+    testWidgets('should render header containers above content', (tester) async {
+      // Arrange
+      const headerPage = PageWithContainers(
+        page: entity.Page(
+          id: 99,
+          menuId: 1,
+          name: 'Header',
+          index: 0,
+          type: entity.PageType.header,
+        ),
+        containers: [
+          ContainerWithColumns(
+            container: entity.Container(
+              id: 101,
+              pageId: 99,
+              index: 0,
+              name: 'Header Container',
+            ),
+            columns: [],
+          ),
+        ],
+      );
+
+      const contentPage = PageWithContainers(
+        page: entity.Page(id: 1, menuId: 1, name: 'Content Page', index: 0),
+        containers: [
+          ContainerWithColumns(
+            container: entity.Container(
+              id: 1,
+              pageId: 1,
+              index: 0,
+              name: 'Content Container',
+            ),
+            columns: [],
+          ),
+        ],
+      );
+
+      // Act
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: PageCanvas(
+                page: contentPage,
+                headerPage: headerPage,
+                isEditable: true,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Assert
+      expect(find.text('Header Container'), findsOneWidget);
+      expect(find.text('Content Container'), findsOneWidget);
+
+      // Verify header appears before content
+      final headerFinder = find.text('Header Container');
+      final contentFinder = find.text('Content Container');
+      final headerY = tester.getTopLeft(headerFinder).dy;
+      final contentY = tester.getTopLeft(contentFinder).dy;
+      expect(headerY, lessThan(contentY));
+    });
+
+    testWidgets('should render footer containers below content', (tester) async {
+      // Arrange
+      const footerPage = PageWithContainers(
+        page: entity.Page(
+          id: 98,
+          menuId: 1,
+          name: 'Footer',
+          index: 0,
+          type: entity.PageType.footer,
+        ),
+        containers: [
+          ContainerWithColumns(
+            container: entity.Container(
+              id: 102,
+              pageId: 98,
+              index: 0,
+              name: 'Footer Container',
+            ),
+            columns: [],
+          ),
+        ],
+      );
+
+      const contentPage = PageWithContainers(
+        page: entity.Page(id: 1, menuId: 1, name: 'Content Page', index: 0),
+        containers: [
+          ContainerWithColumns(
+            container: entity.Container(
+              id: 1,
+              pageId: 1,
+              index: 0,
+              name: 'Content Container',
+            ),
+            columns: [],
+          ),
+        ],
+      );
+
+      // Act
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: PageCanvas(
+                page: contentPage,
+                footerPage: footerPage,
+                isEditable: true,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Assert
+      expect(find.text('Footer Container'), findsOneWidget);
+      expect(find.text('Content Container'), findsOneWidget);
+
+      // Verify footer appears after content
+      final contentFinder = find.text('Content Container');
+      final footerFinder = find.text('Footer Container');
+      final contentY = tester.getTopLeft(contentFinder).dy;
+      final footerY = tester.getTopLeft(footerFinder).dy;
+      expect(footerY, greaterThan(contentY));
+    });
+
+    testWidgets('should render both header and footer with content', (
+      tester,
+    ) async {
+      // Arrange
+      const headerPage = PageWithContainers(
+        page: entity.Page(
+          id: 99,
+          menuId: 1,
+          name: 'Header',
+          index: 0,
+          type: entity.PageType.header,
+        ),
+        containers: [
+          ContainerWithColumns(
+            container: entity.Container(
+              id: 101,
+              pageId: 99,
+              index: 0,
+              name: 'Header Container',
+            ),
+            columns: [],
+          ),
+        ],
+      );
+
+      const footerPage = PageWithContainers(
+        page: entity.Page(
+          id: 98,
+          menuId: 1,
+          name: 'Footer',
+          index: 0,
+          type: entity.PageType.footer,
+        ),
+        containers: [
+          ContainerWithColumns(
+            container: entity.Container(
+              id: 102,
+              pageId: 98,
+              index: 0,
+              name: 'Footer Container',
+            ),
+            columns: [],
+          ),
+        ],
+      );
+
+      const contentPage = PageWithContainers(
+        page: entity.Page(id: 1, menuId: 1, name: 'Content Page', index: 0),
+        containers: [
+          ContainerWithColumns(
+            container: entity.Container(
+              id: 1,
+              pageId: 1,
+              index: 0,
+              name: 'Content Container',
+            ),
+            columns: [],
+          ),
+        ],
+      );
+
+      // Act
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(
+            home: Scaffold(
+              body: PageCanvas(
+                page: contentPage,
+                headerPage: headerPage,
+                footerPage: footerPage,
+                isEditable: true,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Assert
+      expect(find.text('Header Container'), findsOneWidget);
+      expect(find.text('Content Container'), findsOneWidget);
+      expect(find.text('Footer Container'), findsOneWidget);
+
+      // Verify order: header < content < footer
+      final headerY = tester.getTopLeft(find.text('Header Container')).dy;
+      final contentY = tester.getTopLeft(find.text('Content Container')).dy;
+      final footerY = tester.getTopLeft(find.text('Footer Container')).dy;
+
+      expect(headerY, lessThan(contentY));
+      expect(contentY, lessThan(footerY));
+    });
+  });
+
   group('Responsive Layout', () {
     testWidgets('should use IntrinsicHeight for columns', (tester) async {
       // Arrange

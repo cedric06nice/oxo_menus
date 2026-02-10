@@ -11,9 +11,23 @@ class PageMapper {
       menuId: dto.menu?.id != null ? int.parse(dto.menu!.id!) : 0,
       name: "Page ${dto.index}",
       index: dto.index,
+      type: _parsePageType(dto.type),
       dateCreated: dto.dateCreated,
       dateUpdated: dto.dateUpdated,
     );
+  }
+
+  /// Parse string type to PageType enum
+  static PageType _parsePageType(String type) {
+    switch (type) {
+      case 'header':
+        return PageType.header;
+      case 'footer':
+        return PageType.footer;
+      case 'content':
+      default:
+        return PageType.content;
+    }
   }
 
   /// Convert Page entity to PageDto
@@ -23,6 +37,7 @@ class PageMapper {
       'menu': entity.menuId,
       'name': entity.name,
       'index': entity.index,
+      'type': entity.type.name,
       'date_created': entity.dateCreated?.toIso8601String(),
       'date_updated': entity.dateUpdated?.toIso8601String(),
     });

@@ -37,7 +37,12 @@ class TemplateCanvas extends ConsumerWidget {
 
     // Single page: show directly without PageView
     if (menuTree.pages.length == 1) {
-      return PageCanvas(page: menuTree.pages.first, isEditable: isEditable);
+      return PageCanvas(
+        page: menuTree.pages.first,
+        headerPage: menuTree.headerPage,
+        footerPage: menuTree.footerPage,
+        isEditable: isEditable,
+      );
     }
 
     // Multiple pages: use PageView for swipe navigation
@@ -45,7 +50,12 @@ class TemplateCanvas extends ConsumerWidget {
       itemCount: menuTree.pages.length,
       itemBuilder: (context, pageIndex) {
         final pageData = menuTree.pages[pageIndex];
-        return PageCanvas(page: pageData, isEditable: isEditable);
+        return PageCanvas(
+          page: pageData,
+          headerPage: menuTree.headerPage,
+          footerPage: menuTree.footerPage,
+          isEditable: isEditable,
+        );
       },
     );
   }
@@ -53,12 +63,20 @@ class TemplateCanvas extends ConsumerWidget {
 
 /// Page Canvas
 ///
-/// Renders a single page with all its containers.
+/// Renders a single page with all its containers, including optional header and footer.
 class PageCanvas extends StatelessWidget {
   final PageWithContainers page;
+  final PageWithContainers? headerPage;
+  final PageWithContainers? footerPage;
   final bool isEditable;
 
-  const PageCanvas({super.key, required this.page, required this.isEditable});
+  const PageCanvas({
+    super.key,
+    required this.page,
+    this.headerPage,
+    this.footerPage,
+    required this.isEditable,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +84,15 @@ class PageCanvas extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header containers
+          if (headerPage != null)
+            ...headerPage!.containers.map((containerData) {
+              return ContainerCanvas(
+                container: containerData,
+                isEditable: isEditable,
+              );
+            }),
+
           // Page title (optional, can be shown or hidden based on design)
           if (isEditable)
             Padding(
@@ -76,13 +103,22 @@ class PageCanvas extends StatelessWidget {
               ),
             ),
 
-          // Containers
+          // Content containers
           ...page.containers.map((containerData) {
             return ContainerCanvas(
               container: containerData,
               isEditable: isEditable,
             );
           }),
+
+          // Footer containers
+          if (footerPage != null)
+            ...footerPage!.containers.map((containerData) {
+              return ContainerCanvas(
+                container: containerData,
+                isEditable: isEditable,
+              );
+            }),
         ],
       ),
     );
