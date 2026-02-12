@@ -23,7 +23,11 @@
       "Bash(git restore:*)",
       "Bash(dart run:*)",
       "Bash(git add:*)",
-      "Bash(git status:*)"
+      "Bash(git status:*)",
+      "Bash(tee:*)",
+      "Read(//private/tmp/**)",
+      "Bash(echo:*)",
+      "Bash(dart format:*)"
     ]
   }
 }
