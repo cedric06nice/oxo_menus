@@ -38,6 +38,41 @@ void main() {
         expect(entity.dateUpdated, isA<DateTime>());
       });
 
+      test('should map is_template true to isTemplate true', () {
+        // Arrange
+        final dto = WidgetDto({
+          'id': 3,
+          'column': 5,
+          'type_key': 'text',
+          'version': '1.0.0',
+          'index': 0,
+          'is_template': true,
+        });
+
+        // Act
+        final entity = WidgetMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.isTemplate, true);
+      });
+
+      test('should default isTemplate to false when field absent', () {
+        // Arrange
+        final dto = WidgetDto({
+          'id': 4,
+          'column': 6,
+          'type_key': 'text',
+          'version': '1.0.0',
+          'index': 0,
+        });
+
+        // Act
+        final entity = WidgetMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.isTemplate, false);
+      });
+
       test('should convert WidgetDto with minimal fields', () {
         // Arrange
         final dto = WidgetDto({
@@ -59,6 +94,45 @@ void main() {
         expect(entity.index, 1);
         expect(entity.props, isEmpty);
         expect(entity.style, isNull);
+      });
+    });
+
+    group('toDto', () {
+      test('should map isTemplate true to is_template true', () {
+        // Arrange
+        const entity = WidgetInstance(
+          id: 1,
+          columnId: 3,
+          type: 'text',
+          version: '1.0.0',
+          index: 0,
+          props: {'text': 'Hello'},
+          isTemplate: true,
+        );
+
+        // Act
+        final dto = WidgetMapper.toDto(entity);
+
+        // Assert
+        expect(dto.isTemplate, true);
+      });
+
+      test('should map isTemplate false to is_template false', () {
+        // Arrange
+        const entity = WidgetInstance(
+          id: 2,
+          columnId: 4,
+          type: 'text',
+          version: '1.0.0',
+          index: 0,
+          props: {},
+        );
+
+        // Act
+        final dto = WidgetMapper.toDto(entity);
+
+        // Assert
+        expect(dto.isTemplate, false);
       });
     });
   });

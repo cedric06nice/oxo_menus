@@ -579,6 +579,27 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     int columnId,
     WidgetRegistry registry,
   ) {
+    // Template widgets are locked (read-only, no drag, no delete)
+    if (widget.isTemplate) {
+      return Container(
+        key: Key('template_widget_${widget.id}'),
+        margin: const EdgeInsets.only(bottom: 8),
+        child: Stack(
+          children: [
+            WidgetRenderer(
+              widgetInstance: widget,
+              isEditable: false,
+            ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Icon(Icons.lock, size: 16, color: Colors.grey[500]),
+            ),
+          ],
+        ),
+      );
+    }
+
     final widgetContent = Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: WidgetRenderer(

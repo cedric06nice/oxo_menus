@@ -26,6 +26,7 @@ class WidgetRepositoryImpl implements WidgetRepository {
       );
       item.setValue(input.columnId, forKey: 'column');
       item.setValue(input.props, forKey: 'props_json');
+      item.setValue(input.isTemplate, forKey: 'is_template');
 
       if (input.style != null) {
         item.setValue(
@@ -66,6 +67,7 @@ class WidgetRepositoryImpl implements WidgetRepository {
           'version',
           'props_json',
           'style_json',
+          'is_template',
         ],
         sort: ['index'],
       );
@@ -98,6 +100,7 @@ class WidgetRepositoryImpl implements WidgetRepository {
           'version',
           'props_json',
           'style_json',
+          'is_template',
         ],
       );
 

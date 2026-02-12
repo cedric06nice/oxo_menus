@@ -16,6 +16,7 @@ abstract class WidgetInstance with _$WidgetInstance {
     required int index,
     required Map<String, dynamic> props,
     WidgetStyle? style,
+    @Default(false) bool isTemplate,
     DateTime? dateCreated,
     DateTime? dateUpdated,
   }) = _WidgetInstance;

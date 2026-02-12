@@ -47,6 +47,7 @@ abstract class CreateWidgetInput with _$CreateWidgetInput {
     required int index,
     required Map<String, dynamic> props,
     WidgetStyle? style,
+    @Default(false) bool isTemplate,
   }) = _CreateWidgetInput;
 }
 

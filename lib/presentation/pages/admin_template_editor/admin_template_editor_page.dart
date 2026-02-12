@@ -6,19 +6,46 @@ import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
+import 'package:oxo_menus/domain/repositories/widget_repository.dart';
+import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
+import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/page_style_section.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/menu_display_options_dialog.dart';
+import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
+
+/// Data class for drag operations in the admin template editor
+class _WidgetDragData {
+  final String? newWidgetType;
+  final WidgetInstance? existingWidget;
+  final int? sourceColumnId;
+
+  const _WidgetDragData.newWidget(String type)
+    : newWidgetType = type,
+      existingWidget = null,
+      sourceColumnId = null;
+
+  const _WidgetDragData.existing(WidgetInstance widget, int columnId)
+    : newWidgetType = null,
+      existingWidget = widget,
+      sourceColumnId = columnId;
+
+  bool get isNewWidget => newWidgetType != null;
+  bool get isExistingWidget => existingWidget != null;
+}
 
 /// Admin Template Editor Page
 ///
-/// Allows admin users to create and edit menu templates with pages, containers, and columns.
+/// Allows admin users to create and edit menu templates with pages, containers,
+/// columns, and widgets.
 class AdminTemplateEditorPage extends ConsumerStatefulWidget {
   final int menuId;
 
@@ -37,8 +64,11 @@ class _AdminTemplateEditorPageState
   List<entity.Page> _pages = [];
   final Map<int, List<entity.Container>> _containers = {};
   final Map<int, List<entity.Column>> _columns = {};
+  final Map<int, List<WidgetInstance>> _widgets = {};
   bool _isLoading = true;
   String? _errorMessage;
+
+  final Map<int, int> _hoverIndex = {};
 
   @override
   void initState() {
@@ -109,6 +139,7 @@ class _AdminTemplateEditorPageState
     // Load containers for each page
     _containers.clear();
     _columns.clear();
+    _widgets.clear();
 
     for (final page in allPages) {
       final containersResult = await ref
@@ -131,6 +162,19 @@ class _AdminTemplateEditorPageState
             _columns[container.id] = List<entity.Column>.from(
               columnsResult.valueOrNull!,
             )..sort((a, b) => a.index.compareTo(b.index));
+
+            // Load widgets for each column
+            for (final column in _columns[container.id] ?? <entity.Column>[]) {
+              final widgetsResult = await ref
+                  .read(widgetRepositoryProvider)
+                  .getAllForColumn(column.id);
+
+              if (widgetsResult.isSuccess) {
+                _widgets[column.id] = List<WidgetInstance>.from(
+                  widgetsResult.valueOrNull!,
+                )..sort((a, b) => a.index.compareTo(b.index));
+              }
+            }
           }
         }
       }
@@ -445,6 +489,145 @@ class _AdminTemplateEditorPageState
     }
   }
 
+  // ===== Widget CRUD =====
+
+  Future<void> _handleWidgetDropAtIndex(
+    String widgetType,
+    int columnId,
+    int index,
+  ) async {
+    try {
+      final registry = ref.read(widgetRegistryProvider);
+      final definition = registry.getDefinition(widgetType);
+      if (definition == null) return;
+
+      final propsJson =
+          (definition.defaultProps as dynamic).toJson() as Map<String, dynamic>;
+
+      final result = await ref
+          .read(widgetRepositoryProvider)
+          .create(
+            CreateWidgetInput(
+              columnId: columnId,
+              type: widgetType,
+              version: definition.version,
+              index: index,
+              props: propsJson,
+              isTemplate: true,
+            ),
+          );
+
+      if (result.isSuccess) {
+        await _loadTemplate();
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to create widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating widget: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleWidgetUpdate(
+    int widgetId,
+    Map<String, dynamic> updatedProps,
+  ) async {
+    final result = await ref
+        .read(widgetRepositoryProvider)
+        .update(UpdateWidgetInput(id: widgetId, props: updatedProps));
+
+    if (result.isSuccess) {
+      await _loadTemplate();
+    }
+  }
+
+  Future<void> _handleWidgetDelete(int widgetId) async {
+    final confirmed = await _showDeleteConfirmation();
+    if (confirmed != true) return;
+
+    await _performWidgetDelete(widgetId);
+  }
+
+  Future<void> _performWidgetDelete(int widgetId) async {
+    final result = await ref.read(widgetRepositoryProvider).delete(widgetId);
+
+    if (result.isSuccess) {
+      await _loadTemplate();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to delete widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleWidgetMoveToIndex(
+    WidgetInstance movedWidget,
+    int sourceColumnId,
+    int targetColumnId,
+    int targetIndex,
+  ) async {
+    try {
+      if (sourceColumnId == targetColumnId) {
+        final adjustedIndex = targetIndex > movedWidget.index
+            ? targetIndex - 1
+            : targetIndex;
+
+        final result = await ref
+            .read(widgetRepositoryProvider)
+            .reorder(movedWidget.id, adjustedIndex);
+
+        if (result.isSuccess) {
+          await _loadTemplate();
+        }
+      } else {
+        final result = await ref
+            .read(widgetRepositoryProvider)
+            .moveTo(movedWidget.id, targetColumnId, targetIndex);
+
+        if (result.isSuccess) {
+          await _loadTemplate();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error moving widget: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  bool _isNoOpDrop(_WidgetDragData dragData, int columnId, int index) {
+    if (!dragData.isExistingWidget) return false;
+    if (dragData.sourceColumnId != columnId) return false;
+
+    final currentIndex = dragData.existingWidget!.index;
+    return index == currentIndex || index == currentIndex + 1;
+  }
+
+  // ===== Build Methods =====
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -460,6 +643,8 @@ class _AdminTemplateEditorPageState
         body: Center(child: Text('Error: $_errorMessage')),
       );
     }
+
+    final registry = ref.watch(widgetRegistryProvider);
 
     return AuthenticatedScaffold(
       title: _menu?.name ?? 'Template Editor',
@@ -481,56 +666,163 @@ class _AdminTemplateEditorPageState
           tooltip: 'Publish',
         ),
       ],
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Page Style Section
-              PageStyleSection(
-                styleConfig: _menu?.styleConfig,
-                onStyleChanged: _onStyleChanged,
-              ),
-              const SizedBox(height: 16),
+      body: Row(
+        children: [
+          // Left Panel: Widget Palette
+          SizedBox(width: 200, child: _buildWidgetPalette(registry)),
 
-              // Header Section
-              if (_headerPage == null)
-                ElevatedButton.icon(
-                  key: const Key('add_header_button'),
-                  onPressed: _addHeader,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Header'),
-                )
-              else
-                _buildPageCard(_headerPage!),
-              const SizedBox(height: 16),
+          // Divider
+          const VerticalDivider(width: 1),
 
-              // Add Page Button
-              ElevatedButton.icon(
-                key: const Key('add_page_button'),
-                onPressed: _addPage,
-                icon: const Icon(Icons.add),
-                label: const Text('Add Page'),
-              ),
-              const SizedBox(height: 16),
+          // Right Panel: Canvas
+          Expanded(child: _buildCanvas()),
+        ],
+      ),
+    );
+  }
 
-              // Pages List
-              ..._pages.map((page) => _buildPageCard(page)),
-
-              // Footer Section
-              const SizedBox(height: 16),
-              if (_footerPage == null)
-                ElevatedButton.icon(
-                  key: const Key('add_footer_button'),
-                  onPressed: _addFooter,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add Footer'),
-                )
-              else
-                _buildPageCard(_footerPage!),
-            ],
+  Widget _buildWidgetPalette(WidgetRegistry registry) {
+    return Container(
+      color: Colors.grey[100],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              'Widget Palette',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ),
+          Expanded(
+            child: ListView(
+              children: registry.registeredTypes.map((type) {
+                final definition = registry.getDefinition(type);
+                return _buildPaletteItem(type, definition);
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaletteItem(String type, WidgetDefinition? definition) {
+    if (definition == null) return const SizedBox();
+
+    return Draggable<_WidgetDragData>(
+      data: _WidgetDragData.newWidget(type),
+      feedback: Material(
+        elevation: 4.0,
+        child: Container(
+          padding: const EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: Colors.grey),
+          ),
+          child: Text(
+            type.toUpperCase(),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.3,
+        child: _paletteItemContent(type),
+      ),
+      child: _paletteItemContent(type),
+    );
+  }
+
+  Widget _paletteItemContent(String type) {
+    return Container(
+      key: Key('palette_item_$type'),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Row(
+        children: [
+          Icon(_getIconForType(type), size: 20, color: Colors.grey[700]),
+          const SizedBox(width: 8),
+          Text(
+            type.toUpperCase(),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getIconForType(String type) {
+    switch (type) {
+      case 'dish':
+        return Icons.restaurant_menu;
+      case 'image':
+        return Icons.image;
+      case 'section':
+        return Icons.title;
+      case 'text':
+        return Icons.text_fields;
+      default:
+        return Icons.widgets;
+    }
+  }
+
+  Widget _buildCanvas() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Page Style Section
+            PageStyleSection(
+              styleConfig: _menu?.styleConfig,
+              onStyleChanged: _onStyleChanged,
+            ),
+            const SizedBox(height: 16),
+
+            // Header Section
+            if (_headerPage == null)
+              ElevatedButton.icon(
+                key: const Key('add_header_button'),
+                onPressed: _addHeader,
+                icon: const Icon(Icons.add),
+                label: const Text('Add Header'),
+              )
+            else
+              _buildPageCard(_headerPage!),
+            const SizedBox(height: 16),
+
+            // Add Page Button
+            ElevatedButton.icon(
+              key: const Key('add_page_button'),
+              onPressed: _addPage,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Page'),
+            ),
+            const SizedBox(height: 16),
+
+            // Pages List
+            ..._pages.map((page) => _buildPageCard(page)),
+
+            // Footer Section
+            const SizedBox(height: 16),
+            if (_footerPage == null)
+              ElevatedButton.icon(
+                key: const Key('add_footer_button'),
+                onPressed: _addFooter,
+                icon: const Icon(Icons.add),
+                label: const Text('Add Footer'),
+              )
+            else
+              _buildPageCard(_footerPage!),
+          ],
         ),
       ),
     );
@@ -673,6 +965,10 @@ class _AdminTemplateEditorPageState
   }
 
   Widget _buildColumnCard(entity.Column column) {
+    final widgets = _widgets[column.id] ?? [];
+    final registry = ref.watch(widgetRegistryProvider);
+    final currentHoverIndex = _hoverIndex[column.id] ?? -1;
+
     return Container(
       key: Key('column_${column.id}'),
       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -682,6 +978,7 @@ class _AdminTemplateEditorPageState
         borderRadius: BorderRadius.circular(4),
         color: Colors.white,
       ),
+      constraints: const BoxConstraints(minHeight: 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -717,17 +1014,157 @@ class _AdminTemplateEditorPageState
               ),
             ],
           ),
-          Container(
-            height: 80,
-            color: Colors.grey[200],
-            child: const Center(
-              child: Text(
-                'Column Content',
-                style: TextStyle(fontSize: 10, color: Colors.grey),
+
+          // Widget drop zones and widgets
+          for (int i = 0; i <= widgets.length; i++) ...[
+            _buildDropZone(column.id, i, currentHoverIndex == i, registry),
+            if (i < widgets.length)
+              _buildWidgetItem(widgets[i], column.id),
+          ],
+
+          // Empty state
+          if (widgets.isEmpty && currentHoverIndex == -1)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Text(
+                  'Drop widgets here',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                ),
               ),
             ),
-          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDropZone(
+    int columnId,
+    int index,
+    bool isHovering,
+    WidgetRegistry registry,
+  ) {
+    return DragTarget<_WidgetDragData>(
+      key: Key('drop_zone_${columnId}_$index'),
+      onWillAcceptWithDetails: (details) {
+        final dragData = details.data;
+        if (dragData.isNewWidget) {
+          return registry.getDefinition(dragData.newWidgetType!) != null;
+        } else if (dragData.isExistingWidget) {
+          return true;
+        }
+        return false;
+      },
+      onAcceptWithDetails: (details) {
+        setState(() {
+          _hoverIndex[columnId] = -1;
+        });
+        final dragData = details.data;
+
+        if (_isNoOpDrop(dragData, columnId, index)) return;
+
+        if (dragData.isNewWidget) {
+          _handleWidgetDropAtIndex(dragData.newWidgetType!, columnId, index);
+        } else if (dragData.isExistingWidget) {
+          _handleWidgetMoveToIndex(
+            dragData.existingWidget!,
+            dragData.sourceColumnId!,
+            columnId,
+            index,
+          );
+        }
+      },
+      onMove: (details) {
+        if (_hoverIndex[columnId] != index) {
+          setState(() {
+            _hoverIndex[columnId] = index;
+          });
+        }
+      },
+      onLeave: (data) {
+        Future.delayed(const Duration(milliseconds: 50), () {
+          if (mounted && _hoverIndex[columnId] == index) {
+            setState(() {
+              _hoverIndex[columnId] = -1;
+            });
+          }
+        });
+      },
+      builder: (context, candidateData, rejectedData) {
+        final showLine = isHovering && candidateData.isNotEmpty;
+        final isNoOp =
+            candidateData.isNotEmpty &&
+            candidateData.first != null &&
+            _isNoOpDrop(candidateData.first!, columnId, index);
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          height: showLine ? 4 : 8,
+          margin: const EdgeInsets.symmetric(vertical: 2),
+          decoration: BoxDecoration(
+            color: showLine
+                ? (isNoOp ? Colors.grey[400] : Colors.blue)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildWidgetItem(WidgetInstance widgetInst, int columnId) {
+    final widgetContent = Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: WidgetRenderer(
+        widgetInstance: widgetInst,
+        isEditable: true,
+        onUpdate: (updatedProps) =>
+            _handleWidgetUpdate(widgetInst.id, updatedProps),
+        onDelete: () => _handleWidgetDelete(widgetInst.id),
+      ),
+    );
+
+    return LongPressDraggable<_WidgetDragData>(
+      key: Key('widget_${widgetInst.id}'),
+      data: _WidgetDragData.existing(widgetInst, columnId),
+      feedback: Material(
+        elevation: 4.0,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 200,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.blue, width: 2),
+          ),
+          child: Text(
+            widgetInst.type.toUpperCase(),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.3, child: widgetContent),
+      child: Dismissible(
+        key: Key('dismissible_${widgetInst.id}'),
+        direction: DismissDirection.endToStart,
+        confirmDismiss: (direction) async {
+          return await _showDeleteConfirmation();
+        },
+        onDismissed: (direction) {
+          _performWidgetDelete(widgetInst.id);
+        },
+        background: Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 16),
+          decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(Icons.delete, color: Colors.white),
+        ),
+        child: widgetContent,
       ),
     );
   }

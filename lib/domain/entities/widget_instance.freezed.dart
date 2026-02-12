@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WidgetInstance {
 
- int get id; int get columnId; String get type; String get version; int get index; Map<String, dynamic> get props; WidgetStyle? get style; DateTime? get dateCreated; DateTime? get dateUpdated;
+ int get id; int get columnId; String get type; String get version; int get index; Map<String, dynamic> get props; WidgetStyle? get style; bool get isTemplate; DateTime? get dateCreated; DateTime? get dateUpdated;
 /// Create a copy of WidgetInstance
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $WidgetInstanceCopyWith<WidgetInstance> get copyWith => _$WidgetInstanceCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WidgetInstance&&(identical(other.id, id) || other.id == id)&&(identical(other.columnId, columnId) || other.columnId == columnId)&&(identical(other.type, type) || other.type == type)&&(identical(other.version, version) || other.version == version)&&(identical(other.index, index) || other.index == index)&&const DeepCollectionEquality().equals(other.props, props)&&(identical(other.style, style) || other.style == style)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WidgetInstance&&(identical(other.id, id) || other.id == id)&&(identical(other.columnId, columnId) || other.columnId == columnId)&&(identical(other.type, type) || other.type == type)&&(identical(other.version, version) || other.version == version)&&(identical(other.index, index) || other.index == index)&&const DeepCollectionEquality().equals(other.props, props)&&(identical(other.style, style) || other.style == style)&&(identical(other.isTemplate, isTemplate) || other.isTemplate == isTemplate)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,columnId,type,version,index,const DeepCollectionEquality().hash(props),style,dateCreated,dateUpdated);
+int get hashCode => Object.hash(runtimeType,id,columnId,type,version,index,const DeepCollectionEquality().hash(props),style,isTemplate,dateCreated,dateUpdated);
 
 @override
 String toString() {
-  return 'WidgetInstance(id: $id, columnId: $columnId, type: $type, version: $version, index: $index, props: $props, style: $style, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
+  return 'WidgetInstance(id: $id, columnId: $columnId, type: $type, version: $version, index: $index, props: $props, style: $style, isTemplate: $isTemplate, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $WidgetInstanceCopyWith<$Res>  {
   factory $WidgetInstanceCopyWith(WidgetInstance value, $Res Function(WidgetInstance) _then) = _$WidgetInstanceCopyWithImpl;
 @useResult
 $Res call({
- int id, int columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style, bool isTemplate, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -65,7 +65,7 @@ class _$WidgetInstanceCopyWithImpl<$Res>
 
 /// Create a copy of WidgetInstance
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? columnId = null,Object? type = null,Object? version = null,Object? index = null,Object? props = null,Object? style = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? columnId = null,Object? type = null,Object? version = null,Object? index = null,Object? props = null,Object? style = freezed,Object? isTemplate = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,columnId: null == columnId ? _self.columnId : columnId // ignore: cast_nullable_to_non_nullable
@@ -74,7 +74,8 @@ as String,version: null == version ? _self.version : version // ignore: cast_nul
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,props: null == props ? _self.props : props // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,style: freezed == style ? _self.style : style // ignore: cast_nullable_to_non_nullable
-as WidgetStyle?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
+as WidgetStyle?,isTemplate: null == isTemplate ? _self.isTemplate : isTemplate // ignore: cast_nullable_to_non_nullable
+as bool,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
 as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -173,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  bool isTemplate,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WidgetInstance() when $default != null:
-return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style,_that.isTemplate,_that.dateCreated,_that.dateUpdated);case _:
   return orElse();
 
 }
@@ -194,10 +195,10 @@ return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  bool isTemplate,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
 switch (_that) {
 case _WidgetInstance():
-return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style,_that.isTemplate,_that.dateCreated,_that.dateUpdated);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -214,10 +215,10 @@ return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  bool isTemplate,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
 switch (_that) {
 case _WidgetInstance() when $default != null:
-return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style,_that.isTemplate,_that.dateCreated,_that.dateUpdated);case _:
   return null;
 
 }
@@ -229,7 +230,7 @@ return $default(_that.id,_that.columnId,_that.type,_that.version,_that.index,_th
 @JsonSerializable()
 
 class _WidgetInstance extends WidgetInstance {
-  const _WidgetInstance({required this.id, required this.columnId, required this.type, required this.version, required this.index, required final  Map<String, dynamic> props, this.style, this.dateCreated, this.dateUpdated}): _props = props,super._();
+  const _WidgetInstance({required this.id, required this.columnId, required this.type, required this.version, required this.index, required final  Map<String, dynamic> props, this.style, this.isTemplate = false, this.dateCreated, this.dateUpdated}): _props = props,super._();
   factory _WidgetInstance.fromJson(Map<String, dynamic> json) => _$WidgetInstanceFromJson(json);
 
 @override final  int id;
@@ -245,6 +246,7 @@ class _WidgetInstance extends WidgetInstance {
 }
 
 @override final  WidgetStyle? style;
+@override@JsonKey() final  bool isTemplate;
 @override final  DateTime? dateCreated;
 @override final  DateTime? dateUpdated;
 
@@ -261,16 +263,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WidgetInstance&&(identical(other.id, id) || other.id == id)&&(identical(other.columnId, columnId) || other.columnId == columnId)&&(identical(other.type, type) || other.type == type)&&(identical(other.version, version) || other.version == version)&&(identical(other.index, index) || other.index == index)&&const DeepCollectionEquality().equals(other._props, _props)&&(identical(other.style, style) || other.style == style)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WidgetInstance&&(identical(other.id, id) || other.id == id)&&(identical(other.columnId, columnId) || other.columnId == columnId)&&(identical(other.type, type) || other.type == type)&&(identical(other.version, version) || other.version == version)&&(identical(other.index, index) || other.index == index)&&const DeepCollectionEquality().equals(other._props, _props)&&(identical(other.style, style) || other.style == style)&&(identical(other.isTemplate, isTemplate) || other.isTemplate == isTemplate)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,columnId,type,version,index,const DeepCollectionEquality().hash(_props),style,dateCreated,dateUpdated);
+int get hashCode => Object.hash(runtimeType,id,columnId,type,version,index,const DeepCollectionEquality().hash(_props),style,isTemplate,dateCreated,dateUpdated);
 
 @override
 String toString() {
-  return 'WidgetInstance(id: $id, columnId: $columnId, type: $type, version: $version, index: $index, props: $props, style: $style, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
+  return 'WidgetInstance(id: $id, columnId: $columnId, type: $type, version: $version, index: $index, props: $props, style: $style, isTemplate: $isTemplate, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
 }
 
 
@@ -281,7 +283,7 @@ abstract mixin class _$WidgetInstanceCopyWith<$Res> implements $WidgetInstanceCo
   factory _$WidgetInstanceCopyWith(_WidgetInstance value, $Res Function(_WidgetInstance) _then) = __$WidgetInstanceCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style, bool isTemplate, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -298,7 +300,7 @@ class __$WidgetInstanceCopyWithImpl<$Res>
 
 /// Create a copy of WidgetInstance
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? columnId = null,Object? type = null,Object? version = null,Object? index = null,Object? props = null,Object? style = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? columnId = null,Object? type = null,Object? version = null,Object? index = null,Object? props = null,Object? style = freezed,Object? isTemplate = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_WidgetInstance(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,columnId: null == columnId ? _self.columnId : columnId // ignore: cast_nullable_to_non_nullable
@@ -307,7 +309,8 @@ as String,version: null == version ? _self.version : version // ignore: cast_nul
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,props: null == props ? _self._props : props // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,style: freezed == style ? _self.style : style // ignore: cast_nullable_to_non_nullable
-as WidgetStyle?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
+as WidgetStyle?,isTemplate: null == isTemplate ? _self.isTemplate : isTemplate // ignore: cast_nullable_to_non_nullable
+as bool,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
 as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));

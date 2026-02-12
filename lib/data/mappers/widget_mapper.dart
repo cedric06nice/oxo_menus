@@ -18,6 +18,7 @@ class WidgetMapper {
       style: dto.styleJson.isNotEmpty
           ? _mapStyleJsonToWidgetStyle(dto.styleJson)
           : null,
+      isTemplate: dto.isTemplate,
       dateCreated: dto.dateCreated,
       dateUpdated: dto.dateUpdated,
     );
@@ -35,6 +36,7 @@ class WidgetMapper {
       'style_json': entity.style != null
           ? widgetStyleToJson(entity.style!)
           : null,
+      'is_template': entity.isTemplate,
       'date_created': entity.dateCreated,
       'date_updated': entity.dateUpdated,
     });

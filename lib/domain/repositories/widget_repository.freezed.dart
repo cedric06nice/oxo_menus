@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreateWidgetInput {
 
- int get columnId; String get type; String get version; int get index; Map<String, dynamic> get props; WidgetStyle? get style;
+ int get columnId; String get type; String get version; int get index; Map<String, dynamic> get props; WidgetStyle? get style; bool get isTemplate;
 /// Create a copy of CreateWidgetInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $CreateWidgetInputCopyWith<CreateWidgetInput> get copyWith => _$CreateWidgetInpu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateWidgetInput&&(identical(other.columnId, columnId) || other.columnId == columnId)&&(identical(other.type, type) || other.type == type)&&(identical(other.version, version) || other.version == version)&&(identical(other.index, index) || other.index == index)&&const DeepCollectionEquality().equals(other.props, props)&&(identical(other.style, style) || other.style == style));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateWidgetInput&&(identical(other.columnId, columnId) || other.columnId == columnId)&&(identical(other.type, type) || other.type == type)&&(identical(other.version, version) || other.version == version)&&(identical(other.index, index) || other.index == index)&&const DeepCollectionEquality().equals(other.props, props)&&(identical(other.style, style) || other.style == style)&&(identical(other.isTemplate, isTemplate) || other.isTemplate == isTemplate));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,columnId,type,version,index,const DeepCollectionEquality().hash(props),style);
+int get hashCode => Object.hash(runtimeType,columnId,type,version,index,const DeepCollectionEquality().hash(props),style,isTemplate);
 
 @override
 String toString() {
-  return 'CreateWidgetInput(columnId: $columnId, type: $type, version: $version, index: $index, props: $props, style: $style)';
+  return 'CreateWidgetInput(columnId: $columnId, type: $type, version: $version, index: $index, props: $props, style: $style, isTemplate: $isTemplate)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $CreateWidgetInputCopyWith<$Res>  {
   factory $CreateWidgetInputCopyWith(CreateWidgetInput value, $Res Function(CreateWidgetInput) _then) = _$CreateWidgetInputCopyWithImpl;
 @useResult
 $Res call({
- int columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style
+ int columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style, bool isTemplate
 });
 
 
@@ -62,7 +62,7 @@ class _$CreateWidgetInputCopyWithImpl<$Res>
 
 /// Create a copy of CreateWidgetInput
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? columnId = null,Object? type = null,Object? version = null,Object? index = null,Object? props = null,Object? style = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? columnId = null,Object? type = null,Object? version = null,Object? index = null,Object? props = null,Object? style = freezed,Object? isTemplate = null,}) {
   return _then(_self.copyWith(
 columnId: null == columnId ? _self.columnId : columnId // ignore: cast_nullable_to_non_nullable
 as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -70,7 +70,8 @@ as String,version: null == version ? _self.version : version // ignore: cast_nul
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,props: null == props ? _self.props : props // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,style: freezed == style ? _self.style : style // ignore: cast_nullable_to_non_nullable
-as WidgetStyle?,
+as WidgetStyle?,isTemplate: null == isTemplate ? _self.isTemplate : isTemplate // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 /// Create a copy of CreateWidgetInput
@@ -167,10 +168,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  bool isTemplate)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreateWidgetInput() when $default != null:
-return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style);case _:
+return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style,_that.isTemplate);case _:
   return orElse();
 
 }
@@ -188,10 +189,10 @@ return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  bool isTemplate)  $default,) {final _that = this;
 switch (_that) {
 case _CreateWidgetInput():
-return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style);case _:
+return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style,_that.isTemplate);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -208,10 +209,10 @@ return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int columnId,  String type,  String version,  int index,  Map<String, dynamic> props,  WidgetStyle? style,  bool isTemplate)?  $default,) {final _that = this;
 switch (_that) {
 case _CreateWidgetInput() when $default != null:
-return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style);case _:
+return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,_that.style,_that.isTemplate);case _:
   return null;
 
 }
@@ -223,7 +224,7 @@ return $default(_that.columnId,_that.type,_that.version,_that.index,_that.props,
 
 
 class _CreateWidgetInput extends CreateWidgetInput {
-  const _CreateWidgetInput({required this.columnId, required this.type, required this.version, required this.index, required final  Map<String, dynamic> props, this.style}): _props = props,super._();
+  const _CreateWidgetInput({required this.columnId, required this.type, required this.version, required this.index, required final  Map<String, dynamic> props, this.style, this.isTemplate = false}): _props = props,super._();
   
 
 @override final  int columnId;
@@ -238,6 +239,7 @@ class _CreateWidgetInput extends CreateWidgetInput {
 }
 
 @override final  WidgetStyle? style;
+@override@JsonKey() final  bool isTemplate;
 
 /// Create a copy of CreateWidgetInput
 /// with the given fields replaced by the non-null parameter values.
@@ -249,16 +251,16 @@ _$CreateWidgetInputCopyWith<_CreateWidgetInput> get copyWith => __$CreateWidgetI
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateWidgetInput&&(identical(other.columnId, columnId) || other.columnId == columnId)&&(identical(other.type, type) || other.type == type)&&(identical(other.version, version) || other.version == version)&&(identical(other.index, index) || other.index == index)&&const DeepCollectionEquality().equals(other._props, _props)&&(identical(other.style, style) || other.style == style));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateWidgetInput&&(identical(other.columnId, columnId) || other.columnId == columnId)&&(identical(other.type, type) || other.type == type)&&(identical(other.version, version) || other.version == version)&&(identical(other.index, index) || other.index == index)&&const DeepCollectionEquality().equals(other._props, _props)&&(identical(other.style, style) || other.style == style)&&(identical(other.isTemplate, isTemplate) || other.isTemplate == isTemplate));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,columnId,type,version,index,const DeepCollectionEquality().hash(_props),style);
+int get hashCode => Object.hash(runtimeType,columnId,type,version,index,const DeepCollectionEquality().hash(_props),style,isTemplate);
 
 @override
 String toString() {
-  return 'CreateWidgetInput(columnId: $columnId, type: $type, version: $version, index: $index, props: $props, style: $style)';
+  return 'CreateWidgetInput(columnId: $columnId, type: $type, version: $version, index: $index, props: $props, style: $style, isTemplate: $isTemplate)';
 }
 
 
@@ -269,7 +271,7 @@ abstract mixin class _$CreateWidgetInputCopyWith<$Res> implements $CreateWidgetI
   factory _$CreateWidgetInputCopyWith(_CreateWidgetInput value, $Res Function(_CreateWidgetInput) _then) = __$CreateWidgetInputCopyWithImpl;
 @override @useResult
 $Res call({
- int columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style
+ int columnId, String type, String version, int index, Map<String, dynamic> props, WidgetStyle? style, bool isTemplate
 });
 
 
@@ -286,7 +288,7 @@ class __$CreateWidgetInputCopyWithImpl<$Res>
 
 /// Create a copy of CreateWidgetInput
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? columnId = null,Object? type = null,Object? version = null,Object? index = null,Object? props = null,Object? style = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? columnId = null,Object? type = null,Object? version = null,Object? index = null,Object? props = null,Object? style = freezed,Object? isTemplate = null,}) {
   return _then(_CreateWidgetInput(
 columnId: null == columnId ? _self.columnId : columnId // ignore: cast_nullable_to_non_nullable
 as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
@@ -294,7 +296,8 @@ as String,version: null == version ? _self.version : version // ignore: cast_nul
 as String,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,props: null == props ? _self._props : props // ignore: cast_nullable_to_non_nullable
 as Map<String, dynamic>,style: freezed == style ? _self.style : style // ignore: cast_nullable_to_non_nullable
-as WidgetStyle?,
+as WidgetStyle?,isTemplate: null == isTemplate ? _self.isTemplate : isTemplate // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

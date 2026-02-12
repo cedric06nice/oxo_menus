@@ -584,4 +584,146 @@ void main() {
       expect(find.text('Menu saved'), findsOneWidget);
     });
   });
+
+  group('MenuEditorPage - Template Widget Locking', () {
+    Widget buildWithWidgets(List<WidgetInstance> widgets) {
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const page =
+          entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+      const container = entity.Container(id: 1, pageId: 1, index: 0);
+      const column = entity.Column(id: 1, containerId: 1, index: 0, flex: 1);
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([page]));
+      when(
+        () => mockContainerRepository.getAllForPage(1),
+      ).thenAnswer((_) async => const Success([container]));
+      when(
+        () => mockColumnRepository.getAllForContainer(1),
+      ).thenAnswer((_) async => const Success([column]));
+      when(
+        () => mockWidgetRepository.getAllForColumn(1),
+      ).thenAnswer((_) async => Success(widgets));
+
+      return createWidgetUnderTest(menuId);
+    }
+
+    testWidgets(
+      'should render template widget as non-editable (no edit dialog on tap)',
+      (tester) async {
+        const templateWidget = WidgetInstance(
+          id: 1,
+          columnId: 1,
+          type: 'dish',
+          version: '1.0.0',
+          index: 0,
+          isTemplate: true,
+          props: {
+            'name': 'Template Dish',
+            'price': 10.0,
+            'allergens': [],
+          },
+        );
+
+        await tester.pumpWidget(buildWithWidgets([templateWidget]));
+        await tester.pumpAndSettle();
+
+        // Template widget should be rendered
+        expect(find.byType(WidgetRenderer), findsOneWidget);
+
+        // Tap on the widget — no edit dialog should appear
+        await tester.tap(find.byType(Card).first);
+        await tester.pumpAndSettle();
+        expect(find.text('Edit Dish'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'should not wrap template widget in LongPressDraggable',
+      (tester) async {
+        const templateWidget = WidgetInstance(
+          id: 1,
+          columnId: 1,
+          type: 'dish',
+          version: '1.0.0',
+          index: 0,
+          isTemplate: true,
+          props: {
+            'name': 'Template Dish',
+            'price': 10.0,
+            'allergens': [],
+          },
+        );
+
+        await tester.pumpWidget(buildWithWidgets([templateWidget]));
+        await tester.pumpAndSettle();
+
+        // Template widget should NOT have a LongPressDraggable wrapper
+        expect(find.byKey(const Key('widget_1')), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'should show lock icon on template widget',
+      (tester) async {
+        const templateWidget = WidgetInstance(
+          id: 1,
+          columnId: 1,
+          type: 'dish',
+          version: '1.0.0',
+          index: 0,
+          isTemplate: true,
+          props: {
+            'name': 'Template Dish',
+            'price': 10.0,
+            'allergens': [],
+          },
+        );
+
+        await tester.pumpWidget(buildWithWidgets([templateWidget]));
+        await tester.pumpAndSettle();
+
+        // Should show a lock icon
+        expect(find.byIcon(Icons.lock), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'should keep regular widget fully editable and draggable',
+      (tester) async {
+        const regularWidget = WidgetInstance(
+          id: 2,
+          columnId: 1,
+          type: 'dish',
+          version: '1.0.0',
+          index: 0,
+          isTemplate: false,
+          props: {
+            'name': 'Regular Dish',
+            'price': 15.0,
+            'allergens': [],
+          },
+        );
+
+        await tester.pumpWidget(buildWithWidgets([regularWidget]));
+        await tester.pumpAndSettle();
+
+        // Regular widget should have LongPressDraggable wrapper (key = widget_2)
+        expect(find.byKey(const Key('widget_2')), findsOneWidget);
+
+        // No lock icon
+        expect(find.byIcon(Icons.lock), findsNothing);
+      },
+    );
+  });
 }
