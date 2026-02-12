@@ -12,7 +12,7 @@ import 'dish_widget.dart';
 /// Version history:
 /// - 1.0.0: Initial version with string-based allergens
 /// - 2.0.0: Added structured allergenInfo with UK allergen support
-/// - 3.0.0: Changed dietary from List<String> to DietaryType? enum
+/// - 3.0.0: Changed dietary from `List<String>` to DietaryType? enum
 final dishWidgetDefinition = WidgetDefinition<DishProps>(
   type: 'dish',
   version: '3.0.0',

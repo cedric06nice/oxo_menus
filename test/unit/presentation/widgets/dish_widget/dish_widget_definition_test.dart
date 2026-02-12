@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
-import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definition.dart';
 
 void main() {
@@ -60,20 +59,13 @@ void main() {
     });
 
     test('should set dietary to null for empty dietary list', () {
-      final json = {
-        'name': 'Test Dish',
-        'price': 10.0,
-        'dietary': <String>[],
-      };
+      final json = {'name': 'Test Dish', 'price': 10.0, 'dietary': <String>[]};
       final migrated = dishWidgetDefinition.migrate!(json);
       expect(migrated.dietary, isNull);
     });
 
     test('should set dietary to null when dietary key is missing', () {
-      final json = {
-        'name': 'Test Dish',
-        'price': 10.0,
-      };
+      final json = {'name': 'Test Dish', 'price': 10.0};
       final migrated = dishWidgetDefinition.migrate!(json);
       expect(migrated.dietary, isNull);
     });
