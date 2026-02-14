@@ -19,58 +19,67 @@ void main() {
 
   group('FileRepositoryImpl', () {
     group('upload', () {
-      test('should call dataSource.uploadFile and return file ID on success',
-          () async {
-        // Arrange
-        final bytes = Uint8List.fromList([1, 2, 3, 4]);
-        const filename = 'test-image.png';
-        const expectedFileId = 'abc-123-def-456';
+      test(
+        'should call dataSource.uploadFile and return file ID on success',
+        () async {
+          // Arrange
+          final bytes = Uint8List.fromList([1, 2, 3, 4]);
+          const filename = 'test-image.png';
+          const expectedFileId = 'abc-123-def-456';
 
-        when(() => mockDataSource.uploadFile(bytes, filename))
-            .thenAnswer((_) async => expectedFileId);
+          when(
+            () => mockDataSource.uploadFile(bytes, filename),
+          ).thenAnswer((_) async => expectedFileId);
 
-        // Act
-        final result = await repository.upload(bytes, filename);
+          // Act
+          final result = await repository.upload(bytes, filename);
 
-        // Assert
-        expect(result, isA<Success<String, DomainError>>());
-        expect((result as Success).value, expectedFileId);
-        verify(() => mockDataSource.uploadFile(bytes, filename)).called(1);
-      });
+          // Assert
+          expect(result, isA<Success<String, DomainError>>());
+          expect((result as Success).value, expectedFileId);
+          verify(() => mockDataSource.uploadFile(bytes, filename)).called(1);
+        },
+      );
 
-      test('should return Failure with NetworkError when upload fails',
-          () async {
-        // Arrange
-        final bytes = Uint8List.fromList([1, 2, 3, 4]);
-        const filename = 'test-image.png';
+      test(
+        'should return Failure with NetworkError when upload fails',
+        () async {
+          // Arrange
+          final bytes = Uint8List.fromList([1, 2, 3, 4]);
+          const filename = 'test-image.png';
 
-        when(() => mockDataSource.uploadFile(bytes, filename))
-            .thenThrow(Exception('Network error'));
+          when(
+            () => mockDataSource.uploadFile(bytes, filename),
+          ).thenThrow(Exception('Network error'));
 
-        // Act
-        final result = await repository.upload(bytes, filename);
+          // Act
+          final result = await repository.upload(bytes, filename);
 
-        // Assert
-        expect(result, isA<Failure<String, DomainError>>());
-        final error = (result as Failure).error;
-        expect(error, isA<DomainError>());
-      });
+          // Assert
+          expect(result, isA<Failure<String, DomainError>>());
+          final error = (result as Failure).error;
+          expect(error, isA<DomainError>());
+        },
+      );
 
-      test('should return Failure with appropriate DomainError for auth failure',
-          () async {
-        // Arrange
-        final bytes = Uint8List.fromList([1, 2, 3, 4]);
-        const filename = 'test-image.png';
+      test(
+        'should return Failure with appropriate DomainError for auth failure',
+        () async {
+          // Arrange
+          final bytes = Uint8List.fromList([1, 2, 3, 4]);
+          const filename = 'test-image.png';
 
-        when(() => mockDataSource.uploadFile(bytes, filename))
-            .thenThrow(Exception('401 Unauthorized'));
+          when(
+            () => mockDataSource.uploadFile(bytes, filename),
+          ).thenThrow(Exception('401 Unauthorized'));
 
-        // Act
-        final result = await repository.upload(bytes, filename);
+          // Act
+          final result = await repository.upload(bytes, filename);
 
-        // Assert
-        expect(result, isA<Failure<String, DomainError>>());
-      });
+          // Assert
+          expect(result, isA<Failure<String, DomainError>>());
+        },
+      );
     });
   });
 }

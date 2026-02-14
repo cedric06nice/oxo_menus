@@ -766,6 +766,202 @@ void main() {
       await tester.ensureVisible(find.text('Column Style'));
       expect(find.text('Column Style'), findsOneWidget);
     });
+
+    testWidgets('shows isDroppable toggle in expanded Column Style section', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const pageId = 1;
+      const containerId = 1;
+      const columnId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+      ];
+      final containers = [
+        const entity.Container(id: containerId, pageId: pageId, index: 0),
+      ];
+      final columns = [
+        const entity.Column(
+          id: columnId,
+          containerId: containerId,
+          index: 0,
+          flex: 1,
+          isDroppable: true,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(containerId),
+      ).thenAnswer((_) async => Success(columns));
+      when(
+        () => mockWidgetRepository.getAllForColumn(any()),
+      ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Expand Column Style section
+      await tester.ensureVisible(find.text('Column Style'));
+      await tester.tap(find.text('Column Style'));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.byKey(Key('is_droppable_toggle_$columnId')), findsOneWidget);
+      expect(find.text('Allow Widget Drops'), findsOneWidget);
+    });
+
+    testWidgets(
+      'toggling calls columnRepository.update with correct isDroppable value',
+      (tester) async {
+        // Arrange
+        const menuId = 1;
+        const pageId = 1;
+        const containerId = 1;
+        const columnId = 1;
+        const menu = Menu(
+          id: menuId,
+          name: 'Test Template',
+          status: Status.draft,
+          version: '1.0.0',
+        );
+        final pages = [
+          const entity.Page(
+            id: pageId,
+            menuId: menuId,
+            name: 'Page 1',
+            index: 0,
+          ),
+        ];
+        final containers = [
+          const entity.Container(id: containerId, pageId: pageId, index: 0),
+        ];
+        final columns = [
+          const entity.Column(
+            id: columnId,
+            containerId: containerId,
+            index: 0,
+            flex: 1,
+            isDroppable: true,
+          ),
+        ];
+
+        when(
+          () => mockMenuRepository.getById(menuId),
+        ).thenAnswer((_) async => const Success(menu));
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => Success(pages));
+        when(
+          () => mockContainerRepository.getAllForPage(pageId),
+        ).thenAnswer((_) async => Success(containers));
+        when(
+          () => mockColumnRepository.getAllForContainer(containerId),
+        ).thenAnswer((_) async => Success(columns));
+        when(
+          () => mockWidgetRepository.getAllForColumn(any()),
+        ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
+        when(() => mockColumnRepository.update(any())).thenAnswer(
+          (_) async => Success(columns.first.copyWith(isDroppable: false)),
+        );
+
+        // Act
+        await tester.pumpWidget(createWidgetUnderTest(menuId));
+        await tester.pumpAndSettle();
+
+        // Expand Column Style section
+        await tester.ensureVisible(find.text('Column Style'));
+        await tester.tap(find.text('Column Style'));
+        await tester.pumpAndSettle();
+
+        // Toggle isDroppable
+        await tester.tap(find.byKey(Key('is_droppable_toggle_$columnId')));
+        await tester.pumpAndSettle();
+
+        // Assert
+        verify(
+          () => mockColumnRepository.update(
+            const UpdateColumnInput(id: columnId, isDroppable: false),
+          ),
+        ).called(1);
+      },
+    );
+
+    testWidgets(
+      'drop zones still present when isDroppable: false (admin unrestricted)',
+      (tester) async {
+        // Arrange
+        const menuId = 1;
+        const pageId = 1;
+        const containerId = 1;
+        const columnId = 1;
+        const menu = Menu(
+          id: menuId,
+          name: 'Test Template',
+          status: Status.draft,
+          version: '1.0.0',
+        );
+        final pages = [
+          const entity.Page(
+            id: pageId,
+            menuId: menuId,
+            name: 'Page 1',
+            index: 0,
+          ),
+        ];
+        final containers = [
+          const entity.Container(id: containerId, pageId: pageId, index: 0),
+        ];
+        final columns = [
+          const entity.Column(
+            id: columnId,
+            containerId: containerId,
+            index: 0,
+            flex: 1,
+            isDroppable: false, // Set to false
+          ),
+        ];
+
+        when(
+          () => mockMenuRepository.getById(menuId),
+        ).thenAnswer((_) async => const Success(menu));
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => Success(pages));
+        when(
+          () => mockContainerRepository.getAllForPage(pageId),
+        ).thenAnswer((_) async => Success(containers));
+        when(
+          () => mockColumnRepository.getAllForContainer(containerId),
+        ).thenAnswer((_) async => Success(columns));
+        when(
+          () => mockWidgetRepository.getAllForColumn(any()),
+        ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
+
+        // Act
+        await tester.pumpWidget(createWidgetUnderTest(menuId));
+        await tester.pumpAndSettle();
+
+        // Assert - drop zone should still be present (admin unrestricted)
+        expect(find.byKey(Key('drop_zone_${columnId}_0')), findsOneWidget);
+      },
+    );
   });
 
   group('AdminTemplateEditorPage - Header Management', () {
@@ -1424,7 +1620,12 @@ void main() {
           type: 'text',
           version: '1.0.0',
           index: 0,
-          props: {'text': 'Admin Text', 'align': 'left', 'bold': false, 'italic': false},
+          props: {
+            'text': 'Admin Text',
+            'align': 'left',
+            'bold': false,
+            'italic': false,
+          },
           isTemplate: true,
         ),
       ];
@@ -1453,9 +1654,7 @@ void main() {
       expect(find.byType(WidgetRenderer), findsOneWidget);
     });
 
-    testWidgets('should show drop zone text for empty column', (
-      tester,
-    ) async {
+    testWidgets('should show drop zone text for empty column', (tester) async {
       // Arrange
       const menuId = 1;
       const pageId = 1;

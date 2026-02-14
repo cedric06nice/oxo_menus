@@ -433,12 +433,206 @@ void main() {
       // Assert - verify WidgetRenderer is used
       expect(find.byType(WidgetRenderer), findsOneWidget);
     });
+
+    testWidgets('non-droppable column has no drop_zone_* keys in widget tree', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const page = entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+      const container = entity.Container(id: 1, pageId: 1, index: 0);
+      const column = entity.Column(
+        id: 1,
+        containerId: 1,
+        index: 0,
+        flex: 1,
+        isDroppable: false,
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([page]));
+      when(
+        () => mockContainerRepository.getAllForPage(1),
+      ).thenAnswer((_) async => const Success([container]));
+      when(
+        () => mockColumnRepository.getAllForContainer(1),
+      ).thenAnswer((_) async => const Success([column]));
+      when(
+        () => mockWidgetRepository.getAllForColumn(1),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert - no drop zones should be present
+      expect(find.byKey(const Key('drop_zone_1_0')), findsNothing);
+    });
+
+    testWidgets('non-droppable column with widgets still renders widgets', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const page = entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+      const container = entity.Container(id: 1, pageId: 1, index: 0);
+      const column = entity.Column(
+        id: 1,
+        containerId: 1,
+        index: 0,
+        flex: 1,
+        isDroppable: false,
+      );
+      const widget = WidgetInstance(
+        id: 1,
+        columnId: 1,
+        type: 'dish',
+        version: '1.0.0',
+        index: 0,
+        props: {
+          'name': 'Test Dish',
+          'price': 10.0,
+          'showPrice': true,
+          'showAllergens': true,
+          'allergens': [],
+          'dietary': [],
+        },
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([page]));
+      when(
+        () => mockContainerRepository.getAllForPage(1),
+      ).thenAnswer((_) async => const Success([container]));
+      when(
+        () => mockColumnRepository.getAllForContainer(1),
+      ).thenAnswer((_) async => const Success([column]));
+      when(
+        () => mockWidgetRepository.getAllForColumn(1),
+      ).thenAnswer((_) async => const Success([widget]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert - widget should render, no drop zones
+      expect(find.byType(WidgetRenderer), findsOneWidget);
+      expect(find.byKey(const Key('drop_zone_1_0')), findsNothing);
+    });
+
+    testWidgets('non-droppable empty column shows lock icon', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const page = entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+      const container = entity.Container(id: 1, pageId: 1, index: 0);
+      const column = entity.Column(
+        id: 1,
+        containerId: 1,
+        index: 0,
+        flex: 1,
+        isDroppable: false,
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([page]));
+      when(
+        () => mockContainerRepository.getAllForPage(1),
+      ).thenAnswer((_) async => const Success([container]));
+      when(
+        () => mockColumnRepository.getAllForContainer(1),
+      ).thenAnswer((_) async => const Success([column]));
+      when(
+        () => mockWidgetRepository.getAllForColumn(1),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert - lock icon should be present
+      expect(find.byIcon(Icons.lock), findsOneWidget);
+      expect(find.text('Drop widgets here'), findsNothing);
+    });
+
+    testWidgets('droppable column (default) still has drop zones', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const page = entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+      const container = entity.Container(id: 1, pageId: 1, index: 0);
+      const column = entity.Column(
+        id: 1,
+        containerId: 1,
+        index: 0,
+        flex: 1,
+        isDroppable: true, // Explicitly true
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([page]));
+      when(
+        () => mockContainerRepository.getAllForPage(1),
+      ).thenAnswer((_) async => const Success([container]));
+      when(
+        () => mockColumnRepository.getAllForContainer(1),
+      ).thenAnswer((_) async => const Success([column]));
+      when(
+        () => mockWidgetRepository.getAllForColumn(1),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert - drop zones should be present (regression guard)
+      expect(find.byKey(const Key('drop_zone_1_0')), findsOneWidget);
+      expect(find.text('Drop widgets here'), findsOneWidget);
+    });
   });
 
   group('MenuEditorPage - Header/Footer Exclusion', () {
-    testWidgets('should not display header page containers', (
-      tester,
-    ) async {
+    testWidgets('should not display header page containers', (tester) async {
       // Arrange
       const menuId = 1;
       const menu = Menu(
@@ -470,16 +664,16 @@ void main() {
       when(
         () => mockPageRepository.getAllForMenu(menuId),
       ).thenAnswer((_) async => Success(pages));
-      when(
-        () => mockContainerRepository.getAllForPage(1),
-      ).thenAnswer((_) async => const Success([
-            entity.Container(
-              id: 1,
-              pageId: 1,
-              index: 0,
-              name: 'Content Container',
-            ),
-          ]));
+      when(() => mockContainerRepository.getAllForPage(1)).thenAnswer(
+        (_) async => const Success([
+          entity.Container(
+            id: 1,
+            pageId: 1,
+            index: 0,
+            name: 'Content Container',
+          ),
+        ]),
+      );
       when(
         () => mockColumnRepository.getAllForContainer(any()),
       ).thenAnswer((_) async => const Success([]));
@@ -493,9 +687,7 @@ void main() {
       expect(find.text('Header'), findsNothing);
     });
 
-    testWidgets('should not display footer page containers', (
-      tester,
-    ) async {
+    testWidgets('should not display footer page containers', (tester) async {
       // Arrange
       const menuId = 1;
       const menu = Menu(
@@ -527,16 +719,16 @@ void main() {
       when(
         () => mockPageRepository.getAllForMenu(menuId),
       ).thenAnswer((_) async => Success(pages));
-      when(
-        () => mockContainerRepository.getAllForPage(1),
-      ).thenAnswer((_) async => const Success([
-            entity.Container(
-              id: 1,
-              pageId: 1,
-              index: 0,
-              name: 'Content Container',
-            ),
-          ]));
+      when(() => mockContainerRepository.getAllForPage(1)).thenAnswer(
+        (_) async => const Success([
+          entity.Container(
+            id: 1,
+            pageId: 1,
+            index: 0,
+            name: 'Content Container',
+          ),
+        ]),
+      );
       when(
         () => mockColumnRepository.getAllForContainer(any()),
       ).thenAnswer((_) async => const Success([]));
@@ -594,8 +786,7 @@ void main() {
         status: Status.draft,
         version: '1.0.0',
       );
-      const page =
-          entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+      const page = entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
       const container = entity.Container(id: 1, pageId: 1, index: 0);
       const column = entity.Column(id: 1, containerId: 1, index: 0, flex: 1);
 
@@ -628,11 +819,7 @@ void main() {
           version: '1.0.0',
           index: 0,
           isTemplate: true,
-          props: {
-            'name': 'Template Dish',
-            'price': 10.0,
-            'allergens': [],
-          },
+          props: {'name': 'Template Dish', 'price': 10.0, 'allergens': []},
         );
 
         await tester.pumpWidget(buildWithWidgets([templateWidget]));
@@ -648,82 +835,65 @@ void main() {
       },
     );
 
-    testWidgets(
-      'should not wrap template widget in LongPressDraggable',
-      (tester) async {
-        const templateWidget = WidgetInstance(
-          id: 1,
-          columnId: 1,
-          type: 'dish',
-          version: '1.0.0',
-          index: 0,
-          isTemplate: true,
-          props: {
-            'name': 'Template Dish',
-            'price': 10.0,
-            'allergens': [],
-          },
-        );
+    testWidgets('should not wrap template widget in LongPressDraggable', (
+      tester,
+    ) async {
+      const templateWidget = WidgetInstance(
+        id: 1,
+        columnId: 1,
+        type: 'dish',
+        version: '1.0.0',
+        index: 0,
+        isTemplate: true,
+        props: {'name': 'Template Dish', 'price': 10.0, 'allergens': []},
+      );
 
-        await tester.pumpWidget(buildWithWidgets([templateWidget]));
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(buildWithWidgets([templateWidget]));
+      await tester.pumpAndSettle();
 
-        // Template widget should NOT have a LongPressDraggable wrapper
-        expect(find.byKey(const Key('widget_1')), findsNothing);
-      },
-    );
+      // Template widget should NOT have a LongPressDraggable wrapper
+      expect(find.byKey(const Key('widget_1')), findsNothing);
+    });
 
-    testWidgets(
-      'should show lock icon on template widget',
-      (tester) async {
-        const templateWidget = WidgetInstance(
-          id: 1,
-          columnId: 1,
-          type: 'dish',
-          version: '1.0.0',
-          index: 0,
-          isTemplate: true,
-          props: {
-            'name': 'Template Dish',
-            'price': 10.0,
-            'allergens': [],
-          },
-        );
+    testWidgets('should show lock icon on template widget', (tester) async {
+      const templateWidget = WidgetInstance(
+        id: 1,
+        columnId: 1,
+        type: 'dish',
+        version: '1.0.0',
+        index: 0,
+        isTemplate: true,
+        props: {'name': 'Template Dish', 'price': 10.0, 'allergens': []},
+      );
 
-        await tester.pumpWidget(buildWithWidgets([templateWidget]));
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(buildWithWidgets([templateWidget]));
+      await tester.pumpAndSettle();
 
-        // Should show a lock icon
-        expect(find.byIcon(Icons.lock), findsOneWidget);
-      },
-    );
+      // Should show a lock icon
+      expect(find.byIcon(Icons.lock), findsOneWidget);
+    });
 
-    testWidgets(
-      'should keep regular widget fully editable and draggable',
-      (tester) async {
-        const regularWidget = WidgetInstance(
-          id: 2,
-          columnId: 1,
-          type: 'dish',
-          version: '1.0.0',
-          index: 0,
-          isTemplate: false,
-          props: {
-            'name': 'Regular Dish',
-            'price': 15.0,
-            'allergens': [],
-          },
-        );
+    testWidgets('should keep regular widget fully editable and draggable', (
+      tester,
+    ) async {
+      const regularWidget = WidgetInstance(
+        id: 2,
+        columnId: 1,
+        type: 'dish',
+        version: '1.0.0',
+        index: 0,
+        isTemplate: false,
+        props: {'name': 'Regular Dish', 'price': 15.0, 'allergens': []},
+      );
 
-        await tester.pumpWidget(buildWithWidgets([regularWidget]));
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(buildWithWidgets([regularWidget]));
+      await tester.pumpAndSettle();
 
-        // Regular widget should have LongPressDraggable wrapper (key = widget_2)
-        expect(find.byKey(const Key('widget_2')), findsOneWidget);
+      // Regular widget should have LongPressDraggable wrapper (key = widget_2)
+      expect(find.byKey(const Key('widget_2')), findsOneWidget);
 
-        // No lock icon
-        expect(find.byIcon(Icons.lock), findsNothing);
-      },
-    );
+      // No lock icon
+      expect(find.byIcon(Icons.lock), findsNothing);
+    });
   });
 }

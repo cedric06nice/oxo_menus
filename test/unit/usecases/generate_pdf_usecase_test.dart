@@ -820,10 +820,7 @@ void main() {
 
       test('should render dish with dietary type', () async {
         final result = await useCase.execute(
-          menuWithStyleAndWidget(
-            null,
-            makeDish(dietary: DietaryType.vegan),
-          ),
+          menuWithStyleAndWidget(null, makeDish(dietary: DietaryType.vegan)),
         );
         expect(result.isSuccess, true);
       });
@@ -1044,10 +1041,7 @@ void main() {
                         type: 'text',
                         version: '1.0.0',
                         index: 0,
-                        props: {
-                          'text': 'FOOTER',
-                          'align': 'center',
-                        },
+                        props: {'text': 'FOOTER', 'align': 'center'},
                       ),
                     ],
                   ),
@@ -1107,10 +1101,7 @@ void main() {
                         type: 'text',
                         version: '1.0.0',
                         index: 0,
-                        props: {
-                          'text': 'HEADER',
-                          'align': 'center',
-                        },
+                        props: {'text': 'HEADER', 'align': 'center'},
                       ),
                     ],
                   ),
@@ -1144,10 +1135,7 @@ void main() {
                         type: 'text',
                         version: '1.0.0',
                         index: 0,
-                        props: {
-                          'text': 'FOOTER',
-                          'align': 'center',
-                        },
+                        props: {'text': 'FOOTER', 'align': 'center'},
                       ),
                     ],
                   ),

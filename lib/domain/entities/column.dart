@@ -16,6 +16,7 @@ abstract class Column with _$Column {
     int? flex,
     double? width,
     StyleConfig? styleConfig,
+    @Default(true) bool isDroppable,
     DateTime? dateCreated,
     DateTime? dateUpdated,
   }) = _Column;

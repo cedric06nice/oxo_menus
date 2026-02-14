@@ -40,8 +40,9 @@ void main() {
           'status': 'draft',
         };
 
-        when(() => mockDataSource.createItem<PageDto>(any()))
-            .thenAnswer((_) async => createdJson);
+        when(
+          () => mockDataSource.createItem<PageDto>(any()),
+        ).thenAnswer((_) async => createdJson);
 
         // Act
         final result = await repository.create(input);
@@ -50,9 +51,11 @@ void main() {
         expect(result.isSuccess, true);
         expect(result.valueOrNull!.type, PageType.header);
 
-        final captured = verify(
-          () => mockDataSource.createItem<PageDto>(captureAny()),
-        ).captured.single as PageDto;
+        final captured =
+            verify(
+                  () => mockDataSource.createItem<PageDto>(captureAny()),
+                ).captured.single
+                as PageDto;
         expect(captured.getValue(forKey: 'type'), 'header');
       });
 
@@ -60,15 +63,29 @@ void main() {
         // Arrange
         const menuId = 1;
         final pagesJson = [
-          {'id': 1, 'menu': menuId, 'index': 0, 'type': 'header', 'status': 'draft'},
-          {'id': 2, 'menu': menuId, 'index': 1, 'type': 'content', 'status': 'draft'},
+          {
+            'id': 1,
+            'menu': menuId,
+            'index': 0,
+            'type': 'header',
+            'status': 'draft',
+          },
+          {
+            'id': 2,
+            'menu': menuId,
+            'index': 1,
+            'type': 'content',
+            'status': 'draft',
+          },
         ];
 
-        when(() => mockDataSource.getItems<PageDto>(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-            )).thenAnswer((_) async => pagesJson);
+        when(
+          () => mockDataSource.getItems<PageDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => pagesJson);
 
         // Act
         final result = await repository.getAllForMenu(menuId);
@@ -79,13 +96,15 @@ void main() {
         expect(pages[0].type, PageType.header);
         expect(pages[1].type, PageType.content);
 
-        final captured = verify(
-          () => mockDataSource.getItems<PageDto>(
-            filter: any(named: 'filter'),
-            fields: captureAny(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).captured.single as List<String>;
+        final captured =
+            verify(
+                  () => mockDataSource.getItems<PageDto>(
+                    filter: any(named: 'filter'),
+                    fields: captureAny(named: 'fields'),
+                    sort: any(named: 'sort'),
+                  ),
+                ).captured.single
+                as List<String>;
         expect(captured, contains('type'));
       });
     });

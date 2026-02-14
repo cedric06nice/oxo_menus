@@ -115,10 +115,7 @@ class _ImageEditDialogState extends State<ImageEditDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: _handleSave,
-          child: const Text('Save'),
-        ),
+        ElevatedButton(onPressed: _handleSave, child: const Text('Save')),
       ],
     );
   }

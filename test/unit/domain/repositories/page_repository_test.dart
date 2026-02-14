@@ -16,11 +16,7 @@ void main() {
     });
 
     test('should default type to PageType.content', () {
-      const input = CreatePageInput(
-        menuId: 1,
-        name: 'Page 1',
-        index: 0,
-      );
+      const input = CreatePageInput(menuId: 1, name: 'Page 1', index: 0);
 
       expect(input.type, PageType.content);
     });

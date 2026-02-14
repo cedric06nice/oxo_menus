@@ -205,11 +205,7 @@ void main() {
       });
 
       test('should handle empty name with dietary', () {
-        const props = DishProps(
-          name: '',
-          price: 0,
-          dietary: DietaryType.vegan,
-        );
+        const props = DishProps(name: '', price: 0, dietary: DietaryType.vegan);
         expect(props.displayName, ' (Ve)');
       });
     });

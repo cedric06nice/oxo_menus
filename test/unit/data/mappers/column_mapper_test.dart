@@ -101,6 +101,39 @@ void main() {
         expect(entity.width, 175.5);
         expect(entity.width, isA<double>());
       });
+
+      test('toEntity maps is_droppable: false → isDroppable: false', () {
+        // Arrange
+        final dto = ColumnDto({
+          'id': 6,
+          'index': 0,
+          'width': 150,
+          'container': 1,
+          'is_droppable': false,
+        });
+
+        // Act
+        final entity = ColumnMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.isDroppable, false);
+      });
+
+      test('toEntity defaults to true when field absent', () {
+        // Arrange
+        final dto = ColumnDto({
+          'id': 7,
+          'index': 0,
+          'width': 150,
+          'container': 1,
+        });
+
+        // Act
+        final entity = ColumnMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.isDroppable, true);
+      });
     });
 
     group('toDto', () {
@@ -181,6 +214,40 @@ void main() {
 
         // Assert
         expect(dto.width, 175); // Rounded down
+      });
+
+      test('toDto maps isDroppable: false → is_droppable: false', () {
+        // Arrange
+        final entity = Column(
+          id: 6,
+          containerId: 1,
+          index: 0,
+          width: 150.0,
+          isDroppable: false,
+        );
+
+        // Act
+        final dto = ColumnMapper.toDto(entity);
+
+        // Assert
+        expect(dto.isDroppable, false);
+      });
+
+      test('toDto maps default true correctly', () {
+        // Arrange
+        final entity = Column(
+          id: 7,
+          containerId: 1,
+          index: 0,
+          width: 150.0,
+          // isDroppable defaults to true
+        );
+
+        // Act
+        final dto = ColumnMapper.toDto(entity);
+
+        // Assert
+        expect(dto.isDroppable, true);
       });
     });
   });

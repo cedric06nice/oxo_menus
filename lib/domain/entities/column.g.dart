@@ -15,6 +15,7 @@ _Column _$ColumnFromJson(Map<String, dynamic> json) => _Column(
   styleConfig: json['styleConfig'] == null
       ? null
       : StyleConfig.fromJson(json['styleConfig'] as Map<String, dynamic>),
+  isDroppable: json['isDroppable'] as bool? ?? true,
   dateCreated: json['dateCreated'] == null
       ? null
       : DateTime.parse(json['dateCreated'] as String),
@@ -30,6 +31,7 @@ Map<String, dynamic> _$ColumnToJson(_Column instance) => <String, dynamic>{
   'flex': instance.flex,
   'width': instance.width,
   'styleConfig': instance.styleConfig,
+  'isDroppable': instance.isDroppable,
   'dateCreated': instance.dateCreated?.toIso8601String(),
   'dateUpdated': instance.dateUpdated?.toIso8601String(),
 };

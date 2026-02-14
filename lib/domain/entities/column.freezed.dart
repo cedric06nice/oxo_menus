@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Column {
 
- int get id; int get containerId; int get index; int? get flex; double? get width; StyleConfig? get styleConfig; DateTime? get dateCreated; DateTime? get dateUpdated;
+ int get id; int get containerId; int get index; int? get flex; double? get width; StyleConfig? get styleConfig; bool get isDroppable; DateTime? get dateCreated; DateTime? get dateUpdated;
 /// Create a copy of Column
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ColumnCopyWith<Column> get copyWith => _$ColumnCopyWithImpl<Column>(this as Col
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Column&&(identical(other.id, id) || other.id == id)&&(identical(other.containerId, containerId) || other.containerId == containerId)&&(identical(other.index, index) || other.index == index)&&(identical(other.flex, flex) || other.flex == flex)&&(identical(other.width, width) || other.width == width)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Column&&(identical(other.id, id) || other.id == id)&&(identical(other.containerId, containerId) || other.containerId == containerId)&&(identical(other.index, index) || other.index == index)&&(identical(other.flex, flex) || other.flex == flex)&&(identical(other.width, width) || other.width == width)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.isDroppable, isDroppable) || other.isDroppable == isDroppable)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,containerId,index,flex,width,styleConfig,dateCreated,dateUpdated);
+int get hashCode => Object.hash(runtimeType,id,containerId,index,flex,width,styleConfig,isDroppable,dateCreated,dateUpdated);
 
 @override
 String toString() {
-  return 'Column(id: $id, containerId: $containerId, index: $index, flex: $flex, width: $width, styleConfig: $styleConfig, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
+  return 'Column(id: $id, containerId: $containerId, index: $index, flex: $flex, width: $width, styleConfig: $styleConfig, isDroppable: $isDroppable, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ColumnCopyWith<$Res>  {
   factory $ColumnCopyWith(Column value, $Res Function(Column) _then) = _$ColumnCopyWithImpl;
 @useResult
 $Res call({
- int id, int containerId, int index, int? flex, double? width, StyleConfig? styleConfig, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int containerId, int index, int? flex, double? width, StyleConfig? styleConfig, bool isDroppable, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -65,7 +65,7 @@ class _$ColumnCopyWithImpl<$Res>
 
 /// Create a copy of Column
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? containerId = null,Object? index = null,Object? flex = freezed,Object? width = freezed,Object? styleConfig = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? containerId = null,Object? index = null,Object? flex = freezed,Object? width = freezed,Object? styleConfig = freezed,Object? isDroppable = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,containerId: null == containerId ? _self.containerId : containerId // ignore: cast_nullable_to_non_nullable
@@ -73,7 +73,8 @@ as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_no
 as int,flex: freezed == flex ? _self.flex : flex // ignore: cast_nullable_to_non_nullable
 as int?,width: freezed == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as double?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
-as StyleConfig?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
+as StyleConfig?,isDroppable: null == isDroppable ? _self.isDroppable : isDroppable // ignore: cast_nullable_to_non_nullable
+as bool,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
 as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
@@ -172,10 +173,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int containerId,  int index,  int? flex,  double? width,  StyleConfig? styleConfig,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int containerId,  int index,  int? flex,  double? width,  StyleConfig? styleConfig,  bool isDroppable,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Column() when $default != null:
-return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_that.styleConfig,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_that.styleConfig,_that.isDroppable,_that.dateCreated,_that.dateUpdated);case _:
   return orElse();
 
 }
@@ -193,10 +194,10 @@ return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int containerId,  int index,  int? flex,  double? width,  StyleConfig? styleConfig,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int containerId,  int index,  int? flex,  double? width,  StyleConfig? styleConfig,  bool isDroppable,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
 switch (_that) {
 case _Column():
-return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_that.styleConfig,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_that.styleConfig,_that.isDroppable,_that.dateCreated,_that.dateUpdated);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -213,10 +214,10 @@ return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int containerId,  int index,  int? flex,  double? width,  StyleConfig? styleConfig,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int containerId,  int index,  int? flex,  double? width,  StyleConfig? styleConfig,  bool isDroppable,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
 switch (_that) {
 case _Column() when $default != null:
-return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_that.styleConfig,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_that.styleConfig,_that.isDroppable,_that.dateCreated,_that.dateUpdated);case _:
   return null;
 
 }
@@ -228,7 +229,7 @@ return $default(_that.id,_that.containerId,_that.index,_that.flex,_that.width,_t
 @JsonSerializable()
 
 class _Column extends Column {
-  const _Column({required this.id, required this.containerId, required this.index, this.flex, this.width, this.styleConfig, this.dateCreated, this.dateUpdated}): super._();
+  const _Column({required this.id, required this.containerId, required this.index, this.flex, this.width, this.styleConfig, this.isDroppable = true, this.dateCreated, this.dateUpdated}): super._();
   factory _Column.fromJson(Map<String, dynamic> json) => _$ColumnFromJson(json);
 
 @override final  int id;
@@ -237,6 +238,7 @@ class _Column extends Column {
 @override final  int? flex;
 @override final  double? width;
 @override final  StyleConfig? styleConfig;
+@override@JsonKey() final  bool isDroppable;
 @override final  DateTime? dateCreated;
 @override final  DateTime? dateUpdated;
 
@@ -253,16 +255,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Column&&(identical(other.id, id) || other.id == id)&&(identical(other.containerId, containerId) || other.containerId == containerId)&&(identical(other.index, index) || other.index == index)&&(identical(other.flex, flex) || other.flex == flex)&&(identical(other.width, width) || other.width == width)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Column&&(identical(other.id, id) || other.id == id)&&(identical(other.containerId, containerId) || other.containerId == containerId)&&(identical(other.index, index) || other.index == index)&&(identical(other.flex, flex) || other.flex == flex)&&(identical(other.width, width) || other.width == width)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.isDroppable, isDroppable) || other.isDroppable == isDroppable)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,containerId,index,flex,width,styleConfig,dateCreated,dateUpdated);
+int get hashCode => Object.hash(runtimeType,id,containerId,index,flex,width,styleConfig,isDroppable,dateCreated,dateUpdated);
 
 @override
 String toString() {
-  return 'Column(id: $id, containerId: $containerId, index: $index, flex: $flex, width: $width, styleConfig: $styleConfig, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
+  return 'Column(id: $id, containerId: $containerId, index: $index, flex: $flex, width: $width, styleConfig: $styleConfig, isDroppable: $isDroppable, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
 }
 
 
@@ -273,7 +275,7 @@ abstract mixin class _$ColumnCopyWith<$Res> implements $ColumnCopyWith<$Res> {
   factory _$ColumnCopyWith(_Column value, $Res Function(_Column) _then) = __$ColumnCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int containerId, int index, int? flex, double? width, StyleConfig? styleConfig, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int containerId, int index, int? flex, double? width, StyleConfig? styleConfig, bool isDroppable, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -290,7 +292,7 @@ class __$ColumnCopyWithImpl<$Res>
 
 /// Create a copy of Column
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? containerId = null,Object? index = null,Object? flex = freezed,Object? width = freezed,Object? styleConfig = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? containerId = null,Object? index = null,Object? flex = freezed,Object? width = freezed,Object? styleConfig = freezed,Object? isDroppable = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_Column(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,containerId: null == containerId ? _self.containerId : containerId // ignore: cast_nullable_to_non_nullable
@@ -298,7 +300,8 @@ as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_no
 as int,flex: freezed == flex ? _self.flex : flex // ignore: cast_nullable_to_non_nullable
 as int?,width: freezed == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as double?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
-as StyleConfig?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
+as StyleConfig?,isDroppable: null == isDroppable ? _self.isDroppable : isDroppable // ignore: cast_nullable_to_non_nullable
+as bool,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
 as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));

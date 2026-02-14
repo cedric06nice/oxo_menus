@@ -4,11 +4,7 @@ part 'page.freezed.dart';
 part 'page.g.dart';
 
 /// Type of page in a menu
-enum PageType {
-  content,
-  header,
-  footer,
-}
+enum PageType { content, header, footer }
 
 /// Represents a page within a menu.
 @freezed

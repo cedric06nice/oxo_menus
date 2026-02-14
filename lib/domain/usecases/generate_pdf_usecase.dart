@@ -351,10 +351,7 @@ class GeneratePdfUseCase {
   ///
   /// Note: Currently renders a placeholder. Full image rendering would require
   /// fetching image bytes from Directus server, which needs HTTP client injection.
-  pw.Widget _buildImageWidget(
-    WidgetInstance widget,
-    StyleConfig? styleConfig,
-  ) {
+  pw.Widget _buildImageWidget(WidgetInstance widget, StyleConfig? styleConfig) {
     final props = ImageProps.fromJson(widget.props);
     final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
 

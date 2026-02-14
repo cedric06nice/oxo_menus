@@ -11,10 +11,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ImageEditDialog(
-              props: props,
-              onSave: (_) {},
-            ),
+            body: ImageEditDialog(props: props, onSave: (_) {}),
           ),
         ),
       );
@@ -22,36 +19,36 @@ void main() {
       expect(find.text('test-file-123'), findsOneWidget);
     });
 
-    testWidgets('should show alignment selector with left/center/right options',
-        (tester) async {
-      const props = ImageProps(fileId: 'test-file-123', align: 'center');
+    testWidgets(
+      'should show alignment selector with left/center/right options',
+      (tester) async {
+        const props = ImageProps(fileId: 'test-file-123', align: 'center');
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ImageEditDialog(
-              props: props,
-              onSave: (_) {},
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: ImageEditDialog(props: props, onSave: (_) {}),
             ),
           ),
-        ),
-      );
+        );
 
-      // Find the dropdown
-      expect(find.byType(DropdownButtonFormField<String>), findsWidgets);
+        // Find the dropdown
+        expect(find.byType(DropdownButtonFormField<String>), findsWidgets);
 
-      // Tap the alignment dropdown to open it
-      await tester.tap(find.text('Center'));
-      await tester.pumpAndSettle();
+        // Tap the alignment dropdown to open it
+        await tester.tap(find.text('Center'));
+        await tester.pumpAndSettle();
 
-      // Check that all alignment options are available
-      expect(find.text('Left').hitTestable(), findsOneWidget);
-      expect(find.text('Center').hitTestable(), findsWidgets);
-      expect(find.text('Right').hitTestable(), findsOneWidget);
-    });
+        // Check that all alignment options are available
+        expect(find.text('Left').hitTestable(), findsOneWidget);
+        expect(find.text('Center').hitTestable(), findsWidgets);
+        expect(find.text('Right').hitTestable(), findsOneWidget);
+      },
+    );
 
-    testWidgets('should call onSave with updated props when saved',
-        (tester) async {
+    testWidgets('should call onSave with updated props when saved', (
+      tester,
+    ) async {
       const props = ImageProps(fileId: 'original-file');
       ImageProps? savedProps;
 
@@ -120,16 +117,10 @@ void main() {
       );
 
       // Enter width
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Width'),
-        '200',
-      );
+      await tester.enterText(find.widgetWithText(TextField, 'Width'), '200');
 
       // Enter height
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Height'),
-        '150',
-      );
+      await tester.enterText(find.widgetWithText(TextField, 'Height'), '150');
 
       // Save
       await tester.tap(find.text('Save'));

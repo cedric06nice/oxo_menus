@@ -40,8 +40,9 @@ DishProps _migrateDishProps(Map<String, dynamic> json) {
         if (info != null) migratedAllergenInfo.add(info);
       }
     }
-    updatedJson['allergenInfo'] =
-        migratedAllergenInfo.map((a) => a.toJson()).toList();
+    updatedJson['allergenInfo'] = migratedAllergenInfo
+        .map((a) => a.toJson())
+        .toList();
     updatedJson['allergens'] = <String>[];
   }
 

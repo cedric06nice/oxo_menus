@@ -32,6 +32,9 @@ class ColumnRepositoryImpl implements ColumnRepository {
           forKey: 'style_json',
         );
       }
+      if (input.isDroppable != null) {
+        item.setValue(input.isDroppable, forKey: 'is_droppable');
+      }
 
       final data = await dataSource.createItem<ColumnDto>(item);
 
@@ -62,6 +65,7 @@ class ColumnRepositoryImpl implements ColumnRepository {
           'index',
           'width',
           'style_json',
+          'is_droppable',
           'widgets.id',
           'widgets.status',
           'widgets.date_created',
@@ -102,6 +106,7 @@ class ColumnRepositoryImpl implements ColumnRepository {
           'index',
           'width',
           'style_json',
+          'is_droppable',
           'widgets.id',
           'widgets.status',
           'widgets.date_created',
@@ -146,6 +151,9 @@ class ColumnRepositoryImpl implements ColumnRepository {
           StyleConfigMapper.toJson(input.styleConfig!),
           forKey: 'style_json',
         );
+      }
+      if (input.isDroppable != null) {
+        item.setValue(input.isDroppable, forKey: 'is_droppable');
       }
 
       final data = await dataSource.updateItem<ColumnDto>(item);

@@ -104,6 +104,42 @@ void main() {
         expect(result.isFailure, true);
         expect(result.errorOrNull, isA<ValidationError>());
       });
+
+      test(
+        'create with isDroppable: false returns entity with isDroppable: false',
+        () async {
+          // Arrange
+          const inputWithDroppable = CreateColumnInput(
+            containerId: 1,
+            index: 0,
+            isDroppable: false,
+          );
+
+          when(() => mockDataSource.createItem<ColumnDto>(any())).thenAnswer(
+            (_) async => {
+              'id': 4,
+              'container': 1,
+              'index': 0,
+              'width': 100,
+              'is_droppable': false,
+            },
+          );
+
+          // Act
+          final result = await repository.create(inputWithDroppable);
+
+          // Assert
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull!.isDroppable, false);
+
+          // Verify setValue was called for is_droppable
+          final captured = verify(
+            () => mockDataSource.createItem<ColumnDto>(captureAny()),
+          ).captured;
+          final dto = captured.first as ColumnDto;
+          expect(dto.isDroppable, false);
+        },
+      );
     });
 
     group('getAllForContainer', () {
@@ -160,6 +196,32 @@ void main() {
         // Assert
         expect(result.isSuccess, true);
         expect(result.valueOrNull!.length, 0);
+      });
+
+      test('getAllForContainer fields list includes is_droppable', () async {
+        // Arrange
+        when(
+          () => mockDataSource.getItems<ColumnDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => columnsJson);
+
+        // Act
+        await repository.getAllForContainer(containerId);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.getItems<ColumnDto>(
+            filter: any(named: 'filter'),
+            fields: captureAny(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
+
+        final fieldsList = captured[0] as List<String>;
+        expect(fieldsList, contains('is_droppable'));
       });
     });
 
@@ -219,6 +281,30 @@ void main() {
         // Assert
         expect(result.isFailure, true);
         expect(result.errorOrNull, isA<NotFoundError>());
+      });
+
+      test('getById fields list includes is_droppable', () async {
+        // Arrange
+        when(
+          () => mockDataSource.getItem<ColumnDto>(
+            columnId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => columnJson);
+
+        // Act
+        await repository.getById(columnId);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.getItem<ColumnDto>(
+            columnId,
+            fields: captureAny(named: 'fields'),
+          ),
+        ).captured;
+
+        final fieldsList = captured[0] as List<String>;
+        expect(fieldsList, contains('is_droppable'));
       });
     });
 
@@ -310,6 +396,47 @@ void main() {
         expect(result.isFailure, true);
         expect(result.errorOrNull, isA<NotFoundError>());
       });
+
+      test(
+        'update with isDroppable: false calls setValue and returns correct entity',
+        () async {
+          // Arrange
+          const inputWithDroppable = UpdateColumnInput(
+            id: 1,
+            isDroppable: false,
+          );
+
+          when(
+            () => mockDataSource.getItem<ColumnDto>(
+              any(),
+              fields: any(named: 'fields'),
+            ),
+          ).thenAnswer((_) async => existingJson);
+          when(() => mockDataSource.updateItem<ColumnDto>(any())).thenAnswer(
+            (_) async => {
+              'id': 1,
+              'container': 1,
+              'index': 0,
+              'width': 100,
+              'is_droppable': false,
+            },
+          );
+
+          // Act
+          final result = await repository.update(inputWithDroppable);
+
+          // Assert
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull!.isDroppable, false);
+
+          // Verify setValue was called for is_droppable
+          final captured = verify(
+            () => mockDataSource.updateItem<ColumnDto>(captureAny()),
+          ).captured;
+          final dto = captured.first as ColumnDto;
+          expect(dto.isDroppable, false);
+        },
+      );
     });
 
     group('delete', () {

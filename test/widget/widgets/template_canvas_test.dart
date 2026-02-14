@@ -450,7 +450,9 @@ void main() {
   });
 
   group('PageCanvas - Header/Footer', () {
-    testWidgets('should render header containers above content', (tester) async {
+    testWidgets('should render header containers above content', (
+      tester,
+    ) async {
       // Arrange
       const headerPage = PageWithContainers(
         page: entity.Page(
@@ -515,7 +517,9 @@ void main() {
       expect(headerY, lessThan(contentY));
     });
 
-    testWidgets('should render footer containers below content', (tester) async {
+    testWidgets('should render footer containers below content', (
+      tester,
+    ) async {
       // Arrange
       const footerPage = PageWithContainers(
         page: entity.Page(

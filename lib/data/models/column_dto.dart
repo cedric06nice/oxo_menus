@@ -7,6 +7,7 @@ import 'package:oxo_menus/data/models/widget_dto.dart';
 class ColumnDto extends DirectusItem {
   int get index => getValue(forKey: "index");
   num get width => getValue(forKey: "width"); // Accept both int and double
+  bool get isDroppable => getValue(forKey: "is_droppable") ?? true;
   DateTime? get dateCreated => getOptionalDateTime(forKey: "date_created");
   DateTime? get dateUpdated => getOptionalDateTime(forKey: "date_updated");
   String? get userUpdated => getValue(forKey: "user_updated");
@@ -53,12 +54,16 @@ class ColumnDto extends DirectusItem {
     Map<String, dynamic>? styleJson,
     int? container,
     List<int>? widgets,
+    bool? isDroppable,
   }) : super.newItem() {
     setValue(index, forKey: "index");
     setValue(width, forKey: "width");
     setValue(styleJson, forKey: "style_json");
     setValue(container, forKey: "container");
     setValue(widgets, forKey: "widgets");
+    if (isDroppable != null) {
+      setValue(isDroppable, forKey: "is_droppable");
+    }
   }
 
   ColumnDto(super.rawReceivedData);

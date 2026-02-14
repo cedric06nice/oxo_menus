@@ -252,7 +252,9 @@ class _AdminTemplateEditorPageState
   }
 
   Future<void> _addHeader() async {
-    final result = await ref.read(pageRepositoryProvider).create(
+    final result = await ref
+        .read(pageRepositoryProvider)
+        .create(
           CreatePageInput(
             menuId: widget.menuId,
             name: 'Header',
@@ -281,7 +283,9 @@ class _AdminTemplateEditorPageState
     final confirmed = await _showDeleteConfirmation();
     if (confirmed != true) return;
 
-    final result = await ref.read(pageRepositoryProvider).delete(_headerPage!.id);
+    final result = await ref
+        .read(pageRepositoryProvider)
+        .delete(_headerPage!.id);
 
     if (result.isSuccess) {
       await _loadTemplate();
@@ -289,7 +293,9 @@ class _AdminTemplateEditorPageState
   }
 
   Future<void> _addFooter() async {
-    final result = await ref.read(pageRepositoryProvider).create(
+    final result = await ref
+        .read(pageRepositoryProvider)
+        .create(
           CreatePageInput(
             menuId: widget.menuId,
             name: 'Footer',
@@ -318,7 +324,9 @@ class _AdminTemplateEditorPageState
     final confirmed = await _showDeleteConfirmation();
     if (confirmed != true) return;
 
-    final result = await ref.read(pageRepositoryProvider).delete(_footerPage!.id);
+    final result = await ref
+        .read(pageRepositoryProvider)
+        .delete(_footerPage!.id);
 
     if (result.isSuccess) {
       await _loadTemplate();
@@ -456,6 +464,24 @@ class _AdminTemplateEditorPageState
       if (idx != -1) {
         setState(() {
           entry.value[idx] = entry.value[idx].copyWith(styleConfig: newStyle);
+        });
+        break;
+      }
+    }
+  }
+
+  Future<void> _onColumnDroppableChanged(int columnId, bool isDroppable) async {
+    await ref
+        .read(columnRepositoryProvider)
+        .update(UpdateColumnInput(id: columnId, isDroppable: isDroppable));
+    // Update local state
+    for (final entry in _columns.entries) {
+      final idx = entry.value.indexWhere((c) => c.id == columnId);
+      if (idx != -1) {
+        setState(() {
+          entry.value[idx] = entry.value[idx].copyWith(
+            isDroppable: isDroppable,
+          );
         });
         break;
       }
@@ -1006,6 +1032,17 @@ class _AdminTemplateEditorPageState
             tilePadding: EdgeInsets.zero,
             childrenPadding: EdgeInsets.zero,
             children: [
+              SwitchListTile(
+                key: Key('is_droppable_toggle_${column.id}'),
+                title: const Text('Allow Widget Drops'),
+                subtitle: const Text(
+                  'When off, this column is locked in the menu editor',
+                ),
+                value: column.isDroppable,
+                onChanged: (value) =>
+                    _onColumnDroppableChanged(column.id, value),
+                dense: true,
+              ),
               PageStyleSection(
                 title: 'Column Style',
                 styleConfig: column.styleConfig,
@@ -1018,8 +1055,7 @@ class _AdminTemplateEditorPageState
           // Widget drop zones and widgets
           for (int i = 0; i <= widgets.length; i++) ...[
             _buildDropZone(column.id, i, currentHoverIndex == i, registry),
-            if (i < widgets.length)
-              _buildWidgetItem(widgets[i], column.id),
+            if (i < widgets.length) _buildWidgetItem(widgets[i], column.id),
           ],
 
           // Empty state

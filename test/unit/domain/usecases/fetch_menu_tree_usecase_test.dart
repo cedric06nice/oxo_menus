@@ -51,8 +51,19 @@ void main() {
 
   group('FetchMenuTreeUseCase', () {
     test('MenuTree should support optional headerPage and footerPage', () {
-      const menu = Menu(id: 1, name: 'Test', status: Status.published, version: '1.0.0');
-      const header = Page(id: 2, menuId: 1, name: 'Header', index: 0, type: PageType.header);
+      const menu = Menu(
+        id: 1,
+        name: 'Test',
+        status: Status.published,
+        version: '1.0.0',
+      );
+      const header = Page(
+        id: 2,
+        menuId: 1,
+        name: 'Header',
+        index: 0,
+        type: PageType.header,
+      );
 
       final tree1 = MenuTree(menu: menu, pages: const []);
       final tree2 = MenuTree(
@@ -70,16 +81,51 @@ void main() {
     test('execute should separate pages by type', () async {
       // Arrange
       const testMenuId = 1;
-      const testMenu = Menu(id: testMenuId, name: 'Test Menu', status: Status.published, version: '1.0.0');
-      const headerPage = Page(id: 1, menuId: testMenuId, name: 'Header', index: 0, type: PageType.header);
-      const contentPage1 = Page(id: 2, menuId: testMenuId, name: 'Page 1', index: 1, type: PageType.content);
-      const contentPage2 = Page(id: 3, menuId: testMenuId, name: 'Page 2', index: 2, type: PageType.content);
-      const footerPage = Page(id: 4, menuId: testMenuId, name: 'Footer', index: 3, type: PageType.footer);
+      const testMenu = Menu(
+        id: testMenuId,
+        name: 'Test Menu',
+        status: Status.published,
+        version: '1.0.0',
+      );
+      const headerPage = Page(
+        id: 1,
+        menuId: testMenuId,
+        name: 'Header',
+        index: 0,
+        type: PageType.header,
+      );
+      const contentPage1 = Page(
+        id: 2,
+        menuId: testMenuId,
+        name: 'Page 1',
+        index: 1,
+        type: PageType.content,
+      );
+      const contentPage2 = Page(
+        id: 3,
+        menuId: testMenuId,
+        name: 'Page 2',
+        index: 2,
+        type: PageType.content,
+      );
+      const footerPage = Page(
+        id: 4,
+        menuId: testMenuId,
+        name: 'Footer',
+        index: 3,
+        type: PageType.footer,
+      );
 
-      when(() => mockMenuRepo.getById(testMenuId)).thenAnswer((_) async => const Success(testMenu));
-      when(() => mockPageRepo.getAllForMenu(testMenuId))
-          .thenAnswer((_) async => const Success([headerPage, contentPage1, contentPage2, footerPage]));
-      when(() => mockContainerRepo.getAllForPage(any())).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepo.getById(testMenuId),
+      ).thenAnswer((_) async => const Success(testMenu));
+      when(() => mockPageRepo.getAllForMenu(testMenuId)).thenAnswer(
+        (_) async =>
+            const Success([headerPage, contentPage1, contentPage2, footerPage]),
+      );
+      when(
+        () => mockContainerRepo.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       final result = await useCase.execute(testMenuId);

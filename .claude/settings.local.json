@@ -27,7 +27,8 @@
       "Bash(tee:*)",
       "Read(//private/tmp/**)",
       "Bash(echo:*)",
-      "Bash(dart format:*)"
+      "Bash(dart format:*)",
+      "mcp__dart__run_tests"
     ]
   }
 }

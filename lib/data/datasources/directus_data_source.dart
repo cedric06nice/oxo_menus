@@ -308,18 +308,11 @@ class DirectusDataSource {
       );
     }
 
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('$_baseUrl/files'),
-    );
+    final request = http.MultipartRequest('POST', Uri.parse('$_baseUrl/files'));
 
     request.headers['Authorization'] = 'Bearer $accessToken';
     request.files.add(
-      http.MultipartFile.fromBytes(
-        'file',
-        bytes,
-        filename: filename,
-      ),
+      http.MultipartFile.fromBytes('file', bytes, filename: filename),
     );
 
     final streamedResponse = await request.send();

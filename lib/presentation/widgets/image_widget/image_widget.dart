@@ -9,11 +9,7 @@ class ImageWidget extends ConsumerWidget {
   final ImageProps props;
   final WidgetContext context;
 
-  const ImageWidget({
-    super.key,
-    required this.props,
-    required this.context,
-  });
+  const ImageWidget({super.key, required this.props, required this.context});
 
   @override
   Widget build(BuildContext buildContext, WidgetRef ref) {

@@ -17,6 +17,7 @@ class ColumnMapper {
       flex: null, // Don't hardcode flex - DTO doesn't have this field
       width: dto.width.toDouble(),
       styleConfig: json.isNotEmpty ? StyleConfigMapper.fromJson(json) : null,
+      isDroppable: dto.isDroppable,
       dateCreated: dto.dateCreated,
       dateUpdated: dto.dateUpdated,
     );
@@ -33,6 +34,7 @@ class ColumnMapper {
       'style_json': entity.styleConfig != null
           ? StyleConfigMapper.toJson(entity.styleConfig!)
           : null,
+      'is_droppable': entity.isDroppable,
       'date_created': entity.dateCreated?.toIso8601String(),
       'date_updated': entity.dateUpdated?.toIso8601String(),
     });

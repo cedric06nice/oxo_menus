@@ -38,6 +38,7 @@ abstract class CreateColumnInput with _$CreateColumnInput {
     int? flex,
     double? width,
     StyleConfig? styleConfig,
+    bool? isDroppable,
   }) = _CreateColumnInput;
 }
 
@@ -52,5 +53,6 @@ abstract class UpdateColumnInput with _$UpdateColumnInput {
     int? flex,
     double? width,
     StyleConfig? styleConfig,
+    bool? isDroppable,
   }) = _UpdateColumnInput;
 }

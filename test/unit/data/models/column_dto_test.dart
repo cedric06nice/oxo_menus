@@ -154,5 +154,37 @@ void main() {
         expect(dto.widgets![2].id, '30');
       });
     });
+
+    group('isDroppable', () {
+      test('isDroppable defaults to true when field absent', () {
+        // Arrange
+        final json = {"id": 1, "index": 0, "width": 150};
+
+        // Act
+        final dto = ColumnDto(json);
+
+        // Assert
+        expect(dto.isDroppable, true);
+      });
+
+      test('reads false when is_droppable: false in JSON', () {
+        // Arrange
+        final json = {"id": 1, "index": 0, "width": 150, "is_droppable": false};
+
+        // Act
+        final dto = ColumnDto(json);
+
+        // Assert
+        expect(dto.isDroppable, false);
+      });
+
+      test('newItem(isDroppable: false) round-trips correctly', () {
+        // Arrange & Act
+        final dto = ColumnDto.newItem(index: 0, width: 150, isDroppable: false);
+
+        // Assert
+        expect(dto.isDroppable, false);
+      });
+    });
   });
 }

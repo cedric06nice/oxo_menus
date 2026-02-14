@@ -458,27 +458,39 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Build interleaved list of drop zones and widgets
-          for (int i = 0; i <= widgets.length; i++) ...[
-            // Drop zone at position i
-            _buildDropZone(column.id, i, currentHoverIndex == i, registry),
+          if (column.isDroppable) ...[
+            // Build interleaved list of drop zones and widgets
+            for (int i = 0; i <= widgets.length; i++) ...[
+              // Drop zone at position i
+              _buildDropZone(column.id, i, currentHoverIndex == i, registry),
 
-            // Widget at position i (if exists)
-            if (i < widgets.length)
-              _buildWidgetItem(widgets[i], column.id, registry),
-          ],
+              // Widget at position i (if exists)
+              if (i < widgets.length)
+                _buildWidgetItem(widgets[i], column.id, registry),
+            ],
 
-          // Empty state (only show when no widgets and not hovering)
-          if (widgets.isEmpty && currentHoverIndex == -1)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Text(
-                  'Drop widgets here',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            // Empty state (only show when no widgets and not hovering)
+            if (widgets.isEmpty && currentHoverIndex == -1)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Text(
+                    'Drop widgets here',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
                 ),
               ),
-            ),
+          ] else ...[
+            // Non-droppable column: widgets only, no drop zones
+            for (final widget in widgets)
+              _buildWidgetItem(widget, column.id, registry),
+
+            // Empty state for locked column
+            if (widgets.isEmpty)
+              Center(
+                child: Icon(Icons.lock, color: Colors.grey[400], size: 16),
+              ),
+          ],
         ],
       ),
     );
@@ -586,10 +598,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
         margin: const EdgeInsets.only(bottom: 8),
         child: Stack(
           children: [
-            WidgetRenderer(
-              widgetInstance: widget,
-              isEditable: false,
-            ),
+            WidgetRenderer(widgetInstance: widget, isEditable: false),
             Positioned(
               top: 4,
               right: 4,

@@ -8,7 +8,9 @@ import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget.dart';
 
 void main() {
   group('DishWidget', () {
-    testWidgets('should display dish name uppercased and price', (tester) async {
+    testWidgets('should display dish name uppercased and price', (
+      tester,
+    ) async {
       const props = DishProps(name: 'Pasta Carbonara', price: 12.50);
 
       await tester.pumpWidget(
@@ -170,58 +172,62 @@ void main() {
       },
     );
 
-    testWidgets('should display dietary abbreviation inline with uppercased name', (tester) async {
-      const props = DishProps(
-        name: 'Salad',
-        price: 8.50,
-        dietary: DietaryType.vegan,
-      );
+    testWidgets(
+      'should display dietary abbreviation inline with uppercased name',
+      (tester) async {
+        const props = DishProps(
+          name: 'Salad',
+          price: 8.50,
+          dietary: DietaryType.vegan,
+        );
 
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: DishWidget(
-              props: props,
-              context: WidgetContext(isEditable: false),
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: DishWidget(
+                props: props,
+                context: WidgetContext(isEditable: false),
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Single Text widget with inline abbreviation
-      expect(find.text('SALAD (Ve)'), findsOneWidget);
-      // No Chip widgets
-      expect(find.byType(Chip), findsNothing);
-    });
+        // Single Text widget with inline abbreviation
+        expect(find.text('SALAD (Ve)'), findsOneWidget);
+        // No Chip widgets
+        expect(find.byType(Chip), findsNothing);
+      },
+    );
 
-    testWidgets('should display vegetarian abbreviation inline with allergens', (
-      tester,
-    ) async {
-      const props = DishProps(
-        name: 'Mixed Dish',
-        price: 15.0,
-        allergens: ['Nuts'],
-        dietary: DietaryType.vegetarian,
-      );
+    testWidgets(
+      'should display vegetarian abbreviation inline with allergens',
+      (tester) async {
+        const props = DishProps(
+          name: 'Mixed Dish',
+          price: 15.0,
+          allergens: ['Nuts'],
+          dietary: DietaryType.vegetarian,
+        );
 
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: DishWidget(
-              props: props,
-              context: WidgetContext(isEditable: false),
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: DishWidget(
+                props: props,
+                context: WidgetContext(isEditable: false),
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Name with dietary inline
-      expect(find.text('MIXED DISH (V)'), findsOneWidget);
-      // Allergen text
-      expect(find.text('NUTS'), findsOneWidget);
-      // No Chip widgets
-      expect(find.byType(Chip), findsNothing);
-    });
+        // Name with dietary inline
+        expect(find.text('MIXED DISH (V)'), findsOneWidget);
+        // Allergen text
+        expect(find.text('NUTS'), findsOneWidget);
+        // No Chip widgets
+        expect(find.byType(Chip), findsNothing);
+      },
+    );
 
     testWidgets('should open edit dialog when tapped in editable mode', (
       tester,
@@ -336,28 +342,33 @@ void main() {
       expect(find.byType(Card), findsOneWidget);
     });
 
-    testWidgets('edit dialog should show dietary dropdown with None selected by default', (tester) async {
-      const props = DishProps(name: 'Test Dish', price: 10.0);
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: DishWidget(
-              props: props,
-              context: WidgetContext(isEditable: true),
+    testWidgets(
+      'edit dialog should show dietary dropdown with None selected by default',
+      (tester) async {
+        const props = DishProps(name: 'Test Dish', price: 10.0);
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: DishWidget(
+                props: props,
+                context: WidgetContext(isEditable: true),
+              ),
             ),
           ),
-        ),
-      );
-      await tester.tap(find.byType(Card));
-      await tester.pumpAndSettle();
+        );
+        await tester.tap(find.byType(Card));
+        await tester.pumpAndSettle();
 
-      // Should show DropdownButton for dietary
-      expect(find.byType(DropdownButton<DietaryType?>), findsOneWidget);
-      // Should not show a TextField for dietary
-      expect(find.widgetWithText(TextField, 'Dietary'), findsNothing);
-    });
+        // Should show DropdownButton for dietary
+        expect(find.byType(DropdownButton<DietaryType?>), findsOneWidget);
+        // Should not show a TextField for dietary
+        expect(find.widgetWithText(TextField, 'Dietary'), findsNothing);
+      },
+    );
 
-    testWidgets('edit dialog should pre-select current dietary value', (tester) async {
+    testWidgets('edit dialog should pre-select current dietary value', (
+      tester,
+    ) async {
       const props = DishProps(
         name: 'Test Dish',
         price: 10.0,
@@ -380,7 +391,9 @@ void main() {
       expect(find.text('Vegetarian'), findsOneWidget);
     });
 
-    testWidgets('edit dialog dropdown should contain dietary options', (tester) async {
+    testWidgets('edit dialog dropdown should contain dietary options', (
+      tester,
+    ) async {
       const props = DishProps(name: 'Test Dish', price: 10.0);
 
       await tester.pumpWidget(
@@ -403,7 +416,9 @@ void main() {
       expect(find.text('None'), findsOneWidget);
     });
 
-    testWidgets('edit dialog should show pre-selected dietary in dropdown', (tester) async {
+    testWidgets('edit dialog should show pre-selected dietary in dropdown', (
+      tester,
+    ) async {
       const props = DishProps(
         name: 'Test Dish',
         price: 10.0,

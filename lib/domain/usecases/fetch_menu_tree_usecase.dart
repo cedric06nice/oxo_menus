@@ -118,12 +118,14 @@ class FetchMenuTreeUseCase {
       }
     }
 
-    return Success(MenuTree(
-      menu: menu,
-      pages: contentPages,
-      headerPage: headerPage,
-      footerPage: footerPage,
-    ));
+    return Success(
+      MenuTree(
+        menu: menu,
+        pages: contentPages,
+        headerPage: headerPage,
+        footerPage: footerPage,
+      ),
+    );
   }
 }
 
