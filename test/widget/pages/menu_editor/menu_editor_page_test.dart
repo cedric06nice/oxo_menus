@@ -207,7 +207,7 @@ void main() {
 
       // Assert
       expect(find.text('Test Menu'), findsOneWidget);
-      expect(find.text('Page 1'), findsOneWidget);
+      expect(find.text('Page 1'), findsNothing);
     });
   });
 
@@ -285,8 +285,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      expect(find.text('Page 1'), findsOneWidget);
-      expect(find.text('Container 1'), findsOneWidget);
+      expect(find.text('Page 1'), findsNothing);
+      expect(find.text('Container 1'), findsNothing);
       expect(find.text('Drop widgets here'), findsOneWidget);
     });
 
@@ -629,6 +629,102 @@ void main() {
       expect(find.byKey(const Key('drop_zone_1_0')), findsOneWidget);
       expect(find.text('Drop widgets here'), findsOneWidget);
     });
+
+    testWidgets('droppable column has light green background', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const page = entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+      const container = entity.Container(id: 1, pageId: 1, index: 0);
+      const column = entity.Column(
+        id: 1,
+        containerId: 1,
+        index: 0,
+        flex: 1,
+        isDroppable: true,
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([page]));
+      when(
+        () => mockContainerRepository.getAllForPage(1),
+      ).thenAnswer((_) async => const Success([container]));
+      when(
+        () => mockColumnRepository.getAllForContainer(1),
+      ).thenAnswer((_) async => const Success([column]));
+      when(
+        () => mockWidgetRepository.getAllForColumn(1),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert - column container has green background
+      final columnContainer = tester.widget<Container>(
+        find.byKey(const Key('column_1')),
+      );
+      final decoration = columnContainer.decoration as BoxDecoration;
+      expect(decoration.color, equals(Colors.green[50]));
+    });
+
+    testWidgets('non-droppable column does not have green background', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const page = entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+      const container = entity.Container(id: 1, pageId: 1, index: 0);
+      const column = entity.Column(
+        id: 1,
+        containerId: 1,
+        index: 0,
+        flex: 1,
+        isDroppable: false,
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([page]));
+      when(
+        () => mockContainerRepository.getAllForPage(1),
+      ).thenAnswer((_) async => const Success([container]));
+      when(
+        () => mockColumnRepository.getAllForContainer(1),
+      ).thenAnswer((_) async => const Success([column]));
+      when(
+        () => mockWidgetRepository.getAllForColumn(1),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert - column container has white background
+      final columnContainer = tester.widget<Container>(
+        find.byKey(const Key('column_1')),
+      );
+      final decoration = columnContainer.decoration as BoxDecoration;
+      expect(decoration.color, equals(Colors.white));
+    });
   });
 
   group('MenuEditorPage - Header/Footer Exclusion', () {
@@ -683,7 +779,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert — content is shown, header is not
-      expect(find.text('Page 1'), findsOneWidget);
+      expect(find.text('Page 1'), findsNothing);
       expect(find.text('Header'), findsNothing);
     });
 
@@ -738,7 +834,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert — content is shown, footer is not
-      expect(find.text('Page 1'), findsOneWidget);
+      expect(find.text('Page 1'), findsNothing);
       expect(find.text('Footer'), findsNothing);
     });
   });

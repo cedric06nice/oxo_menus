@@ -390,10 +390,6 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Page Header
-            Text(page.name, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-
             // Containers
             ...containers.map((container) => _buildContainerCard(container)),
           ],
@@ -405,38 +401,23 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   Widget _buildContainerCard(entity.Container container) {
     final columns = _columns[container.id] ?? [];
 
-    return Card(
-      color: Colors.grey[50],
-      margin: const EdgeInsets.only(top: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Container Header
-            if (container.name != null)
-              Text(
-                container.name!,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            const SizedBox(height: 8),
-
-            // Columns
-            if (columns.isNotEmpty)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: columns
-                    .map(
-                      (column) => Expanded(
-                        flex: column.flex ?? 1,
-                        child: _buildColumnCard(column),
-                      ),
-                    )
-                    .toList(),
-              ),
-          ],
-        ),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Columns
+        if (columns.isNotEmpty)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: columns
+                .map(
+                  (column) => Expanded(
+                    flex: column.flex ?? 1,
+                    child: _buildColumnCard(column),
+                  ),
+                )
+                .toList(),
+          ),
+      ],
     );
   }
 
@@ -447,12 +428,10 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
 
     return Container(
       key: Key('column_${column.id}'),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey[300]!),
         borderRadius: BorderRadius.circular(4),
-        color: Colors.white,
+        color: column.isDroppable ? Colors.green[50] : Colors.white,
       ),
       constraints: const BoxConstraints(minHeight: 100),
       child: Column(
