@@ -312,6 +312,7 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
+      await tester.ensureVisible(find.byKey(const Key('add_page_button')));
       await tester.tap(find.byKey(const Key('add_page_button')));
       await tester.pumpAndSettle();
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/presentation/widgets/common/edge_insets_editor.dart';
 
 class PageStyleSection extends StatefulWidget {
   final String title;
@@ -20,80 +21,21 @@ class PageStyleSection extends StatefulWidget {
 
 class _PageStyleSectionState extends State<PageStyleSection> {
   late BorderType _selectedBorderType;
-  late final TextEditingController _marginTopCtrl;
-  late final TextEditingController _marginBottomCtrl;
-  late final TextEditingController _marginLeftCtrl;
-  late final TextEditingController _marginRightCtrl;
-  late final TextEditingController _paddingTopCtrl;
-  late final TextEditingController _paddingBottomCtrl;
-  late final TextEditingController _paddingLeftCtrl;
-  late final TextEditingController _paddingRightCtrl;
 
   @override
   void initState() {
     super.initState();
     _selectedBorderType = widget.styleConfig?.borderType ?? BorderType.none;
-    _marginTopCtrl = TextEditingController(
-      text: _formatValue(widget.styleConfig?.marginTop),
-    );
-    _marginBottomCtrl = TextEditingController(
-      text: _formatValue(widget.styleConfig?.marginBottom),
-    );
-    _marginLeftCtrl = TextEditingController(
-      text: _formatValue(widget.styleConfig?.marginLeft),
-    );
-    _marginRightCtrl = TextEditingController(
-      text: _formatValue(widget.styleConfig?.marginRight),
-    );
-    _paddingTopCtrl = TextEditingController(
-      text: _formatValue(widget.styleConfig?.paddingTop),
-    );
-    _paddingBottomCtrl = TextEditingController(
-      text: _formatValue(widget.styleConfig?.paddingBottom),
-    );
-    _paddingLeftCtrl = TextEditingController(
-      text: _formatValue(widget.styleConfig?.paddingLeft),
-    );
-    _paddingRightCtrl = TextEditingController(
-      text: _formatValue(widget.styleConfig?.paddingRight),
-    );
   }
 
-  @override
-  void dispose() {
-    _marginTopCtrl.dispose();
-    _marginBottomCtrl.dispose();
-    _marginLeftCtrl.dispose();
-    _marginRightCtrl.dispose();
-    _paddingTopCtrl.dispose();
-    _paddingBottomCtrl.dispose();
-    _paddingLeftCtrl.dispose();
-    _paddingRightCtrl.dispose();
-    super.dispose();
-  }
-
-  String _formatValue(double? value) {
-    if (value == null) return '';
-    return value == value.roundToDouble()
-        ? value.toStringAsFixed(0)
-        : value.toString();
-  }
-
-  void _onFieldChanged() {
-    final current = widget.styleConfig ?? const StyleConfig();
-    widget.onStyleChanged(
-      current.copyWith(
-        marginTop: double.tryParse(_marginTopCtrl.text),
-        marginBottom: double.tryParse(_marginBottomCtrl.text),
-        marginLeft: double.tryParse(_marginLeftCtrl.text),
-        marginRight: double.tryParse(_marginRightCtrl.text),
-        paddingTop: double.tryParse(_paddingTopCtrl.text),
-        paddingBottom: double.tryParse(_paddingBottomCtrl.text),
-        paddingLeft: double.tryParse(_paddingLeftCtrl.text),
-        paddingRight: double.tryParse(_paddingRightCtrl.text),
-        borderType: _selectedBorderType,
-      ),
-    );
+  void _onBorderTypeChanged(BorderType? newType) {
+    if (newType != null) {
+      setState(() {
+        _selectedBorderType = newType;
+      });
+      final current = widget.styleConfig ?? const StyleConfig();
+      widget.onStyleChanged(current.copyWith(borderType: _selectedBorderType));
+    }
   }
 
   @override
@@ -106,18 +48,24 @@ class _PageStyleSectionState extends State<PageStyleSection> {
           children: [
             Text(widget.title, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
-            Text('Margins', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                _buildField('Top', _marginTopCtrl, 'margin_top'),
-                const SizedBox(width: 8),
-                _buildField('Bottom', _marginBottomCtrl, 'margin_bottom'),
-                const SizedBox(width: 8),
-                _buildField('Left', _marginLeftCtrl, 'margin_left'),
-                const SizedBox(width: 8),
-                _buildField('Right', _marginRightCtrl, 'margin_right'),
-              ],
+            EdgeInsetsEditor(
+              label: 'Margins',
+              keyPrefix: 'margin',
+              top: widget.styleConfig?.marginTop,
+              bottom: widget.styleConfig?.marginBottom,
+              left: widget.styleConfig?.marginLeft,
+              right: widget.styleConfig?.marginRight,
+              onChanged: ({top, bottom, left, right}) {
+                final current = widget.styleConfig ?? const StyleConfig();
+                widget.onStyleChanged(
+                  current.copyWith(
+                    marginTop: top,
+                    marginBottom: bottom,
+                    marginLeft: left,
+                    marginRight: right,
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 16),
             Text('Border', style: Theme.of(context).textTheme.titleMedium),
@@ -132,43 +80,30 @@ class _PageStyleSectionState extends State<PageStyleSection> {
                         DropdownMenuItem(value: type, child: Text(type.label)),
                   )
                   .toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedBorderType = value;
-                  });
-                  _onFieldChanged();
-                }
-              },
+              onChanged: _onBorderTypeChanged,
             ),
             const SizedBox(height: 16),
-            Text('Paddings', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                _buildField('Top', _paddingTopCtrl, 'padding_top'),
-                const SizedBox(width: 8),
-                _buildField('Bottom', _paddingBottomCtrl, 'padding_bottom'),
-                const SizedBox(width: 8),
-                _buildField('Left', _paddingLeftCtrl, 'padding_left'),
-                const SizedBox(width: 8),
-                _buildField('Right', _paddingRightCtrl, 'padding_right'),
-              ],
+            EdgeInsetsEditor(
+              label: 'Paddings',
+              keyPrefix: 'padding',
+              top: widget.styleConfig?.paddingTop,
+              bottom: widget.styleConfig?.paddingBottom,
+              left: widget.styleConfig?.paddingLeft,
+              right: widget.styleConfig?.paddingRight,
+              onChanged: ({top, bottom, left, right}) {
+                final current = widget.styleConfig ?? const StyleConfig();
+                widget.onStyleChanged(
+                  current.copyWith(
+                    paddingTop: top,
+                    paddingBottom: bottom,
+                    paddingLeft: left,
+                    paddingRight: right,
+                  ),
+                );
+              },
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildField(String label, TextEditingController ctrl, String keyName) {
-    return Expanded(
-      child: TextField(
-        key: Key(keyName),
-        controller: ctrl,
-        decoration: InputDecoration(labelText: label, suffixText: 'pt'),
-        keyboardType: TextInputType.number,
-        onChanged: (_) => _onFieldChanged(),
       ),
     );
   }

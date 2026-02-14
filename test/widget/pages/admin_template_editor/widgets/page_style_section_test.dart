@@ -97,13 +97,13 @@ void main() {
       );
 
       expect(find.text('Page Style'), findsOneWidget);
-      final marginTopField = tester.widget<TextField>(
-        find.byKey(const Key('margin_top')),
+      final marginAllField = tester.widget<TextField>(
+        find.byKey(const Key('margin_all')),
       );
-      expect(marginTopField.controller?.text, '');
+      expect(marginAllField.controller?.text, '');
     });
 
-    testWidgets('should call onStyleChanged when margin top is edited', (
+    testWidgets('should call onStyleChanged when margin all is edited', (
       tester,
     ) async {
       StyleConfig? updatedConfig;
@@ -121,14 +121,17 @@ void main() {
         ),
       );
 
-      await tester.enterText(find.byKey(const Key('margin_top')), '25');
+      await tester.enterText(find.byKey(const Key('margin_all')), '25');
       await tester.pumpAndSettle();
 
       expect(updatedConfig, isNotNull);
       expect(updatedConfig!.marginTop, 25.0);
+      expect(updatedConfig!.marginBottom, 25.0);
+      expect(updatedConfig!.marginLeft, 25.0);
+      expect(updatedConfig!.marginRight, 25.0);
     });
 
-    testWidgets('should call onStyleChanged when padding left is edited', (
+    testWidgets('should call onStyleChanged when padding all is edited', (
       tester,
     ) async {
       StyleConfig? updatedConfig;
@@ -146,11 +149,14 @@ void main() {
         ),
       );
 
-      await tester.enterText(find.byKey(const Key('padding_left')), '12');
+      await tester.enterText(find.byKey(const Key('padding_all')), '12');
       await tester.pumpAndSettle();
 
       expect(updatedConfig, isNotNull);
+      expect(updatedConfig!.paddingTop, 12.0);
+      expect(updatedConfig!.paddingBottom, 12.0);
       expect(updatedConfig!.paddingLeft, 12.0);
+      expect(updatedConfig!.paddingRight, 12.0);
     });
 
     testWidgets('should display Border section header', (tester) async {
