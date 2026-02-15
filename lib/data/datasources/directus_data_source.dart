@@ -344,6 +344,36 @@ class DirectusDataSource {
     }
   }
 
+  /// List files from Directus
+  Future<List<Map<String, dynamic>>> listFiles({
+    Map<String, dynamic>? filter,
+    List<String>? fields,
+    List<String>? sort,
+    int? limit,
+  }) async {
+    Filter? directusFilter;
+    if (filter != null) {
+      directusFilter = _convertFilterToDirectusFilter(filter);
+    }
+
+    List<SortProperty>? sortProperties;
+    if (sort != null) {
+      sortProperties = sort.map((s) {
+        final desc = s.startsWith('-');
+        return SortProperty(desc ? s.substring(1) : s, ascending: !desc);
+      }).toList();
+    }
+
+    final files = await _apiManager.findListOfItems<DirectusFile>(
+      filter: directusFilter,
+      fields: fields?.join(','),
+      sortBy: sortProperties,
+      limit: limit,
+    );
+
+    return files.map((f) => f.getRawData()).toList();
+  }
+
   // ===== Helper Methods =====
 
   /// Convert our filter format to directus_api_manager Filter format

@@ -81,5 +81,61 @@ void main() {
         },
       );
     });
+
+    group('listImageFiles', () {
+      test(
+        'should call dataSource.listFiles with image filter and return ImageFileInfo list',
+        () async {
+          // Arrange
+          final rawFiles = [
+            {'id': 'file-1', 'title': 'logo.png', 'type': 'image/png'},
+            {'id': 'file-2', 'title': 'bg.jpg', 'type': 'image/jpeg'},
+          ];
+          when(
+            () => mockDataSource.listFiles(
+              filter: {'type': {'_starts_with': 'image/'}},
+              fields: ['id', 'title', 'type'],
+              sort: ['-uploaded_on'],
+              limit: 100,
+            ),
+          ).thenAnswer((_) async => rawFiles);
+
+          // Act
+          final result = await repository.listImageFiles();
+
+          // Assert
+          expect(result, isA<Success>());
+          final files = (result as Success).value;
+          expect(files.length, 2);
+          expect(files[0].id, 'file-1');
+          expect(files[0].title, 'logo.png');
+          expect(files[0].type, 'image/png');
+          expect(files[1].id, 'file-2');
+          expect(files[1].title, 'bg.jpg');
+          expect(files[1].type, 'image/jpeg');
+        },
+      );
+
+      test(
+        'should return Failure when dataSource throws',
+        () async {
+          // Arrange
+          when(
+            () => mockDataSource.listFiles(
+              filter: any(named: 'filter'),
+              fields: any(named: 'fields'),
+              sort: any(named: 'sort'),
+              limit: any(named: 'limit'),
+            ),
+          ).thenThrow(Exception('Network error'));
+
+          // Act
+          final result = await repository.listImageFiles();
+
+          // Assert
+          expect(result, isA<Failure>());
+        },
+      );
+    });
   });
 }
