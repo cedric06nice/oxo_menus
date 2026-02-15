@@ -22,12 +22,14 @@ void main() {
   });
 
   group('ImageEditDialog', () {
-    testWidgets('should show loading indicator while files are loading',
-        (tester) async {
+    testWidgets('should show loading indicator while files are loading', (
+      tester,
+    ) async {
       const props = ImageProps(fileId: 'test-file-id');
       final completer = Completer<Result<List<ImageFileInfo>, DomainError>>();
-      when(() => mockFileRepository.listImageFiles())
-          .thenAnswer((_) => completer.future);
+      when(
+        () => mockFileRepository.listImageFiles(),
+      ).thenAnswer((_) => completer.future);
 
       await tester.pumpWidget(
         ProviderScope(
@@ -46,8 +48,9 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('should show error message when file loading fails',
-        (tester) async {
+    testWidgets('should show error message when file loading fails', (
+      tester,
+    ) async {
       const props = ImageProps(fileId: 'test-file-id');
       when(() => mockFileRepository.listImageFiles()).thenAnswer(
         (_) async => const Failure(ServerError('Failed to load files')),
@@ -71,19 +74,17 @@ void main() {
       expect(find.textContaining('Error loading images'), findsOneWidget);
     });
 
-    testWidgets('should show thumbnail grid when files load successfully',
-        (tester) async {
+    testWidgets('should show thumbnail grid when files load successfully', (
+      tester,
+    ) async {
       const props = ImageProps(fileId: 'test-file-id');
       final files = [
         const ImageFileInfo(id: 'file-1', title: 'logo.png', type: 'image/png'),
-        const ImageFileInfo(
-          id: 'file-2',
-          title: 'bg.jpg',
-          type: 'image/jpeg',
-        ),
+        const ImageFileInfo(id: 'file-2', title: 'bg.jpg', type: 'image/jpeg'),
       ];
-      when(() => mockFileRepository.listImageFiles())
-          .thenAnswer((_) async => Success(files));
+      when(
+        () => mockFileRepository.listImageFiles(),
+      ).thenAnswer((_) async => Success(files));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -104,19 +105,17 @@ void main() {
       // Images are network images, so we just check the grid exists
     });
 
-    testWidgets('should update fileId when an image is selected',
-        (tester) async {
+    testWidgets('should update fileId when an image is selected', (
+      tester,
+    ) async {
       const props = ImageProps(fileId: 'file-1');
       final files = [
         const ImageFileInfo(id: 'file-1', title: 'logo.png', type: 'image/png'),
-        const ImageFileInfo(
-          id: 'file-2',
-          title: 'bg.jpg',
-          type: 'image/jpeg',
-        ),
+        const ImageFileInfo(id: 'file-2', title: 'bg.jpg', type: 'image/jpeg'),
       ];
-      when(() => mockFileRepository.listImageFiles())
-          .thenAnswer((_) async => Success(files));
+      when(
+        () => mockFileRepository.listImageFiles(),
+      ).thenAnswer((_) async => Success(files));
 
       ImageProps? savedProps;
 
@@ -150,19 +149,17 @@ void main() {
       expect(savedProps?.fileId, 'file-2');
     });
 
-    testWidgets('should highlight the currently selected image',
-        (tester) async {
+    testWidgets('should highlight the currently selected image', (
+      tester,
+    ) async {
       const props = ImageProps(fileId: 'file-1');
       final files = [
         const ImageFileInfo(id: 'file-1', title: 'logo.png', type: 'image/png'),
-        const ImageFileInfo(
-          id: 'file-2',
-          title: 'bg.jpg',
-          type: 'image/jpeg',
-        ),
+        const ImageFileInfo(id: 'file-2', title: 'bg.jpg', type: 'image/jpeg'),
       ];
-      when(() => mockFileRepository.listImageFiles())
-          .thenAnswer((_) async => Success(files));
+      when(
+        () => mockFileRepository.listImageFiles(),
+      ).thenAnswer((_) async => Success(files));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -190,15 +187,17 @@ void main() {
       'should show alignment selector with left/center/right options',
       (tester) async {
         const props = ImageProps(fileId: 'test-file-123', align: 'center');
-        when(() => mockFileRepository.listImageFiles())
-            .thenAnswer((_) async => const Success([]));
+        when(
+          () => mockFileRepository.listImageFiles(),
+        ).thenAnswer((_) async => const Success([]));
 
         await tester.pumpWidget(
           ProviderScope(
             overrides: [
               fileRepositoryProvider.overrideWithValue(mockFileRepository),
-              directusBaseUrlProvider
-                  .overrideWithValue('http://localhost:8055'),
+              directusBaseUrlProvider.overrideWithValue(
+                'http://localhost:8055',
+              ),
             ],
             child: MaterialApp(
               home: Scaffold(
@@ -228,8 +227,9 @@ void main() {
     ) async {
       const props = ImageProps(fileId: 'original-file');
       ImageProps? savedProps;
-      when(() => mockFileRepository.listImageFiles())
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockFileRepository.listImageFiles(),
+      ).thenAnswer((_) async => const Success([]));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -267,8 +267,9 @@ void main() {
     testWidgets('should not call onSave when cancelled', (tester) async {
       const props = ImageProps(fileId: 'test-file');
       ImageProps? savedProps;
-      when(() => mockFileRepository.listImageFiles())
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockFileRepository.listImageFiles(),
+      ).thenAnswer((_) async => const Success([]));
 
       await tester.pumpWidget(
         ProviderScope(
@@ -299,8 +300,9 @@ void main() {
     testWidgets('should allow editing width and height', (tester) async {
       const props = ImageProps(fileId: 'test-file');
       ImageProps? savedProps;
-      when(() => mockFileRepository.listImageFiles())
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockFileRepository.listImageFiles(),
+      ).thenAnswer((_) async => const Success([]));
 
       await tester.pumpWidget(
         ProviderScope(

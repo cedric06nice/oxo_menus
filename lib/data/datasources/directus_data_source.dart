@@ -374,6 +374,43 @@ class DirectusDataSource {
     return files.map((f) => f.getRawData()).toList();
   }
 
+  /// Download file bytes from Directus by file ID
+  /// Directus serves files at GET /assets/{fileId}
+  Future<Uint8List> downloadFileBytes(String fileId) async {
+    final accessToken = _currentAccessToken;
+
+    if (accessToken == null || accessToken.isEmpty) {
+      throw DirectusException(
+        code: 'NOT_AUTHENTICATED',
+        message: 'No access token available',
+      );
+    }
+
+    final response = await http.get(
+      Uri.parse('$_baseUrl/assets/$fileId'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else if (response.statusCode == 401) {
+      throw DirectusException(
+        code: 'NOT_AUTHENTICATED',
+        message: 'Authentication required',
+      );
+    } else if (response.statusCode == 404) {
+      throw DirectusException(
+        code: 'NOT_FOUND',
+        message: 'File not found: $fileId',
+      );
+    } else {
+      throw DirectusException(
+        code: 'DOWNLOAD_FAILED',
+        message: 'Failed to download file: ${response.statusCode}',
+      );
+    }
+  }
+
   // ===== Helper Methods =====
 
   /// Convert our filter format to directus_api_manager Filter format

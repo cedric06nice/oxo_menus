@@ -5,6 +5,7 @@ import 'package:oxo_menus/domain/allergens/allergen_formatter.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
+import 'package:oxo_menus/domain/repositories/file_repository.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/pdf_style_resolver.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
@@ -20,10 +21,13 @@ import 'package:pdf/widgets.dart' as pw;
 /// Uses the pdf package for client-side PDF generation.
 class GeneratePdfUseCase {
   final PdfStyleResolver _resolver;
+  final FileRepository? _fileRepository;
 
   const GeneratePdfUseCase({
     PdfStyleResolver resolver = const PdfStyleResolver(),
-  }) : _resolver = resolver;
+    FileRepository? fileRepository,
+  }) : _resolver = resolver,
+       _fileRepository = fileRepository;
 
   /// Execute PDF generation for a menu tree
   Future<Result<Uint8List, DomainError>> execute(MenuTree menuTree) async {
@@ -36,6 +40,9 @@ class GeneratePdfUseCase {
       ),
     );
     try {
+      // Pre-fetch images if repository is available
+      final imageCache = await _prefetchImages(menuTree);
+
       final pdf = pw.Document(theme: oxoTheme, version: PdfVersion.pdf_1_5);
 
       final styleConfig = menuTree.menu.styleConfig;
@@ -55,6 +62,7 @@ class GeneratePdfUseCase {
               menuTree.footerPage,
               styleConfig,
               displayOptions,
+              imageCache,
             ),
           ),
         );
@@ -67,6 +75,46 @@ class GeneratePdfUseCase {
     }
   }
 
+  /// Collect all image fileIds from a MenuTree and fetch their bytes
+  Future<Map<String, Uint8List>> _prefetchImages(MenuTree menuTree) async {
+    if (_fileRepository == null) return {};
+
+    final fileIds = <String>{};
+
+    // Collect from all pages (content, header, footer)
+    void collectFromPages(List<PageWithContainers> pages) {
+      for (final page in pages) {
+        for (final container in page.containers) {
+          for (final column in container.columns) {
+            for (final widget in column.widgets) {
+              if (widget.type == 'image') {
+                final props = ImageProps.fromJson(widget.props);
+                fileIds.add(props.fileId);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    collectFromPages(menuTree.pages);
+    if (menuTree.headerPage != null) collectFromPages([menuTree.headerPage!]);
+    if (menuTree.footerPage != null) collectFromPages([menuTree.footerPage!]);
+
+    // Fetch all images (parallel for performance)
+    final cache = <String, Uint8List>{};
+    final futures = fileIds.map((fileId) async {
+      final result = await _fileRepository.downloadFile(fileId);
+      if (result.isSuccess) {
+        cache[fileId] = result.valueOrNull!;
+      }
+      // On failure, simply skip -- placeholder will be rendered
+    });
+    await Future.wait(futures);
+
+    return cache;
+  }
+
   /// Build a page with header, content, and footer
   pw.Widget _buildPageWithHeaderFooter(
     PageWithContainers pageData,
@@ -74,6 +122,7 @@ class GeneratePdfUseCase {
     PageWithContainers? footerPage,
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
+    Map<String, Uint8List> imageCache,
   ) {
     final children = <pw.Widget>[];
 
@@ -81,7 +130,12 @@ class GeneratePdfUseCase {
     if (headerPage != null) {
       children.addAll(
         headerPage.containers.map((containerData) {
-          return _buildContainer(containerData, styleConfig, displayOptions);
+          return _buildContainer(
+            containerData,
+            styleConfig,
+            displayOptions,
+            imageCache,
+          );
         }),
       );
     }
@@ -89,7 +143,12 @@ class GeneratePdfUseCase {
     // Add main content
     children.addAll(
       pageData.containers.map((containerData) {
-        return _buildContainer(containerData, styleConfig, displayOptions);
+        return _buildContainer(
+          containerData,
+          styleConfig,
+          displayOptions,
+          imageCache,
+        );
       }),
     );
 
@@ -102,7 +161,12 @@ class GeneratePdfUseCase {
     if (footerPage != null) {
       children.addAll(
         footerPage.containers.map((containerData) {
-          return _buildContainer(containerData, styleConfig, displayOptions);
+          return _buildContainer(
+            containerData,
+            styleConfig,
+            displayOptions,
+            imageCache,
+          );
         }),
       );
     }
@@ -124,6 +188,7 @@ class GeneratePdfUseCase {
     ContainerWithColumns containerData,
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
+    Map<String, Uint8List> imageCache,
   ) {
     final containerStyle = containerData.container.styleConfig;
     final margin = containerStyle != null
@@ -146,7 +211,12 @@ class GeneratePdfUseCase {
               children: containerData.columns.map((columnData) {
                 return pw.Expanded(
                   flex: columnData.column.flex ?? 1,
-                  child: _buildColumn(columnData, styleConfig, displayOptions),
+                  child: _buildColumn(
+                    columnData,
+                    styleConfig,
+                    displayOptions,
+                    imageCache,
+                  ),
                 );
               }).toList(),
             ),
@@ -161,6 +231,7 @@ class GeneratePdfUseCase {
     ColumnWithWidgets columnData,
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
+    Map<String, Uint8List> imageCache,
   ) {
     final columnStyle = columnData.column.styleConfig;
     final padding = columnStyle != null
@@ -172,7 +243,7 @@ class GeneratePdfUseCase {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: columnData.widgets.map((widget) {
-          return _buildWidget(widget, styleConfig, displayOptions);
+          return _buildWidget(widget, styleConfig, displayOptions, imageCache);
         }).toList(),
       ),
     );
@@ -184,6 +255,7 @@ class GeneratePdfUseCase {
     WidgetInstance widget,
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
+    Map<String, Uint8List> imageCache,
   ) {
     switch (widget.type) {
       case 'dish':
@@ -193,7 +265,7 @@ class GeneratePdfUseCase {
       case 'section':
         return _buildSectionWidget(widget, styleConfig);
       case 'image':
-        return _buildImageWidget(widget, styleConfig);
+        return _buildImageWidget(widget, styleConfig, imageCache);
       default:
         return pw.SizedBox();
     }
@@ -348,10 +420,11 @@ class GeneratePdfUseCase {
   }
 
   /// Build image widget in PDF
-  ///
-  /// Note: Currently renders a placeholder. Full image rendering would require
-  /// fetching image bytes from Directus server, which needs HTTP client injection.
-  pw.Widget _buildImageWidget(WidgetInstance widget, StyleConfig? styleConfig) {
+  pw.Widget _buildImageWidget(
+    WidgetInstance widget,
+    StyleConfig? styleConfig,
+    Map<String, Uint8List> imageCache,
+  ) {
     final props = ImageProps.fromJson(widget.props);
     final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
 
@@ -370,8 +443,48 @@ class GeneratePdfUseCase {
         break;
     }
 
-    // Render placeholder for now
-    // TODO: Implement actual image fetching and rendering
+    // Check if we have fetched image bytes
+    final imageBytes = imageCache[props.fileId];
+
+    if (imageBytes != null) {
+      // Render real image
+      final image = pw.MemoryImage(imageBytes);
+
+      pw.BoxFit boxFit;
+      switch (props.fit.toLowerCase()) {
+        case 'cover':
+          boxFit = pw.BoxFit.cover;
+          break;
+        case 'fill':
+          boxFit = pw.BoxFit.fill;
+          break;
+        case 'fitwidth':
+          boxFit = pw.BoxFit.fitWidth;
+          break;
+        case 'fitheight':
+          boxFit = pw.BoxFit.fitHeight;
+          break;
+        case 'contain':
+        default:
+          boxFit = pw.BoxFit.contain;
+          break;
+      }
+
+      return pw.Container(
+        margin: const pw.EdgeInsets.symmetric(vertical: 8),
+        child: pw.Align(
+          alignment: alignment,
+          child: pw.Image(
+            image,
+            width: props.width,
+            height: props.height,
+            fit: boxFit,
+          ),
+        ),
+      );
+    }
+
+    // Fallback: render placeholder
     return pw.Container(
       margin: const pw.EdgeInsets.symmetric(vertical: 8),
       child: pw.Align(

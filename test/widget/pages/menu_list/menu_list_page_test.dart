@@ -62,7 +62,9 @@ void main() {
       overrides: [
         menuRepositoryProvider.overrideWithValue(mockMenuRepository),
         sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
-        duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
+        duplicateMenuUseCaseProvider.overrideWithValue(
+          mockDuplicateMenuUseCase,
+        ),
         isAdminProvider.overrideWithValue(isAdmin),
         currentUserProvider.overrideWithValue(mockUser),
       ],

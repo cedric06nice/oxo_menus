@@ -42,7 +42,7 @@ final fetchMenuTreeUseCaseProvider = Provider<FetchMenuTreeUseCase>((ref) {
 /// );
 /// ```
 final generatePdfUseCaseProvider = Provider<GeneratePdfUseCase>((ref) {
-  return const GeneratePdfUseCase();
+  return GeneratePdfUseCase(fileRepository: ref.watch(fileRepositoryProvider));
 });
 
 /// Duplicate menu use case provider

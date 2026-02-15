@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
@@ -7,9 +9,13 @@ import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
+import 'package:oxo_menus/domain/repositories/file_repository.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
 import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
+import '../../helpers/test_image_data.dart';
+
+class MockFileRepository extends Mock implements FileRepository {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -1152,6 +1158,380 @@ void main() {
         expect(result.isSuccess, true);
         expect(result.valueOrNull, isNotNull);
         expect(result.valueOrNull!.isNotEmpty, true);
+      });
+    });
+
+    group('Image fetching', () {
+      late MockFileRepository mockFileRepository;
+      late GeneratePdfUseCase useCaseWithRepo;
+
+      setUp(() {
+        mockFileRepository = MockFileRepository();
+        useCaseWithRepo = GeneratePdfUseCase(
+          fileRepository: mockFileRepository,
+        );
+      });
+
+      test('should accept an optional FileRepository parameter', () {
+        final mockRepo = MockFileRepository();
+        final useCaseLocal = GeneratePdfUseCase(fileRepository: mockRepo);
+        expect(useCaseLocal, isNotNull);
+      });
+
+      test(
+        'should fetch image bytes from FileRepository when present',
+        () async {
+          // Arrange
+          const fileId = 'test-image-uuid';
+          when(
+            () => mockFileRepository.downloadFile(fileId),
+          ).thenAnswer((_) async => Success(kTestPngBytes));
+
+          const menuTree = MenuTree(
+            menu: Menu(
+              id: 1,
+              name: 'Image Test',
+              status: Status.published,
+              version: '1.0.0',
+            ),
+            pages: [
+              PageWithContainers(
+                page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+                containers: [
+                  ContainerWithColumns(
+                    container: entity.Container(id: 1, pageId: 1, index: 0),
+                    columns: [
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 1,
+                          containerId: 1,
+                          index: 0,
+                          flex: 1,
+                        ),
+                        widgets: [
+                          WidgetInstance(
+                            id: 1,
+                            columnId: 1,
+                            type: 'image',
+                            version: '1.0.0',
+                            index: 0,
+                            props: {
+                              'fileId': fileId,
+                              'align': 'center',
+                              'fit': 'contain',
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+
+          // Act
+          final result = await useCaseWithRepo.execute(menuTree);
+
+          // Assert
+          expect(result.isSuccess, true);
+          verify(() => mockFileRepository.downloadFile(fileId)).called(1);
+        },
+      );
+
+      test('should generate PDF successfully with real image bytes', () async {
+        // Arrange
+        const fileId = 'real-image-uuid';
+        when(
+          () => mockFileRepository.downloadFile(fileId),
+        ).thenAnswer((_) async => Success(kTestPngBytes));
+
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Real Image Test',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'image',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {
+                            'fileId': fileId,
+                            'align': 'center',
+                            'fit': 'contain',
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        // Act
+        final result = await useCaseWithRepo.execute(menuTree);
+
+        // Assert
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull!.isNotEmpty, true);
+      });
+
+      test('should render placeholder when image download fails', () async {
+        // Arrange
+        const fileId = 'failed-image-uuid';
+        when(() => mockFileRepository.downloadFile(fileId)).thenAnswer(
+          (_) async => const Failure(NotFoundError('File not found')),
+        );
+
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Failed Image Test',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'image',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {
+                            'fileId': fileId,
+                            'align': 'center',
+                            'fit': 'contain',
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        // Act
+        final result = await useCaseWithRepo.execute(menuTree);
+
+        // Assert
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull!.isNotEmpty, true);
+        verify(() => mockFileRepository.downloadFile(fileId)).called(1);
+      });
+
+      test('should fetch each unique image only once', () async {
+        // Arrange
+        const fileId = 'shared-image-uuid';
+        when(
+          () => mockFileRepository.downloadFile(fileId),
+        ).thenAnswer((_) async => Success(kTestPngBytes));
+
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Dedup Test',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'image',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {
+                            'fileId': fileId,
+                            'align': 'center',
+                            'fit': 'contain',
+                          },
+                        ),
+                        WidgetInstance(
+                          id: 2,
+                          columnId: 1,
+                          type: 'image',
+                          version: '1.0.0',
+                          index: 1,
+                          props: {
+                            'fileId': fileId,
+                            'align': 'left',
+                            'fit': 'cover',
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        // Act
+        final result = await useCaseWithRepo.execute(menuTree);
+
+        // Assert
+        expect(result.isSuccess, true);
+        verify(() => mockFileRepository.downloadFile(fileId)).called(1);
+      });
+
+      test('should fetch images from header and footer pages', () async {
+        // Arrange
+        const headerImageId = 'header-logo-uuid';
+        const footerImageId = 'footer-logo-uuid';
+        when(
+          () => mockFileRepository.downloadFile(any()),
+        ).thenAnswer((_) async => Success(kTestPngBytes));
+
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Header/Footer Test',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
+              containers: [],
+            ),
+          ],
+          headerPage: PageWithContainers(
+            page: entity.Page(
+              id: 99,
+              menuId: 1,
+              name: 'Header',
+              index: -1,
+              type: entity.PageType.header,
+            ),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 99, pageId: 99, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 99,
+                      containerId: 99,
+                      index: 0,
+                      flex: 1,
+                    ),
+                    widgets: [
+                      WidgetInstance(
+                        id: 99,
+                        columnId: 99,
+                        type: 'image',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {
+                          'fileId': headerImageId,
+                          'align': 'center',
+                          'fit': 'contain',
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          footerPage: PageWithContainers(
+            page: entity.Page(
+              id: 98,
+              menuId: 1,
+              name: 'Footer',
+              index: -1,
+              type: entity.PageType.footer,
+            ),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 98, pageId: 98, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 98,
+                      containerId: 98,
+                      index: 0,
+                      flex: 1,
+                    ),
+                    widgets: [
+                      WidgetInstance(
+                        id: 98,
+                        columnId: 98,
+                        type: 'image',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {
+                          'fileId': footerImageId,
+                          'align': 'center',
+                          'fit': 'contain',
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+
+        // Act
+        final result = await useCaseWithRepo.execute(menuTree);
+
+        // Assert
+        expect(result.isSuccess, true);
+        verify(() => mockFileRepository.downloadFile(headerImageId)).called(1);
+        verify(() => mockFileRepository.downloadFile(footerImageId)).called(1);
       });
     });
   });

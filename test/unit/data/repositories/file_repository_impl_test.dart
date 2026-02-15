@@ -93,7 +93,9 @@ void main() {
           ];
           when(
             () => mockDataSource.listFiles(
-              filter: {'type': {'_starts_with': 'image/'}},
+              filter: {
+                'type': {'_starts_with': 'image/'},
+              },
               fields: ['id', 'title', 'type'],
               sort: ['-uploaded_on'],
               limit: 100,
@@ -116,24 +118,78 @@ void main() {
         },
       );
 
+      test('should return Failure when dataSource throws', () async {
+        // Arrange
+        when(
+          () => mockDataSource.listFiles(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+            limit: any(named: 'limit'),
+          ),
+        ).thenThrow(Exception('Network error'));
+
+        // Act
+        final result = await repository.listImageFiles();
+
+        // Assert
+        expect(result, isA<Failure>());
+      });
+    });
+
+    group('downloadFile', () {
       test(
-        'should return Failure when dataSource throws',
+        'should call dataSource.downloadFileBytes and return bytes on success',
         () async {
           // Arrange
+          const fileId = 'test-file-uuid';
+          final expectedBytes = Uint8List.fromList([0x89, 0x50, 0x4E, 0x47]);
           when(
-            () => mockDataSource.listFiles(
-              filter: any(named: 'filter'),
-              fields: any(named: 'fields'),
-              sort: any(named: 'sort'),
-              limit: any(named: 'limit'),
-            ),
+            () => mockDataSource.downloadFileBytes(fileId),
+          ).thenAnswer((_) async => expectedBytes);
+
+          // Act
+          final result = await repository.downloadFile(fileId);
+
+          // Assert
+          expect(result, isA<Success<Uint8List, DomainError>>());
+          expect((result as Success).value, expectedBytes);
+          verify(() => mockDataSource.downloadFileBytes(fileId)).called(1);
+        },
+      );
+
+      test(
+        'should return Failure with NotFoundError when file not found',
+        () async {
+          // Arrange
+          const fileId = 'nonexistent-file';
+          when(() => mockDataSource.downloadFileBytes(fileId)).thenThrow(
+            DirectusException(code: 'NOT_FOUND', message: 'File not found'),
+          );
+
+          // Act
+          final result = await repository.downloadFile(fileId);
+
+          // Assert
+          expect(result, isA<Failure<Uint8List, DomainError>>());
+          expect((result as Failure).error, isA<NotFoundError>());
+        },
+      );
+
+      test(
+        'should return Failure with mapped error when dataSource throws',
+        () async {
+          // Arrange
+          const fileId = 'test-file';
+          when(
+            () => mockDataSource.downloadFileBytes(fileId),
           ).thenThrow(Exception('Network error'));
 
           // Act
-          final result = await repository.listImageFiles();
+          final result = await repository.downloadFile(fileId);
 
           // Assert
-          expect(result, isA<Failure>());
+          expect(result, isA<Failure<Uint8List, DomainError>>());
         },
       );
     });

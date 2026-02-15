@@ -31,8 +31,8 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
   MenuListNotifier(
     this._menuRepository, {
     DuplicateMenuUseCase? duplicateMenuUseCase,
-  })  : _duplicateMenuUseCase = duplicateMenuUseCase,
-        super(const MenuListState());
+  }) : _duplicateMenuUseCase = duplicateMenuUseCase,
+       super(const MenuListState());
 
   /// Load all menus
   ///

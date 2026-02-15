@@ -30,13 +30,25 @@ class FileRepositoryImpl implements FileRepository {
   Future<Result<List<ImageFileInfo>, DomainError>> listImageFiles() async {
     try {
       final data = await dataSource.listFiles(
-        filter: {'type': {'_starts_with': 'image/'}},
+        filter: {
+          'type': {'_starts_with': 'image/'},
+        },
         fields: ['id', 'title', 'type'],
         sort: ['-uploaded_on'],
         limit: 100,
       );
       final files = data.map((raw) => FileMapper.toEntity(raw)).toList();
       return Success(files);
+    } catch (e) {
+      return Failure(mapDirectusError(e));
+    }
+  }
+
+  @override
+  Future<Result<Uint8List, DomainError>> downloadFile(String fileId) async {
+    try {
+      final bytes = await dataSource.downloadFileBytes(fileId);
+      return Success(bytes);
     } catch (e) {
       return Failure(mapDirectusError(e));
     }

@@ -10,4 +10,7 @@ abstract class FileRepository {
 
   /// List all image files from Directus
   Future<Result<List<ImageFileInfo>, DomainError>> listImageFiles();
+
+  /// Download file bytes by file ID
+  Future<Result<Uint8List, DomainError>> downloadFile(String fileId);
 }

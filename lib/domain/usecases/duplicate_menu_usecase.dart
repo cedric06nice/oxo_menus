@@ -228,11 +228,14 @@ class DuplicateMenuUseCase {
     }
 
     final sizes = sizesResult.valueOrNull!;
-    final matchingSize = sizes.where((s) =>
-      s.name == pageSize.name &&
-      s.width == pageSize.width &&
-      s.height == pageSize.height
-    ).firstOrNull;
+    final matchingSize = sizes
+        .where(
+          (s) =>
+              s.name == pageSize.name &&
+              s.width == pageSize.width &&
+              s.height == pageSize.height,
+        )
+        .firstOrNull;
 
     return Success(matchingSize?.id);
   }

@@ -107,10 +107,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
                   DropdownMenuItem(value: 'contain', child: Text('Contain')),
                   DropdownMenuItem(value: 'cover', child: Text('Cover')),
                   DropdownMenuItem(value: 'fill', child: Text('Fill')),
-                  DropdownMenuItem(
-                    value: 'fitwidth',
-                    child: Text('Fit Width'),
-                  ),
+                  DropdownMenuItem(value: 'fitwidth', child: Text('Fit Width')),
                   DropdownMenuItem(
                     value: 'fitheight',
                     child: Text('Fit Height'),
@@ -209,7 +206,8 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
                         thumbnailUrl,
                         fit: BoxFit.cover,
                         width: double.infinity,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+                        errorBuilder: (_, _, _) =>
+                            const Icon(Icons.broken_image),
                       ),
                     ),
                     if (file.title != null)
