@@ -11,10 +11,12 @@ import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
+import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
+import 'app_router_test.reflectable.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
 
@@ -26,14 +28,18 @@ class MockContainerRepository extends Mock implements ContainerRepository {}
 
 class MockColumnRepository extends Mock implements ColumnRepository {}
 
+class MockWidgetRepository extends Mock implements WidgetRepository {}
+
 class MockDuplicateMenuUseCase extends Mock implements DuplicateMenuUseCase {}
 
 void main() {
+  initializeReflectable();
   late MockAuthRepository mockAuthRepository;
   late MockMenuRepository mockMenuRepository;
   late MockPageRepository mockPageRepository;
   late MockContainerRepository mockContainerRepository;
   late MockColumnRepository mockColumnRepository;
+  late MockWidgetRepository mockWidgetRepository;
   late MockDuplicateMenuUseCase mockDuplicateMenuUseCase;
 
   setUp(() {
@@ -42,6 +48,7 @@ void main() {
     mockPageRepository = MockPageRepository();
     mockContainerRepository = MockContainerRepository();
     mockColumnRepository = MockColumnRepository();
+    mockWidgetRepository = MockWidgetRepository();
     mockDuplicateMenuUseCase = MockDuplicateMenuUseCase();
 
     // Default behavior for menu repository (return empty list)
@@ -63,6 +70,9 @@ void main() {
     ).thenAnswer((_) async => const Success([]));
     when(
       () => mockColumnRepository.getAllForContainer(any()),
+    ).thenAnswer((_) async => const Success([]));
+    when(
+      () => mockWidgetRepository.getAllForColumn(any()),
     ).thenAnswer((_) async => const Success([]));
   });
 
@@ -184,6 +194,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
             duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
@@ -266,6 +277,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
             duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
             pageRepositoryProvider.overrideWithValue(mockPageRepository),
             containerRepositoryProvider.overrideWithValue(
@@ -476,6 +488,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
             duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
@@ -517,6 +530,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
             duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
             pageRepositoryProvider.overrideWithValue(mockPageRepository),
             containerRepositoryProvider.overrideWithValue(
