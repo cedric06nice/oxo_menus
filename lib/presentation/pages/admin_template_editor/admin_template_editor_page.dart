@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
@@ -11,36 +12,17 @@ import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
-import 'package:oxo_menus/domain/repositories/widget_repository.dart';
-import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/page_style_section.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/editor/delete_confirmation_dialog.dart';
+import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.dart';
+import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/menu_display_options_dialog.dart';
-import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
-
-/// Data class for drag operations in the admin template editor
-class _WidgetDragData {
-  final String? newWidgetType;
-  final WidgetInstance? existingWidget;
-  final int? sourceColumnId;
-
-  const _WidgetDragData.newWidget(String type)
-    : newWidgetType = type,
-      existingWidget = null,
-      sourceColumnId = null;
-
-  const _WidgetDragData.existing(WidgetInstance widget, int columnId)
-    : newWidgetType = null,
-      existingWidget = widget,
-      sourceColumnId = columnId;
-
-  bool get isNewWidget => newWidgetType != null;
-  bool get isExistingWidget => existingWidget != null;
-}
 
 /// Admin Template Editor Page
 ///
@@ -69,6 +51,29 @@ class _AdminTemplateEditorPageState
   String? _errorMessage;
 
   final Map<int, int> _hoverIndex = {};
+
+  late EditorWidgetCrudHelper _crudHelper;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _crudHelper = EditorWidgetCrudHelper(
+      widgetRepository: ref.read(widgetRepositoryProvider),
+      widgetRegistry: ref.read(widgetRegistryProvider),
+      onReload: _loadTemplate,
+      isTemplate: true,
+      onMessage: (message, {bool isError = false}) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: isError ? Colors.red : null,
+            ),
+          );
+        }
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -188,6 +193,10 @@ class _AdminTemplateEditorPageState
     ref.read(menuDisplayOptionsProvider.notifier).state = _menu?.displayOptions;
   }
 
+  Future<void> _showPdf() async {
+    context.push('/menus/pdf/${widget.menuId}');
+  }
+
   Future<void> _showDisplayOptionsDialog() async {
     showDialog(
       context: context,
@@ -241,7 +250,7 @@ class _AdminTemplateEditorPageState
   }
 
   Future<void> _deletePage(int pageId) async {
-    final confirmed = await _showDeleteConfirmation();
+    final confirmed = await showDeleteConfirmation(context);
     if (confirmed != true) return;
 
     final result = await ref.read(pageRepositoryProvider).delete(pageId);
@@ -280,7 +289,7 @@ class _AdminTemplateEditorPageState
   Future<void> _deleteHeader() async {
     if (_headerPage == null) return;
 
-    final confirmed = await _showDeleteConfirmation();
+    final confirmed = await showDeleteConfirmation(context);
     if (confirmed != true) return;
 
     final result = await ref
@@ -321,7 +330,7 @@ class _AdminTemplateEditorPageState
   Future<void> _deleteFooter() async {
     if (_footerPage == null) return;
 
-    final confirmed = await _showDeleteConfirmation();
+    final confirmed = await showDeleteConfirmation(context);
     if (confirmed != true) return;
 
     final result = await ref
@@ -360,7 +369,7 @@ class _AdminTemplateEditorPageState
   }
 
   Future<void> _deleteContainer(int containerId) async {
-    final confirmed = await _showDeleteConfirmation();
+    final confirmed = await showDeleteConfirmation(context);
     if (confirmed != true) return;
 
     final result = await ref
@@ -399,7 +408,7 @@ class _AdminTemplateEditorPageState
   }
 
   Future<void> _deleteColumn(int columnId) async {
-    final confirmed = await _showDeleteConfirmation();
+    final confirmed = await showDeleteConfirmation(context);
     if (confirmed != true) return;
 
     final result = await ref.read(columnRepositoryProvider).delete(columnId);
@@ -407,26 +416,6 @@ class _AdminTemplateEditorPageState
     if (result.isSuccess) {
       await _loadTemplate();
     }
-  }
-
-  Future<bool?> _showDeleteConfirmation() {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Delete'),
-        content: const Text('Are you sure you want to delete this item?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
   }
 
   void _onStyleChanged(StyleConfig newStyle) {
@@ -522,86 +511,25 @@ class _AdminTemplateEditorPageState
     int columnId,
     int index,
   ) async {
-    try {
-      final registry = ref.read(widgetRegistryProvider);
-      final definition = registry.getDefinition(widgetType);
-      if (definition == null) return;
-
-      final propsJson =
-          (definition.defaultProps as dynamic).toJson() as Map<String, dynamic>;
-
-      final result = await ref
-          .read(widgetRepositoryProvider)
-          .create(
-            CreateWidgetInput(
-              columnId: columnId,
-              type: widgetType,
-              version: definition.version,
-              index: index,
-              props: propsJson,
-              isTemplate: true,
-            ),
-          );
-
-      if (result.isSuccess) {
-        await _loadTemplate();
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to create widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error creating widget: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+    await _crudHelper.handleWidgetDropAtIndex(widgetType, columnId, index);
   }
 
   Future<void> _handleWidgetUpdate(
     int widgetId,
     Map<String, dynamic> updatedProps,
   ) async {
-    final result = await ref
-        .read(widgetRepositoryProvider)
-        .update(UpdateWidgetInput(id: widgetId, props: updatedProps));
-
-    if (result.isSuccess) {
-      await _loadTemplate();
-    }
+    await _crudHelper.handleWidgetUpdate(widgetId, updatedProps);
   }
 
   Future<void> _handleWidgetDelete(int widgetId) async {
-    final confirmed = await _showDeleteConfirmation();
+    final confirmed = await showDeleteConfirmation(context);
     if (confirmed != true) return;
 
     await _performWidgetDelete(widgetId);
   }
 
   Future<void> _performWidgetDelete(int widgetId) async {
-    final result = await ref.read(widgetRepositoryProvider).delete(widgetId);
-
-    if (result.isSuccess) {
-      await _loadTemplate();
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to delete widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    await _crudHelper.performWidgetDelete(widgetId);
   }
 
   Future<void> _handleWidgetMoveToIndex(
@@ -610,46 +538,12 @@ class _AdminTemplateEditorPageState
     int targetColumnId,
     int targetIndex,
   ) async {
-    try {
-      if (sourceColumnId == targetColumnId) {
-        final adjustedIndex = targetIndex > movedWidget.index
-            ? targetIndex - 1
-            : targetIndex;
-
-        final result = await ref
-            .read(widgetRepositoryProvider)
-            .reorder(movedWidget.id, adjustedIndex);
-
-        if (result.isSuccess) {
-          await _loadTemplate();
-        }
-      } else {
-        final result = await ref
-            .read(widgetRepositoryProvider)
-            .moveTo(movedWidget.id, targetColumnId, targetIndex);
-
-        if (result.isSuccess) {
-          await _loadTemplate();
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error moving widget: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  bool _isNoOpDrop(_WidgetDragData dragData, int columnId, int index) {
-    if (!dragData.isExistingWidget) return false;
-    if (dragData.sourceColumnId != columnId) return false;
-
-    final currentIndex = dragData.existingWidget!.index;
-    return index == currentIndex || index == currentIndex + 1;
+    await _crudHelper.handleWidgetMoveToIndex(
+      movedWidget,
+      sourceColumnId,
+      targetColumnId,
+      targetIndex,
+    );
   }
 
   // ===== Build Methods =====
@@ -682,6 +576,12 @@ class _AdminTemplateEditorPageState
           tooltip: 'Display Options',
         ),
         IconButton(
+          key: const Key('show_pdf_button'),
+          onPressed: _showPdf,
+          icon: const Icon(Icons.file_present),
+          tooltip: 'Show PDF',
+        ),
+        IconButton(
           icon: const Icon(Icons.save),
           onPressed: _saveTemplate,
           tooltip: 'Save',
@@ -695,7 +595,7 @@ class _AdminTemplateEditorPageState
       body: Row(
         children: [
           // Left Panel: Widget Palette
-          SizedBox(width: 200, child: _buildWidgetPalette(registry)),
+          SizedBox(width: 200, child: WidgetPalette(registry: registry)),
 
           // Divider
           const VerticalDivider(width: 1),
@@ -705,98 +605,6 @@ class _AdminTemplateEditorPageState
         ],
       ),
     );
-  }
-
-  Widget _buildWidgetPalette(WidgetRegistry registry) {
-    return Container(
-      color: Colors.grey[100],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Widget Palette',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-          Expanded(
-            child: ListView(
-              children: registry.registeredTypes.map((type) {
-                final definition = registry.getDefinition(type);
-                return _buildPaletteItem(type, definition);
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaletteItem(String type, WidgetDefinition? definition) {
-    if (definition == null) return const SizedBox();
-
-    return Draggable<_WidgetDragData>(
-      data: _WidgetDragData.newWidget(type),
-      feedback: Material(
-        elevation: 4.0,
-        child: Container(
-          padding: const EdgeInsets.all(12.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: Colors.grey),
-          ),
-          child: Text(
-            type.toUpperCase(),
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-      ),
-      childWhenDragging: Opacity(
-        opacity: 0.3,
-        child: _paletteItemContent(type),
-      ),
-      child: _paletteItemContent(type),
-    );
-  }
-
-  Widget _paletteItemContent(String type) {
-    return Container(
-      key: Key('palette_item_$type'),
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Row(
-        children: [
-          Icon(_getIconForType(type), size: 20, color: Colors.grey[700]),
-          const SizedBox(width: 8),
-          Text(
-            type.toUpperCase(),
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
-
-  IconData _getIconForType(String type) {
-    switch (type) {
-      case 'dish':
-        return Icons.restaurant_menu;
-      case 'image':
-        return Icons.image;
-      case 'section':
-        return Icons.title;
-      case 'text':
-        return Icons.text_fields;
-      default:
-        return Icons.widgets;
-    }
   }
 
   Widget _buildCanvas() {
@@ -1054,8 +862,44 @@ class _AdminTemplateEditorPageState
 
           // Widget drop zones and widgets
           for (int i = 0; i <= widgets.length; i++) ...[
-            _buildDropZone(column.id, i, currentHoverIndex == i, registry),
-            if (i < widgets.length) _buildWidgetItem(widgets[i], column.id),
+            EditorDropZone(
+              columnId: column.id,
+              index: i,
+              isHovering: currentHoverIndex == i,
+              registry: registry,
+              onHoverIndexChanged: (index) {
+                setState(() {
+                  _hoverIndex[column.id] = index;
+                });
+              },
+              onAccept: (dragData) {
+                if (dragData.isNewWidget) {
+                  _handleWidgetDropAtIndex(
+                    dragData.newWidgetType!,
+                    column.id,
+                    i,
+                  );
+                } else if (dragData.isExistingWidget) {
+                  _handleWidgetMoveToIndex(
+                    dragData.existingWidget!,
+                    dragData.sourceColumnId!,
+                    column.id,
+                    i,
+                  );
+                }
+              },
+            ),
+            if (i < widgets.length)
+              DraggableWidgetItem(
+                widgetInstance: widgets[i],
+                columnId: column.id,
+                isEditable: true,
+                isLocked: false,
+                onUpdate: (props) => _handleWidgetUpdate(widgets[i].id, props),
+                onDelete: () => _handleWidgetDelete(widgets[i].id),
+                onConfirmDismiss: () => showDeleteConfirmation(context),
+                onDismissed: (id) => _performWidgetDelete(id),
+              ),
           ],
 
           // Empty state
@@ -1070,137 +914,6 @@ class _AdminTemplateEditorPageState
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildDropZone(
-    int columnId,
-    int index,
-    bool isHovering,
-    WidgetRegistry registry,
-  ) {
-    return DragTarget<_WidgetDragData>(
-      key: Key('drop_zone_${columnId}_$index'),
-      onWillAcceptWithDetails: (details) {
-        final dragData = details.data;
-        if (dragData.isNewWidget) {
-          return registry.getDefinition(dragData.newWidgetType!) != null;
-        } else if (dragData.isExistingWidget) {
-          return true;
-        }
-        return false;
-      },
-      onAcceptWithDetails: (details) {
-        setState(() {
-          _hoverIndex[columnId] = -1;
-        });
-        final dragData = details.data;
-
-        if (_isNoOpDrop(dragData, columnId, index)) return;
-
-        if (dragData.isNewWidget) {
-          _handleWidgetDropAtIndex(dragData.newWidgetType!, columnId, index);
-        } else if (dragData.isExistingWidget) {
-          _handleWidgetMoveToIndex(
-            dragData.existingWidget!,
-            dragData.sourceColumnId!,
-            columnId,
-            index,
-          );
-        }
-      },
-      onMove: (details) {
-        if (_hoverIndex[columnId] != index) {
-          setState(() {
-            _hoverIndex[columnId] = index;
-          });
-        }
-      },
-      onLeave: (data) {
-        Future.delayed(const Duration(milliseconds: 50), () {
-          if (mounted && _hoverIndex[columnId] == index) {
-            setState(() {
-              _hoverIndex[columnId] = -1;
-            });
-          }
-        });
-      },
-      builder: (context, candidateData, rejectedData) {
-        final showLine = isHovering && candidateData.isNotEmpty;
-        final isNoOp =
-            candidateData.isNotEmpty &&
-            candidateData.first != null &&
-            _isNoOpDrop(candidateData.first!, columnId, index);
-
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          height: showLine ? 4 : 8,
-          margin: const EdgeInsets.symmetric(vertical: 2),
-          decoration: BoxDecoration(
-            color: showLine
-                ? (isNoOp ? Colors.grey[400] : Colors.blue)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildWidgetItem(WidgetInstance widgetInst, int columnId) {
-    final widgetContent = Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: WidgetRenderer(
-        widgetInstance: widgetInst,
-        isEditable: true,
-        onUpdate: (updatedProps) =>
-            _handleWidgetUpdate(widgetInst.id, updatedProps),
-        onDelete: () => _handleWidgetDelete(widgetInst.id),
-      ),
-    );
-
-    return LongPressDraggable<_WidgetDragData>(
-      key: Key('widget_${widgetInst.id}'),
-      data: _WidgetDragData.existing(widgetInst, columnId),
-      feedback: Material(
-        elevation: 4.0,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          width: 200,
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue, width: 2),
-          ),
-          child: Text(
-            widgetInst.type.toUpperCase(),
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-      ),
-      childWhenDragging: Opacity(opacity: 0.3, child: widgetContent),
-      child: Dismissible(
-        key: Key('dismissible_${widgetInst.id}'),
-        direction: DismissDirection.endToStart,
-        confirmDismiss: (direction) async {
-          return await _showDeleteConfirmation();
-        },
-        onDismissed: (direction) {
-          _performWidgetDelete(widgetInst.id);
-        },
-        background: Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 16),
-          decoration: BoxDecoration(
-            color: Colors.red,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(Icons.delete, color: Colors.white),
-        ),
-        child: widgetContent,
       ),
     );
   }
