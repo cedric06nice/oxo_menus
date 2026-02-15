@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
@@ -42,4 +43,20 @@ final fetchMenuTreeUseCaseProvider = Provider<FetchMenuTreeUseCase>((ref) {
 /// ```
 final generatePdfUseCaseProvider = Provider<GeneratePdfUseCase>((ref) {
   return const GeneratePdfUseCase();
+});
+
+/// Duplicate menu use case provider
+///
+/// Provides the DuplicateMenuUseCase for duplicating menus with all their
+/// pages, containers, columns, and widgets.
+final duplicateMenuUseCaseProvider = Provider<DuplicateMenuUseCase>((ref) {
+  return DuplicateMenuUseCase(
+    fetchMenuTreeUseCase: ref.watch(fetchMenuTreeUseCaseProvider),
+    menuRepository: ref.watch(menuRepositoryProvider),
+    pageRepository: ref.watch(pageRepositoryProvider),
+    containerRepository: ref.watch(containerRepositoryProvider),
+    columnRepository: ref.watch(columnRepositoryProvider),
+    widgetRepository: ref.watch(widgetRepositoryProvider),
+    sizeRepository: ref.watch(sizeRepositoryProvider),
+  );
 });

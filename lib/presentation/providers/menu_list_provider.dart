@@ -3,7 +3,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
 part 'menu_list_provider.freezed.dart';
 
@@ -24,8 +26,13 @@ abstract class MenuListState with _$MenuListState {
 /// Manages the menu list state and provides methods for loading and deleting menus
 class MenuListNotifier extends StateNotifier<MenuListState> {
   final MenuRepository _menuRepository;
+  final DuplicateMenuUseCase? _duplicateMenuUseCase;
 
-  MenuListNotifier(this._menuRepository) : super(const MenuListState());
+  MenuListNotifier(
+    this._menuRepository, {
+    DuplicateMenuUseCase? duplicateMenuUseCase,
+  })  : _duplicateMenuUseCase = duplicateMenuUseCase,
+        super(const MenuListState());
 
   /// Load all menus
   ///
@@ -97,6 +104,31 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
       },
     );
   }
+
+  /// Duplicate a menu
+  ///
+  /// Duplicates a menu with all its pages, containers, columns, and widgets.
+  /// Returns the duplicated menu on success, or null on failure.
+  Future<Menu?> duplicateMenu(int menuId) async {
+    if (_duplicateMenuUseCase == null) {
+      return null;
+    }
+
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    final result = await _duplicateMenuUseCase.execute(menuId);
+
+    return result.fold(
+      onSuccess: (menu) {
+        state = state.copyWith(menus: [menu, ...state.menus], isLoading: false);
+        return menu;
+      },
+      onFailure: (error) {
+        state = state.copyWith(isLoading: false, errorMessage: error.message);
+        return null;
+      },
+    );
+  }
 }
 
 /// Menu list state provider
@@ -126,6 +158,10 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
 final menuListProvider = StateNotifierProvider<MenuListNotifier, MenuListState>(
   (ref) {
     final menuRepository = ref.watch(menuRepositoryProvider);
-    return MenuListNotifier(menuRepository);
+    final duplicateMenuUseCase = ref.watch(duplicateMenuUseCaseProvider);
+    return MenuListNotifier(
+      menuRepository,
+      duplicateMenuUseCase: duplicateMenuUseCase,
+    );
   },
 );

@@ -13,6 +13,7 @@ class MenuListItem extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onDuplicate;
 
   const MenuListItem({
     super.key,
@@ -21,6 +22,7 @@ class MenuListItem extends StatelessWidget {
     required this.onTap,
     this.onEdit,
     this.onDelete,
+    this.onDuplicate,
   });
 
   @override
@@ -67,6 +69,12 @@ class MenuListItem extends StatelessWidget {
                     onPressed: onEdit,
                     tooltip: 'Edit menu',
                   ),
+                  if (onDuplicate != null)
+                    IconButton(
+                      icon: const Icon(Icons.copy),
+                      onPressed: onDuplicate,
+                      tooltip: 'Duplicate menu',
+                    ),
                   IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: onDelete,

@@ -98,6 +98,24 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
     );
   }
 
+  Future<void> _handleDuplicate(Menu menu) async {
+    final duplicatedMenu = await ref
+        .read(menuListProvider.notifier)
+        .duplicateMenu(menu.id);
+
+    if (mounted) {
+      if (duplicatedMenu != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Menu duplicated successfully')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to duplicate menu')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(menuListProvider);
@@ -142,6 +160,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
           isAdmin: isAdmin,
           onTap: () => _handleMenuTap(menu),
           onEdit: isAdmin ? () => _editTemplate(menu) : null,
+          onDuplicate: isAdmin ? () => _handleDuplicate(menu) : null,
           onDelete: isAdmin ? () => _confirmDelete(menu) : null,
         );
       },

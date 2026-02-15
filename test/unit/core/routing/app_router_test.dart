@@ -11,7 +11,9 @@ import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
+import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
@@ -24,12 +26,15 @@ class MockContainerRepository extends Mock implements ContainerRepository {}
 
 class MockColumnRepository extends Mock implements ColumnRepository {}
 
+class MockDuplicateMenuUseCase extends Mock implements DuplicateMenuUseCase {}
+
 void main() {
   late MockAuthRepository mockAuthRepository;
   late MockMenuRepository mockMenuRepository;
   late MockPageRepository mockPageRepository;
   late MockContainerRepository mockContainerRepository;
   late MockColumnRepository mockColumnRepository;
+  late MockDuplicateMenuUseCase mockDuplicateMenuUseCase;
 
   setUp(() {
     mockAuthRepository = MockAuthRepository();
@@ -37,6 +42,7 @@ void main() {
     mockPageRepository = MockPageRepository();
     mockContainerRepository = MockContainerRepository();
     mockColumnRepository = MockColumnRepository();
+    mockDuplicateMenuUseCase = MockDuplicateMenuUseCase();
 
     // Default behavior for menu repository (return empty list)
     when(
@@ -71,6 +77,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -103,6 +110,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -137,6 +145,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -175,6 +184,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -215,6 +225,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -255,6 +266,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
             pageRepositoryProvider.overrideWithValue(mockPageRepository),
             containerRepositoryProvider.overrideWithValue(
               mockContainerRepository,
@@ -296,6 +308,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -337,6 +350,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -379,6 +393,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -420,6 +435,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -460,6 +476,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
             builder: (context, ref, _) {
@@ -500,6 +517,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
             pageRepositoryProvider.overrideWithValue(mockPageRepository),
             containerRepositoryProvider.overrideWithValue(
               mockContainerRepository,
@@ -539,6 +557,7 @@ void main() {
           overrides: [
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
           ],
           child: Consumer(
             builder: (context, ref, _) {

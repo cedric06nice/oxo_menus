@@ -11,9 +11,11 @@ import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
+import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
 class MockMenuRepository extends Mock implements MenuRepository {}
 
@@ -21,15 +23,19 @@ class MockGoRouter extends Mock implements GoRouter {}
 
 class MockSizeRepository extends Mock implements SizeRepository {}
 
+class MockDuplicateMenuUseCase extends Mock implements DuplicateMenuUseCase {}
+
 void main() {
   late MockMenuRepository mockMenuRepository;
   late MockGoRouter mockRouter;
   late MockSizeRepository mockSizeRepository;
+  late MockDuplicateMenuUseCase mockDuplicateMenuUseCase;
 
   setUp(() {
     mockMenuRepository = MockMenuRepository();
     mockRouter = MockGoRouter();
     mockSizeRepository = MockSizeRepository();
+    mockDuplicateMenuUseCase = MockDuplicateMenuUseCase();
 
     // Default behavior for size repository
     when(() => mockSizeRepository.getAll()).thenAnswer(
@@ -56,6 +62,7 @@ void main() {
       overrides: [
         menuRepositoryProvider.overrideWithValue(mockMenuRepository),
         sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+        duplicateMenuUseCaseProvider.overrideWithValue(mockDuplicateMenuUseCase),
         isAdminProvider.overrideWithValue(isAdmin),
         currentUserProvider.overrideWithValue(mockUser),
       ],
