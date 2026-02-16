@@ -32,7 +32,8 @@
       "mcp__dart__analyze_files",
       "mcp__dart__dart_format",
       "mcp__dart__hover",
-      "mcp__dart__resolve_workspace_symbol"
+      "mcp__dart__resolve_workspace_symbol",
+      "mcp__dart__read_package_uris"
     ]
   }
 }

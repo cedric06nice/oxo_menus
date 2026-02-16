@@ -221,10 +221,10 @@ packages:
     dependency: "direct main"
     description:
       name: directus_api_manager
-      sha256: "7fcba140d677148e4537e9815445acaff35a98532334e1593e3f68a1be7b458a"
+      sha256: "7d76b31ff00ed818262a7ac4665a22ab5700e80023e9a36c85165363e6b4c9bc"
       url: "https://pub.dev"
     source: hosted
-    version: "1.14.3"
+    version: "1.16.0"
   equatable:
     dependency: "direct main"
     description:
@@ -707,10 +707,10 @@ packages:
     dependency: transitive
     description:
       name: petitparser
-      sha256: "1a97266a94f7350d30ae522c0af07890c70b8e62c71e8e3920d1db4d23c057d1"
+      sha256: "91bd59303e9f769f108f8df05e371341b15d59e995e6806aefab827b58336675"
       url: "https://pub.dev"
     source: hosted
-    version: "7.0.1"
+    version: "7.0.2"
   platform:
     dependency: transitive
     description:
