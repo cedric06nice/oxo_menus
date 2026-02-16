@@ -92,6 +92,25 @@ void main() {
         },
       );
 
+      test('should return RateLimitError when requests exceeded', () async {
+        // Arrange
+        when(
+          () => mockDataSource.login(email: email, password: password),
+        ).thenThrow(
+          DirectusException(
+            code: 'REQUESTS_EXCEEDED',
+            message: 'Too many login attempts',
+          ),
+        );
+
+        // Act
+        final result = await repository.login(email, password);
+
+        // Assert
+        expect(result.isFailure, true);
+        expect(result.errorOrNull, isA<RateLimitError>());
+      });
+
       test('should return NetworkError when network fails', () async {
         // Arrange
         when(

@@ -333,6 +333,16 @@ void main() {
         expect(mapDirectusError(error), isA<ServerError>());
       });
 
+      test('should map REQUESTS_EXCEEDED to RateLimitError', () {
+        final error = DirectusException(
+          code: 'REQUESTS_EXCEEDED',
+          message: 'Too many requests',
+        );
+        final result = mapDirectusError(error);
+        expect(result, isA<RateLimitError>());
+        expect(result.message, 'Too many requests');
+      });
+
       test('should map unknown code to UnknownError', () {
         final error = DirectusException(
           code: 'SOMETHING_ELSE',

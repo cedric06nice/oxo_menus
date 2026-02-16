@@ -55,6 +55,11 @@ final class UnauthorizedError extends DomainError {
   const UnauthorizedError([super.message = 'Unauthorized']);
 }
 
+/// Error thrown when too many requests have been made (rate limiting).
+final class RateLimitError extends DomainError {
+  const RateLimitError([super.message = 'Too many requests']);
+}
+
 // ============================================================================
 // Network Errors
 // ============================================================================

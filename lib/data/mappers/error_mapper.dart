@@ -59,6 +59,9 @@ DomainError mapDirectusError(dynamic error) {
       case 'INVALID_FOREIGN_KEY':
         return ValidationError(message);
 
+      case 'REQUESTS_EXCEEDED':
+        return RateLimitError(message);
+
       case 'CREATE_FAILED':
       case 'UPDATE_FAILED':
       case 'DELETE_FAILED':

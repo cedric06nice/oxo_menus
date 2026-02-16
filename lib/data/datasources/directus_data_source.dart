@@ -74,6 +74,12 @@ class DirectusDataSource {
           message: 'OTP required or invalid',
         );
 
+      case DirectusLoginResultType.requestsExceeded:
+        throw DirectusException(
+          code: 'REQUESTS_EXCEEDED',
+          message: result.message ?? 'Too many login attempts',
+        );
+
       case DirectusLoginResultType.error:
         throw DirectusException(
           code: 'LOGIN_ERROR',
