@@ -30,7 +30,9 @@
       "Bash(dart format:*)",
       "mcp__dart__run_tests",
       "mcp__dart__analyze_files",
-      "mcp__dart__dart_format"
+      "mcp__dart__dart_format",
+      "mcp__dart__hover",
+      "mcp__dart__resolve_workspace_symbol"
     ]
   }
 }

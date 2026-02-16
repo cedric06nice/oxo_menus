@@ -105,6 +105,93 @@ void main() {
       });
     });
 
+    group('map', () {
+      test('should transform Success value', () {
+        const Result<int, String> result = Success(42);
+
+        final mapped = result.map((value) => value * 2);
+
+        expect(mapped.isSuccess, true);
+        expect(mapped.valueOrNull, 84);
+      });
+
+      test('should pass through Failure unchanged', () {
+        const Result<int, String> result = Failure('error');
+
+        final mapped = result.map((value) => value * 2);
+
+        expect(mapped.isFailure, true);
+        expect(mapped.errorOrNull, 'error');
+      });
+    });
+
+    group('mapError', () {
+      test('should pass through Success unchanged', () {
+        const Result<int, String> result = Success(42);
+
+        final mapped = result.mapError((error) => 'mapped: $error');
+
+        expect(mapped.isSuccess, true);
+        expect(mapped.valueOrNull, 42);
+      });
+
+      test('should transform Failure error', () {
+        const Result<int, String> result = Failure('error');
+
+        final mapped = result.mapError((error) => 'mapped: $error');
+
+        expect(mapped.isFailure, true);
+        expect(mapped.errorOrNull, 'mapped: error');
+      });
+    });
+
+    group('flatMap', () {
+      test('should chain Success to another Success', () {
+        const Result<int, String> result = Success(42);
+
+        final chained = result.flatMap((value) => Success(value.toString()));
+
+        expect(chained.isSuccess, true);
+        expect(chained.valueOrNull, '42');
+      });
+
+      test('should chain Success to Failure', () {
+        const Result<int, String> result = Success(42);
+
+        final chained =
+            result.flatMap<String>((value) => const Failure('failed'));
+
+        expect(chained.isFailure, true);
+        expect(chained.errorOrNull, 'failed');
+      });
+
+      test('should pass through Failure without calling transform', () {
+        const Result<int, String> result = Failure('original error');
+        var called = false;
+
+        final chained = result.flatMap((value) {
+          called = true;
+          return Success(value.toString());
+        });
+
+        expect(called, false);
+        expect(chained.isFailure, true);
+        expect(chained.errorOrNull, 'original error');
+      });
+    });
+
+    group('toString', () {
+      test('Success should have readable toString', () {
+        const result = Success<int, String>(42);
+        expect(result.toString(), 'Success(42)');
+      });
+
+      test('Failure should have readable toString', () {
+        const result = Failure<int, String>('oops');
+        expect(result.toString(), 'Failure(oops)');
+      });
+    });
+
     group('Equality', () {
       test('Success instances with same value should be equal', () {
         const result1 = Success<int, String>(42);

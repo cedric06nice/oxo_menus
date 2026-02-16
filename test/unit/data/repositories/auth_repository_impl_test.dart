@@ -252,5 +252,79 @@ void main() {
         expect(result.errorOrNull, isA<UnknownError>());
       });
     });
+
+    group('tryRestoreSession', () {
+      test('should restore session and return user', () async {
+        final userJson = {
+          'id': 'user-1',
+          'email': 'test@example.com',
+          'first_name': 'Test',
+          'last_name': 'User',
+          'role': 'admin',
+        };
+
+        when(
+          () => mockDataSource.tryRestoreSession(),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockDataSource.getCurrentUser(),
+        ).thenAnswer((_) async => userJson);
+
+        final result = await repository.tryRestoreSession();
+
+        expect(result.isSuccess, true);
+        final user = result.valueOrNull!;
+        expect(user.id, 'user-1');
+        expect(user.email, 'test@example.com');
+        expect(user.role, UserRole.admin);
+      });
+
+      test('should return TokenExpiredError when no valid session', () async {
+        when(
+          () => mockDataSource.tryRestoreSession(),
+        ).thenAnswer((_) async => false);
+
+        final result = await repository.tryRestoreSession();
+
+        expect(result.isFailure, true);
+        expect(result.errorOrNull, isA<TokenExpiredError>());
+      });
+
+      test('should return error when exception occurs during restore',
+          () async {
+        when(
+          () => mockDataSource.tryRestoreSession(),
+        ).thenThrow(Exception('Storage error'));
+
+        final result = await repository.tryRestoreSession();
+
+        expect(result.isFailure, true);
+        expect(result.errorOrNull, isA<UnknownError>());
+      });
+    });
+
+    group('login edge cases', () {
+      test('should return UnknownError when login response has no user data',
+          () async {
+        final loginResponseWithoutUser = {
+          'access_token': 'token123',
+          'refresh_token': 'refresh123',
+          'expires': 900000,
+        };
+
+        when(
+          () => mockDataSource.login(
+            email: 'test@example.com',
+            password: 'pass',
+          ),
+        ).thenAnswer((_) async => loginResponseWithoutUser);
+
+        final result =
+            await repository.login('test@example.com', 'pass');
+
+        expect(result.isFailure, true);
+        expect(result.errorOrNull, isA<UnknownError>());
+      });
+    });
   });
 }

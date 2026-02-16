@@ -134,6 +134,98 @@ void main() {
         // Assert
         expect(dto.isTemplate, false);
       });
+
+      test('should convert WidgetInstance with style to WidgetDto', () {
+        const entity = WidgetInstance(
+          id: 5,
+          columnId: 10,
+          type: 'dish',
+          version: '2.0.0',
+          index: 3,
+          props: {'name': 'Test Dish'},
+          style: WidgetStyle(
+            fontFamily: 'Arial',
+            fontSize: 14.0,
+            color: '#FF0000',
+            backgroundColor: '#FFFFFF',
+            border: 'solid',
+            padding: 8.0,
+          ),
+        );
+
+        final dto = WidgetMapper.toDto(entity);
+
+        expect(dto.id, '5');
+        expect(dto.typeKey, 'dish');
+        expect(dto.version, '2.0.0');
+        expect(dto.index, 3);
+        expect(dto.propsJson['name'], 'Test Dish');
+
+        final styleJson = dto.styleJson;
+        expect(styleJson['fontFamily'], 'Arial');
+        expect(styleJson['fontSize'], 14.0);
+        expect(styleJson['color'], '#FF0000');
+        expect(styleJson['backgroundColor'], '#FFFFFF');
+        expect(styleJson['border'], 'solid');
+        expect(styleJson['padding'], 8.0);
+      });
+
+      test('should convert WidgetInstance with null style to WidgetDto', () {
+        const entity = WidgetInstance(
+          id: 6,
+          columnId: 11,
+          type: 'section',
+          version: '1.0.0',
+          index: 0,
+          props: {'title': 'Test'},
+        );
+
+        final dto = WidgetMapper.toDto(entity);
+
+        expect(dto.styleJson, isEmpty);
+      });
+
+      test('should convert WidgetInstance with partial style', () {
+        const entity = WidgetInstance(
+          id: 7,
+          columnId: 12,
+          type: 'text',
+          version: '1.0.0',
+          index: 0,
+          props: {},
+          style: WidgetStyle(fontSize: 16.0),
+        );
+
+        final dto = WidgetMapper.toDto(entity);
+
+        final styleJson = dto.styleJson;
+        expect(styleJson['fontSize'], 16.0);
+        expect(styleJson.containsKey('fontFamily'), false);
+        expect(styleJson.containsKey('color'), false);
+      });
+    });
+
+    group('widgetStyleToJson', () {
+      test('should only include non-null fields', () {
+        const style = WidgetStyle(
+          color: '#000000',
+          padding: 4.0,
+        );
+
+        final json = WidgetMapper.widgetStyleToJson(style);
+
+        expect(json, hasLength(2));
+        expect(json['color'], '#000000');
+        expect(json['padding'], 4.0);
+      });
+
+      test('should return empty map for empty style', () {
+        const style = WidgetStyle();
+
+        final json = WidgetMapper.widgetStyleToJson(style);
+
+        expect(json, isEmpty);
+      });
     });
   });
 }
