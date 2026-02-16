@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Menu {
 
- int get id; String get name; Status get status; String get version; DateTime? get dateCreated; DateTime? get dateUpdated; String? get userCreated; String? get userUpdated; StyleConfig? get styleConfig; PageSize? get pageSize; String? get area; MenuDisplayOptions? get displayOptions;
+ int get id; String get name; Status get status; String get version; DateTime? get dateCreated; DateTime? get dateUpdated; String? get userCreated; String? get userUpdated; StyleConfig? get styleConfig; PageSize? get pageSize; String? get area; MenuDisplayOptions? get displayOptions; List<String> get allowedWidgetTypes;
 /// Create a copy of Menu
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $MenuCopyWith<Menu> get copyWith => _$MenuCopyWithImpl<Menu>(this as Menu, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Menu&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.version, version) || other.version == version)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated)&&(identical(other.userCreated, userCreated) || other.userCreated == userCreated)&&(identical(other.userUpdated, userUpdated) || other.userUpdated == userUpdated)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.area, area) || other.area == area)&&(identical(other.displayOptions, displayOptions) || other.displayOptions == displayOptions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Menu&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.version, version) || other.version == version)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated)&&(identical(other.userCreated, userCreated) || other.userCreated == userCreated)&&(identical(other.userUpdated, userUpdated) || other.userUpdated == userUpdated)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.area, area) || other.area == area)&&(identical(other.displayOptions, displayOptions) || other.displayOptions == displayOptions)&&const DeepCollectionEquality().equals(other.allowedWidgetTypes, allowedWidgetTypes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,status,version,dateCreated,dateUpdated,userCreated,userUpdated,styleConfig,pageSize,area,displayOptions);
+int get hashCode => Object.hash(runtimeType,id,name,status,version,dateCreated,dateUpdated,userCreated,userUpdated,styleConfig,pageSize,area,displayOptions,const DeepCollectionEquality().hash(allowedWidgetTypes));
 
 @override
 String toString() {
-  return 'Menu(id: $id, name: $name, status: $status, version: $version, dateCreated: $dateCreated, dateUpdated: $dateUpdated, userCreated: $userCreated, userUpdated: $userUpdated, styleConfig: $styleConfig, pageSize: $pageSize, area: $area, displayOptions: $displayOptions)';
+  return 'Menu(id: $id, name: $name, status: $status, version: $version, dateCreated: $dateCreated, dateUpdated: $dateUpdated, userCreated: $userCreated, userUpdated: $userUpdated, styleConfig: $styleConfig, pageSize: $pageSize, area: $area, displayOptions: $displayOptions, allowedWidgetTypes: $allowedWidgetTypes)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $MenuCopyWith<$Res>  {
   factory $MenuCopyWith(Menu value, $Res Function(Menu) _then) = _$MenuCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, Status status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, String? area, MenuDisplayOptions? displayOptions
+ int id, String name, Status status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, String? area, MenuDisplayOptions? displayOptions, List<String> allowedWidgetTypes
 });
 
 
@@ -65,7 +65,7 @@ class _$MenuCopyWithImpl<$Res>
 
 /// Create a copy of Menu
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? status = null,Object? version = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,Object? userCreated = freezed,Object? userUpdated = freezed,Object? styleConfig = freezed,Object? pageSize = freezed,Object? area = freezed,Object? displayOptions = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? status = null,Object? version = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,Object? userCreated = freezed,Object? userUpdated = freezed,Object? styleConfig = freezed,Object? pageSize = freezed,Object? area = freezed,Object? displayOptions = freezed,Object? allowedWidgetTypes = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -79,7 +79,8 @@ as String?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig
 as StyleConfig?,pageSize: freezed == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
 as PageSize?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
 as String?,displayOptions: freezed == displayOptions ? _self.displayOptions : displayOptions // ignore: cast_nullable_to_non_nullable
-as MenuDisplayOptions?,
+as MenuDisplayOptions?,allowedWidgetTypes: null == allowedWidgetTypes ? _self.allowedWidgetTypes : allowedWidgetTypes // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 /// Create a copy of Menu
@@ -200,10 +201,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area,  MenuDisplayOptions? displayOptions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area,  MenuDisplayOptions? displayOptions,  List<String> allowedWidgetTypes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Menu() when $default != null:
-return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area,_that.displayOptions);case _:
+return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area,_that.displayOptions,_that.allowedWidgetTypes);case _:
   return orElse();
 
 }
@@ -221,10 +222,10 @@ return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area,  MenuDisplayOptions? displayOptions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area,  MenuDisplayOptions? displayOptions,  List<String> allowedWidgetTypes)  $default,) {final _that = this;
 switch (_that) {
 case _Menu():
-return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area,_that.displayOptions);case _:
+return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area,_that.displayOptions,_that.allowedWidgetTypes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -241,10 +242,10 @@ return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area,  MenuDisplayOptions? displayOptions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area,  MenuDisplayOptions? displayOptions,  List<String> allowedWidgetTypes)?  $default,) {final _that = this;
 switch (_that) {
 case _Menu() when $default != null:
-return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area,_that.displayOptions);case _:
+return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area,_that.displayOptions,_that.allowedWidgetTypes);case _:
   return null;
 
 }
@@ -256,7 +257,7 @@ return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated
 @JsonSerializable()
 
 class _Menu extends Menu {
-  const _Menu({required this.id, required this.name, required this.status, required this.version, this.dateCreated, this.dateUpdated, this.userCreated, this.userUpdated, this.styleConfig, this.pageSize, this.area, this.displayOptions}): super._();
+  const _Menu({required this.id, required this.name, required this.status, required this.version, this.dateCreated, this.dateUpdated, this.userCreated, this.userUpdated, this.styleConfig, this.pageSize, this.area, this.displayOptions, final  List<String> allowedWidgetTypes = const []}): _allowedWidgetTypes = allowedWidgetTypes,super._();
   factory _Menu.fromJson(Map<String, dynamic> json) => _$MenuFromJson(json);
 
 @override final  int id;
@@ -271,6 +272,13 @@ class _Menu extends Menu {
 @override final  PageSize? pageSize;
 @override final  String? area;
 @override final  MenuDisplayOptions? displayOptions;
+ final  List<String> _allowedWidgetTypes;
+@override@JsonKey() List<String> get allowedWidgetTypes {
+  if (_allowedWidgetTypes is EqualUnmodifiableListView) return _allowedWidgetTypes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_allowedWidgetTypes);
+}
+
 
 /// Create a copy of Menu
 /// with the given fields replaced by the non-null parameter values.
@@ -285,16 +293,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Menu&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.version, version) || other.version == version)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated)&&(identical(other.userCreated, userCreated) || other.userCreated == userCreated)&&(identical(other.userUpdated, userUpdated) || other.userUpdated == userUpdated)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.area, area) || other.area == area)&&(identical(other.displayOptions, displayOptions) || other.displayOptions == displayOptions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Menu&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.status, status) || other.status == status)&&(identical(other.version, version) || other.version == version)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated)&&(identical(other.userCreated, userCreated) || other.userCreated == userCreated)&&(identical(other.userUpdated, userUpdated) || other.userUpdated == userUpdated)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.area, area) || other.area == area)&&(identical(other.displayOptions, displayOptions) || other.displayOptions == displayOptions)&&const DeepCollectionEquality().equals(other._allowedWidgetTypes, _allowedWidgetTypes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,status,version,dateCreated,dateUpdated,userCreated,userUpdated,styleConfig,pageSize,area,displayOptions);
+int get hashCode => Object.hash(runtimeType,id,name,status,version,dateCreated,dateUpdated,userCreated,userUpdated,styleConfig,pageSize,area,displayOptions,const DeepCollectionEquality().hash(_allowedWidgetTypes));
 
 @override
 String toString() {
-  return 'Menu(id: $id, name: $name, status: $status, version: $version, dateCreated: $dateCreated, dateUpdated: $dateUpdated, userCreated: $userCreated, userUpdated: $userUpdated, styleConfig: $styleConfig, pageSize: $pageSize, area: $area, displayOptions: $displayOptions)';
+  return 'Menu(id: $id, name: $name, status: $status, version: $version, dateCreated: $dateCreated, dateUpdated: $dateUpdated, userCreated: $userCreated, userUpdated: $userUpdated, styleConfig: $styleConfig, pageSize: $pageSize, area: $area, displayOptions: $displayOptions, allowedWidgetTypes: $allowedWidgetTypes)';
 }
 
 
@@ -305,7 +313,7 @@ abstract mixin class _$MenuCopyWith<$Res> implements $MenuCopyWith<$Res> {
   factory _$MenuCopyWith(_Menu value, $Res Function(_Menu) _then) = __$MenuCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, Status status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, String? area, MenuDisplayOptions? displayOptions
+ int id, String name, Status status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, String? area, MenuDisplayOptions? displayOptions, List<String> allowedWidgetTypes
 });
 
 
@@ -322,7 +330,7 @@ class __$MenuCopyWithImpl<$Res>
 
 /// Create a copy of Menu
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? status = null,Object? version = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,Object? userCreated = freezed,Object? userUpdated = freezed,Object? styleConfig = freezed,Object? pageSize = freezed,Object? area = freezed,Object? displayOptions = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? status = null,Object? version = null,Object? dateCreated = freezed,Object? dateUpdated = freezed,Object? userCreated = freezed,Object? userUpdated = freezed,Object? styleConfig = freezed,Object? pageSize = freezed,Object? area = freezed,Object? displayOptions = freezed,Object? allowedWidgetTypes = null,}) {
   return _then(_Menu(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -336,7 +344,8 @@ as String?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig
 as StyleConfig?,pageSize: freezed == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
 as PageSize?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
 as String?,displayOptions: freezed == displayOptions ? _self.displayOptions : displayOptions // ignore: cast_nullable_to_non_nullable
-as MenuDisplayOptions?,
+as MenuDisplayOptions?,allowedWidgetTypes: null == allowedWidgetTypes ? _self._allowedWidgetTypes : allowedWidgetTypes // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

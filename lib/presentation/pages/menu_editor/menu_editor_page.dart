@@ -262,7 +262,13 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       body: Row(
         children: [
           // Left Panel: Widget Palette
-          SizedBox(width: 200, child: WidgetPalette(registry: registry)),
+          SizedBox(
+            width: 200,
+            child: WidgetPalette(
+              registry: registry,
+              allowedWidgetTypes: _menu?.allowedWidgetTypes,
+            ),
+          ),
 
           // Divider
           const VerticalDivider(width: 1),
@@ -433,6 +439,12 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     int columnId,
     int index,
   ) async {
+    final allowed = _menu?.allowedWidgetTypes;
+    if (allowed != null &&
+        allowed.isNotEmpty &&
+        !allowed.contains(widgetType)) {
+      return;
+    }
     await _crudHelper.handleWidgetDropAtIndex(widgetType, columnId, index);
   }
 

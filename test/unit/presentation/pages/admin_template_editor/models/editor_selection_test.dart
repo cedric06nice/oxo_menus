@@ -23,41 +23,23 @@ void main() {
     });
 
     test('two selections with same type and id are equal', () {
-      const a = EditorSelection(
-        type: EditorElementType.column,
-        id: 7,
-      );
-      const b = EditorSelection(
-        type: EditorElementType.column,
-        id: 7,
-      );
+      const a = EditorSelection(type: EditorElementType.column, id: 7);
+      const b = EditorSelection(type: EditorElementType.column, id: 7);
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
     });
 
     test('two selections with different type are not equal', () {
-      const a = EditorSelection(
-        type: EditorElementType.container,
-        id: 7,
-      );
-      const b = EditorSelection(
-        type: EditorElementType.column,
-        id: 7,
-      );
+      const a = EditorSelection(type: EditorElementType.container, id: 7);
+      const b = EditorSelection(type: EditorElementType.column, id: 7);
 
       expect(a, isNot(equals(b)));
     });
 
     test('two selections with different id are not equal', () {
-      const a = EditorSelection(
-        type: EditorElementType.container,
-        id: 1,
-      );
-      const b = EditorSelection(
-        type: EditorElementType.container,
-        id: 2,
-      );
+      const a = EditorSelection(type: EditorElementType.container, id: 1);
+      const b = EditorSelection(type: EditorElementType.container, id: 2);
 
       expect(a, isNot(equals(b)));
     });

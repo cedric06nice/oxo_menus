@@ -28,6 +28,7 @@ class MenuMapper {
       displayOptions: dto.displayOptionsJson.isNotEmpty
           ? DisplayOptionsMapper.fromJson(dto.displayOptionsJson)
           : null,
+      allowedWidgetTypes: dto.allowedWidgetTypes,
     );
   }
 
@@ -97,6 +98,9 @@ class MenuMapper {
         input.displayOptions!,
       );
     }
+    if (input.allowedWidgetTypes != null) {
+      map['allowed_widget_types'] = input.allowedWidgetTypes;
+    }
 
     return map;
   }
@@ -128,6 +132,9 @@ class MenuMapper {
       map['display_options_json'] = DisplayOptionsMapper.toJson(
         input.displayOptions!,
       );
+    }
+    if (input.allowedWidgetTypes != null) {
+      map['allowed_widget_types'] = input.allowedWidgetTypes;
     }
 
     return map;

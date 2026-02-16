@@ -48,10 +48,10 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
   }
 
   String get _title => switch (widget.type) {
-        EditorElementType.menu => 'Menu Style',
-        EditorElementType.container => 'Container Style',
-        EditorElementType.column => 'Column Style',
-      };
+    EditorElementType.menu => 'Menu Style',
+    EditorElementType.container => 'Container Style',
+    EditorElementType.column => 'Column Style',
+  };
 
   StyleConfig get _style => widget.styleConfig ?? const StyleConfig();
 
@@ -91,8 +91,9 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
               IconButton(
                 key: const Key('paste_style_button'),
                 icon: const Icon(Icons.paste, size: 18),
-                onPressed:
-                    widget.clipboardStyle != null ? widget.onPaste : null,
+                onPressed: widget.clipboardStyle != null
+                    ? widget.onPaste
+                    : null,
                 tooltip: 'Paste Style',
                 constraints: const BoxConstraints(),
                 padding: const EdgeInsets.all(4),
@@ -122,12 +123,14 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
             left: _style.marginLeft,
             right: _style.marginRight,
             onChanged: ({top, bottom, left, right}) {
-              widget.onStyleChanged(_style.copyWith(
-                marginTop: top,
-                marginBottom: bottom,
-                marginLeft: left,
-                marginRight: right,
-              ));
+              widget.onStyleChanged(
+                _style.copyWith(
+                  marginTop: top,
+                  marginBottom: bottom,
+                  marginLeft: left,
+                  marginRight: right,
+                ),
+              );
             },
           ),
           const SizedBox(height: 12),
@@ -141,8 +144,10 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
             decoration: const InputDecoration(isDense: true),
             isExpanded: true,
             items: BorderType.values
-                .map((type) =>
-                    DropdownMenuItem(value: type, child: Text(type.label)))
+                .map(
+                  (type) =>
+                      DropdownMenuItem(value: type, child: Text(type.label)),
+                )
                 .toList(),
             onChanged: _onBorderTypeChanged,
           ),
@@ -157,12 +162,14 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
             left: _style.paddingLeft,
             right: _style.paddingRight,
             onChanged: ({top, bottom, left, right}) {
-              widget.onStyleChanged(_style.copyWith(
-                paddingTop: top,
-                paddingBottom: bottom,
-                paddingLeft: left,
-                paddingRight: right,
-              ));
+              widget.onStyleChanged(
+                _style.copyWith(
+                  paddingTop: top,
+                  paddingBottom: bottom,
+                  paddingLeft: left,
+                  paddingRight: right,
+                ),
+              );
             },
           ),
         ],

@@ -15,6 +15,9 @@ class MenuDto extends DirectusItem {
   String? get userUpdated => getValue(forKey: "user_updated");
   Map<String, dynamic> get styleJson =>
       Map<String, dynamic>.from(getValue(forKey: "style_json") ?? const {});
+  List<String> get allowedWidgetTypes =>
+      List<String>.from(getValue(forKey: "allowed_widget_types") ?? const []);
+
   Map<String, dynamic> get displayOptionsJson => Map<String, dynamic>.from(
     getValue(forKey: "display_options_json") ?? const {},
   );

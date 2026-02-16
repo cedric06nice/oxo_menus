@@ -45,8 +45,9 @@ void main() {
       expect(find.text('Menu Style'), findsOneWidget);
     });
 
-    testWidgets('renders "Container Style" label for container type',
-        (tester) async {
+    testWidgets('renders "Container Style" label for container type', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildSubject(type: EditorElementType.container));
 
       expect(find.text('Container Style'), findsOneWidget);
@@ -78,20 +79,24 @@ void main() {
       expect(find.text('Paddings'), findsOneWidget);
     });
 
-    testWidgets('column type shows "Allow Widget Drops" switch',
-        (tester) async {
-      await tester.pumpWidget(buildSubject(
-        type: EditorElementType.column,
-        isDroppable: true,
-        onDroppableChanged: (_) {},
-      ));
+    testWidgets('column type shows "Allow Widget Drops" switch', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildSubject(
+          type: EditorElementType.column,
+          isDroppable: true,
+          onDroppableChanged: (_) {},
+        ),
+      );
 
       expect(find.text('Allow Widget Drops'), findsOneWidget);
       expect(find.byType(SwitchListTile), findsOneWidget);
     });
 
-    testWidgets('non-column type does NOT show droppable switch',
-        (tester) async {
+    testWidgets('non-column type does NOT show droppable switch', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildSubject(type: EditorElementType.container));
 
       expect(find.text('Allow Widget Drops'), findsNothing);
@@ -101,9 +106,7 @@ void main() {
     testWidgets('copy button calls onCopy callback', (tester) async {
       bool copyCalled = false;
 
-      await tester.pumpWidget(buildSubject(
-        onCopy: () => copyCalled = true,
-      ));
+      await tester.pumpWidget(buildSubject(onCopy: () => copyCalled = true));
 
       await tester.tap(find.byKey(const Key('copy_style_button')));
       await tester.pump();
@@ -114,10 +117,12 @@ void main() {
     testWidgets('paste button calls onPaste callback', (tester) async {
       bool pasteCalled = false;
 
-      await tester.pumpWidget(buildSubject(
-        clipboardStyle: const StyleConfig(marginTop: 10),
-        onPaste: () => pasteCalled = true,
-      ));
+      await tester.pumpWidget(
+        buildSubject(
+          clipboardStyle: const StyleConfig(marginTop: 10),
+          onPaste: () => pasteCalled = true,
+        ),
+      );
 
       await tester.tap(find.byKey(const Key('paste_style_button')));
       await tester.pump();
@@ -125,8 +130,9 @@ void main() {
       expect(pasteCalled, isTrue);
     });
 
-    testWidgets('paste button disabled when clipboardStyle is null',
-        (tester) async {
+    testWidgets('paste button disabled when clipboardStyle is null', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildSubject(clipboardStyle: null));
 
       final pasteButton = tester.widget<IconButton>(
@@ -135,52 +141,65 @@ void main() {
       expect(pasteButton.onPressed, isNull);
     });
 
-    testWidgets('changing margin fires onStyleChanged with updated StyleConfig',
-        (tester) async {
-      StyleConfig? changedStyle;
+    testWidgets(
+      'changing margin fires onStyleChanged with updated StyleConfig',
+      (tester) async {
+        StyleConfig? changedStyle;
 
-      await tester.pumpWidget(buildSubject(
-        styleConfig: const StyleConfig(marginTop: 5, marginBottom: 5, marginLeft: 5, marginRight: 5),
-        onStyleChanged: (style) => changedStyle = style,
-      ));
+        await tester.pumpWidget(
+          buildSubject(
+            styleConfig: const StyleConfig(
+              marginTop: 5,
+              marginBottom: 5,
+              marginLeft: 5,
+              marginRight: 5,
+            ),
+            onStyleChanged: (style) => changedStyle = style,
+          ),
+        );
 
-      // In All mode, there's a single margin field
-      await tester.enterText(
-        find.byKey(const Key('side_margin_all')),
-        '20',
+        // In All mode, there's a single margin field
+        await tester.enterText(find.byKey(const Key('side_margin_all')), '20');
+        await tester.pump();
+
+        expect(changedStyle, isNotNull);
+        expect(changedStyle!.marginTop, 20);
+      },
+    );
+
+    testWidgets(
+      'changing border fires onStyleChanged with updated StyleConfig',
+      (tester) async {
+        StyleConfig? changedStyle;
+
+        await tester.pumpWidget(
+          buildSubject(
+            styleConfig: const StyleConfig(),
+            onStyleChanged: (style) => changedStyle = style,
+          ),
+        );
+
+        // Tap border dropdown
+        await tester.tap(find.byType(DropdownButtonFormField<BorderType>));
+        await tester.pumpAndSettle();
+
+        // Select Plain Thin
+        await tester.tap(find.text('Plain Thin').last);
+        await tester.pumpAndSettle();
+
+        expect(changedStyle, isNotNull);
+        expect(changedStyle!.borderType, BorderType.plainThin);
+      },
+    );
+
+    testWidgets('border dropdown updates when styleConfig changes', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildSubject(
+          styleConfig: const StyleConfig(borderType: BorderType.none),
+        ),
       );
-      await tester.pump();
-
-      expect(changedStyle, isNotNull);
-      expect(changedStyle!.marginTop, 20);
-    });
-
-    testWidgets('changing border fires onStyleChanged with updated StyleConfig',
-        (tester) async {
-      StyleConfig? changedStyle;
-
-      await tester.pumpWidget(buildSubject(
-        styleConfig: const StyleConfig(),
-        onStyleChanged: (style) => changedStyle = style,
-      ));
-
-      // Tap border dropdown
-      await tester.tap(find.byType(DropdownButtonFormField<BorderType>));
-      await tester.pumpAndSettle();
-
-      // Select Plain Thin
-      await tester.tap(find.text('Plain Thin').last);
-      await tester.pumpAndSettle();
-
-      expect(changedStyle, isNotNull);
-      expect(changedStyle!.borderType, BorderType.plainThin);
-    });
-
-    testWidgets('border dropdown updates when styleConfig changes',
-        (tester) async {
-      await tester.pumpWidget(buildSubject(
-        styleConfig: const StyleConfig(borderType: BorderType.none),
-      ));
 
       // Initially the form field value is none
       var state = tester.state<FormFieldState<BorderType>>(
@@ -189,9 +208,11 @@ void main() {
       expect(state.value, BorderType.none);
 
       // Re-pump with plainThin
-      await tester.pumpWidget(buildSubject(
-        styleConfig: const StyleConfig(borderType: BorderType.plainThin),
-      ));
+      await tester.pumpWidget(
+        buildSubject(
+          styleConfig: const StyleConfig(borderType: BorderType.plainThin),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Form field value should now be plainThin
@@ -201,17 +222,26 @@ void main() {
       expect(state.value, BorderType.plainThin);
     });
 
-    testWidgets('all fields update when styleConfig changes (element switch)',
-        (tester) async {
+    testWidgets('all fields update when styleConfig changes (element switch)', (
+      tester,
+    ) async {
       // Simulate container selected: margins 5, no border, paddings 10
-      await tester.pumpWidget(buildSubject(
-        type: EditorElementType.container,
-        styleConfig: const StyleConfig(
-          marginTop: 5, marginBottom: 5, marginLeft: 5, marginRight: 5,
-          borderType: BorderType.none,
-          paddingTop: 10, paddingBottom: 10, paddingLeft: 10, paddingRight: 10,
+      await tester.pumpWidget(
+        buildSubject(
+          type: EditorElementType.container,
+          styleConfig: const StyleConfig(
+            marginTop: 5,
+            marginBottom: 5,
+            marginLeft: 5,
+            marginRight: 5,
+            borderType: BorderType.none,
+            paddingTop: 10,
+            paddingBottom: 10,
+            paddingLeft: 10,
+            paddingRight: 10,
+          ),
         ),
-      ));
+      );
 
       // Verify initial margin field shows "5"
       var marginField = tester.widget<TextField>(
@@ -232,14 +262,22 @@ void main() {
       expect(borderState.value, BorderType.none);
 
       // Switch to column: margins 20, plainThin border, paddings 0
-      await tester.pumpWidget(buildSubject(
-        type: EditorElementType.column,
-        styleConfig: const StyleConfig(
-          marginTop: 20, marginBottom: 20, marginLeft: 20, marginRight: 20,
-          borderType: BorderType.plainThin,
-          paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0,
+      await tester.pumpWidget(
+        buildSubject(
+          type: EditorElementType.column,
+          styleConfig: const StyleConfig(
+            marginTop: 20,
+            marginBottom: 20,
+            marginLeft: 20,
+            marginRight: 20,
+            borderType: BorderType.plainThin,
+            paddingTop: 0,
+            paddingBottom: 0,
+            paddingLeft: 0,
+            paddingRight: 0,
+          ),
         ),
-      ));
+      );
       await tester.pumpAndSettle();
 
       // Margin field should now show "20"
@@ -264,23 +302,29 @@ void main() {
       expect(find.text('Column Style'), findsOneWidget);
     });
 
-    testWidgets('changing padding fires onStyleChanged with updated StyleConfig',
-        (tester) async {
-      StyleConfig? changedStyle;
+    testWidgets(
+      'changing padding fires onStyleChanged with updated StyleConfig',
+      (tester) async {
+        StyleConfig? changedStyle;
 
-      await tester.pumpWidget(buildSubject(
-        styleConfig: const StyleConfig(paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0),
-        onStyleChanged: (style) => changedStyle = style,
-      ));
+        await tester.pumpWidget(
+          buildSubject(
+            styleConfig: const StyleConfig(
+              paddingTop: 0,
+              paddingBottom: 0,
+              paddingLeft: 0,
+              paddingRight: 0,
+            ),
+            onStyleChanged: (style) => changedStyle = style,
+          ),
+        );
 
-      await tester.enterText(
-        find.byKey(const Key('side_padding_all')),
-        '15',
-      );
-      await tester.pump();
+        await tester.enterText(find.byKey(const Key('side_padding_all')), '15');
+        await tester.pump();
 
-      expect(changedStyle, isNotNull);
-      expect(changedStyle!.paddingTop, 15);
-    });
+        expect(changedStyle, isNotNull);
+        expect(changedStyle!.paddingTop, 15);
+      },
+    );
   });
 }

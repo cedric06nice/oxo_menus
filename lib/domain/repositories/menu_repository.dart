@@ -38,6 +38,7 @@ abstract class CreateMenuInput with _$CreateMenuInput {
     int? sizeId,
     String? area,
     MenuDisplayOptions? displayOptions,
+    List<String>? allowedWidgetTypes,
   }) = _CreateMenuInput;
 }
 
@@ -55,5 +56,6 @@ abstract class UpdateMenuInput with _$UpdateMenuInput {
     PageSize? pageSize,
     String? area,
     MenuDisplayOptions? displayOptions,
+    List<String>? allowedWidgetTypes,
   }) = _UpdateMenuInput;
 }

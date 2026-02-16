@@ -674,53 +674,64 @@ void main() {
   });
 
   group('AdminTemplateEditorPage - Selection and Side Panel', () {
-    testWidgets('tapping a container card shows "Container Style" in side panel',
-        (tester) async {
-      // Arrange
-      const menuId = 1;
-      const pageId = 1;
-      const menu = Menu(
-        id: menuId,
-        name: 'Test Template',
-        status: Status.draft,
-        version: '1.0.0',
-      );
-      final pages = [
-        const entity.Page(
-            id: pageId, menuId: menuId, name: 'Page 1', index: 0),
-      ];
-      final containers = [
-        const entity.Container(
-          id: 1,
-          pageId: pageId,
-          index: 0,
-          name: 'Header Section',
-        ),
-      ];
+    testWidgets(
+      'tapping a container card shows "Container Style" in side panel',
+      (tester) async {
+        // Arrange
+        const menuId = 1;
+        const pageId = 1;
+        const menu = Menu(
+          id: menuId,
+          name: 'Test Template',
+          status: Status.draft,
+          version: '1.0.0',
+        );
+        final pages = [
+          const entity.Page(
+            id: pageId,
+            menuId: menuId,
+            name: 'Page 1',
+            index: 0,
+          ),
+        ];
+        final containers = [
+          const entity.Container(
+            id: 1,
+            pageId: pageId,
+            index: 0,
+            name: 'Header Section',
+          ),
+        ];
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(pageId))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepository.getAllForContainer(any()))
-          .thenAnswer((_) async => const Success([]));
+        when(
+          () => mockMenuRepository.getById(menuId),
+        ).thenAnswer((_) async => const Success(menu));
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => Success(pages));
+        when(
+          () => mockContainerRepository.getAllForPage(pageId),
+        ).thenAnswer((_) async => Success(containers));
+        when(
+          () => mockColumnRepository.getAllForContainer(any()),
+        ).thenAnswer((_) async => const Success([]));
 
-      // Act
-      await tester.pumpWidget(createWidgetUnderTest(menuId));
-      await tester.pumpAndSettle();
+        // Act
+        await tester.pumpWidget(createWidgetUnderTest(menuId));
+        await tester.pumpAndSettle();
 
-      // Tap the container card
-      await tester.tap(find.byKey(const Key('selectable_container_1')));
-      await tester.pumpAndSettle();
+        // Tap the container card
+        await tester.tap(find.byKey(const Key('selectable_container_1')));
+        await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.text('Container Style'), findsOneWidget);
-    });
+        // Assert
+        expect(find.text('Container Style'), findsOneWidget);
+      },
+    );
 
-    testWidgets('tapping a column card shows "Column Style" in side panel',
-        (tester) async {
+    testWidgets('tapping a column card shows "Column Style" in side panel', (
+      tester,
+    ) async {
       // Arrange
       const menuId = 1;
       const pageId = 1;
@@ -732,27 +743,30 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(
-            id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
       ];
       final containers = [
         const entity.Container(id: containerId, pageId: pageId, index: 0),
       ];
       final columns = [
-        const entity.Column(
-            id: 1, containerId: containerId, index: 0, flex: 1),
+        const entity.Column(id: 1, containerId: containerId, index: 0, flex: 1),
       ];
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(pageId))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepository.getAllForContainer(containerId))
-          .thenAnswer((_) async => Success(columns));
-      when(() => mockWidgetRepository.getAllForColumn(any()))
-          .thenAnswer((_) async => const Success(<WidgetInstance>[]));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(containerId),
+      ).thenAnswer((_) async => Success(columns));
+      when(
+        () => mockWidgetRepository.getAllForColumn(any()),
+      ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -766,8 +780,9 @@ void main() {
       expect(find.text('Column Style'), findsOneWidget);
     });
 
-    testWidgets('tapping a page header shows "Menu Style" in side panel',
-        (tester) async {
+    testWidgets('tapping a page header shows "Menu Style" in side panel', (
+      tester,
+    ) async {
       // Arrange
       const menuId = 1;
       const menu = Menu(
@@ -777,10 +792,12 @@ void main() {
         version: '1.0.0',
       );
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -804,10 +821,12 @@ void main() {
         version: '1.0.0',
       );
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -819,8 +838,9 @@ void main() {
       expect(find.text('Column Style'), findsNothing);
     });
 
-    testWidgets('inline ExpansionTile style sections are no longer present',
-        (tester) async {
+    testWidgets('inline ExpansionTile style sections are no longer present', (
+      tester,
+    ) async {
       // Arrange
       const menuId = 1;
       const pageId = 1;
@@ -832,27 +852,30 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(
-            id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
       ];
       final containers = [
         const entity.Container(id: containerId, pageId: pageId, index: 0),
       ];
       final columns = [
-        const entity.Column(
-            id: 1, containerId: containerId, index: 0, flex: 1),
+        const entity.Column(id: 1, containerId: containerId, index: 0, flex: 1),
       ];
 
-      when(() => mockMenuRepository.getById(menuId))
-          .thenAnswer((_) async => const Success(menu));
-      when(() => mockPageRepository.getAllForMenu(menuId))
-          .thenAnswer((_) async => Success(pages));
-      when(() => mockContainerRepository.getAllForPage(pageId))
-          .thenAnswer((_) async => Success(containers));
-      when(() => mockColumnRepository.getAllForContainer(containerId))
-          .thenAnswer((_) async => Success(columns));
-      when(() => mockWidgetRepository.getAllForColumn(any()))
-          .thenAnswer((_) async => const Success(<WidgetInstance>[]));
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(containerId),
+      ).thenAnswer((_) async => Success(columns));
+      when(
+        () => mockWidgetRepository.getAllForColumn(any()),
+      ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -878,7 +901,11 @@ void main() {
         );
         final pages = [
           const entity.Page(
-              id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+            id: pageId,
+            menuId: menuId,
+            name: 'Page 1',
+            index: 0,
+          ),
         ];
         final containers = [
           const entity.Container(id: containerId, pageId: pageId, index: 0),
@@ -893,16 +920,21 @@ void main() {
           ),
         ];
 
-        when(() => mockMenuRepository.getById(menuId))
-            .thenAnswer((_) async => const Success(menu));
-        when(() => mockPageRepository.getAllForMenu(menuId))
-            .thenAnswer((_) async => Success(pages));
-        when(() => mockContainerRepository.getAllForPage(pageId))
-            .thenAnswer((_) async => Success(containers));
-        when(() => mockColumnRepository.getAllForContainer(containerId))
-            .thenAnswer((_) async => Success(columns));
-        when(() => mockWidgetRepository.getAllForColumn(any()))
-            .thenAnswer((_) async => const Success(<WidgetInstance>[]));
+        when(
+          () => mockMenuRepository.getById(menuId),
+        ).thenAnswer((_) async => const Success(menu));
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => Success(pages));
+        when(
+          () => mockContainerRepository.getAllForPage(pageId),
+        ).thenAnswer((_) async => Success(containers));
+        when(
+          () => mockColumnRepository.getAllForContainer(containerId),
+        ).thenAnswer((_) async => Success(columns));
+        when(
+          () => mockWidgetRepository.getAllForColumn(any()),
+        ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
 
         // Act
         await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -933,7 +965,11 @@ void main() {
         );
         final pages = [
           const entity.Page(
-              id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+            id: pageId,
+            menuId: menuId,
+            name: 'Page 1',
+            index: 0,
+          ),
         ];
         final containers = [
           const entity.Container(id: containerId, pageId: pageId, index: 0),
@@ -948,16 +984,21 @@ void main() {
           ),
         ];
 
-        when(() => mockMenuRepository.getById(menuId))
-            .thenAnswer((_) async => const Success(menu));
-        when(() => mockPageRepository.getAllForMenu(menuId))
-            .thenAnswer((_) async => Success(pages));
-        when(() => mockContainerRepository.getAllForPage(pageId))
-            .thenAnswer((_) async => Success(containers));
-        when(() => mockColumnRepository.getAllForContainer(containerId))
-            .thenAnswer((_) async => Success(columns));
-        when(() => mockWidgetRepository.getAllForColumn(any()))
-            .thenAnswer((_) async => const Success(<WidgetInstance>[]));
+        when(
+          () => mockMenuRepository.getById(menuId),
+        ).thenAnswer((_) async => const Success(menu));
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => Success(pages));
+        when(
+          () => mockContainerRepository.getAllForPage(pageId),
+        ).thenAnswer((_) async => Success(containers));
+        when(
+          () => mockColumnRepository.getAllForContainer(containerId),
+        ).thenAnswer((_) async => Success(columns));
+        when(
+          () => mockWidgetRepository.getAllForColumn(any()),
+        ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
         when(() => mockColumnRepository.update(any())).thenAnswer(
           (_) async => Success(columns.first.copyWith(isDroppable: false)),
         );
@@ -1018,16 +1059,21 @@ void main() {
           ),
         ];
 
-        when(() => mockMenuRepository.getById(menuId))
-            .thenAnswer((_) async => const Success(menu));
-        when(() => mockPageRepository.getAllForMenu(menuId))
-            .thenAnswer((_) async => Success(pages));
-        when(() => mockContainerRepository.getAllForPage(pageId))
-            .thenAnswer((_) async => Success(containers));
-        when(() => mockColumnRepository.getAllForContainer(containerId))
-            .thenAnswer((_) async => Success(columns));
-        when(() => mockWidgetRepository.getAllForColumn(any()))
-            .thenAnswer((_) async => const Success(<WidgetInstance>[]));
+        when(
+          () => mockMenuRepository.getById(menuId),
+        ).thenAnswer((_) async => const Success(menu));
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => Success(pages));
+        when(
+          () => mockContainerRepository.getAllForPage(pageId),
+        ).thenAnswer((_) async => Success(containers));
+        when(
+          () => mockColumnRepository.getAllForContainer(containerId),
+        ).thenAnswer((_) async => Success(columns));
+        when(
+          () => mockWidgetRepository.getAllForColumn(any()),
+        ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
 
         // Act
         await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -1521,7 +1567,9 @@ void main() {
       expect(find.text('Template saved'), findsOneWidget);
     });
 
-    testWidgets('should show Menu Style in side panel when menu selected', (tester) async {
+    testWidgets('should show Menu Style in side panel when menu selected', (
+      tester,
+    ) async {
       // Arrange
       const menuId = 1;
       const menu = Menu(
@@ -1553,57 +1601,60 @@ void main() {
       expect(find.text('Paddings'), findsOneWidget);
     });
 
-    testWidgets('should save styleConfig when save is pressed after editing in side panel', (
-      tester,
-    ) async {
-      // Arrange
-      const menuId = 1;
-      const menu = Menu(
-        id: menuId,
-        name: 'Style Test',
-        status: Status.draft,
-        version: '1.0.0',
-        styleConfig: StyleConfig(
-          marginTop: 20.0,
-          marginBottom: 20.0,
-          marginLeft: 20.0,
-          marginRight: 20.0,
-        ),
-      );
+    testWidgets(
+      'should save styleConfig when save is pressed after editing in side panel',
+      (tester) async {
+        // Arrange
+        const menuId = 1;
+        const menu = Menu(
+          id: menuId,
+          name: 'Style Test',
+          status: Status.draft,
+          version: '1.0.0',
+          styleConfig: StyleConfig(
+            marginTop: 20.0,
+            marginBottom: 20.0,
+            marginLeft: 20.0,
+            marginRight: 20.0,
+          ),
+        );
 
-      when(
-        () => mockMenuRepository.getById(menuId),
-      ).thenAnswer((_) async => const Success(menu));
-      when(
-        () => mockPageRepository.getAllForMenu(menuId),
-      ).thenAnswer((_) async => const Success([]));
-      when(
-        () => mockMenuRepository.update(any()),
-      ).thenAnswer((_) async => const Success(menu));
+        when(
+          () => mockMenuRepository.getById(menuId),
+        ).thenAnswer((_) async => const Success(menu));
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => const Success([]));
+        when(
+          () => mockMenuRepository.update(any()),
+        ).thenAnswer((_) async => const Success(menu));
 
-      // Act
-      await tester.pumpWidget(createWidgetUnderTest(menuId));
-      await tester.pumpAndSettle();
+        // Act
+        await tester.pumpWidget(createWidgetUnderTest(menuId));
+        await tester.pumpAndSettle();
 
-      // Select menu to show side panel
-      await tester.tap(find.byKey(const Key('selectable_menu')));
-      await tester.pumpAndSettle();
+        // Select menu to show side panel
+        await tester.tap(find.byKey(const Key('selectable_menu')));
+        await tester.pumpAndSettle();
 
-      // Edit margin (in All mode, single field)
-      await tester.enterText(find.byKey(const Key('side_margin_all')), '30');
-      await tester.pumpAndSettle();
+        // Edit margin (in All mode, single field)
+        await tester.enterText(find.byKey(const Key('side_margin_all')), '30');
+        await tester.pumpAndSettle();
 
-      // Press save
-      await tester.tap(find.byIcon(Icons.save));
-      await tester.pumpAndSettle();
+        // Press save
+        await tester.tap(find.byIcon(Icons.save));
+        await tester.pumpAndSettle();
 
-      // Assert
-      final captured =
-          verify(() => mockMenuRepository.update(captureAny())).captured.single
-              as UpdateMenuInput;
-      expect(captured.styleConfig, isNotNull);
-      expect(captured.styleConfig!.marginTop, 30.0);
-    });
+        // Assert
+        final captured =
+            verify(
+                  () => mockMenuRepository.update(captureAny()),
+                ).captured.single
+                as UpdateMenuInput;
+        expect(captured.styleConfig, isNotNull);
+        expect(captured.styleConfig!.marginTop, 30.0);
+      },
+    );
 
     testWidgets('should publish template', (tester) async {
       // Arrange
@@ -1670,6 +1721,96 @@ void main() {
       expect(find.byKey(const Key('palette_item_section')), findsOneWidget);
       expect(find.byKey(const Key('palette_item_text')), findsOneWidget);
     });
+
+    testWidgets('should show checkboxes for allowed widget types in palette', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+        allowedWidgetTypes: ['dish', 'text'],
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — checkboxes present (admin mode)
+      expect(
+        find.byType(Checkbox),
+        findsNWidgets(4),
+      ); // dish, image, section, text
+      // dish and text should be checked
+      final dishCheckbox = tester.widget<Checkbox>(
+        find.byKey(const Key('allowed_type_checkbox_dish')),
+      );
+      final textCheckbox = tester.widget<Checkbox>(
+        find.byKey(const Key('allowed_type_checkbox_text')),
+      );
+      final sectionCheckbox = tester.widget<Checkbox>(
+        find.byKey(const Key('allowed_type_checkbox_section')),
+      );
+      expect(dishCheckbox.value, true);
+      expect(textCheckbox.value, true);
+      expect(sectionCheckbox.value, false);
+    });
+
+    testWidgets(
+      'toggling checkbox calls menuRepository.update with new allowedWidgetTypes',
+      (tester) async {
+        // Arrange
+        const menuId = 1;
+        const menu = Menu(
+          id: menuId,
+          name: 'Test Template',
+          status: Status.draft,
+          version: '1.0.0',
+          allowedWidgetTypes: ['dish'],
+        );
+
+        when(
+          () => mockMenuRepository.getById(menuId),
+        ).thenAnswer((_) async => const Success(menu));
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => const Success([]));
+        when(() => mockMenuRepository.update(any())).thenAnswer(
+          (_) async =>
+              Success(menu.copyWith(allowedWidgetTypes: ['dish', 'section'])),
+        );
+
+        // Act
+        await tester.pumpWidget(createWidgetUnderTest(menuId));
+        await tester.pumpAndSettle();
+
+        // Tap the section checkbox to enable it
+        await tester.tap(
+          find.byKey(const Key('allowed_type_checkbox_section')),
+        );
+        await tester.pumpAndSettle();
+
+        // Assert
+        final captured =
+            verify(
+                  () => mockMenuRepository.update(captureAny()),
+                ).captured.single
+                as UpdateMenuInput;
+        expect(captured.id, menuId);
+        expect(captured.allowedWidgetTypes, contains('dish'));
+        expect(captured.allowedWidgetTypes, contains('section'));
+      },
+    );
   });
 
   group('AdminTemplateEditorPage - Widget Display', () {

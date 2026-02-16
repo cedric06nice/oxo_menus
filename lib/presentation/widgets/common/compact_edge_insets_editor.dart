@@ -13,7 +13,8 @@ class CompactEdgeInsetsEditor extends StatefulWidget {
     double? bottom,
     double? left,
     double? right,
-  }) onChanged;
+  })
+  onChanged;
 
   const CompactEdgeInsetsEditor({
     super.key,
@@ -206,7 +207,9 @@ class _CompactEdgeInsetsEditorState extends State<CompactEdgeInsetsEditor> {
       children: [
         Row(
           children: [
-            Flexible(child: Text(widget.label, overflow: TextOverflow.ellipsis)),
+            Flexible(
+              child: Text(widget.label, overflow: TextOverflow.ellipsis),
+            ),
             const SizedBox(width: 4),
             DropdownButton<EdgeInsetsEditMode>(
               key: Key('${widget.keyPrefix}_mode_dropdown'),

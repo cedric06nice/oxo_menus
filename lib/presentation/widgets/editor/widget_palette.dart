@@ -6,11 +6,34 @@ import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
 /// Widget palette for dragging widgets into the editor canvas.
 class WidgetPalette extends StatelessWidget {
   final WidgetRegistry registry;
+  final List<String>? allowedWidgetTypes;
+  final ValueChanged<List<String>>? onAllowedTypesChanged;
 
-  const WidgetPalette({super.key, required this.registry});
+  const WidgetPalette({
+    super.key,
+    required this.registry,
+    this.allowedWidgetTypes,
+    this.onAllowedTypesChanged,
+  });
+
+  bool _isTypeAllowed(String type) {
+    final allowed = allowedWidgetTypes;
+    if (allowed == null || allowed.isEmpty) return true;
+    return allowed.contains(type);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final allTypes = registry.registeredTypes;
+    final isAdminMode = onAllowedTypesChanged != null;
+
+    // In admin mode, show all types. In regular mode, filter.
+    final typesToShow = isAdminMode
+        ? allTypes
+        : (allowedWidgetTypes != null && allowedWidgetTypes!.isNotEmpty)
+        ? allTypes.where((type) => allowedWidgetTypes!.contains(type)).toList()
+        : allTypes;
+
     return Container(
       color: Colors.grey[100],
       child: Column(
@@ -25,8 +48,28 @@ class WidgetPalette extends StatelessWidget {
           ),
           Expanded(
             child: ListView(
-              children: registry.registeredTypes.map((type) {
+              children: typesToShow.map((type) {
                 final definition = registry.getDefinition(type);
+                if (isAdminMode) {
+                  return _AdminPaletteItem(
+                    type: type,
+                    definition: definition,
+                    isChecked: _isTypeAllowed(type),
+                    onChanged: (checked) {
+                      final currentList = allowedWidgetTypes ?? [];
+                      // Empty list means "all allowed" — expand to full list before toggling
+                      final allowed = currentList.isEmpty
+                          ? List<String>.from(allTypes)
+                          : List<String>.from(currentList);
+                      if (checked) {
+                        if (!allowed.contains(type)) allowed.add(type);
+                      } else {
+                        allowed.remove(type);
+                      }
+                      onAllowedTypesChanged!(allowed);
+                    },
+                  );
+                }
                 return _PaletteItem(type: type, definition: definition);
               }).toList(),
             ),
@@ -93,7 +136,7 @@ class _PaletteItem extends StatelessWidget {
     );
   }
 
-  IconData _getIconForType(String type) {
+  static IconData _getIconForType(String type) {
     switch (type) {
       case 'dish':
         return Icons.restaurant_menu;
@@ -106,5 +149,78 @@ class _PaletteItem extends StatelessWidget {
       default:
         return Icons.widgets;
     }
+  }
+}
+
+/// Admin palette item with checkbox for toggling widget availability
+class _AdminPaletteItem extends StatelessWidget {
+  final String type;
+  final WidgetDefinition? definition;
+  final bool isChecked;
+  final ValueChanged<bool> onChanged;
+
+  const _AdminPaletteItem({
+    required this.type,
+    required this.definition,
+    required this.isChecked,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (definition == null) return const SizedBox();
+
+    return Draggable<WidgetDragData>(
+      data: WidgetDragData.newWidget(type),
+      feedback: Material(
+        elevation: 4.0,
+        child: Container(
+          padding: const EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: Colors.grey),
+          ),
+          child: Text(
+            type.toUpperCase(),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+      childWhenDragging: Opacity(opacity: 0.3, child: _content()),
+      child: _content(),
+    );
+  }
+
+  Widget _content() {
+    return Container(
+      key: Key('palette_item_$type'),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Row(
+        children: [
+          Checkbox(
+            key: Key('allowed_type_checkbox_$type'),
+            value: isChecked,
+            onChanged: (value) => onChanged(value ?? false),
+          ),
+          Icon(
+            _PaletteItem._getIconForType(type),
+            size: 20,
+            color: Colors.grey[700],
+          ),
+          const SizedBox(width: 8),
+          Text(
+            type.toUpperCase(),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -24,6 +24,8 @@ import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/section_widget/section_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/text_widget/text_widget_definition.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
+import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
 import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
 
 // Mock classes
@@ -990,6 +992,221 @@ void main() {
 
       // No lock icon
       expect(find.byIcon(Icons.lock), findsNothing);
+    });
+  });
+
+  group('MenuEditorPage - Drop Zone Enforcement', () {
+    testWidgets('should reject drop of disallowed widget type', (tester) async {
+      // Arrange — menu allows only 'dish', column is droppable
+      const menuId = 1;
+      const pageId = 1;
+      const containerId = 1;
+      const columnId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+        allowedWidgetTypes: ['dish'],
+      );
+      final pages = [
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+      ];
+      final containers = [
+        const entity.Container(id: containerId, pageId: pageId, index: 0),
+      ];
+      final columns = [
+        const entity.Column(
+          id: columnId,
+          containerId: containerId,
+          index: 0,
+          flex: 1,
+          isDroppable: true,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(containerId),
+      ).thenAnswer((_) async => Success(columns));
+      when(
+        () => mockWidgetRepository.getAllForColumn(columnId),
+      ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
+      when(() => mockWidgetRepository.create(any())).thenAnswer(
+        (_) async => const Success(
+          WidgetInstance(
+            id: 99,
+            columnId: columnId,
+            type: 'text',
+            version: '1.0.0',
+            index: 0,
+            props: {},
+          ),
+        ),
+      );
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Simulate: the drop zone calls onAccept with a 'text' widget type
+      // We can't easily simulate DnD in widget tests, so instead verify that
+      // after load the widget repo create was never called with 'text'
+      // We need to test the guard at the page level.
+      // The best approach: call the internal method via finding the EditorDropZone
+      // and invoking its onAccept callback
+      // Get the EditorDropZone and invoke its onAccept with a disallowed type
+      final editorDropZone = tester.widget<EditorDropZone>(
+        find.byType(EditorDropZone).first,
+      );
+      editorDropZone.onAccept(WidgetDragData.newWidget('text'));
+      await tester.pumpAndSettle();
+
+      // Assert — widgetRepository.create should NOT have been called
+      verifyNever(() => mockWidgetRepository.create(any()));
+    });
+
+    testWidgets('should allow drop of permitted widget type', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const pageId = 1;
+      const containerId = 1;
+      const columnId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+        allowedWidgetTypes: ['dish'],
+      );
+      final pages = [
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+      ];
+      final containers = [
+        const entity.Container(id: containerId, pageId: pageId, index: 0),
+      ];
+      final columns = [
+        const entity.Column(
+          id: columnId,
+          containerId: containerId,
+          index: 0,
+          flex: 1,
+          isDroppable: true,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(containerId),
+      ).thenAnswer((_) async => Success(columns));
+      when(
+        () => mockWidgetRepository.getAllForColumn(columnId),
+      ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
+      when(() => mockWidgetRepository.create(any())).thenAnswer(
+        (_) async => const Success(
+          WidgetInstance(
+            id: 99,
+            columnId: columnId,
+            type: 'dish',
+            version: '1.0.0',
+            index: 0,
+            props: {'name': '', 'price': 0.0, 'allergens': []},
+          ),
+        ),
+      );
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Invoke onAccept with an allowed type
+      final editorDropZone = tester.widget<EditorDropZone>(
+        find.byType(EditorDropZone).first,
+      );
+      editorDropZone.onAccept(WidgetDragData.newWidget('dish'));
+      await tester.pumpAndSettle();
+
+      // Assert — widgetRepository.create SHOULD have been called
+      verify(() => mockWidgetRepository.create(any())).called(1);
+    });
+  });
+
+  group('MenuEditorPage - Widget Palette Filtering', () {
+    testWidgets('should only show allowed widget types in palette', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+        allowedWidgetTypes: ['dish'],
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — only dish should show, no checkboxes (read-only)
+      expect(find.byKey(const Key('palette_item_dish')), findsOneWidget);
+      expect(find.byKey(const Key('palette_item_section')), findsNothing);
+      expect(find.byKey(const Key('palette_item_text')), findsNothing);
+      expect(find.byType(Checkbox), findsNothing);
+    });
+
+    testWidgets('should show all types when allowedWidgetTypes is empty', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+        allowedWidgetTypes: [],
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — all types shown
+      expect(find.byKey(const Key('palette_item_dish')), findsOneWidget);
+      expect(find.byKey(const Key('palette_item_section')), findsOneWidget);
+      expect(find.byKey(const Key('palette_item_text')), findsOneWidget);
     });
   });
 }

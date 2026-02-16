@@ -5,14 +5,16 @@ import 'package:oxo_menus/presentation/pages/admin_template_editor/state/editor_
 
 void main() {
   group('EditorSelectionState', () {
-    test('default state has null selection, null clipboardStyle, isSaving false',
-        () {
-      const state = EditorSelectionState();
+    test(
+      'default state has null selection, null clipboardStyle, isSaving false',
+      () {
+        const state = EditorSelectionState();
 
-      expect(state.selection, isNull);
-      expect(state.clipboardStyle, isNull);
-      expect(state.isSaving, isFalse);
-    });
+        expect(state.selection, isNull);
+        expect(state.clipboardStyle, isNull);
+        expect(state.isSaving, isFalse);
+      },
+    );
 
     test('copyWith works for selection', () {
       const state = EditorSelectionState();

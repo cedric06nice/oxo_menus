@@ -529,6 +529,19 @@ class _AdminTemplateEditorPageState
     }
   }
 
+  Future<void> _onAllowedWidgetTypesChanged(List<String> newTypes) async {
+    final result = await ref
+        .read(menuRepositoryProvider)
+        .update(
+          UpdateMenuInput(id: widget.menuId, allowedWidgetTypes: newTypes),
+        );
+    if (result.isSuccess) {
+      setState(() {
+        _menu = _menu?.copyWith(allowedWidgetTypes: newTypes);
+      });
+    }
+  }
+
   Future<void> _saveTemplate() async {
     final result = await ref
         .read(menuRepositoryProvider)
@@ -687,10 +700,18 @@ class _AdminTemplateEditorPageState
               width: 240,
               child: Column(
                 children: [
-                  Expanded(child: WidgetPalette(registry: registry)),
+                  Expanded(
+                    child: WidgetPalette(
+                      registry: registry,
+                      allowedWidgetTypes: _menu?.allowedWidgetTypes,
+                      onAllowedTypesChanged: _onAllowedWidgetTypesChanged,
+                    ),
+                  ),
                   if (_currentSelection != null) ...[
                     const Divider(height: 1),
-                    Expanded(child: SingleChildScrollView(child: _buildSidePanel())),
+                    Expanded(
+                      child: SingleChildScrollView(child: _buildSidePanel()),
+                    ),
                   ],
                 ],
               ),
@@ -760,7 +781,10 @@ class _AdminTemplateEditorPageState
                 const EditorSelection(type: EditorElementType.menu, id: 0),
               ),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: _currentSelection?.type == EditorElementType.menu
@@ -890,7 +914,8 @@ class _AdminTemplateEditorPageState
 
   Widget _buildContainerCard(entity.Container container) {
     final columns = _columns[container.id] ?? [];
-    final isSelected = _currentSelection?.type == EditorElementType.container &&
+    final isSelected =
+        _currentSelection?.type == EditorElementType.container &&
         _currentSelection?.id == container.id;
 
     return GestureDetector(
@@ -939,8 +964,7 @@ class _AdminTemplateEditorPageState
                 key: Key('add_column_${container.id}'),
                 onPressed: () => _addColumn(container.id),
                 icon: const Icon(Icons.add, size: 16),
-                label:
-                    const Text('Add Column', style: TextStyle(fontSize: 12)),
+                label: const Text('Add Column', style: TextStyle(fontSize: 12)),
               ),
               const SizedBox(height: 8),
 
@@ -968,7 +992,8 @@ class _AdminTemplateEditorPageState
     final widgets = _widgets[column.id] ?? [];
     final registry = ref.watch(widgetRegistryProvider);
     final currentHoverIndex = _hoverIndex[column.id] ?? -1;
-    final isSelected = _currentSelection?.type == EditorElementType.column &&
+    final isSelected =
+        _currentSelection?.type == EditorElementType.column &&
         _currentSelection?.id == column.id;
 
     return GestureDetector(

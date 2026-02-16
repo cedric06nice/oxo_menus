@@ -44,14 +44,8 @@ void main() {
     });
 
     test('select() with new element replaces previous selection', () {
-      const first = EditorSelection(
-        type: EditorElementType.container,
-        id: 1,
-      );
-      const second = EditorSelection(
-        type: EditorElementType.column,
-        id: 2,
-      );
+      const first = EditorSelection(type: EditorElementType.container, id: 1);
+      const second = EditorSelection(type: EditorElementType.column, id: 2);
 
       notifier.select(first, const StyleConfig());
       notifier.select(second, const StyleConfig());
@@ -86,43 +80,40 @@ void main() {
       notifier.updateStyle(newStyle);
 
       // Select a different element — triggers auto-save of previous
-      const next = EditorSelection(
-        type: EditorElementType.column,
-        id: 10,
-      );
+      const next = EditorSelection(type: EditorElementType.column, id: 10);
       notifier.select(next, const StyleConfig());
 
       expect(savedId, 5);
       expect(savedStyle, newStyle);
     });
 
-    test('select() when previous element has unchanged style does NOT save', () {
-      bool saveCalled = false;
+    test(
+      'select() when previous element has unchanged style does NOT save',
+      () {
+        bool saveCalled = false;
 
-      final notifier = EditorSelectionNotifier(
-        saveMenuStyle: (_) async {},
-        saveContainerStyle: (_, _) async {
-          saveCalled = true;
-        },
-        saveColumnStyle: (_, _) async {},
-        resolveStyle: (_) => null,
-      );
+        final notifier = EditorSelectionNotifier(
+          saveMenuStyle: (_) async {},
+          saveContainerStyle: (_, _) async {
+            saveCalled = true;
+          },
+          saveColumnStyle: (_, _) async {},
+          resolveStyle: (_) => null,
+        );
 
-      const selection = EditorSelection(
-        type: EditorElementType.container,
-        id: 5,
-      );
-      notifier.select(selection, const StyleConfig());
+        const selection = EditorSelection(
+          type: EditorElementType.container,
+          id: 5,
+        );
+        notifier.select(selection, const StyleConfig());
 
-      // Select a different element without modifying style
-      const next = EditorSelection(
-        type: EditorElementType.column,
-        id: 10,
-      );
-      notifier.select(next, const StyleConfig());
+        // Select a different element without modifying style
+        const next = EditorSelection(type: EditorElementType.column, id: 10);
+        notifier.select(next, const StyleConfig());
 
-      expect(saveCalled, isFalse);
-    });
+        expect(saveCalled, isFalse);
+      },
+    );
 
     test('deselect() saves current dirty element', () {
       StyleConfig? savedStyle;
@@ -136,10 +127,7 @@ void main() {
         resolveStyle: (_) => null,
       );
 
-      const selection = EditorSelection(
-        type: EditorElementType.menu,
-        id: 0,
-      );
+      const selection = EditorSelection(type: EditorElementType.menu, id: 0);
       notifier.select(selection, const StyleConfig());
       notifier.updateStyle(const StyleConfig(paddingTop: 15));
       notifier.deselect();
@@ -161,10 +149,7 @@ void main() {
         resolveStyle: (_) => null,
       );
 
-      const selection = EditorSelection(
-        type: EditorElementType.column,
-        id: 42,
-      );
+      const selection = EditorSelection(type: EditorElementType.column, id: 42);
       notifier.select(selection, const StyleConfig());
       notifier.updateStyle(const StyleConfig(marginLeft: 8));
       notifier.deselect();
@@ -185,10 +170,7 @@ void main() {
         resolveStyle: (_) => null,
       );
 
-      const selection = EditorSelection(
-        type: EditorElementType.menu,
-        id: 0,
-      );
+      const selection = EditorSelection(type: EditorElementType.menu, id: 0);
       notifier.select(selection, const StyleConfig());
 
       // Without updateStyle, save should not be called
@@ -253,18 +235,12 @@ void main() {
     });
 
     test('clipboard persists across selection changes', () {
-      const first = EditorSelection(
-        type: EditorElementType.container,
-        id: 1,
-      );
+      const first = EditorSelection(type: EditorElementType.container, id: 1);
       const style = StyleConfig(marginTop: 10);
       notifier.select(first, style);
       notifier.copyStyle();
 
-      const second = EditorSelection(
-        type: EditorElementType.column,
-        id: 2,
-      );
+      const second = EditorSelection(type: EditorElementType.column, id: 2);
       notifier.select(second, const StyleConfig());
 
       expect(notifier.state.clipboardStyle, style);

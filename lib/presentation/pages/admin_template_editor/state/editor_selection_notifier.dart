@@ -4,10 +4,8 @@ import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor
 import 'package:oxo_menus/presentation/pages/admin_template_editor/state/editor_selection_state.dart';
 
 typedef SaveMenuStyleCallback = Future<void> Function(StyleConfig style);
-typedef SaveElementStyleCallback = Future<void> Function(
-  int id,
-  StyleConfig style,
-);
+typedef SaveElementStyleCallback =
+    Future<void> Function(int id, StyleConfig style);
 typedef ResolveStyleCallback = StyleConfig? Function(EditorSelection selection);
 
 class EditorSelectionNotifier extends StateNotifier<EditorSelectionState> {

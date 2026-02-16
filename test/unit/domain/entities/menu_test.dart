@@ -97,6 +97,55 @@ void main() {
       expect(menu1.hashCode, equals(menu2.hashCode));
     });
 
+    test('should default allowedWidgetTypes to empty list', () {
+      const menu = Menu(
+        id: 1,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      expect(menu.allowedWidgetTypes, <String>[]);
+    });
+
+    test('should store allowedWidgetTypes', () {
+      const menu = Menu(
+        id: 1,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+        allowedWidgetTypes: ['dish', 'text'],
+      );
+
+      expect(menu.allowedWidgetTypes, ['dish', 'text']);
+    });
+
+    test('should serialize allowedWidgetTypes to JSON', () {
+      const menu = Menu(
+        id: 1,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+        allowedWidgetTypes: ['dish', 'section'],
+      );
+
+      final json = menu.toJson();
+      expect(json['allowedWidgetTypes'], ['dish', 'section']);
+    });
+
+    test('should deserialize allowedWidgetTypes from JSON', () {
+      final json = {
+        'id': 1,
+        'name': 'Test Menu',
+        'status': 'draft',
+        'version': '1.0.0',
+        'allowedWidgetTypes': ['dish', 'text'],
+      };
+
+      final menu = Menu.fromJson(json);
+      expect(menu.allowedWidgetTypes, ['dish', 'text']);
+    });
+
     test('should not be equal with different values', () {
       const menu1 = Menu(
         id: 1,

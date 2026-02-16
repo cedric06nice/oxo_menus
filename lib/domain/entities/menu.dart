@@ -24,6 +24,7 @@ abstract class Menu with _$Menu {
     PageSize? pageSize,
     String? area,
     MenuDisplayOptions? displayOptions,
+    @Default([]) List<String> allowedWidgetTypes,
   }) = _Menu;
 
   factory Menu.fromJson(Map<String, dynamic> json) => _$MenuFromJson(json);

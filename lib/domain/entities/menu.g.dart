@@ -31,6 +31,11 @@ _Menu _$MenuFromJson(Map<String, dynamic> json) => _Menu(
       : MenuDisplayOptions.fromJson(
           json['displayOptions'] as Map<String, dynamic>,
         ),
+  allowedWidgetTypes:
+      (json['allowedWidgetTypes'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$MenuToJson(_Menu instance) => <String, dynamic>{
@@ -46,6 +51,7 @@ Map<String, dynamic> _$MenuToJson(_Menu instance) => <String, dynamic>{
   'pageSize': instance.pageSize,
   'area': instance.area,
   'displayOptions': instance.displayOptions,
+  'allowedWidgetTypes': instance.allowedWidgetTypes,
 };
 
 const _$StatusEnumMap = {

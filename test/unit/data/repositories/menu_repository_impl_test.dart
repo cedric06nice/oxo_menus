@@ -74,6 +74,50 @@ void main() {
         ).called(1);
       });
 
+      test('should request allowed_widget_types in fields', () async {
+        // Arrange
+        when(
+          () => mockDataSource.getItem<MenuDto>(
+            menuId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => menuJson);
+
+        // Act
+        await repository.getById(menuId);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.getItem<MenuDto>(
+            menuId,
+            fields: captureAny(named: 'fields'),
+          ),
+        ).captured.single as List<String>;
+
+        expect(captured, contains('allowed_widget_types'));
+      });
+
+      test('should map allowed_widget_types from response', () async {
+        // Arrange
+        final jsonWithAllowed = {
+          ...menuJson,
+          'allowed_widget_types': ['dish', 'text'],
+        };
+        when(
+          () => mockDataSource.getItem<MenuDto>(
+            menuId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => jsonWithAllowed);
+
+        // Act
+        final result = await repository.getById(menuId);
+
+        // Assert
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull!.allowedWidgetTypes, ['dish', 'text']);
+      });
+
       test('should return NotFoundError when menu does not exist', () async {
         // Arrange
         when(
@@ -148,6 +192,31 @@ void main() {
         // Verify filter includes published status
         expect(captured[0], isNotNull);
         expect(captured[0]['status'], isNotNull);
+      });
+
+      test('should request allowed_widget_types in fields for listAll', () async {
+        // Arrange
+        when(
+          () => mockDataSource.getItems<MenuDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => menusJson);
+
+        // Act
+        await repository.listAll();
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.getItems<MenuDto>(
+            filter: any(named: 'filter'),
+            fields: captureAny(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured.single as List<String>;
+
+        expect(captured, contains('allowed_widget_types'));
       });
 
       test('should return all menus when onlyPublished is false', () async {
