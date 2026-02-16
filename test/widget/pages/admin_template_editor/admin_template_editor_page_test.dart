@@ -673,10 +673,9 @@ void main() {
     });
   });
 
-  group('AdminTemplateEditorPage - Container/Column Style Sections', () {
-    testWidgets('should show Container Style section in container card', (
-      tester,
-    ) async {
+  group('AdminTemplateEditorPage - Selection and Side Panel', () {
+    testWidgets('tapping a container card shows "Container Style" in side panel',
+        (tester) async {
       // Arrange
       const menuId = 1;
       const pageId = 1;
@@ -687,7 +686,8 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+        const entity.Page(
+            id: pageId, menuId: menuId, name: 'Page 1', index: 0),
       ];
       final containers = [
         const entity.Container(
@@ -698,31 +698,29 @@ void main() {
         ),
       ];
 
-      when(
-        () => mockMenuRepository.getById(menuId),
-      ).thenAnswer((_) async => const Success(menu));
-      when(
-        () => mockPageRepository.getAllForMenu(menuId),
-      ).thenAnswer((_) async => Success(pages));
-      when(
-        () => mockContainerRepository.getAllForPage(pageId),
-      ).thenAnswer((_) async => Success(containers));
-      when(
-        () => mockColumnRepository.getAllForContainer(any()),
-      ).thenAnswer((_) async => const Success([]));
+      when(() => mockMenuRepository.getById(menuId))
+          .thenAnswer((_) async => const Success(menu));
+      when(() => mockPageRepository.getAllForMenu(menuId))
+          .thenAnswer((_) async => Success(pages));
+      when(() => mockContainerRepository.getAllForPage(pageId))
+          .thenAnswer((_) async => Success(containers));
+      when(() => mockColumnRepository.getAllForContainer(any()))
+          .thenAnswer((_) async => const Success([]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
+      // Tap the container card
+      await tester.tap(find.byKey(const Key('selectable_container_1')));
+      await tester.pumpAndSettle();
+
       // Assert
-      await tester.ensureVisible(find.text('Container Style'));
       expect(find.text('Container Style'), findsOneWidget);
     });
 
-    testWidgets('should show Column Style section in column card', (
-      tester,
-    ) async {
+    testWidgets('tapping a column card shows "Column Style" in side panel',
+        (tester) async {
       // Arrange
       const menuId = 1;
       const pageId = 1;
@@ -734,102 +732,138 @@ void main() {
         version: '1.0.0',
       );
       final pages = [
-        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
-      ];
-      final containers = [
-        const entity.Container(id: containerId, pageId: pageId, index: 0),
-      ];
-      final columns = [
-        const entity.Column(id: 1, containerId: containerId, index: 0, flex: 1),
-      ];
-
-      when(
-        () => mockMenuRepository.getById(menuId),
-      ).thenAnswer((_) async => const Success(menu));
-      when(
-        () => mockPageRepository.getAllForMenu(menuId),
-      ).thenAnswer((_) async => Success(pages));
-      when(
-        () => mockContainerRepository.getAllForPage(pageId),
-      ).thenAnswer((_) async => Success(containers));
-      when(
-        () => mockColumnRepository.getAllForContainer(containerId),
-      ).thenAnswer((_) async => Success(columns));
-      when(
-        () => mockWidgetRepository.getAllForColumn(any()),
-      ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
-
-      // Act
-      await tester.pumpWidget(createWidgetUnderTest(menuId));
-      await tester.pumpAndSettle();
-
-      // Assert
-      await tester.ensureVisible(find.text('Column Style'));
-      expect(find.text('Column Style'), findsOneWidget);
-    });
-
-    testWidgets('shows isDroppable toggle in expanded Column Style section', (
-      tester,
-    ) async {
-      // Arrange
-      const menuId = 1;
-      const pageId = 1;
-      const containerId = 1;
-      const columnId = 1;
-      const menu = Menu(
-        id: menuId,
-        name: 'Test Template',
-        status: Status.draft,
-        version: '1.0.0',
-      );
-      final pages = [
-        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+        const entity.Page(
+            id: pageId, menuId: menuId, name: 'Page 1', index: 0),
       ];
       final containers = [
         const entity.Container(id: containerId, pageId: pageId, index: 0),
       ];
       final columns = [
         const entity.Column(
-          id: columnId,
-          containerId: containerId,
-          index: 0,
-          flex: 1,
-          isDroppable: true,
-        ),
+            id: 1, containerId: containerId, index: 0, flex: 1),
       ];
 
-      when(
-        () => mockMenuRepository.getById(menuId),
-      ).thenAnswer((_) async => const Success(menu));
-      when(
-        () => mockPageRepository.getAllForMenu(menuId),
-      ).thenAnswer((_) async => Success(pages));
-      when(
-        () => mockContainerRepository.getAllForPage(pageId),
-      ).thenAnswer((_) async => Success(containers));
-      when(
-        () => mockColumnRepository.getAllForContainer(containerId),
-      ).thenAnswer((_) async => Success(columns));
-      when(
-        () => mockWidgetRepository.getAllForColumn(any()),
-      ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
+      when(() => mockMenuRepository.getById(menuId))
+          .thenAnswer((_) async => const Success(menu));
+      when(() => mockPageRepository.getAllForMenu(menuId))
+          .thenAnswer((_) async => Success(pages));
+      when(() => mockContainerRepository.getAllForPage(pageId))
+          .thenAnswer((_) async => Success(containers));
+      when(() => mockColumnRepository.getAllForContainer(containerId))
+          .thenAnswer((_) async => Success(columns));
+      when(() => mockWidgetRepository.getAllForColumn(any()))
+          .thenAnswer((_) async => const Success(<WidgetInstance>[]));
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
-      // Expand Column Style section
-      await tester.ensureVisible(find.text('Column Style'));
-      await tester.tap(find.text('Column Style'));
+      // Tap the column card
+      await tester.tap(find.byKey(const Key('selectable_column_1')));
       await tester.pumpAndSettle();
 
       // Assert
-      expect(find.byKey(Key('is_droppable_toggle_$columnId')), findsOneWidget);
-      expect(find.text('Allow Widget Drops'), findsOneWidget);
+      expect(find.text('Column Style'), findsOneWidget);
+    });
+
+    testWidgets('tapping a page header shows "Menu Style" in side panel',
+        (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(() => mockMenuRepository.getById(menuId))
+          .thenAnswer((_) async => const Success(menu));
+      when(() => mockPageRepository.getAllForMenu(menuId))
+          .thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Tap the menu style selector
+      await tester.tap(find.byKey(const Key('selectable_menu')));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.text('Menu Style'), findsOneWidget);
+    });
+
+    testWidgets('side panel hidden when nothing is selected', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(() => mockMenuRepository.getById(menuId))
+          .thenAnswer((_) async => const Success(menu));
+      when(() => mockPageRepository.getAllForMenu(menuId))
+          .thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert - no side panel style editor when nothing selected
+      expect(find.text('Menu Style'), findsNothing);
+      expect(find.text('Container Style'), findsNothing);
+      expect(find.text('Column Style'), findsNothing);
+    });
+
+    testWidgets('inline ExpansionTile style sections are no longer present',
+        (tester) async {
+      // Arrange
+      const menuId = 1;
+      const pageId = 1;
+      const containerId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(
+            id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+      ];
+      final containers = [
+        const entity.Container(id: containerId, pageId: pageId, index: 0),
+      ];
+      final columns = [
+        const entity.Column(
+            id: 1, containerId: containerId, index: 0, flex: 1),
+      ];
+
+      when(() => mockMenuRepository.getById(menuId))
+          .thenAnswer((_) async => const Success(menu));
+      when(() => mockPageRepository.getAllForMenu(menuId))
+          .thenAnswer((_) async => Success(pages));
+      when(() => mockContainerRepository.getAllForPage(pageId))
+          .thenAnswer((_) async => Success(containers));
+      when(() => mockColumnRepository.getAllForContainer(containerId))
+          .thenAnswer((_) async => Success(columns));
+      when(() => mockWidgetRepository.getAllForColumn(any()))
+          .thenAnswer((_) async => const Success(<WidgetInstance>[]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert - no ExpansionTiles for style sections
+      expect(find.byType(ExpansionTile), findsNothing);
     });
 
     testWidgets(
-      'toggling calls columnRepository.update with correct isDroppable value',
+      'shows isDroppable toggle when column is selected in side panel',
       (tester) async {
         // Arrange
         const menuId = 1;
@@ -844,11 +878,7 @@ void main() {
         );
         final pages = [
           const entity.Page(
-            id: pageId,
-            menuId: menuId,
-            name: 'Page 1',
-            index: 0,
-          ),
+              id: pageId, menuId: menuId, name: 'Page 1', index: 0),
         ];
         final containers = [
           const entity.Container(id: containerId, pageId: pageId, index: 0),
@@ -863,21 +893,71 @@ void main() {
           ),
         ];
 
-        when(
-          () => mockMenuRepository.getById(menuId),
-        ).thenAnswer((_) async => const Success(menu));
-        when(
-          () => mockPageRepository.getAllForMenu(menuId),
-        ).thenAnswer((_) async => Success(pages));
-        when(
-          () => mockContainerRepository.getAllForPage(pageId),
-        ).thenAnswer((_) async => Success(containers));
-        when(
-          () => mockColumnRepository.getAllForContainer(containerId),
-        ).thenAnswer((_) async => Success(columns));
-        when(
-          () => mockWidgetRepository.getAllForColumn(any()),
-        ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
+        when(() => mockMenuRepository.getById(menuId))
+            .thenAnswer((_) async => const Success(menu));
+        when(() => mockPageRepository.getAllForMenu(menuId))
+            .thenAnswer((_) async => Success(pages));
+        when(() => mockContainerRepository.getAllForPage(pageId))
+            .thenAnswer((_) async => Success(containers));
+        when(() => mockColumnRepository.getAllForContainer(containerId))
+            .thenAnswer((_) async => Success(columns));
+        when(() => mockWidgetRepository.getAllForColumn(any()))
+            .thenAnswer((_) async => const Success(<WidgetInstance>[]));
+
+        // Act
+        await tester.pumpWidget(createWidgetUnderTest(menuId));
+        await tester.pumpAndSettle();
+
+        // Tap column to select it
+        await tester.tap(find.byKey(const Key('selectable_column_$columnId')));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Allow Widget Drops'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'toggling droppable in side panel calls columnRepository.update',
+      (tester) async {
+        // Arrange
+        const menuId = 1;
+        const pageId = 1;
+        const containerId = 1;
+        const columnId = 1;
+        const menu = Menu(
+          id: menuId,
+          name: 'Test Template',
+          status: Status.draft,
+          version: '1.0.0',
+        );
+        final pages = [
+          const entity.Page(
+              id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+        ];
+        final containers = [
+          const entity.Container(id: containerId, pageId: pageId, index: 0),
+        ];
+        final columns = [
+          const entity.Column(
+            id: columnId,
+            containerId: containerId,
+            index: 0,
+            flex: 1,
+            isDroppable: true,
+          ),
+        ];
+
+        when(() => mockMenuRepository.getById(menuId))
+            .thenAnswer((_) async => const Success(menu));
+        when(() => mockPageRepository.getAllForMenu(menuId))
+            .thenAnswer((_) async => Success(pages));
+        when(() => mockContainerRepository.getAllForPage(pageId))
+            .thenAnswer((_) async => Success(containers));
+        when(() => mockColumnRepository.getAllForContainer(containerId))
+            .thenAnswer((_) async => Success(columns));
+        when(() => mockWidgetRepository.getAllForColumn(any()))
+            .thenAnswer((_) async => const Success(<WidgetInstance>[]));
         when(() => mockColumnRepository.update(any())).thenAnswer(
           (_) async => Success(columns.first.copyWith(isDroppable: false)),
         );
@@ -886,13 +966,12 @@ void main() {
         await tester.pumpWidget(createWidgetUnderTest(menuId));
         await tester.pumpAndSettle();
 
-        // Expand Column Style section
-        await tester.ensureVisible(find.text('Column Style'));
-        await tester.tap(find.text('Column Style'));
+        // Tap column to select
+        await tester.tap(find.byKey(const Key('selectable_column_$columnId')));
         await tester.pumpAndSettle();
 
         // Toggle isDroppable
-        await tester.tap(find.byKey(Key('is_droppable_toggle_$columnId')));
+        await tester.tap(find.text('Allow Widget Drops'));
         await tester.pumpAndSettle();
 
         // Assert
@@ -935,25 +1014,20 @@ void main() {
             containerId: containerId,
             index: 0,
             flex: 1,
-            isDroppable: false, // Set to false
+            isDroppable: false,
           ),
         ];
 
-        when(
-          () => mockMenuRepository.getById(menuId),
-        ).thenAnswer((_) async => const Success(menu));
-        when(
-          () => mockPageRepository.getAllForMenu(menuId),
-        ).thenAnswer((_) async => Success(pages));
-        when(
-          () => mockContainerRepository.getAllForPage(pageId),
-        ).thenAnswer((_) async => Success(containers));
-        when(
-          () => mockColumnRepository.getAllForContainer(containerId),
-        ).thenAnswer((_) async => Success(columns));
-        when(
-          () => mockWidgetRepository.getAllForColumn(any()),
-        ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
+        when(() => mockMenuRepository.getById(menuId))
+            .thenAnswer((_) async => const Success(menu));
+        when(() => mockPageRepository.getAllForMenu(menuId))
+            .thenAnswer((_) async => Success(pages));
+        when(() => mockContainerRepository.getAllForPage(pageId))
+            .thenAnswer((_) async => Success(containers));
+        when(() => mockColumnRepository.getAllForContainer(containerId))
+            .thenAnswer((_) async => Success(columns));
+        when(() => mockWidgetRepository.getAllForColumn(any()))
+            .thenAnswer((_) async => const Success(<WidgetInstance>[]));
 
         // Act
         await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -1447,7 +1521,7 @@ void main() {
       expect(find.text('Template saved'), findsOneWidget);
     });
 
-    testWidgets('should display PageStyleSection after load', (tester) async {
+    testWidgets('should show Menu Style in side panel when menu selected', (tester) async {
       // Arrange
       const menuId = 1;
       const menu = Menu(
@@ -1469,13 +1543,17 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
+      // Tap menu style selector
+      await tester.tap(find.byKey(const Key('selectable_menu')));
+      await tester.pumpAndSettle();
+
       // Assert
-      expect(find.text('Page Style'), findsOneWidget);
+      expect(find.text('Menu Style'), findsOneWidget);
       expect(find.text('Margins'), findsOneWidget);
       expect(find.text('Paddings'), findsOneWidget);
     });
 
-    testWidgets('should save styleConfig when save is pressed after editing', (
+    testWidgets('should save styleConfig when save is pressed after editing in side panel', (
       tester,
     ) async {
       // Arrange
@@ -1485,7 +1563,12 @@ void main() {
         name: 'Style Test',
         status: Status.draft,
         version: '1.0.0',
-        styleConfig: StyleConfig(marginTop: 20.0),
+        styleConfig: StyleConfig(
+          marginTop: 20.0,
+          marginBottom: 20.0,
+          marginLeft: 20.0,
+          marginRight: 20.0,
+        ),
       );
 
       when(
@@ -1502,8 +1585,12 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
-      // Edit margin top
-      await tester.enterText(find.byKey(const Key('margin_top')), '30');
+      // Select menu to show side panel
+      await tester.tap(find.byKey(const Key('selectable_menu')));
+      await tester.pumpAndSettle();
+
+      // Edit margin (in All mode, single field)
+      await tester.enterText(find.byKey(const Key('side_margin_all')), '30');
       await tester.pumpAndSettle();
 
       // Press save

@@ -59,9 +59,9 @@ void main() {
       });
     });
 
-    group('resolvePageMargins', () {
+    group('resolveContentMargins', () {
       test('should return zero margins for null styleConfig', () {
-        final margins = resolver.resolvePageMargins(null);
+        final margins = resolver.resolveContentMargins(null);
         expect(margins.top, 0.0);
         expect(margins.bottom, 0.0);
         expect(margins.left, 0.0);
@@ -71,7 +71,7 @@ void main() {
       test(
         'should return zero margins for StyleConfig with no margin values',
         () {
-          final margins = resolver.resolvePageMargins(const StyleConfig());
+          final margins = resolver.resolveContentMargins(const StyleConfig());
           expect(margins.top, 0.0);
           expect(margins.bottom, 0.0);
           expect(margins.left, 0.0);
@@ -80,7 +80,7 @@ void main() {
       );
 
       test('should read margin values from StyleConfig', () {
-        final margins = resolver.resolvePageMargins(
+        final margins = resolver.resolveContentMargins(
           const StyleConfig(
             marginTop: 20.0,
             marginBottom: 30.0,
@@ -95,7 +95,7 @@ void main() {
       });
 
       test('should default individual null margins to zero', () {
-        final margins = resolver.resolvePageMargins(
+        final margins = resolver.resolveContentMargins(
           const StyleConfig(marginTop: 10.0),
         );
         expect(margins.top, 10.0);
@@ -108,18 +108,18 @@ void main() {
     group('resolveContentPadding', () {
       test('should return default 16.0 all for null styleConfig', () {
         final padding = resolver.resolveContentPadding(null);
-        expect(padding.top, 16.0);
-        expect(padding.bottom, 16.0);
-        expect(padding.left, 16.0);
-        expect(padding.right, 16.0);
+        expect(padding.top, 0.0);
+        expect(padding.bottom, 0.0);
+        expect(padding.left, 0.0);
+        expect(padding.right, 0.0);
       });
 
       test('should return default 16.0 all when all padding fields null', () {
         final padding = resolver.resolveContentPadding(const StyleConfig());
-        expect(padding.top, 16.0);
-        expect(padding.bottom, 16.0);
-        expect(padding.left, 16.0);
-        expect(padding.right, 16.0);
+        expect(padding.top, 0.0);
+        expect(padding.bottom, 0.0);
+        expect(padding.left, 0.0);
+        expect(padding.right, 0.0);
       });
 
       test('should use single padding as uniform fallback', () {
@@ -159,12 +159,12 @@ void main() {
     });
 
     group('resolveBaseFontSize', () {
-      test('should return 14.0 for null styleConfig', () {
-        expect(resolver.resolveBaseFontSize(null), 14.0);
+      test('should return 11.0 for null styleConfig', () {
+        expect(resolver.resolveBaseFontSize(null), 11.0);
       });
 
-      test('should return 14.0 when fontSize is null', () {
-        expect(resolver.resolveBaseFontSize(const StyleConfig()), 14.0);
+      test('should return 11.0 when fontSize is null', () {
+        expect(resolver.resolveBaseFontSize(const StyleConfig()), 11.0);
       });
 
       test('should return custom fontSize from StyleConfig', () {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
@@ -12,10 +13,12 @@ import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
+import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
+import 'package:oxo_menus/presentation/pages/admin_template_editor/state/editor_selection_notifier.dart';
+import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/side_panel_style_editor.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
-import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/page_style_section.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/editor/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
@@ -53,6 +56,8 @@ class _AdminTemplateEditorPageState
   final Map<int, int> _hoverIndex = {};
 
   late EditorWidgetCrudHelper _crudHelper;
+  late EditorSelectionNotifier _selectionNotifier;
+  EditorSelection? _currentSelection;
 
   @override
   void didChangeDependencies() {
@@ -78,8 +83,54 @@ class _AdminTemplateEditorPageState
   @override
   void initState() {
     super.initState();
+    _selectionNotifier = EditorSelectionNotifier(
+      saveMenuStyle: _saveMenuStyle,
+      saveContainerStyle: _onContainerStyleChanged,
+      saveColumnStyle: _onColumnStyleChanged,
+      resolveStyle: _resolveStyle,
+    );
+    _selectionNotifier.addListener((state) {
+      if (mounted) {
+        setState(() {
+          _currentSelection = state.selection;
+        });
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTemplate();
+    });
+  }
+
+  @override
+  void dispose() {
+    _selectionNotifier.dispose();
+    super.dispose();
+  }
+
+  StyleConfig? _resolveStyle(EditorSelection selection) {
+    switch (selection.type) {
+      case EditorElementType.menu:
+        return _menu?.styleConfig;
+      case EditorElementType.container:
+        for (final entry in _containers.entries) {
+          for (final c in entry.value) {
+            if (c.id == selection.id) return c.styleConfig;
+          }
+        }
+        return null;
+      case EditorElementType.column:
+        for (final entry in _columns.entries) {
+          for (final c in entry.value) {
+            if (c.id == selection.id) return c.styleConfig;
+          }
+        }
+        return null;
+    }
+  }
+
+  Future<void> _saveMenuStyle(StyleConfig style) async {
+    setState(() {
+      _menu = _menu?.copyWith(styleConfig: style);
     });
   }
 
@@ -422,6 +473,7 @@ class _AdminTemplateEditorPageState
     setState(() {
       _menu = _menu?.copyWith(styleConfig: newStyle);
     });
+    _selectionNotifier.updateStyle(newStyle);
   }
 
   Future<void> _onContainerStyleChanged(
@@ -501,6 +553,33 @@ class _AdminTemplateEditorPageState
         context,
       ).showSnackBar(const SnackBar(content: Text('Template published')));
       await _loadTemplate();
+    }
+  }
+
+  // ===== Selection =====
+
+  void _selectElement(EditorSelection selection) {
+    final style = _resolveStyle(selection);
+    _selectionNotifier.select(selection, style);
+  }
+
+  void _deselectElement() {
+    _selectionNotifier.deselect();
+  }
+
+  void _onSidePanelStyleChanged(StyleConfig newStyle) {
+    final sel = _currentSelection;
+    if (sel == null) return;
+
+    switch (sel.type) {
+      case EditorElementType.menu:
+        _onStyleChanged(newStyle);
+      case EditorElementType.container:
+        _onContainerStyleChanged(sel.id, newStyle);
+        _selectionNotifier.updateStyle(newStyle);
+      case EditorElementType.column:
+        _onColumnStyleChanged(sel.id, newStyle);
+        _selectionNotifier.updateStyle(newStyle);
     }
   }
 
@@ -592,18 +671,78 @@ class _AdminTemplateEditorPageState
           tooltip: 'Publish',
         ),
       ],
-      body: Row(
-        children: [
-          // Left Panel: Widget Palette
-          SizedBox(width: 200, child: WidgetPalette(registry: registry)),
+      body: KeyboardListener(
+        focusNode: FocusNode(),
+        autofocus: true,
+        onKeyEvent: (event) {
+          if (event is KeyDownEvent &&
+              event.logicalKey == LogicalKeyboardKey.escape) {
+            _deselectElement();
+          }
+        },
+        child: Row(
+          children: [
+            // Left Panel: Widget Palette + Side Panel Style Editor
+            SizedBox(
+              width: 240,
+              child: Column(
+                children: [
+                  Expanded(child: WidgetPalette(registry: registry)),
+                  if (_currentSelection != null) ...[
+                    const Divider(height: 1),
+                    Expanded(child: SingleChildScrollView(child: _buildSidePanel())),
+                  ],
+                ],
+              ),
+            ),
 
-          // Divider
-          const VerticalDivider(width: 1),
+            // Divider
+            const VerticalDivider(width: 1),
 
-          // Right Panel: Canvas
-          Expanded(child: _buildCanvas()),
-        ],
+            // Right Panel: Canvas
+            Expanded(child: _buildCanvas()),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildSidePanel() {
+    final sel = _currentSelection;
+    if (sel == null) return const SizedBox.shrink();
+
+    final style = _resolveStyle(sel);
+    bool? isDroppable;
+    ValueChanged<bool>? onDroppableChanged;
+
+    if (sel.type == EditorElementType.column) {
+      // Find the column
+      for (final entry in _columns.entries) {
+        for (final col in entry.value) {
+          if (col.id == sel.id) {
+            isDroppable = col.isDroppable;
+            onDroppableChanged = (value) =>
+                _onColumnDroppableChanged(sel.id, value);
+            break;
+          }
+        }
+      }
+    }
+
+    return SidePanelStyleEditor(
+      type: sel.type,
+      styleConfig: style,
+      clipboardStyle: _selectionNotifier.clipboardStyle,
+      onCopy: () => _selectionNotifier.copyStyle(),
+      onPaste: () {
+        final pasted = _selectionNotifier.pasteStyle();
+        if (pasted != null) {
+          _onSidePanelStyleChanged(pasted);
+        }
+      },
+      onStyleChanged: _onSidePanelStyleChanged,
+      isDroppable: isDroppable,
+      onDroppableChanged: onDroppableChanged,
     );
   }
 
@@ -614,10 +753,34 @@ class _AdminTemplateEditorPageState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Page Style Section
-            PageStyleSection(
-              styleConfig: _menu?.styleConfig,
-              onStyleChanged: _onStyleChanged,
+            // Menu Style Selector
+            GestureDetector(
+              key: const Key('selectable_menu'),
+              onTap: () => _selectElement(
+                const EditorSelection(type: EditorElementType.menu, id: 0),
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: _currentSelection?.type == EditorElementType.menu
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.transparent,
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.style, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Page Style',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -727,72 +890,75 @@ class _AdminTemplateEditorPageState
 
   Widget _buildContainerCard(entity.Container container) {
     final columns = _columns[container.id] ?? [];
+    final isSelected = _currentSelection?.type == EditorElementType.container &&
+        _currentSelection?.id == container.id;
 
-    return Card(
-      color: Colors.grey[100],
-      margin: const EdgeInsets.only(top: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Container Header
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    container.name ?? 'Container',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                IconButton(
-                  key: Key('delete_container_${container.id}'),
-                  icon: const Icon(Icons.delete, size: 20),
-                  onPressed: () => _deleteContainer(container.id),
-                  tooltip: 'Delete Container',
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Container Style Section (collapsible)
-            ExpansionTile(
-              title: const Text('Container Style'),
-              tilePadding: EdgeInsets.zero,
-              childrenPadding: EdgeInsets.zero,
-              children: [
-                PageStyleSection(
-                  title: 'Container Style',
-                  styleConfig: container.styleConfig,
-                  onStyleChanged: (newStyle) =>
-                      _onContainerStyleChanged(container.id, newStyle),
-                ),
-              ],
-            ),
-
-            // Add Column Button
-            ElevatedButton.icon(
-              key: Key('add_column_${container.id}'),
-              onPressed: () => _addColumn(container.id),
-              icon: const Icon(Icons.add, size: 16),
-              label: const Text('Add Column', style: TextStyle(fontSize: 12)),
-            ),
-            const SizedBox(height: 8),
-
-            // Columns
-            if (columns.isNotEmpty)
+    return GestureDetector(
+      key: Key('selectable_container_${container.id}'),
+      onTap: () => _selectElement(
+        EditorSelection(type: EditorElementType.container, id: container.id),
+      ),
+      child: Card(
+        color: Colors.grey[100],
+        margin: const EdgeInsets.only(top: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
+          side: BorderSide(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Container Header
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: columns
-                    .map(
-                      (column) => Expanded(
-                        flex: column.flex ?? 1,
-                        child: _buildColumnCard(column),
-                      ),
-                    )
-                    .toList(),
+                children: [
+                  Expanded(
+                    child: Text(
+                      container.name ?? 'Container',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  IconButton(
+                    key: Key('delete_container_${container.id}'),
+                    icon: const Icon(Icons.delete, size: 20),
+                    onPressed: () => _deleteContainer(container.id),
+                    tooltip: 'Delete Container',
+                  ),
+                ],
               ),
-          ],
+              const SizedBox(height: 8),
+
+              // Add Column Button
+              ElevatedButton.icon(
+                key: Key('add_column_${container.id}'),
+                onPressed: () => _addColumn(container.id),
+                icon: const Icon(Icons.add, size: 16),
+                label:
+                    const Text('Add Column', style: TextStyle(fontSize: 12)),
+              ),
+              const SizedBox(height: 8),
+
+              // Columns
+              if (columns.isNotEmpty)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: columns
+                      .map(
+                        (column) => Expanded(
+                          flex: column.flex ?? 1,
+                          child: _buildColumnCard(column),
+                        ),
+                      )
+                      .toList(),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -802,118 +968,107 @@ class _AdminTemplateEditorPageState
     final widgets = _widgets[column.id] ?? [];
     final registry = ref.watch(widgetRegistryProvider);
     final currentHoverIndex = _hoverIndex[column.id] ?? -1;
+    final isSelected = _currentSelection?.type == EditorElementType.column &&
+        _currentSelection?.id == column.id;
 
-    return Container(
-      key: Key('column_${column.id}'),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(4),
-        color: Colors.white,
+    return GestureDetector(
+      key: Key('selectable_column_${column.id}'),
+      onTap: () => _selectElement(
+        EditorSelection(type: EditorElementType.column, id: column.id),
       ),
-      constraints: const BoxConstraints(minHeight: 100),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Flex: ${column.flex ?? 1}',
-                style: const TextStyle(fontSize: 11),
-              ),
-              IconButton(
-                key: Key('delete_column_${column.id}'),
-                icon: const Icon(Icons.delete, size: 16),
-                onPressed: () => _deleteColumn(column.id),
-                constraints: const BoxConstraints(),
-                padding: EdgeInsets.zero,
-                tooltip: 'Delete Column',
-              ),
-            ],
+      child: Container(
+        key: Key('column_${column.id}'),
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.grey[300]!,
+            width: isSelected ? 2 : 1,
           ),
-          const SizedBox(height: 8),
-          // Column Style Section (collapsible)
-          ExpansionTile(
-            title: const Text('Column Style'),
-            tilePadding: EdgeInsets.zero,
-            childrenPadding: EdgeInsets.zero,
-            children: [
-              SwitchListTile(
-                key: Key('is_droppable_toggle_${column.id}'),
-                title: const Text('Allow Widget Drops'),
-                subtitle: const Text(
-                  'When off, this column is locked in the menu editor',
+          borderRadius: BorderRadius.circular(4),
+          color: Colors.white,
+        ),
+        constraints: const BoxConstraints(minHeight: 100),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Flex: ${column.flex ?? 1}',
+                  style: const TextStyle(fontSize: 11),
                 ),
-                value: column.isDroppable,
-                onChanged: (value) =>
-                    _onColumnDroppableChanged(column.id, value),
-                dense: true,
-              ),
-              PageStyleSection(
-                title: 'Column Style',
-                styleConfig: column.styleConfig,
-                onStyleChanged: (newStyle) =>
-                    _onColumnStyleChanged(column.id, newStyle),
-              ),
-            ],
-          ),
-
-          // Widget drop zones and widgets
-          for (int i = 0; i <= widgets.length; i++) ...[
-            EditorDropZone(
-              columnId: column.id,
-              index: i,
-              isHovering: currentHoverIndex == i,
-              registry: registry,
-              onHoverIndexChanged: (index) {
-                setState(() {
-                  _hoverIndex[column.id] = index;
-                });
-              },
-              onAccept: (dragData) {
-                if (dragData.isNewWidget) {
-                  _handleWidgetDropAtIndex(
-                    dragData.newWidgetType!,
-                    column.id,
-                    i,
-                  );
-                } else if (dragData.isExistingWidget) {
-                  _handleWidgetMoveToIndex(
-                    dragData.existingWidget!,
-                    dragData.sourceColumnId!,
-                    column.id,
-                    i,
-                  );
-                }
-              },
+                IconButton(
+                  key: Key('delete_column_${column.id}'),
+                  icon: const Icon(Icons.delete, size: 16),
+                  onPressed: () => _deleteColumn(column.id),
+                  constraints: const BoxConstraints(),
+                  padding: EdgeInsets.zero,
+                  tooltip: 'Delete Column',
+                ),
+              ],
             ),
-            if (i < widgets.length)
-              DraggableWidgetItem(
-                widgetInstance: widgets[i],
+            const SizedBox(height: 8),
+
+            // Widget drop zones and widgets
+            for (int i = 0; i <= widgets.length; i++) ...[
+              EditorDropZone(
                 columnId: column.id,
-                isEditable: true,
-                isLocked: false,
-                onUpdate: (props) => _handleWidgetUpdate(widgets[i].id, props),
-                onDelete: () => _handleWidgetDelete(widgets[i].id),
-                onConfirmDismiss: () => showDeleteConfirmation(context),
-                onDismissed: (id) => _performWidgetDelete(id),
+                index: i,
+                isHovering: currentHoverIndex == i,
+                registry: registry,
+                onHoverIndexChanged: (index) {
+                  setState(() {
+                    _hoverIndex[column.id] = index;
+                  });
+                },
+                onAccept: (dragData) {
+                  if (dragData.isNewWidget) {
+                    _handleWidgetDropAtIndex(
+                      dragData.newWidgetType!,
+                      column.id,
+                      i,
+                    );
+                  } else if (dragData.isExistingWidget) {
+                    _handleWidgetMoveToIndex(
+                      dragData.existingWidget!,
+                      dragData.sourceColumnId!,
+                      column.id,
+                      i,
+                    );
+                  }
+                },
+              ),
+              if (i < widgets.length)
+                DraggableWidgetItem(
+                  widgetInstance: widgets[i],
+                  columnId: column.id,
+                  isEditable: true,
+                  isLocked: false,
+                  onUpdate: (props) =>
+                      _handleWidgetUpdate(widgets[i].id, props),
+                  onDelete: () => _handleWidgetDelete(widgets[i].id),
+                  onConfirmDismiss: () => showDeleteConfirmation(context),
+                  onDismissed: (id) => _performWidgetDelete(id),
+                ),
+            ],
+
+            // Empty state
+            if (widgets.isEmpty && currentHoverIndex == -1)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Text(
+                    'Drop widgets here',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
+                ),
               ),
           ],
-
-          // Empty state
-          if (widgets.isEmpty && currentHoverIndex == -1)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Text(
-                  'Drop widgets here',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                ),
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }

@@ -28,7 +28,8 @@
       "Read(//private/tmp/**)",
       "Bash(echo:*)",
       "Bash(dart format:*)",
-      "mcp__dart__run_tests"
+      "mcp__dart__run_tests",
+      "mcp__dart__analyze_files"
     ]
   }
 }
