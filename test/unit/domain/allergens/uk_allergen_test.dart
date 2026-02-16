@@ -96,7 +96,7 @@ void main() {
       });
 
       test('sulphites should have correct shortName', () {
-        expect(UkAllergen.sulphites.shortName, 'SULPHUR DIOXIDE');
+        expect(UkAllergen.sulphites.shortName, 'SULPHITES');
       });
 
       test('nuts should have correct shortName', () {

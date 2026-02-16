@@ -21,7 +21,7 @@ class TextWidget extends StatelessWidget {
           props.text,
           textAlign: _getTextAlign(),
           style: TextStyle(
-            fontSize: 14,
+            fontSize: props.fontSize,
             fontWeight: props.bold ? FontWeight.bold : FontWeight.normal,
             fontStyle: props.italic ? FontStyle.italic : FontStyle.normal,
           ),

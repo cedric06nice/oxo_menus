@@ -14,6 +14,7 @@ class TextEditDialog extends StatefulWidget {
 
 class _TextEditDialogState extends State<TextEditDialog> {
   late TextEditingController _textController;
+  late double _fontSize;
   late String _align;
   late bool _bold;
   late bool _italic;
@@ -22,6 +23,7 @@ class _TextEditDialogState extends State<TextEditDialog> {
   void initState() {
     super.initState();
     _textController = TextEditingController(text: widget.props.text);
+    _fontSize = widget.props.fontSize;
     _align = widget.props.align;
     _bold = widget.props.bold;
     _italic = widget.props.italic;
@@ -50,6 +52,15 @@ class _TextEditDialogState extends State<TextEditDialog> {
               maxLines: 5,
             ),
             const SizedBox(height: 12),
+            Slider(
+              value: _fontSize,
+              min: 4,
+              max: 36,
+              divisions: 28,
+              label: 'Font Size: ${_fontSize.toInt()}',
+              onChanged: (value) => setState(() => _fontSize = value),
+            ),
+            const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _align,
               decoration: const InputDecoration(labelText: 'Alignment'),
@@ -93,6 +104,7 @@ class _TextEditDialogState extends State<TextEditDialog> {
   void _handleSave() {
     final updatedProps = TextProps(
       text: _textController.text.trim(),
+      fontSize: _fontSize,
       align: _align,
       bold: _bold,
       italic: _italic,

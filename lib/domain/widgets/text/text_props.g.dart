@@ -8,6 +8,7 @@ part of 'text_props.dart';
 
 _TextProps _$TextPropsFromJson(Map<String, dynamic> json) => _TextProps(
   text: json['text'] as String,
+  fontSize: (json['fontSize'] as num?)?.toDouble() ?? 10.0,
   align: json['align'] as String? ?? 'left',
   bold: json['bold'] as bool? ?? false,
   italic: json['italic'] as bool? ?? false,
@@ -16,6 +17,7 @@ _TextProps _$TextPropsFromJson(Map<String, dynamic> json) => _TextProps(
 Map<String, dynamic> _$TextPropsToJson(_TextProps instance) =>
     <String, dynamic>{
       'text': instance.text,
+      'fontSize': instance.fontSize,
       'align': instance.align,
       'bold': instance.bold,
       'italic': instance.italic,

@@ -14,6 +14,9 @@ abstract class TextProps with _$TextProps {
     /// The text content to display
     required String text,
 
+    /// Font size in points
+    @Default(10.0) double fontSize,
+
     /// Text alignment: 'left', 'center', 'right'
     @Default('left') String align,
 

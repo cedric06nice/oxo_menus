@@ -16,7 +16,8 @@ T _$identity<T>(T value) => value;
 mixin _$TextProps {
 
 /// The text content to display
- String get text;/// Text alignment: 'left', 'center', 'right'
+ String get text;/// Font size in points
+ double get fontSize;/// Text alignment: 'left', 'center', 'right'
  String get align;/// Whether the text should be bold
  bool get bold;/// Whether the text should be italic
  bool get italic;
@@ -32,16 +33,16 @@ $TextPropsCopyWith<TextProps> get copyWith => _$TextPropsCopyWithImpl<TextProps>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TextProps&&(identical(other.text, text) || other.text == text)&&(identical(other.align, align) || other.align == align)&&(identical(other.bold, bold) || other.bold == bold)&&(identical(other.italic, italic) || other.italic == italic));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TextProps&&(identical(other.text, text) || other.text == text)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.align, align) || other.align == align)&&(identical(other.bold, bold) || other.bold == bold)&&(identical(other.italic, italic) || other.italic == italic));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,text,align,bold,italic);
+int get hashCode => Object.hash(runtimeType,text,fontSize,align,bold,italic);
 
 @override
 String toString() {
-  return 'TextProps(text: $text, align: $align, bold: $bold, italic: $italic)';
+  return 'TextProps(text: $text, fontSize: $fontSize, align: $align, bold: $bold, italic: $italic)';
 }
 
 
@@ -52,7 +53,7 @@ abstract mixin class $TextPropsCopyWith<$Res>  {
   factory $TextPropsCopyWith(TextProps value, $Res Function(TextProps) _then) = _$TextPropsCopyWithImpl;
 @useResult
 $Res call({
- String text, String align, bool bold, bool italic
+ String text, double fontSize, String align, bool bold, bool italic
 });
 
 
@@ -69,10 +70,11 @@ class _$TextPropsCopyWithImpl<$Res>
 
 /// Create a copy of TextProps
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? text = null,Object? align = null,Object? bold = null,Object? italic = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? text = null,Object? fontSize = null,Object? align = null,Object? bold = null,Object? italic = null,}) {
   return _then(_self.copyWith(
 text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
-as String,align: null == align ? _self.align : align // ignore: cast_nullable_to_non_nullable
+as String,fontSize: null == fontSize ? _self.fontSize : fontSize // ignore: cast_nullable_to_non_nullable
+as double,align: null == align ? _self.align : align // ignore: cast_nullable_to_non_nullable
 as String,bold: null == bold ? _self.bold : bold // ignore: cast_nullable_to_non_nullable
 as bool,italic: null == italic ? _self.italic : italic // ignore: cast_nullable_to_non_nullable
 as bool,
@@ -160,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String text,  String align,  bool bold,  bool italic)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String text,  double fontSize,  String align,  bool bold,  bool italic)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TextProps() when $default != null:
-return $default(_that.text,_that.align,_that.bold,_that.italic);case _:
+return $default(_that.text,_that.fontSize,_that.align,_that.bold,_that.italic);case _:
   return orElse();
 
 }
@@ -181,10 +183,10 @@ return $default(_that.text,_that.align,_that.bold,_that.italic);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String text,  String align,  bool bold,  bool italic)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String text,  double fontSize,  String align,  bool bold,  bool italic)  $default,) {final _that = this;
 switch (_that) {
 case _TextProps():
-return $default(_that.text,_that.align,_that.bold,_that.italic);case _:
+return $default(_that.text,_that.fontSize,_that.align,_that.bold,_that.italic);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +203,10 @@ return $default(_that.text,_that.align,_that.bold,_that.italic);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String text,  String align,  bool bold,  bool italic)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String text,  double fontSize,  String align,  bool bold,  bool italic)?  $default,) {final _that = this;
 switch (_that) {
 case _TextProps() when $default != null:
-return $default(_that.text,_that.align,_that.bold,_that.italic);case _:
+return $default(_that.text,_that.fontSize,_that.align,_that.bold,_that.italic);case _:
   return null;
 
 }
@@ -216,11 +218,13 @@ return $default(_that.text,_that.align,_that.bold,_that.italic);case _:
 @JsonSerializable()
 
 class _TextProps extends TextProps {
-  const _TextProps({required this.text, this.align = 'left', this.bold = false, this.italic = false}): super._();
+  const _TextProps({required this.text, this.fontSize = 10.0, this.align = 'left', this.bold = false, this.italic = false}): super._();
   factory _TextProps.fromJson(Map<String, dynamic> json) => _$TextPropsFromJson(json);
 
 /// The text content to display
 @override final  String text;
+/// Font size in points
+@override@JsonKey() final  double fontSize;
 /// Text alignment: 'left', 'center', 'right'
 @override@JsonKey() final  String align;
 /// Whether the text should be bold
@@ -241,16 +245,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TextProps&&(identical(other.text, text) || other.text == text)&&(identical(other.align, align) || other.align == align)&&(identical(other.bold, bold) || other.bold == bold)&&(identical(other.italic, italic) || other.italic == italic));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TextProps&&(identical(other.text, text) || other.text == text)&&(identical(other.fontSize, fontSize) || other.fontSize == fontSize)&&(identical(other.align, align) || other.align == align)&&(identical(other.bold, bold) || other.bold == bold)&&(identical(other.italic, italic) || other.italic == italic));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,text,align,bold,italic);
+int get hashCode => Object.hash(runtimeType,text,fontSize,align,bold,italic);
 
 @override
 String toString() {
-  return 'TextProps(text: $text, align: $align, bold: $bold, italic: $italic)';
+  return 'TextProps(text: $text, fontSize: $fontSize, align: $align, bold: $bold, italic: $italic)';
 }
 
 
@@ -261,7 +265,7 @@ abstract mixin class _$TextPropsCopyWith<$Res> implements $TextPropsCopyWith<$Re
   factory _$TextPropsCopyWith(_TextProps value, $Res Function(_TextProps) _then) = __$TextPropsCopyWithImpl;
 @override @useResult
 $Res call({
- String text, String align, bool bold, bool italic
+ String text, double fontSize, String align, bool bold, bool italic
 });
 
 
@@ -278,10 +282,11 @@ class __$TextPropsCopyWithImpl<$Res>
 
 /// Create a copy of TextProps
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? text = null,Object? align = null,Object? bold = null,Object? italic = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? text = null,Object? fontSize = null,Object? align = null,Object? bold = null,Object? italic = null,}) {
   return _then(_TextProps(
 text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
-as String,align: null == align ? _self.align : align // ignore: cast_nullable_to_non_nullable
+as String,fontSize: null == fontSize ? _self.fontSize : fontSize // ignore: cast_nullable_to_non_nullable
+as double,align: null == align ? _self.align : align // ignore: cast_nullable_to_non_nullable
 as String,bold: null == bold ? _self.bold : bold // ignore: cast_nullable_to_non_nullable
 as bool,italic: null == italic ? _self.italic : italic // ignore: cast_nullable_to_non_nullable
 as bool,

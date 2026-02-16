@@ -68,7 +68,7 @@ class _AllergenSelectorState extends State<AllergenSelector> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Allergens', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
+        const SizedBox(height: 3),
         ...UkAllergen.values.map((allergen) => _buildAllergenTile(allergen)),
       ],
     );
@@ -79,9 +79,9 @@ class _AllergenSelectorState extends State<AllergenSelector> {
     final info = _selections[allergen];
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4),
+      margin: const EdgeInsets.symmetric(vertical: 1),
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(6.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -123,7 +123,7 @@ class _AllergenSelectorState extends State<AllergenSelector> {
             // May contain toggle and details (when selected)
             if (isSelected) ...[
               Padding(
-                padding: const EdgeInsets.only(left: 40),
+                padding: const EdgeInsets.only(left: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

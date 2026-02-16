@@ -48,7 +48,7 @@ class GeneratePdfUseCase {
       final styleConfig = menuTree.menu.styleConfig;
       final displayOptions = menuTree.menu.displayOptions;
       final pageFormat = _resolver.resolvePageFormat(menuTree.menu.pageSize);
-      final pageMargins = _resolver.resolvePageMargins(styleConfig);
+      final pageMargins = _resolver.resolveContentMargins(styleConfig);
 
       // Generate pages with header/footer
       for (final pageData in menuTree.pages) {
@@ -171,7 +171,12 @@ class GeneratePdfUseCase {
       );
     }
 
-    final padding = _resolver.resolveContentPadding(styleConfig);
+    final margin = styleConfig != null
+        ? _resolver.resolveContentMargins(styleConfig)
+        : pw.EdgeInsets.zero;
+    final padding = styleConfig != null
+        ? _resolver.resolveContentPadding(styleConfig)
+        : pw.EdgeInsets.zero;
 
     final content = pw.Container(
       padding: padding,
@@ -180,7 +185,10 @@ class GeneratePdfUseCase {
         children: children,
       ),
     );
-    return _resolver.wrapWithBorder(content, styleConfig);
+
+    final borderedContent = _resolver.wrapWithBorder(content, styleConfig);
+
+    return pw.Container(margin: margin, child: borderedContent);
   }
 
   /// Build a container with columns in a row
@@ -191,15 +199,16 @@ class GeneratePdfUseCase {
     Map<String, Uint8List> imageCache,
   ) {
     final containerStyle = containerData.container.styleConfig;
+
     final margin = containerStyle != null
-        ? _resolver.resolvePageMargins(containerStyle)
-        : const pw.EdgeInsets.only(bottom: 16);
+        ? _resolver.resolveContentMargins(containerStyle)
+        : pw.EdgeInsets.zero;
+
     final padding = containerStyle != null
         ? _resolver.resolveContentPadding(containerStyle)
         : pw.EdgeInsets.zero;
 
     pw.Widget content = pw.Container(
-      margin: margin,
       padding: padding,
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -223,7 +232,10 @@ class GeneratePdfUseCase {
         ],
       ),
     );
-    return _resolver.wrapWithBorder(content, containerStyle);
+
+    final borderedContent = _resolver.wrapWithBorder(content, containerStyle);
+
+    return pw.Container(margin: margin, child: borderedContent);
   }
 
   /// Build a column with widgets
@@ -234,9 +246,14 @@ class GeneratePdfUseCase {
     Map<String, Uint8List> imageCache,
   ) {
     final columnStyle = columnData.column.styleConfig;
+
+    final margin = columnStyle != null
+        ? _resolver.resolveContentMargins(columnStyle)
+        : pw.EdgeInsets.zero;
+
     final padding = columnStyle != null
         ? _resolver.resolveContentPadding(columnStyle)
-        : const pw.EdgeInsets.symmetric(horizontal: 4);
+        : pw.EdgeInsets.zero;
 
     pw.Widget content = pw.Padding(
       padding: padding,
@@ -247,7 +264,10 @@ class GeneratePdfUseCase {
         }).toList(),
       ),
     );
-    return _resolver.wrapWithBorder(content, columnStyle);
+
+    final borderedContent = _resolver.wrapWithBorder(content, columnStyle);
+
+    return pw.Container(margin: margin, child: borderedContent);
   }
 
   /// Build a widget based on its type
@@ -289,22 +309,32 @@ class GeneratePdfUseCase {
         children: [
           // Name and price row
           pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: pw.MainAxisAlignment.start,
             children: [
-              pw.Expanded(
-                child: pw.Text(
-                  props.displayName,
-                  style: pw.TextStyle(
-                    fontSize: baseFontSize,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
+              pw.Text(
+                props.name,
+                style: pw.TextStyle(
+                  fontSize: baseFontSize,
+                  letterSpacing: 0.55,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.Text(
+                props.dietary?.abbreviation != null
+                    ? '  ${props.dietary!.abbreviation}'
+                    : '',
+                style: pw.TextStyle(
+                  fontSize: baseFontSize - 3,
+                  letterSpacing: 0.4,
+                  fontStyle: pw.FontStyle.normal,
                 ),
               ),
               if (showPrice)
                 pw.Text(
-                  '£${props.price.toStringAsFixed(2)}',
+                  '  ${props.price.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')}',
                   style: pw.TextStyle(
-                    fontSize: baseFontSize,
+                    fontSize: baseFontSize - 2,
+                    letterSpacing: -0.33,
                     fontWeight: pw.FontWeight.bold,
                   ),
                 ),
@@ -312,10 +342,9 @@ class GeneratePdfUseCase {
           ),
           // Description
           if (props.description != null && props.description!.isNotEmpty) ...[
-            pw.SizedBox(height: 4),
             pw.Text(
               props.description!,
-              style: pw.TextStyle(fontSize: baseFontSize - 2),
+              style: pw.TextStyle(fontSize: baseFontSize, letterSpacing: -0.15),
             ),
           ],
           // Allergens
@@ -332,8 +361,9 @@ class GeneratePdfUseCase {
                 child: pw.Text(
                   formattedAllergens,
                   style: pw.TextStyle(
-                    fontSize: baseFontSize - 2,
-                    fontStyle: pw.FontStyle.italic,
+                    fontSize: baseFontSize - 3,
+                    letterSpacing: 0.6,
+                    fontStyle: pw.FontStyle.normal,
                   ),
                 ),
               );
@@ -347,7 +377,6 @@ class GeneratePdfUseCase {
   /// Build text widget in PDF
   pw.Widget _buildTextWidget(WidgetInstance widget, StyleConfig? styleConfig) {
     final props = TextProps.fromJson(widget.props);
-    final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
 
     pw.TextAlign alignment;
     switch (props.align) {
@@ -379,7 +408,7 @@ class GeneratePdfUseCase {
         props.text,
         textAlign: alignment,
         style: pw.TextStyle(
-          fontSize: baseFontSize,
+          fontSize: props.fontSize,
           fontWeight: fontWeight,
           fontStyle: fontStyle,
         ),
@@ -398,7 +427,6 @@ class GeneratePdfUseCase {
     final title = props.uppercase ? props.title.toUpperCase() : props.title;
 
     return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 12, top: 8),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [

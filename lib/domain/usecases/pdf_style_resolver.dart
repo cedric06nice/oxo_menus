@@ -29,21 +29,25 @@ class PdfStyleResolver {
     );
   }
 
-  /// Resolve page margins from StyleConfig.
-  pw.EdgeInsets resolvePageMargins(StyleConfig? style) {
-    if (style == null) return pw.EdgeInsets.zero;
+  /// Resolve content margins from StyleConfig.
+  /// Per-side values take priority, then single margin, then default 0.0.
+  pw.EdgeInsets resolveContentMargins(StyleConfig? style) {
+    const defaultMargins = 0.0;
+    if (style == null) return pw.EdgeInsets.all(defaultMargins);
+
+    final fallback = (style.margin) ?? defaultMargins;
     return pw.EdgeInsets.only(
-      top: style.marginTop ?? 0,
-      bottom: style.marginBottom ?? 0,
-      left: style.marginLeft ?? 0,
-      right: style.marginRight ?? 0,
+      top: style.marginTop ?? fallback,
+      bottom: style.marginBottom ?? fallback,
+      left: style.marginLeft ?? fallback,
+      right: style.marginRight ?? fallback,
     );
   }
 
   /// Resolve content padding from StyleConfig.
-  /// Per-side values take priority, then single padding, then default 16.0.
+  /// Per-side values take priority, then single padding, then default 0.0.
   pw.EdgeInsets resolveContentPadding(StyleConfig? style) {
-    const defaultPadding = 16.0;
+    const defaultPadding = 0.0;
     if (style == null) return const pw.EdgeInsets.all(defaultPadding);
 
     final fallback = style.padding ?? defaultPadding;
@@ -57,7 +61,7 @@ class PdfStyleResolver {
 
   /// Resolve base font size from StyleConfig.
   double resolveBaseFontSize(StyleConfig? style) {
-    return style?.fontSize ?? 14.0;
+    return style?.fontSize ?? 11.0;
   }
 
   /// Wrap a child widget with the appropriate border decoration.

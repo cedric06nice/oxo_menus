@@ -91,7 +91,7 @@ void main() {
         ];
         expect(
           AllergenFormatter.formatForDisplay(allergens),
-          'CELERY, NUTS [walnut], SULPHUR DIOXIDE, MAY CONTAIN EGGS, SOYA',
+          'CELERY, NUTS [walnut], SULPHITES, MAY CONTAIN EGGS, SOYA',
         );
       });
 
@@ -170,7 +170,7 @@ void main() {
         expect(result, contains('PEANUTS'));
         expect(result, contains('SESAME'));
         expect(result, contains('SOYA'));
-        expect(result, contains('SULPHUR DIOXIDE'));
+        expect(result, contains('SULPHITES'));
       });
 
       test('should format gluten and nuts with separate details', () {

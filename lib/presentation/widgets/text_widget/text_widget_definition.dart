@@ -13,6 +13,7 @@ final textWidgetDefinition = WidgetDefinition<TextProps>(
   render: (props, context) => TextWidget(props: props, context: context),
   defaultProps: const TextProps(
     text: 'New Text',
+    fontSize: 10.0,
     align: 'left',
     bold: false,
     italic: false,

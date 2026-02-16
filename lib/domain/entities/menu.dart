@@ -40,6 +40,7 @@ abstract class StyleConfig with _$StyleConfig {
     String? primaryColor,
     String? secondaryColor,
     String? backgroundColor,
+    double? margin,
     double? marginTop,
     double? marginBottom,
     double? marginLeft,

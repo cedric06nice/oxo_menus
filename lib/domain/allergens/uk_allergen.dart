@@ -82,7 +82,7 @@ enum UkAllergen {
       case UkAllergen.soya:
         return 'SOYA';
       case UkAllergen.sulphites:
-        return 'SULPHUR DIOXIDE';
+        return 'SULPHITES';
     }
   }
 
