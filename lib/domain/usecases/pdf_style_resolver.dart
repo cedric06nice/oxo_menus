@@ -64,6 +64,25 @@ class PdfStyleResolver {
     return style?.fontSize ?? 11.0;
   }
 
+  /// Return the total horizontal inset (both sides) added by the border.
+  /// Used to compute the inner content width for FittedBox scaling.
+  double resolveBorderHorizontalInset(StyleConfig? style) {
+    final borderType = style?.borderType;
+    if (borderType == null || borderType == BorderType.none) return 0.0;
+    switch (borderType) {
+      case BorderType.none:
+        return 0.0;
+      case BorderType.plainThin:
+        return 1.0;
+      case BorderType.plainThick:
+        return 4.0;
+      case BorderType.doubleOffset:
+        return 8.0;
+      case BorderType.dropShadow:
+        return 1.0;
+    }
+  }
+
   /// Wrap a child widget with the appropriate border decoration.
   /// Returns the child unchanged when no border is configured.
   pw.Widget wrapWithBorder(pw.Widget child, StyleConfig? style) {

@@ -175,6 +175,64 @@ void main() {
       });
     });
 
+    group('resolveBorderHorizontalInset', () {
+      test('should return 0.0 for null styleConfig', () {
+        expect(resolver.resolveBorderHorizontalInset(null), 0.0);
+      });
+
+      test('should return 0.0 for StyleConfig with null borderType', () {
+        expect(
+          resolver.resolveBorderHorizontalInset(const StyleConfig()),
+          0.0,
+        );
+      });
+
+      test('should return 0.0 for BorderType.none', () {
+        expect(
+          resolver.resolveBorderHorizontalInset(
+            const StyleConfig(borderType: BorderType.none),
+          ),
+          0.0,
+        );
+      });
+
+      test('should return 1.0 for BorderType.plainThin', () {
+        expect(
+          resolver.resolveBorderHorizontalInset(
+            const StyleConfig(borderType: BorderType.plainThin),
+          ),
+          1.0,
+        );
+      });
+
+      test('should return 4.0 for BorderType.plainThick', () {
+        expect(
+          resolver.resolveBorderHorizontalInset(
+            const StyleConfig(borderType: BorderType.plainThick),
+          ),
+          4.0,
+        );
+      });
+
+      test('should return 8.0 for BorderType.doubleOffset', () {
+        expect(
+          resolver.resolveBorderHorizontalInset(
+            const StyleConfig(borderType: BorderType.doubleOffset),
+          ),
+          8.0,
+        );
+      });
+
+      test('should return 1.0 for BorderType.dropShadow', () {
+        expect(
+          resolver.resolveBorderHorizontalInset(
+            const StyleConfig(borderType: BorderType.dropShadow),
+          ),
+          1.0,
+        );
+      });
+    });
+
     group('wrapWithBorder', () {
       final child = pw.SizedBox(width: 100, height: 100);
 

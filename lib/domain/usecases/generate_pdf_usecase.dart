@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/services.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
@@ -50,6 +52,8 @@ class GeneratePdfUseCase {
       final pageFormat = _resolver.resolvePageFormat(menuTree.menu.pageSize);
       final pageMargins = _resolver.resolveContentMargins(styleConfig);
 
+      final availableWidth = pageFormat.width - pageMargins.horizontal;
+
       // Generate pages with header/footer
       for (final pageData in menuTree.pages) {
         pdf.addPage(
@@ -63,6 +67,7 @@ class GeneratePdfUseCase {
               styleConfig,
               displayOptions,
               imageCache,
+              availableWidth,
             ),
           ),
         );
@@ -115,7 +120,10 @@ class GeneratePdfUseCase {
     return cache;
   }
 
-  /// Build a page with header, content, and footer
+  /// Build a page with header, content, and footer.
+  ///
+  /// Uses FittedBox(scaleDown) to uniformly scale content that overflows
+  /// the available page height, keeping all items visible.
   pw.Widget _buildPageWithHeaderFooter(
     PageWithContainers pageData,
     PageWithContainers? headerPage,
@@ -123,12 +131,13 @@ class GeneratePdfUseCase {
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
+    double availableWidth,
   ) {
-    final children = <pw.Widget>[];
+    // Build header + main content widgets (scalable part)
+    final contentChildren = <pw.Widget>[];
 
-    // Add header if present
     if (headerPage != null) {
-      children.addAll(
+      contentChildren.addAll(
         headerPage.containers.map((containerData) {
           return _buildContainer(
             containerData,
@@ -140,8 +149,7 @@ class GeneratePdfUseCase {
       );
     }
 
-    // Add main content
-    children.addAll(
+    contentChildren.addAll(
       pageData.containers.map((containerData) {
         return _buildContainer(
           containerData,
@@ -152,14 +160,10 @@ class GeneratePdfUseCase {
       }),
     );
 
-    // Add spacer to push footer to bottom
-    if (footerPage != null && children.isNotEmpty) {
-      children.add(pw.Spacer());
-    }
-
-    // Add footer if present
+    // Build footer widgets (not scaled)
+    final footerChildren = <pw.Widget>[];
     if (footerPage != null) {
-      children.addAll(
+      footerChildren.addAll(
         footerPage.containers.map((containerData) {
           return _buildContainer(
             containerData,
@@ -177,15 +181,56 @@ class GeneratePdfUseCase {
     final padding = styleConfig != null
         ? _resolver.resolveContentPadding(styleConfig)
         : pw.EdgeInsets.zero;
+    final borderInset = _resolver.resolveBorderHorizontalInset(styleConfig);
 
-    final content = pw.Container(
-      padding: padding,
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: children,
-      ),
+    final innerWidth = math.max(
+      0.0,
+      availableWidth - margin.horizontal - borderInset - padding.horizontal,
     );
 
+    // Scalable content column (header + main).
+    // FittedBox(scaleDown) scales content that overflows while being a no-op
+    // when content fits. Use ConstrainedBox with minHeight to prevent layout
+    // errors when content is empty or zero-height.
+    pw.Widget scalableContent;
+    if (contentChildren.isNotEmpty) {
+      scalableContent = pw.FittedBox(
+        fit: pw.BoxFit.scaleDown,
+        alignment: pw.Alignment.topLeft,
+        child: pw.ConstrainedBox(
+          constraints: pw.BoxConstraints(
+            minWidth: innerWidth,
+            maxWidth: innerWidth,
+            minHeight: 0.1,
+          ),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            mainAxisSize: pw.MainAxisSize.min,
+            children: contentChildren,
+          ),
+        ),
+      );
+    } else {
+      scalableContent = pw.SizedBox();
+    }
+
+    // Assemble inner layout
+    pw.Widget innerLayout;
+    if (footerChildren.isNotEmpty) {
+      // Footer anchored at bottom, content scales above
+      innerLayout = pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisSize: pw.MainAxisSize.max,
+        children: [
+          pw.Expanded(child: scalableContent),
+          ...footerChildren,
+        ],
+      );
+    } else {
+      innerLayout = scalableContent;
+    }
+
+    final content = pw.Container(padding: padding, child: innerLayout);
     final borderedContent = _resolver.wrapWithBorder(content, styleConfig);
 
     return pw.Container(margin: margin, child: borderedContent);

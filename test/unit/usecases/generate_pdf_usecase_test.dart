@@ -1603,6 +1603,147 @@ void main() {
       });
     });
 
+    group('content overflow handling', () {
+      List<WidgetInstance> make30Dishes() {
+        return List.generate(
+          30,
+          (i) => WidgetInstance(
+            id: i + 1,
+            columnId: 1,
+            type: 'dish',
+            version: '1.0.0',
+            index: i,
+            props: {
+              'name': 'Dish ${i + 1}',
+              'price': 10.0 + i,
+              'description': 'A delicious dish number ${i + 1}',
+              'showPrice': true,
+              'showAllergens': true,
+              'allergens': ['Gluten', 'Dairy'],
+            },
+          ),
+        );
+      }
+
+      PageWithContainers pageWith30Dishes() {
+        return PageWithContainers(
+          page: const entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
+          containers: [
+            ContainerWithColumns(
+              container: const entity.Container(id: 1, pageId: 1, index: 0),
+              columns: [
+                ColumnWithWidgets(
+                  column: const entity.Column(
+                    id: 1,
+                    containerId: 1,
+                    index: 0,
+                    flex: 1,
+                  ),
+                  widgets: make30Dishes(),
+                ),
+              ],
+            ),
+          ],
+        );
+      }
+
+      test(
+        'should generate PDF with 30 dishes without footer (no clip)',
+        () async {
+          final menuTree = MenuTree(
+            menu: const Menu(
+              id: 1,
+              name: 'Overflow Test',
+              status: Status.published,
+              version: '1.0.0',
+            ),
+            pages: [pageWith30Dishes()],
+          );
+
+          final result = await useCase.execute(menuTree);
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull!.isNotEmpty, true);
+        },
+      );
+
+      test(
+        'should generate PDF with 30 dishes and footer (no clip)',
+        () async {
+          final menuTree = MenuTree(
+            menu: const Menu(
+              id: 1,
+              name: 'Overflow Footer Test',
+              status: Status.published,
+              version: '1.0.0',
+            ),
+            pages: [pageWith30Dishes()],
+            footerPage: const PageWithContainers(
+              page: entity.Page(
+                id: 98,
+                menuId: 1,
+                name: 'Footer',
+                index: -1,
+                type: entity.PageType.footer,
+              ),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 98, pageId: 98, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 98,
+                        containerId: 98,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 98,
+                          columnId: 98,
+                          type: 'text',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {'text': 'FOOTER', 'align': 'center'},
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+
+          final result = await useCase.execute(menuTree);
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull!.isNotEmpty, true);
+        },
+      );
+
+      test(
+        'should generate PDF with 30 dishes, border and padding style (no clip)',
+        () async {
+          final menuTree = MenuTree(
+            menu: const Menu(
+              id: 1,
+              name: 'Overflow Styled Test',
+              status: Status.published,
+              version: '1.0.0',
+              styleConfig: StyleConfig(
+                borderType: BorderType.doubleOffset,
+                padding: 20.0,
+                margin: 30.0,
+              ),
+            ),
+            pages: [pageWith30Dishes()],
+          );
+
+          final result = await useCase.execute(menuTree);
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull!.isNotEmpty, true);
+        },
+      );
+    });
+
     group('Grid-aligned multi-column layout', () {
       test(
         'should generate PDF with uneven widget counts across columns',
