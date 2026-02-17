@@ -208,34 +208,108 @@ class GeneratePdfUseCase {
         ? _resolver.resolveContentPadding(containerStyle)
         : pw.EdgeInsets.zero;
 
-    pw.Widget content = pw.Container(
-      padding: padding,
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          // Columns in row
-          if (containerData.columns.isNotEmpty)
-            pw.Row(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: containerData.columns.map((columnData) {
-                return pw.Expanded(
-                  flex: columnData.column.flex ?? 1,
-                  child: _buildColumn(
-                    columnData,
-                    styleConfig,
-                    displayOptions,
-                    imageCache,
-                  ),
-                );
-              }).toList(),
-            ),
-        ],
-      ),
-    );
+    pw.Widget content;
+
+    if (containerData.columns.length <= 1) {
+      // Single column (or none): use existing _buildColumn path
+      content = pw.Container(
+        padding: padding,
+        child: pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            if (containerData.columns.isNotEmpty)
+              _buildColumn(
+                containerData.columns.first,
+                styleConfig,
+                displayOptions,
+                imageCache,
+              ),
+          ],
+        ),
+      );
+    } else {
+      // Multi-column: grid layout using pw.Table for cross-column alignment
+      content = pw.Container(
+        padding: padding,
+        child: _buildColumnsAsGrid(
+          containerData.columns,
+          styleConfig,
+          displayOptions,
+          imageCache,
+        ),
+      );
+    }
 
     final borderedContent = _resolver.wrapWithBorder(content, containerStyle);
 
     return pw.Container(margin: margin, child: borderedContent);
+  }
+
+  /// Build multiple columns as a grid using pw.Table.
+  ///
+  /// Each row of the table contains one widget per column (at the same index).
+  /// Shorter columns get SizedBox placeholders. The Table natively aligns
+  /// cells in each row to the same height, achieving grid-like alignment.
+  pw.Widget _buildColumnsAsGrid(
+    List<ColumnWithWidgets> columns,
+    StyleConfig? styleConfig,
+    MenuDisplayOptions? displayOptions,
+    Map<String, Uint8List> imageCache,
+  ) {
+    final maxWidgetCount = columns.fold<int>(
+      0,
+      (max, col) => col.widgets.length > max ? col.widgets.length : max,
+    );
+
+    // Build column widths map: {index: FlexColumnWidth(flex)}
+    final columnWidths = <int, pw.TableColumnWidth>{};
+    for (var i = 0; i < columns.length; i++) {
+      columnWidths[i] = pw.FlexColumnWidth(
+        (columns[i].column.flex ?? 1).toDouble(),
+      );
+    }
+
+    // Build table rows
+    final rows = <pw.TableRow>[];
+    for (var rowIndex = 0; rowIndex < maxWidgetCount; rowIndex++) {
+      final cells = <pw.Widget>[];
+      for (final column in columns) {
+        pw.Widget cell;
+        if (rowIndex < column.widgets.length) {
+          cell = _buildWidget(
+            column.widgets[rowIndex],
+            styleConfig,
+            displayOptions,
+            imageCache,
+          );
+        } else {
+          cell = pw.SizedBox();
+        }
+        cells.add(
+          _wrapCellWithColumnStyle(cell, column.column.styleConfig),
+        );
+      }
+      rows.add(pw.TableRow(children: cells));
+    }
+
+    return pw.Table(
+      children: rows,
+      columnWidths: columnWidths,
+      defaultVerticalAlignment: pw.TableCellVerticalAlignment.top,
+    );
+  }
+
+  /// Wrap a cell widget with column-level styling (margin, padding, border).
+  pw.Widget _wrapCellWithColumnStyle(pw.Widget child, StyleConfig? style) {
+    if (style == null) return child;
+
+    final margin = _resolver.resolveContentMargins(style);
+    final padding = _resolver.resolveContentPadding(style);
+
+    pw.Widget content = pw.Padding(padding: padding, child: child);
+    content = _resolver.wrapWithBorder(content, style);
+
+    return pw.Container(margin: margin, child: content);
   }
 
   /// Build a column with widgets

@@ -1602,5 +1602,445 @@ void main() {
         verify(() => mockFileRepository.downloadFile(footerImageId)).called(1);
       });
     });
+
+    group('Grid-aligned multi-column layout', () {
+      test(
+        'should generate PDF with uneven widget counts across columns',
+        () async {
+          // Two columns: col1 has 3 widgets, col2 has 1 widget.
+          // The grid layout should pad col2 with empty cells.
+          const menuTree = MenuTree(
+            menu: Menu(
+              id: 1,
+              name: 'Uneven Columns',
+              status: Status.published,
+              version: '1.0.0',
+            ),
+            pages: [
+              PageWithContainers(
+                page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
+                containers: [
+                  ContainerWithColumns(
+                    container: entity.Container(id: 1, pageId: 1, index: 0),
+                    columns: [
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 1,
+                          containerId: 1,
+                          index: 0,
+                          flex: 1,
+                        ),
+                        widgets: [
+                          WidgetInstance(
+                            id: 1,
+                            columnId: 1,
+                            type: 'dish',
+                            version: '1.0.0',
+                            index: 0,
+                            props: {
+                              'name': 'Dish A',
+                              'price': 10.0,
+                              'showPrice': true,
+                              'showAllergens': false,
+                              'allergens': [],
+                            },
+                          ),
+                          WidgetInstance(
+                            id: 2,
+                            columnId: 1,
+                            type: 'dish',
+                            version: '1.0.0',
+                            index: 1,
+                            props: {
+                              'name': 'Dish B',
+                              'price': 11.0,
+                              'showPrice': true,
+                              'showAllergens': false,
+                              'allergens': [],
+                            },
+                          ),
+                          WidgetInstance(
+                            id: 3,
+                            columnId: 1,
+                            type: 'dish',
+                            version: '1.0.0',
+                            index: 2,
+                            props: {
+                              'name': 'Dish C',
+                              'price': 12.0,
+                              'showPrice': true,
+                              'showAllergens': false,
+                              'allergens': [],
+                            },
+                          ),
+                        ],
+                      ),
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 2,
+                          containerId: 1,
+                          index: 1,
+                          flex: 1,
+                        ),
+                        widgets: [
+                          WidgetInstance(
+                            id: 4,
+                            columnId: 2,
+                            type: 'dish',
+                            version: '1.0.0',
+                            index: 0,
+                            props: {
+                              'name': 'Dish D',
+                              'price': 13.0,
+                              'showPrice': true,
+                              'showAllergens': false,
+                              'allergens': [],
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+
+          final result = await useCase.execute(menuTree);
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull!.isNotEmpty, true);
+        },
+      );
+
+      test(
+        'should generate PDF with three columns and mixed flex values',
+        () async {
+          // Three columns with flex 1, 2, 1 — proportional widths in grid.
+          const menuTree = MenuTree(
+            menu: Menu(
+              id: 1,
+              name: 'Three Col Menu',
+              status: Status.published,
+              version: '1.0.0',
+            ),
+            pages: [
+              PageWithContainers(
+                page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
+                containers: [
+                  ContainerWithColumns(
+                    container: entity.Container(id: 1, pageId: 1, index: 0),
+                    columns: [
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 1,
+                          containerId: 1,
+                          index: 0,
+                          flex: 1,
+                        ),
+                        widgets: [
+                          WidgetInstance(
+                            id: 1,
+                            columnId: 1,
+                            type: 'dish',
+                            version: '1.0.0',
+                            index: 0,
+                            props: {
+                              'name': 'Left Dish',
+                              'price': 8.0,
+                              'showPrice': true,
+                              'showAllergens': false,
+                              'allergens': [],
+                            },
+                          ),
+                        ],
+                      ),
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 2,
+                          containerId: 1,
+                          index: 1,
+                          flex: 2,
+                        ),
+                        widgets: [
+                          WidgetInstance(
+                            id: 2,
+                            columnId: 2,
+                            type: 'dish',
+                            version: '1.0.0',
+                            index: 0,
+                            props: {
+                              'name': 'Center Dish',
+                              'price': 15.0,
+                              'showPrice': true,
+                              'showAllergens': false,
+                              'allergens': [],
+                            },
+                          ),
+                        ],
+                      ),
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 3,
+                          containerId: 1,
+                          index: 2,
+                          flex: 1,
+                        ),
+                        widgets: [
+                          WidgetInstance(
+                            id: 3,
+                            columnId: 3,
+                            type: 'dish',
+                            version: '1.0.0',
+                            index: 0,
+                            props: {
+                              'name': 'Right Dish',
+                              'price': 9.0,
+                              'showPrice': true,
+                              'showAllergens': false,
+                              'allergens': [],
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+
+          final result = await useCase.execute(menuTree);
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull!.isNotEmpty, true);
+        },
+      );
+
+      test(
+        'should generate PDF with styled columns in grid layout',
+        () async {
+          // Two columns with padding + border styles applied per cell.
+          const menuTree = MenuTree(
+            menu: Menu(
+              id: 1,
+              name: 'Styled Grid',
+              status: Status.published,
+              version: '1.0.0',
+            ),
+            pages: [
+              PageWithContainers(
+                page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
+                containers: [
+                  ContainerWithColumns(
+                    container: entity.Container(id: 1, pageId: 1, index: 0),
+                    columns: [
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 1,
+                          containerId: 1,
+                          index: 0,
+                          flex: 1,
+                          styleConfig: StyleConfig(
+                            paddingLeft: 8.0,
+                            paddingRight: 8.0,
+                            borderType: BorderType.plainThin,
+                          ),
+                        ),
+                        widgets: [
+                          WidgetInstance(
+                            id: 1,
+                            columnId: 1,
+                            type: 'text',
+                            version: '1.0.0',
+                            index: 0,
+                            props: {
+                              'text': 'Styled Left',
+                              'align': 'left',
+                              'bold': false,
+                              'italic': false,
+                            },
+                          ),
+                        ],
+                      ),
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 2,
+                          containerId: 1,
+                          index: 1,
+                          flex: 1,
+                          styleConfig: StyleConfig(
+                            paddingTop: 12.0,
+                            paddingBottom: 12.0,
+                            borderType: BorderType.dropShadow,
+                          ),
+                        ),
+                        widgets: [
+                          WidgetInstance(
+                            id: 2,
+                            columnId: 2,
+                            type: 'text',
+                            version: '1.0.0',
+                            index: 0,
+                            props: {
+                              'text': 'Styled Right',
+                              'align': 'left',
+                              'bold': false,
+                              'italic': false,
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+
+          final result = await useCase.execute(menuTree);
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull!.isNotEmpty, true);
+        },
+      );
+
+      test(
+        'should generate PDF when one column in grid is empty',
+        () async {
+          // Two columns: col1 has widgets, col2 is empty.
+          const menuTree = MenuTree(
+            menu: Menu(
+              id: 1,
+              name: 'Empty Column Grid',
+              status: Status.published,
+              version: '1.0.0',
+            ),
+            pages: [
+              PageWithContainers(
+                page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
+                containers: [
+                  ContainerWithColumns(
+                    container: entity.Container(id: 1, pageId: 1, index: 0),
+                    columns: [
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 1,
+                          containerId: 1,
+                          index: 0,
+                          flex: 1,
+                        ),
+                        widgets: [
+                          WidgetInstance(
+                            id: 1,
+                            columnId: 1,
+                            type: 'text',
+                            version: '1.0.0',
+                            index: 0,
+                            props: {
+                              'text': 'Only in col 1',
+                              'align': 'left',
+                              'bold': false,
+                              'italic': false,
+                            },
+                          ),
+                        ],
+                      ),
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 2,
+                          containerId: 1,
+                          index: 1,
+                          flex: 1,
+                        ),
+                        widgets: [],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+
+          final result = await useCase.execute(menuTree);
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull!.isNotEmpty, true);
+        },
+      );
+
+      test(
+        'should generate PDF with null flex values defaulting to equal width',
+        () async {
+          // Two columns with null flex — both should default to flex 1.
+          const menuTree = MenuTree(
+            menu: Menu(
+              id: 1,
+              name: 'Null Flex Grid',
+              status: Status.published,
+              version: '1.0.0',
+            ),
+            pages: [
+              PageWithContainers(
+                page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
+                containers: [
+                  ContainerWithColumns(
+                    container: entity.Container(id: 1, pageId: 1, index: 0),
+                    columns: [
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 1,
+                          containerId: 1,
+                          index: 0,
+                          flex: null,
+                        ),
+                        widgets: [
+                          WidgetInstance(
+                            id: 1,
+                            columnId: 1,
+                            type: 'text',
+                            version: '1.0.0',
+                            index: 0,
+                            props: {
+                              'text': 'Null flex col 1',
+                              'align': 'left',
+                              'bold': false,
+                              'italic': false,
+                            },
+                          ),
+                        ],
+                      ),
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 2,
+                          containerId: 1,
+                          index: 1,
+                          flex: null,
+                        ),
+                        widgets: [
+                          WidgetInstance(
+                            id: 2,
+                            columnId: 2,
+                            type: 'text',
+                            version: '1.0.0',
+                            index: 0,
+                            props: {
+                              'text': 'Null flex col 2',
+                              'align': 'left',
+                              'bold': false,
+                              'italic': false,
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+
+          final result = await useCase.execute(menuTree);
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull!.isNotEmpty, true);
+        },
+      );
+    });
   });
 }
