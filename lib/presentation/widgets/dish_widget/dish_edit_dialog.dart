@@ -19,6 +19,7 @@ class _DishEditDialogState extends State<DishEditDialog> {
   late TextEditingController _nameController;
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
+  late TextEditingController _caloriesController;
   late DietaryType? _selectedDietary;
   late List<AllergenInfo> _selectedAllergens;
 
@@ -32,6 +33,9 @@ class _DishEditDialogState extends State<DishEditDialog> {
     _descriptionController = TextEditingController(
       text: widget.props.description ?? '',
     );
+    _caloriesController = TextEditingController(
+      text: widget.props.calories?.toString() ?? '',
+    );
     _selectedDietary = widget.props.dietary;
     _selectedAllergens = List.from(widget.props.effectiveAllergenInfo);
   }
@@ -41,6 +45,7 @@ class _DishEditDialogState extends State<DishEditDialog> {
     _nameController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
+    _caloriesController.dispose();
     super.dispose();
   }
 
@@ -68,6 +73,16 @@ class _DishEditDialogState extends State<DishEditDialog> {
               ),
               minLines: 1,
               maxLines: 3,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _caloriesController,
+              decoration: const InputDecoration(
+                labelText: 'Calories (optional)',
+                hintText: 'Enter calories',
+                suffixText: 'KCAL',
+              ),
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 12),
             TextField(
@@ -139,6 +154,7 @@ class _DishEditDialogState extends State<DishEditDialog> {
       description: _descriptionController.text.trim().isEmpty
           ? null
           : _descriptionController.text.trim(),
+      calories: int.tryParse(_caloriesController.text),
       allergens: const [], // Clear legacy field
       allergenInfo: _selectedAllergens,
       dietary: _selectedDietary,

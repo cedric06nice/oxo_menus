@@ -347,8 +347,16 @@ class GeneratePdfUseCase {
               style: pw.TextStyle(fontSize: baseFontSize, letterSpacing: -0.15),
             ),
           ],
-          // Allergens
+          // Calories and Allergens
           if (showAllergens) ...[
+            if (props.calories != null)
+              pw.Text(
+                '${props.calories} KCAL',
+                style: pw.TextStyle(
+                  fontSize: baseFontSize - 3,
+                  letterSpacing: 0.6,
+                ),
+              ),
             () {
               final formattedAllergens = AllergenFormatter.formatForDisplay(
                 props.effectiveAllergenInfo,

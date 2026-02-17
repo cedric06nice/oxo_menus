@@ -56,8 +56,16 @@ class DishWidget extends StatelessWidget {
                 ),
               ],
 
-              // Allergens
+              // Calories and Allergens
               if (context.displayOptions?.showAllergens ?? true) ...[
+                if (props.calories != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      '${props.calories} KCAL',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                  ),
                 Builder(
                   builder: (context) {
                     final formattedAllergens =

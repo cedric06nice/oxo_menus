@@ -23,6 +23,9 @@ abstract class DishProps with _$DishProps {
     /// Optional description of the dish
     String? description,
 
+    /// Optional calorie count (in KCAL)
+    int? calories,
+
     /// Legacy allergens field (for backward compatibility)
     /// @deprecated Use allergenInfo instead
     @Default([]) List<String> allergens,

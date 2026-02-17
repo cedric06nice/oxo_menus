@@ -175,6 +175,52 @@ void main() {
       expect(deserialized, equals(original));
     });
 
+    group('calories', () {
+      test('should create DishProps with calories value', () {
+        const props = DishProps(
+          name: 'Pasta Carbonara',
+          price: 12.50,
+          calories: 350,
+        );
+
+        expect(props.calories, 350);
+      });
+
+      test('should round-trip through JSON with calories', () {
+        const original = DishProps(
+          name: 'Pasta Carbonara',
+          price: 12.50,
+          calories: 450,
+        );
+
+        final json = original.toJson();
+        final deserialized = DishProps.fromJson(json);
+
+        expect(deserialized, equals(original));
+        expect(deserialized.calories, 450);
+      });
+
+      test('should round-trip through JSON without calories (null)', () {
+        const original = DishProps(name: 'Pasta Carbonara', price: 12.50);
+
+        final json = original.toJson();
+        final deserialized = DishProps.fromJson(json);
+
+        expect(deserialized, equals(original));
+        expect(deserialized.calories, isNull);
+      });
+
+      test('should support copyWith for calories', () {
+        const original = DishProps(name: 'Pasta', price: 10.0);
+
+        final withCalories = original.copyWith(calories: 500);
+        expect(withCalories.calories, 500);
+
+        final withoutCalories = withCalories.copyWith(calories: null);
+        expect(withoutCalories.calories, isNull);
+      });
+    });
+
     group('displayName', () {
       test('should return uppercased name when no dietary', () {
         const props = DishProps(name: 'Pasta Carbonara', price: 12.50);

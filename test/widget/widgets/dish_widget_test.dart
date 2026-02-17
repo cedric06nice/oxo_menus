@@ -441,5 +441,231 @@ void main() {
       // Verify "Vegan" is shown as the current selection
       expect(find.text('Vegan'), findsOneWidget);
     });
+
+    group('calories display', () {
+      testWidgets(
+        'should display calories after description when present and allergens showing',
+        (tester) async {
+          const props = DishProps(
+            name: 'Pasta',
+            price: 12.50,
+            description: 'Creamy pasta',
+            calories: 350,
+          );
+
+          await tester.pumpWidget(
+            const MaterialApp(
+              home: Scaffold(
+                body: DishWidget(
+                  props: props,
+                  context: WidgetContext(isEditable: false),
+                ),
+              ),
+            ),
+          );
+
+          expect(find.text('350 KCAL'), findsOneWidget);
+        },
+      );
+
+      testWidgets('should not display calories when null', (tester) async {
+        const props = DishProps(name: 'Pasta', price: 12.50);
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: DishWidget(
+                props: props,
+                context: WidgetContext(isEditable: false),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.textContaining('KCAL'), findsNothing);
+      });
+
+      testWidgets('should not display calories when showAllergens is false', (
+        tester,
+      ) async {
+        const props = DishProps(name: 'Pasta', price: 12.50, calories: 350);
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: DishWidget(
+                props: props,
+                context: WidgetContext(
+                  isEditable: false,
+                  displayOptions: MenuDisplayOptions(showAllergens: false),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('350 KCAL'), findsNothing);
+      });
+
+      testWidgets('should display correct format for calories', (tester) async {
+        const props = DishProps(name: 'Salad', price: 8.50, calories: 120);
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: DishWidget(
+                props: props,
+                context: WidgetContext(isEditable: false),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('120 KCAL'), findsOneWidget);
+      });
+    });
+
+    group('calories in edit dialog', () {
+      testWidgets('should show calories field in edit dialog', (tester) async {
+        const props = DishProps(name: 'Pasta', price: 12.50);
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: DishWidget(
+                props: props,
+                context: WidgetContext(isEditable: true),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.byType(Card));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Calories (optional)'), findsOneWidget);
+      });
+
+      testWidgets(
+        'should pre-populate calories field when editing dish with calories',
+        (tester) async {
+          const props = DishProps(name: 'Pasta', price: 12.50, calories: 450);
+
+          await tester.pumpWidget(
+            const MaterialApp(
+              home: Scaffold(
+                body: DishWidget(
+                  props: props,
+                  context: WidgetContext(isEditable: true),
+                ),
+              ),
+            ),
+          );
+
+          await tester.tap(find.byType(Card));
+          await tester.pumpAndSettle();
+
+          final textField = tester.widget<TextField>(
+            find.widgetWithText(TextField, 'Calories (optional)'),
+          );
+          expect(textField.controller?.text, '450');
+        },
+      );
+
+      testWidgets(
+        'should have empty calories field when editing dish without calories',
+        (tester) async {
+          const props = DishProps(name: 'Pasta', price: 12.50);
+
+          await tester.pumpWidget(
+            const MaterialApp(
+              home: Scaffold(
+                body: DishWidget(
+                  props: props,
+                  context: WidgetContext(isEditable: true),
+                ),
+              ),
+            ),
+          );
+
+          await tester.tap(find.byType(Card));
+          await tester.pumpAndSettle();
+
+          final textField = tester.widget<TextField>(
+            find.widgetWithText(TextField, 'Calories (optional)'),
+          );
+          expect(textField.controller?.text, '');
+        },
+      );
+
+      testWidgets('should save with calories value', (tester) async {
+        const props = DishProps(name: 'Pasta', price: 12.50);
+        Map<String, dynamic>? capturedUpdate;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: DishWidget(
+                props: props,
+                context: WidgetContext(
+                  isEditable: true,
+                  onUpdate: (updatedProps) => capturedUpdate = updatedProps,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.byType(Card));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Calories (optional)'),
+          '350',
+        );
+
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+
+        expect(capturedUpdate, isNotNull);
+        expect(capturedUpdate!['calories'], 350);
+      });
+
+      testWidgets('should save with null when calories field is empty', (
+        tester,
+      ) async {
+        const props = DishProps(name: 'Pasta', price: 12.50, calories: 350);
+        Map<String, dynamic>? capturedUpdate;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: DishWidget(
+                props: props,
+                context: WidgetContext(
+                  isEditable: true,
+                  onUpdate: (updatedProps) => capturedUpdate = updatedProps,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.byType(Card));
+        await tester.pumpAndSettle();
+
+        // Clear the calories field
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Calories (optional)'),
+          '',
+        );
+
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+
+        expect(capturedUpdate, isNotNull);
+        expect(capturedUpdate!['calories'], isNull);
+      });
+    });
   });
 }

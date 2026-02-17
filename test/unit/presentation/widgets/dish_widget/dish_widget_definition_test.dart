@@ -4,8 +4,8 @@ import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definitio
 
 void main() {
   group('dishWidgetDefinition', () {
-    test('should have version 3.0.0', () {
-      expect(dishWidgetDefinition.version, '3.0.0');
+    test('should have version 4.0.0', () {
+      expect(dishWidgetDefinition.version, '4.0.0');
     });
 
     test('should have type dish', () {
@@ -100,6 +100,31 @@ void main() {
       };
       final migrated = dishWidgetDefinition.migrate!(json);
       expect(migrated.dietary, DietaryType.vegetarian);
+    });
+
+    test(
+      'should migrate v3 data without calories field (defaults to null)',
+      () {
+        final json = {
+          'name': 'Test Dish',
+          'price': 10.0,
+          'dietary': 'vegetarian',
+        };
+        final migrated = dishWidgetDefinition.migrate!(json);
+        expect(migrated.calories, isNull);
+        expect(migrated.name, 'Test Dish');
+      },
+    );
+
+    test('should migrate data with calories field and preserve value', () {
+      final json = {
+        'name': 'Test Dish',
+        'price': 10.0,
+        'calories': 350,
+        'dietary': 'vegan',
+      };
+      final migrated = dishWidgetDefinition.migrate!(json);
+      expect(migrated.calories, 350);
     });
   });
 }

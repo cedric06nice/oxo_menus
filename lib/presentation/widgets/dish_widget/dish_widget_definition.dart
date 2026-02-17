@@ -13,9 +13,10 @@ import 'dish_widget.dart';
 /// - 1.0.0: Initial version with string-based allergens
 /// - 2.0.0: Added structured allergenInfo with UK allergen support
 /// - 3.0.0: Changed dietary from `List<String>` to DietaryType? enum
+/// - 4.0.0: Added optional calories (int?) field
 final dishWidgetDefinition = WidgetDefinition<DishProps>(
   type: 'dish',
-  version: '3.0.0',
+  version: '4.0.0',
   parseProps: (json) => DishProps.fromJson(json),
   render: (props, context) => DishWidget(props: props, context: context),
   defaultProps: const DishProps(name: 'New Dish', price: 0.0),

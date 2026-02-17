@@ -732,6 +732,7 @@ void main() {
         bool showAllergens = true,
         List<String> allergens = const [],
         DietaryType? dietary,
+        int? calories,
       }) {
         return WidgetInstance(
           id: 1,
@@ -746,6 +747,7 @@ void main() {
             'showAllergens': showAllergens,
             'allergens': allergens,
             'dietary': dietary?.name,
+            'calories': ?calories,
           },
         );
       }
@@ -879,6 +881,36 @@ void main() {
         );
         expect(result.isSuccess, true);
       });
+
+      test(
+        'should generate PDF with calories when present and showAllergens true',
+        () async {
+          final result = await useCase.execute(
+            menuWithStyleAndWidget(null, makeDish(calories: 350)),
+          );
+          expect(result.isSuccess, true);
+        },
+      );
+
+      test('should generate PDF without calories when null', () async {
+        final result = await useCase.execute(
+          menuWithStyleAndWidget(null, makeDish()),
+        );
+        expect(result.isSuccess, true);
+      });
+
+      test(
+        'should generate PDF without calories when showAllergens false',
+        () async {
+          final result = await useCase.execute(
+            menuWithStyleAndWidget(
+              null,
+              makeDish(calories: 350, showAllergens: false),
+            ),
+          );
+          expect(result.isSuccess, true);
+        },
+      );
     });
 
     group('Image widget rendering', () {
