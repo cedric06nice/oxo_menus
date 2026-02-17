@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(done)",
+      "Bash(echo:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(tee:*)",
+      "Bash(tree:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter build:*)",
+      "Bash(flutter clean:*)",
+      "Bash(flutter pub:*)",
+      "Bash(flutter pub deps:*)",
+      "Bash(flutter pub get:*)",
+      "Bash(flutter pub run build_runner build:*)",
+      "Bash(flutter test:*)",
+      "Bash(dart analyze:*)",
+      "Bash(dart fix:*)",
+      "Bash(dart format:*)",
+      "Bash(dart run:*)",
+      "Bash(dart run build_runner:*)",
+      "Bash(git add:*)",
+      "Bash(git restore:*)",
+      "Bash(git status:*)",
+      "Bash(lcov:*)"
+    ]
+  }
+}
