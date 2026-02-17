@@ -8,6 +8,7 @@ import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/file_repository.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
@@ -2178,6 +2179,163 @@ void main() {
           );
 
           final result = await useCase.execute(menuTree);
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull!.isNotEmpty, true);
+        },
+      );
+    });
+
+    group('Wine widget rendering', () {
+      test('should generate PDF with wine widget', () async {
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Wine Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'wine',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {
+                            'name': 'Chateau Margaux',
+                            'price': 12.50,
+                            'description': 'Full-bodied Bordeaux',
+                            'vintage': 2019,
+                            'dietary': 'vegetarian',
+                            'containsSulphites': true,
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final result = await useCase.execute(menuTree);
+
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull, isNotNull);
+        expect(result.valueOrNull!.isNotEmpty, true);
+      });
+
+      test('should generate PDF with wine widget minimal props', () async {
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Wine Menu Minimal',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'wine',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {'name': 'House Red', 'price': 8.0},
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final result = await useCase.execute(menuTree);
+
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull, isNotNull);
+        expect(result.valueOrNull!.isNotEmpty, true);
+      });
+
+      test(
+        'should generate PDF with wine widget without sulphites when showAllergens false',
+        () async {
+          final menuTree = MenuTree(
+            menu: const Menu(
+              id: 1,
+              name: 'Wine No Allergens',
+              status: Status.published,
+              version: '1.0.0',
+              displayOptions: MenuDisplayOptions(showAllergens: false),
+            ),
+            pages: [
+              const PageWithContainers(
+                page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+                containers: [
+                  ContainerWithColumns(
+                    container: entity.Container(id: 1, pageId: 1, index: 0),
+                    columns: [
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 1,
+                          containerId: 1,
+                          index: 0,
+                          flex: 1,
+                        ),
+                        widgets: [
+                          WidgetInstance(
+                            id: 1,
+                            columnId: 1,
+                            type: 'wine',
+                            version: '1.0.0',
+                            index: 0,
+                            props: {
+                              'name': 'Merlot',
+                              'price': 9.0,
+                              'containsSulphites': true,
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+
+          final result = await useCase.execute(menuTree);
+
           expect(result.isSuccess, true);
           expect(result.valueOrNull!.isNotEmpty, true);
         },

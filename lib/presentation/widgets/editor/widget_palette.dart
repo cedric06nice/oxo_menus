@@ -146,6 +146,8 @@ class _PaletteItem extends StatelessWidget {
         return Icons.title;
       case 'text':
         return Icons.text_fields;
+      case 'wine':
+        return Icons.wine_bar;
       default:
         return Icons.widgets;
     }

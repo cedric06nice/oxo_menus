@@ -14,6 +14,7 @@ import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/domain/widgets/section/section_props.dart';
 import 'package:oxo_menus/domain/widgets/text/text_props.dart';
+import 'package:oxo_menus/domain/widgets/wine/wine_props.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -330,9 +331,7 @@ class GeneratePdfUseCase {
         } else {
           cell = pw.SizedBox();
         }
-        cells.add(
-          _wrapCellWithColumnStyle(cell, column.column.styleConfig),
-        );
+        cells.add(_wrapCellWithColumnStyle(cell, column.column.styleConfig));
       }
       rows.add(pw.TableRow(children: cells));
     }
@@ -405,6 +404,8 @@ class GeneratePdfUseCase {
         return _buildSectionWidget(widget, styleConfig);
       case 'image':
         return _buildImageWidget(widget, styleConfig, imageCache);
+      case 'wine':
+        return _buildWineWidget(widget, styleConfig, displayOptions);
       default:
         return pw.SizedBox();
     }
@@ -507,6 +508,85 @@ class GeneratePdfUseCase {
               );
             }(),
           ],
+        ],
+      ),
+    );
+  }
+
+  /// Build wine widget in PDF
+  pw.Widget _buildWineWidget(
+    WidgetInstance widget,
+    StyleConfig? styleConfig,
+    MenuDisplayOptions? displayOptions,
+  ) {
+    final props = WineProps.fromJson(widget.props);
+    final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
+    final showPrice = displayOptions?.showPrices ?? true;
+    final showAllergens = displayOptions?.showAllergens ?? true;
+
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 8),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          // Name, vintage, dietary, and price row
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.start,
+            children: [
+              pw.Text(
+                props.name,
+                style: pw.TextStyle(
+                  fontSize: baseFontSize,
+                  letterSpacing: 0.55,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              if (props.vintage != null)
+                pw.Text(
+                  '  ${props.vintage.toString()}',
+                  style: pw.TextStyle(
+                    fontSize: baseFontSize - 2,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+              pw.Text(
+                props.dietary?.abbreviation != null
+                    ? '  ${props.dietary!.abbreviation}'
+                    : '',
+                style: pw.TextStyle(
+                  fontSize: baseFontSize - 3,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              if (showPrice)
+                pw.Text(
+                  '  ${props.price.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '')}',
+                  style: pw.TextStyle(
+                    fontSize: baseFontSize - 2,
+                    letterSpacing: -0.33,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+            ],
+          ),
+          // Description
+          if (props.description != null && props.description!.isNotEmpty)
+            pw.Text(
+              props.description!,
+              style: pw.TextStyle(fontSize: baseFontSize, letterSpacing: -0.2),
+            ),
+          // Sulphites
+          if (showAllergens && props.containsSulphites)
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(top: 4),
+              child: pw.Text(
+                'SULPHITES',
+                style: pw.TextStyle(
+                  fontSize: baseFontSize - 3,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ),
         ],
       ),
     );
