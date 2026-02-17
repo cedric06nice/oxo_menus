@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -1145,6 +1147,96 @@ void main() {
       // Assert — widgetRepository.create SHOULD have been called
       verify(() => mockWidgetRepository.create(any())).called(1);
     });
+  });
+
+  group('MenuEditorPage - Scroll Preservation', () {
+    testWidgets(
+      'should not show loading indicator during reload after widget operation',
+      (tester) async {
+        // Arrange — loaded page with a droppable column
+        const menuId = 1;
+        const menu = Menu(
+          id: menuId,
+          name: 'Test Menu',
+          status: Status.draft,
+          version: '1.0.0',
+        );
+        const page =
+            entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+        const container = entity.Container(id: 1, pageId: 1, index: 0);
+        const column = entity.Column(
+          id: 1,
+          containerId: 1,
+          index: 0,
+          flex: 1,
+          isDroppable: true,
+        );
+
+        // Use a completer to control when the second getById call resolves
+        final reloadCompleter = Completer<Result<Menu, DomainError>>();
+        var getByIdCallCount = 0;
+
+        when(() => mockMenuRepository.getById(menuId)).thenAnswer((_) {
+          getByIdCallCount++;
+          if (getByIdCallCount == 1) {
+            // Initial load — resolve immediately
+            return Future.value(const Success(menu));
+          }
+          // Reload — wait for completer so we can observe intermediate state
+          return reloadCompleter.future;
+        });
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => const Success([page]));
+        when(
+          () => mockContainerRepository.getAllForPage(1),
+        ).thenAnswer((_) async => const Success([container]));
+        when(
+          () => mockColumnRepository.getAllForContainer(1),
+        ).thenAnswer((_) async => const Success([column]));
+        when(
+          () => mockWidgetRepository.getAllForColumn(1),
+        ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
+        when(() => mockWidgetRepository.create(any())).thenAnswer(
+          (_) async => const Success(
+            WidgetInstance(
+              id: 99,
+              columnId: 1,
+              type: 'dish',
+              version: '1.0.0',
+              index: 0,
+              props: {'name': '', 'price': 0.0, 'allergens': []},
+            ),
+          ),
+        );
+
+        // Load the page fully
+        await tester.pumpWidget(createWidgetUnderTest(menuId));
+        await tester.pumpAndSettle();
+
+        // Verify page is loaded (no spinner)
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        expect(find.text('Test Menu'), findsOneWidget);
+
+        // Act — trigger a widget drop (this calls _loadMenu via onReload)
+        final editorDropZone = tester.widget<EditorDropZone>(
+          find.byType(EditorDropZone).first,
+        );
+        editorDropZone.onAccept(WidgetDragData.newWidget('dish'));
+
+        // Pump frames to allow create to resolve and _loadMenu to start
+        await tester.pump();
+        await tester.pump();
+
+        // Assert — no loading spinner should appear during reload
+        // The canvas should remain visible while data reloads in background
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+
+        // Clean up — complete the reload so the test can finish
+        reloadCompleter.complete(const Success(menu));
+        await tester.pumpAndSettle();
+      },
+    );
   });
 
   group('MenuEditorPage - Widget Palette Filtering', () {

@@ -75,15 +75,17 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadMenu();
+      _loadMenu(isInitialLoad: true);
     });
   }
 
-  Future<void> _loadMenu() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  Future<void> _loadMenu({bool isInitialLoad = false}) async {
+    if (isInitialLoad) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     // Load menu
     final menuResult = await ref

@@ -97,7 +97,7 @@ class _AdminTemplateEditorPageState
       }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadTemplate();
+      _loadTemplate(isInitialLoad: true);
     });
   }
 
@@ -134,11 +134,13 @@ class _AdminTemplateEditorPageState
     });
   }
 
-  Future<void> _loadTemplate() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  Future<void> _loadTemplate({bool isInitialLoad = false}) async {
+    if (isInitialLoad) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
 
     // Load menu
     final menuResult = await ref

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -1688,6 +1690,74 @@ void main() {
       verify(() => mockMenuRepository.update(any())).called(1);
       expect(find.text('Template published'), findsOneWidget);
     });
+  });
+
+  group('AdminTemplateEditorPage - Scroll Preservation', () {
+    testWidgets(
+      'should not show loading indicator during reload after page operation',
+      (tester) async {
+        // Arrange
+        const menuId = 1;
+        const menu = Menu(
+          id: menuId,
+          name: 'Test Template',
+          status: Status.draft,
+          version: '1.0.0',
+        );
+        const newPage = entity.Page(
+          id: 2,
+          menuId: menuId,
+          name: 'Page 1',
+          index: 0,
+        );
+
+        // Use a completer to control when the second getById call resolves
+        final reloadCompleter = Completer<Result<Menu, DomainError>>();
+        var getByIdCallCount = 0;
+
+        when(() => mockMenuRepository.getById(menuId)).thenAnswer((_) {
+          getByIdCallCount++;
+          if (getByIdCallCount == 1) {
+            // Initial load — resolve immediately
+            return Future.value(const Success(menu));
+          }
+          // Reload — wait for completer so we can observe intermediate state
+          return reloadCompleter.future;
+        });
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => const Success([]));
+        when(
+          () => mockPageRepository.create(any()),
+        ).thenAnswer((_) async => const Success(newPage));
+        when(
+          () => mockContainerRepository.getAllForPage(any()),
+        ).thenAnswer((_) async => const Success([]));
+
+        // Load the page fully
+        await tester.pumpWidget(createWidgetUnderTest(menuId));
+        await tester.pumpAndSettle();
+
+        // Verify page is loaded (no spinner)
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        expect(find.text('Test Template'), findsOneWidget);
+
+        // Act — tap Add Page (this calls _addPage → _loadTemplate via reload)
+        await tester.ensureVisible(find.byKey(const Key('add_page_button')));
+        await tester.tap(find.byKey(const Key('add_page_button')));
+
+        // Pump frames to allow create to resolve and _loadTemplate to start
+        await tester.pump();
+        await tester.pump();
+
+        // Assert — no loading spinner should appear during reload
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+
+        // Clean up — complete the reload so the test can finish
+        reloadCompleter.complete(const Success(menu));
+        await tester.pumpAndSettle();
+      },
+    );
   });
 
   group('AdminTemplateEditorPage - Widget Palette', () {
