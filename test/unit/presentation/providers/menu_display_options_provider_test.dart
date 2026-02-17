@@ -37,10 +37,7 @@ void main() {
       addTearDown(container.dispose);
 
       container.read(menuDisplayOptionsProvider.notifier).state =
-          const MenuDisplayOptions(
-        showAllergens: true,
-        showPrices: true,
-      );
+          const MenuDisplayOptions(showAllergens: true, showPrices: true);
 
       container.read(menuDisplayOptionsProvider.notifier).state = null;
 

@@ -158,8 +158,9 @@ void main() {
       test('should chain Success to Failure', () {
         const Result<int, String> result = Success(42);
 
-        final chained =
-            result.flatMap<String>((value) => const Failure('failed'));
+        final chained = result.flatMap<String>(
+          (value) => const Failure('failed'),
+        );
 
         expect(chained.isFailure, true);
         expect(chained.errorOrNull, 'failed');

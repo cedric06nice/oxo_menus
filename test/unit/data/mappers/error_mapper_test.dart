@@ -7,15 +7,18 @@ import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/mappers/error_mapper.dart';
 
-DirectusApiError _makeApiError(String code, String message,
-    {int statusCode = 400}) {
+DirectusApiError _makeApiError(
+  String code,
+  String message, {
+  int statusCode = 400,
+}) {
   final body = jsonEncode({
     'errors': [
       {
         'extensions': {'code': code},
         'message': message,
-      }
-    ]
+      },
+    ],
   });
   final response = http.Response(body, statusCode);
   return DirectusApiError(response: response);
@@ -364,26 +367,30 @@ void main() {
       });
 
       test('should map TOKEN_EXPIRED to TokenExpiredError', () {
-        final error =
-            _makeApiError('TOKEN_EXPIRED', 'Expired', statusCode: 401);
+        final error = _makeApiError(
+          'TOKEN_EXPIRED',
+          'Expired',
+          statusCode: 401,
+        );
         expect(mapDirectusError(error), isA<TokenExpiredError>());
       });
 
       test('should map FORBIDDEN to UnauthorizedError', () {
-        final error =
-            _makeApiError('FORBIDDEN', 'Forbidden', statusCode: 403);
+        final error = _makeApiError('FORBIDDEN', 'Forbidden', statusCode: 403);
         expect(mapDirectusError(error), isA<UnauthorizedError>());
       });
 
       test('should map NOT_FOUND to NotFoundError', () {
-        final error =
-            _makeApiError('NOT_FOUND', 'Not found', statusCode: 404);
+        final error = _makeApiError('NOT_FOUND', 'Not found', statusCode: 404);
         expect(mapDirectusError(error), isA<NotFoundError>());
       });
 
       test('should map RECORD_NOT_FOUND to NotFoundError', () {
-        final error =
-            _makeApiError('RECORD_NOT_FOUND', 'Not found', statusCode: 404);
+        final error = _makeApiError(
+          'RECORD_NOT_FOUND',
+          'Not found',
+          statusCode: 404,
+        );
         expect(mapDirectusError(error), isA<NotFoundError>());
       });
 
@@ -403,8 +410,11 @@ void main() {
       });
 
       test('should map unknown code to ServerError', () {
-        final error =
-            _makeApiError('INTERNAL_ERROR', 'Internal', statusCode: 500);
+        final error = _makeApiError(
+          'INTERNAL_ERROR',
+          'Internal',
+          statusCode: 500,
+        );
         expect(mapDirectusError(error), isA<ServerError>());
       });
 

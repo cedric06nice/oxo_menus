@@ -340,23 +340,34 @@ class GeneratePdfUseCase {
                 ),
             ],
           ),
-          // Description
-          if (props.description != null && props.description!.isNotEmpty) ...[
-            pw.Text(
-              props.description!,
-              style: pw.TextStyle(fontSize: baseFontSize, letterSpacing: -0.15),
+          // Description and calories (inline)
+          if (props.description != null && props.description!.isNotEmpty ||
+              showAllergens && props.calories != null)
+            pw.RichText(
+              text: pw.TextSpan(
+                children: [
+                  if (props.description != null &&
+                      props.description!.isNotEmpty)
+                    pw.TextSpan(
+                      text: props.description!,
+                      style: pw.TextStyle(
+                        fontSize: baseFontSize,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  if (showAllergens && props.calories != null)
+                    pw.TextSpan(
+                      text: '  ${props.calories}KCAL',
+                      style: pw.TextStyle(
+                        fontSize: baseFontSize - 5,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ],
           // Calories and Allergens
           if (showAllergens) ...[
-            if (props.calories != null)
-              pw.Text(
-                '${props.calories} KCAL',
-                style: pw.TextStyle(
-                  fontSize: baseFontSize - 3,
-                  letterSpacing: 0.6,
-                ),
-              ),
             () {
               final formattedAllergens = AllergenFormatter.formatForDisplay(
                 props.effectiveAllergenInfo,

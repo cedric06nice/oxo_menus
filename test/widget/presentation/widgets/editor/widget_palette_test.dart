@@ -264,36 +264,37 @@ void main() {
         expect(updatedTypes, ['text']);
       });
 
-      testWidgets('unchecking a type when all allowed (empty list) produces list of remaining types', (
-        WidgetTester tester,
-      ) async {
-        List<String>? updatedTypes;
+      testWidgets(
+        'unchecking a type when all allowed (empty list) produces list of remaining types',
+        (WidgetTester tester) async {
+          List<String>? updatedTypes;
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: WidgetPalette(
-                registry: registry,
-                allowedWidgetTypes: const [],
-                onAllowedTypesChanged: (types) {
-                  updatedTypes = types;
-                },
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: WidgetPalette(
+                  registry: registry,
+                  allowedWidgetTypes: const [],
+                  onAllowedTypesChanged: (types) {
+                    updatedTypes = types;
+                  },
+                ),
               ),
             ),
-          ),
-        );
+          );
 
-        // All are checked (empty list = all allowed)
-        // Tap dish to uncheck it
-        await tester.tap(find.byKey(const Key('allowed_type_checkbox_dish')));
-        await tester.pump();
+          // All are checked (empty list = all allowed)
+          // Tap dish to uncheck it
+          await tester.tap(find.byKey(const Key('allowed_type_checkbox_dish')));
+          await tester.pump();
 
-        // Should produce a list with all types EXCEPT dish
-        expect(updatedTypes, isNotNull);
-        expect(updatedTypes, isNot(contains('dish')));
-        expect(updatedTypes, contains('section'));
-        expect(updatedTypes, contains('text'));
-      });
+          // Should produce a list with all types EXCEPT dish
+          expect(updatedTypes, isNotNull);
+          expect(updatedTypes, isNot(contains('dish')));
+          expect(updatedTypes, contains('section'));
+          expect(updatedTypes, contains('text'));
+        },
+      );
 
       testWidgets('no checkboxes when onAllowedTypesChanged is null', (
         WidgetTester tester,

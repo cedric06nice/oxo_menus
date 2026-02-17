@@ -6,8 +6,9 @@ import 'package:oxo_menus/presentation/widgets/allergen_selector/allergen_select
 
 void main() {
   group('AllergenSelector', () {
-    testWidgets('should display title and all 14 UK allergens',
-        (WidgetTester tester) async {
+    testWidgets('should display title and all 14 UK allergens', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -29,8 +30,9 @@ void main() {
       }
     });
 
-    testWidgets('should select an allergen when checkbox tapped',
-        (WidgetTester tester) async {
+    testWidgets('should select an allergen when checkbox tapped', (
+      WidgetTester tester,
+    ) async {
       List<AllergenInfo>? result;
 
       await tester.pumpWidget(
@@ -58,8 +60,9 @@ void main() {
       expect(result!.first.mayContain, false);
     });
 
-    testWidgets('should deselect an allergen when checkbox tapped again',
-        (WidgetTester tester) async {
+    testWidgets('should deselect an allergen when checkbox tapped again', (
+      WidgetTester tester,
+    ) async {
       List<AllergenInfo>? result;
 
       await tester.pumpWidget(
@@ -86,8 +89,9 @@ void main() {
       expect(result, isEmpty);
     });
 
-    testWidgets('should show may-contain checkbox when allergen is selected',
-        (WidgetTester tester) async {
+    testWidgets('should show may-contain checkbox when allergen is selected', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -106,8 +110,9 @@ void main() {
       expect(find.text('May contain (trace amounts)'), findsOneWidget);
     });
 
-    testWidgets('should toggle may-contain on selected allergen',
-        (WidgetTester tester) async {
+    testWidgets('should toggle may-contain on selected allergen', (
+      WidgetTester tester,
+    ) async {
       List<AllergenInfo>? result;
 
       await tester.pumpWidget(
@@ -135,8 +140,9 @@ void main() {
       expect(result!.first.mayContain, true);
     });
 
-    testWidgets('should show details field for gluten',
-        (WidgetTester tester) async {
+    testWidgets('should show details field for gluten', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -155,8 +161,9 @@ void main() {
       expect(find.text('Specify details'), findsOneWidget);
     });
 
-    testWidgets('should render with initial selections',
-        (WidgetTester tester) async {
+    testWidgets('should render with initial selections', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

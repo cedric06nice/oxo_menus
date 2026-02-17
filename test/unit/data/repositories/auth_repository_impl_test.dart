@@ -309,41 +309,44 @@ void main() {
         expect(result.errorOrNull, isA<TokenExpiredError>());
       });
 
-      test('should return error when exception occurs during restore',
-          () async {
-        when(
-          () => mockDataSource.tryRestoreSession(),
-        ).thenThrow(Exception('Storage error'));
+      test(
+        'should return error when exception occurs during restore',
+        () async {
+          when(
+            () => mockDataSource.tryRestoreSession(),
+          ).thenThrow(Exception('Storage error'));
 
-        final result = await repository.tryRestoreSession();
+          final result = await repository.tryRestoreSession();
 
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          expect(result.isFailure, true);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
     });
 
     group('login edge cases', () {
-      test('should return UnknownError when login response has no user data',
-          () async {
-        final loginResponseWithoutUser = {
-          'access_token': 'token123',
-          'refresh_token': 'refresh123',
-          'expires': 900000,
-        };
+      test(
+        'should return UnknownError when login response has no user data',
+        () async {
+          final loginResponseWithoutUser = {
+            'access_token': 'token123',
+            'refresh_token': 'refresh123',
+            'expires': 900000,
+          };
 
-        when(
-          () => mockDataSource.login(
-            email: 'test@example.com',
-            password: 'pass',
-          ),
-        ).thenAnswer((_) async => loginResponseWithoutUser);
+          when(
+            () => mockDataSource.login(
+              email: 'test@example.com',
+              password: 'pass',
+            ),
+          ).thenAnswer((_) async => loginResponseWithoutUser);
 
-        final result =
-            await repository.login('test@example.com', 'pass');
+          final result = await repository.login('test@example.com', 'pass');
 
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          expect(result.isFailure, true);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
     });
   });
 }

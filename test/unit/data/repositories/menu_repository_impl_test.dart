@@ -87,12 +87,14 @@ void main() {
         await repository.getById(menuId);
 
         // Assert
-        final captured = verify(
-          () => mockDataSource.getItem<MenuDto>(
-            menuId,
-            fields: captureAny(named: 'fields'),
-          ),
-        ).captured.single as List<String>;
+        final captured =
+            verify(
+                  () => mockDataSource.getItem<MenuDto>(
+                    menuId,
+                    fields: captureAny(named: 'fields'),
+                  ),
+                ).captured.single
+                as List<String>;
 
         expect(captured, contains('allowed_widget_types'));
       });
@@ -194,30 +196,35 @@ void main() {
         expect(captured[0]['status'], isNotNull);
       });
 
-      test('should request allowed_widget_types in fields for listAll', () async {
-        // Arrange
-        when(
-          () => mockDataSource.getItems<MenuDto>(
-            filter: any(named: 'filter'),
-            fields: any(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).thenAnswer((_) async => menusJson);
+      test(
+        'should request allowed_widget_types in fields for listAll',
+        () async {
+          // Arrange
+          when(
+            () => mockDataSource.getItems<MenuDto>(
+              filter: any(named: 'filter'),
+              fields: any(named: 'fields'),
+              sort: any(named: 'sort'),
+            ),
+          ).thenAnswer((_) async => menusJson);
 
-        // Act
-        await repository.listAll();
+          // Act
+          await repository.listAll();
 
-        // Assert
-        final captured = verify(
-          () => mockDataSource.getItems<MenuDto>(
-            filter: any(named: 'filter'),
-            fields: captureAny(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).captured.single as List<String>;
+          // Assert
+          final captured =
+              verify(
+                    () => mockDataSource.getItems<MenuDto>(
+                      filter: any(named: 'filter'),
+                      fields: captureAny(named: 'fields'),
+                      sort: any(named: 'sort'),
+                    ),
+                  ).captured.single
+                  as List<String>;
 
-        expect(captured, contains('allowed_widget_types'));
-      });
+          expect(captured, contains('allowed_widget_types'));
+        },
+      );
 
       test('should return all menus when onlyPublished is false', () async {
         // Arrange

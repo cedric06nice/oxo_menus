@@ -21,8 +21,9 @@ void main() {
     setUp(() {
       container = ProviderContainer(
         overrides: [
-          directusDataSourceProvider
-              .overrideWithValue(MockDirectusDataSource()),
+          directusDataSourceProvider.overrideWithValue(
+            MockDirectusDataSource(),
+          ),
         ],
       );
     });

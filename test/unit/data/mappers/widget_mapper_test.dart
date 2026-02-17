@@ -207,10 +207,7 @@ void main() {
 
     group('widgetStyleToJson', () {
       test('should only include non-null fields', () {
-        const style = WidgetStyle(
-          color: '#000000',
-          padding: 4.0,
-        );
+        const style = WidgetStyle(color: '#000000', padding: 4.0);
 
         final json = WidgetMapper.widgetStyleToJson(style);
 

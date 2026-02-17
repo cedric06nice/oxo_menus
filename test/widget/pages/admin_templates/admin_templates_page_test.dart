@@ -42,15 +42,10 @@ final _templates = [
   ),
 ];
 
-Widget _buildApp({
-  required MockMenuRepository mockMenuRepository,
-}) {
+Widget _buildApp({required MockMenuRepository mockMenuRepository}) {
   final router = GoRouter(
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (_, _) => const AdminTemplatesPage(),
-      ),
+      GoRoute(path: '/', builder: (_, _) => const AdminTemplatesPage()),
       GoRoute(
         path: '/admin/templates/create',
         builder: (_, _) => const Scaffold(body: Text('Create Page')),
@@ -86,26 +81,31 @@ void main() {
   });
 
   group('AdminTemplatesPage', () {
-    testWidgets('should display templates after loading (verifies loading path)',
-        (WidgetTester tester) async {
-      // Use a completer to control when the future resolves
-      when(() => mockMenuRepository.listAll(onlyPublished: false))
-          .thenAnswer((_) async => Success(_templates));
+    testWidgets(
+      'should display templates after loading (verifies loading path)',
+      (WidgetTester tester) async {
+        // Use a completer to control when the future resolves
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: false),
+        ).thenAnswer((_) async => Success(_templates));
 
-      await tester.pumpWidget(
-        _buildApp(mockMenuRepository: mockMenuRepository),
-      );
+        await tester.pumpWidget(
+          _buildApp(mockMenuRepository: mockMenuRepository),
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Verifies the full loading → loaded path
-      expect(find.text('Template One'), findsOneWidget);
-    });
+        // Verifies the full loading → loaded path
+        expect(find.text('Template One'), findsOneWidget);
+      },
+    );
 
-    testWidgets('should display templates after loading',
-        (WidgetTester tester) async {
-      when(() => mockMenuRepository.listAll(onlyPublished: false))
-          .thenAnswer((_) async => Success(_templates));
+    testWidgets('should display templates after loading', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: false),
+      ).thenAnswer((_) async => Success(_templates));
 
       await tester.pumpWidget(
         _buildApp(mockMenuRepository: mockMenuRepository),
@@ -119,10 +119,12 @@ void main() {
       expect(find.text('PUBLISHED'), findsOneWidget);
     });
 
-    testWidgets('should show empty state when no templates',
-        (WidgetTester tester) async {
-      when(() => mockMenuRepository.listAll(onlyPublished: false))
-          .thenAnswer((_) async => const Success([]));
+    testWidgets('should show empty state when no templates', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: false),
+      ).thenAnswer((_) async => const Success([]));
 
       await tester.pumpWidget(
         _buildApp(mockMenuRepository: mockMenuRepository),
@@ -134,12 +136,12 @@ void main() {
       expect(find.text('Create Template'), findsOneWidget);
     });
 
-    testWidgets('should show error state with retry button',
-        (WidgetTester tester) async {
-      when(() => mockMenuRepository.listAll(onlyPublished: false))
-          .thenAnswer(
-        (_) async => const Failure(ServerError('Network error')),
-      );
+    testWidgets('should show error state with retry button', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: false),
+      ).thenAnswer((_) async => const Failure(ServerError('Network error')));
 
       await tester.pumpWidget(
         _buildApp(mockMenuRepository: mockMenuRepository),
@@ -151,10 +153,12 @@ void main() {
       expect(find.text('Retry'), findsOneWidget);
     });
 
-    testWidgets('should display status filter chips',
-        (WidgetTester tester) async {
-      when(() => mockMenuRepository.listAll(onlyPublished: false))
-          .thenAnswer((_) async => Success(_templates));
+    testWidgets('should display status filter chips', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: false),
+      ).thenAnswer((_) async => Success(_templates));
 
       await tester.pumpWidget(
         _buildApp(mockMenuRepository: mockMenuRepository),
@@ -168,10 +172,12 @@ void main() {
       expect(find.text('Archived'), findsOneWidget);
     });
 
-    testWidgets('should have create button in app bar',
-        (WidgetTester tester) async {
-      when(() => mockMenuRepository.listAll(onlyPublished: false))
-          .thenAnswer((_) async => Success(_templates));
+    testWidgets('should have create button in app bar', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: false),
+      ).thenAnswer((_) async => Success(_templates));
 
       await tester.pumpWidget(
         _buildApp(mockMenuRepository: mockMenuRepository),
@@ -182,10 +188,12 @@ void main() {
       expect(find.byIcon(Icons.add), findsOneWidget);
     });
 
-    testWidgets('should show version info in template cards',
-        (WidgetTester tester) async {
-      when(() => mockMenuRepository.listAll(onlyPublished: false))
-          .thenAnswer((_) async => Success(_templates));
+    testWidgets('should show version info in template cards', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: false),
+      ).thenAnswer((_) async => Success(_templates));
 
       await tester.pumpWidget(
         _buildApp(mockMenuRepository: mockMenuRepository),
@@ -197,10 +205,12 @@ void main() {
       expect(find.text('v2.0.0'), findsOneWidget);
     });
 
-    testWidgets('should show edit and delete buttons per template',
-        (WidgetTester tester) async {
-      when(() => mockMenuRepository.listAll(onlyPublished: false))
-          .thenAnswer((_) async => Success(_templates));
+    testWidgets('should show edit and delete buttons per template', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: false),
+      ).thenAnswer((_) async => Success(_templates));
 
       await tester.pumpWidget(
         _buildApp(mockMenuRepository: mockMenuRepository),
@@ -214,10 +224,12 @@ void main() {
       expect(find.byIcon(Icons.edit), findsWidgets);
     });
 
-    testWidgets('should show "Updated" text for templates with dateUpdated',
-        (WidgetTester tester) async {
-      when(() => mockMenuRepository.listAll(onlyPublished: false))
-          .thenAnswer((_) async => Success(_templates));
+    testWidgets('should show "Updated" text for templates with dateUpdated', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: false),
+      ).thenAnswer((_) async => Success(_templates));
 
       await tester.pumpWidget(
         _buildApp(mockMenuRepository: mockMenuRepository),

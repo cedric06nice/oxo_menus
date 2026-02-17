@@ -25,10 +25,12 @@ void main() {
             fields: any(named: 'fields'),
             sort: any(named: 'sort'),
           ),
-        ).thenAnswer((_) async => [
-          {'id': 1, 'name': 'A4', 'width': 210.0, 'height': 297.0},
-          {'id': 2, 'name': 'Letter', 'width': 215.9, 'height': 279.4},
-        ]);
+        ).thenAnswer(
+          (_) async => [
+            {'id': 1, 'name': 'A4', 'width': 210.0, 'height': 297.0},
+            {'id': 2, 'name': 'Letter', 'width': 215.9, 'height': 279.4},
+          ],
+        );
 
         final result = await repository.getAll();
 
@@ -71,13 +73,10 @@ void main() {
     group('getById', () {
       test('should return Size entity on success', () async {
         when(
-          () => mockDataSource.getItem<SizeDto>(
-            1,
-            fields: any(named: 'fields'),
-          ),
+          () =>
+              mockDataSource.getItem<SizeDto>(1, fields: any(named: 'fields')),
         ).thenAnswer(
-          (_) async =>
-              {'id': 1, 'name': 'A4', 'width': 210.0, 'height': 297.0},
+          (_) async => {'id': 1, 'name': 'A4', 'width': 210.0, 'height': 297.0},
         );
 
         final result = await repository.getById(1);
@@ -92,10 +91,8 @@ void main() {
 
       test('should return Failure when data source throws', () async {
         when(
-          () => mockDataSource.getItem<SizeDto>(
-            99,
-            fields: any(named: 'fields'),
-          ),
+          () =>
+              mockDataSource.getItem<SizeDto>(99, fields: any(named: 'fields')),
         ).thenThrow(Exception('Not found'));
 
         final result = await repository.getById(99);

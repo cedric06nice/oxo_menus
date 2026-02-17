@@ -18,29 +18,17 @@ void main() {
       });
 
       test('should map "published" to Status.published', () {
-        expect(
-          StatusConverter.mapStatusToEnum('published'),
-          Status.published,
-        );
+        expect(StatusConverter.mapStatusToEnum('published'), Status.published);
       });
 
       test('should map "archived" to Status.archived', () {
-        expect(
-          StatusConverter.mapStatusToEnum('archived'),
-          Status.archived,
-        );
+        expect(StatusConverter.mapStatusToEnum('archived'), Status.archived);
       });
 
       test('should be case-insensitive', () {
         expect(StatusConverter.mapStatusToEnum('DRAFT'), Status.draft);
-        expect(
-          StatusConverter.mapStatusToEnum('Published'),
-          Status.published,
-        );
-        expect(
-          StatusConverter.mapStatusToEnum('ARCHIVED'),
-          Status.archived,
-        );
+        expect(StatusConverter.mapStatusToEnum('Published'), Status.published);
+        expect(StatusConverter.mapStatusToEnum('ARCHIVED'), Status.archived);
       });
 
       test('should default to draft for unknown status', () {
@@ -62,10 +50,7 @@ void main() {
       });
 
       test('should map Status.archived to "archived"', () {
-        expect(
-          StatusConverter.mapStatusToString(Status.archived),
-          'archived',
-        );
+        expect(StatusConverter.mapStatusToString(Status.archived), 'archived');
       });
     });
   });

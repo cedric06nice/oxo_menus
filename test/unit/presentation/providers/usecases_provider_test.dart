@@ -37,8 +37,9 @@ void main() {
         overrides: [
           menuRepositoryProvider.overrideWithValue(MockMenuRepository()),
           pageRepositoryProvider.overrideWithValue(MockPageRepository()),
-          containerRepositoryProvider
-              .overrideWithValue(MockContainerRepository()),
+          containerRepositoryProvider.overrideWithValue(
+            MockContainerRepository(),
+          ),
           columnRepositoryProvider.overrideWithValue(MockColumnRepository()),
           widgetRepositoryProvider.overrideWithValue(MockWidgetRepository()),
           sizeRepositoryProvider.overrideWithValue(MockSizeRepository()),
@@ -59,8 +60,7 @@ void main() {
       expect(useCase, isA<GeneratePdfUseCase>());
     });
 
-    test('duplicateMenuUseCaseProvider should return DuplicateMenuUseCase',
-        () {
+    test('duplicateMenuUseCaseProvider should return DuplicateMenuUseCase', () {
       final useCase = container.read(duplicateMenuUseCaseProvider);
       expect(useCase, isA<DuplicateMenuUseCase>());
     });

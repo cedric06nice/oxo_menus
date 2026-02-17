@@ -911,6 +911,42 @@ void main() {
           expect(result.isSuccess, true);
         },
       );
+
+      test(
+        'should generate PDF with long description and calories without overflow',
+        () async {
+          final longDescription =
+              'A beautifully crafted dish featuring slow-roasted heritage tomatoes, '
+              'hand-pulled mozzarella di bufala from Campania, fresh basil leaves '
+              'picked from our rooftop garden, drizzled with extra virgin olive oil '
+              'from a small family estate in Tuscany, and finished with aged '
+              'balsamic vinegar from Modena and a sprinkle of Maldon sea salt';
+          final result = await useCase.execute(
+            menuWithStyleAndWidget(
+              null,
+              WidgetInstance(
+                id: 1,
+                columnId: 1,
+                type: 'dish',
+                version: '3.0.0',
+                index: 0,
+                props: {
+                  'name': 'Heritage Tomato Salad',
+                  'price': 14.50,
+                  'description': longDescription,
+                  'showPrice': true,
+                  'showAllergens': true,
+                  'allergens': ['Dairy'],
+                  'dietary': 'vegetarian',
+                  'calories': 285,
+                },
+              ),
+            ),
+          );
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull!.isNotEmpty, true);
+        },
+      );
     });
 
     group('Image widget rendering', () {

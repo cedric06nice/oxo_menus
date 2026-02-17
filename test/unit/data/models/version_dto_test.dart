@@ -52,10 +52,7 @@ void main() {
       });
 
       test('should handle null dateUpdated', () {
-        final json = {
-          'id': 4,
-          'snapshot_json': {},
-        };
+        final json = {'id': 4, 'snapshot_json': {}};
 
         final dto = VersionDto(json);
 
@@ -63,11 +60,7 @@ void main() {
       });
 
       test('should handle userUpdated field', () {
-        final json = {
-          'id': 5,
-          'snapshot_json': {},
-          'user_updated': 'user-abc',
-        };
+        final json = {'id': 5, 'snapshot_json': {}, 'user_updated': 'user-abc'};
 
         final dto = VersionDto(json);
 
@@ -85,11 +78,7 @@ void main() {
 
     group('menu', () {
       test('should return MenuDto when menu is int (id)', () {
-        final json = {
-          'id': 1,
-          'snapshot_json': {},
-          'menu': 42,
-        };
+        final json = {'id': 1, 'snapshot_json': {}, 'menu': 42};
 
         final dto = VersionDto(json);
 
@@ -116,11 +105,7 @@ void main() {
       });
 
       test('should return null when menu is null', () {
-        final json = {
-          'id': 1,
-          'snapshot_json': {},
-          'menu': null,
-        };
+        final json = {'id': 1, 'snapshot_json': {}, 'menu': null};
 
         final dto = VersionDto(json);
 
@@ -128,10 +113,7 @@ void main() {
       });
 
       test('should return null when menu key is missing', () {
-        final json = {
-          'id': 1,
-          'snapshot_json': {},
-        };
+        final json = {'id': 1, 'snapshot_json': {}};
 
         final dto = VersionDto(json);
 
@@ -139,11 +121,7 @@ void main() {
       });
 
       test('should return null when menu is an unexpected type', () {
-        final json = {
-          'id': 1,
-          'snapshot_json': {},
-          'menu': 'not-a-valid-type',
-        };
+        final json = {'id': 1, 'snapshot_json': {}, 'menu': 'not-a-valid-type'};
 
         final dto = VersionDto(json);
 

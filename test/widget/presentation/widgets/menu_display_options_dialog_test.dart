@@ -5,8 +5,9 @@ import 'package:oxo_menus/presentation/widgets/menu_display_options_dialog.dart'
 
 void main() {
   group('MenuDisplayOptionsDialog', () {
-    testWidgets('should display title and switches with defaults',
-        (WidgetTester tester) async {
+    testWidgets('should display title and switches with defaults', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -14,9 +15,7 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (_) => MenuDisplayOptionsDialog(
-                    onSave: (_) {},
-                  ),
+                  builder: (_) => MenuDisplayOptionsDialog(onSave: (_) {}),
                 ),
                 child: const Text('Open'),
               ),
@@ -35,8 +34,9 @@ void main() {
       expect(find.text('Save'), findsOneWidget);
     });
 
-    testWidgets('should initialize with provided display options',
-        (WidgetTester tester) async {
+    testWidgets('should initialize with provided display options', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -78,9 +78,7 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (_) => MenuDisplayOptionsDialog(
-                    onSave: (_) {},
-                  ),
+                  builder: (_) => MenuDisplayOptionsDialog(onSave: (_) {}),
                 ),
                 child: const Text('Open'),
               ),
@@ -103,8 +101,9 @@ void main() {
       expect(switches.elementAt(1).value, true); // allergens still on
     });
 
-    testWidgets('should call onSave with correct options',
-        (WidgetTester tester) async {
+    testWidgets('should call onSave with correct options', (
+      WidgetTester tester,
+    ) async {
       MenuDisplayOptions? savedOptions;
 
       await tester.pumpWidget(
@@ -141,8 +140,7 @@ void main() {
       expect(savedOptions!.showAllergens, true);
     });
 
-    testWidgets('should close dialog on Cancel',
-        (WidgetTester tester) async {
+    testWidgets('should close dialog on Cancel', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -150,9 +148,7 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (_) => MenuDisplayOptionsDialog(
-                    onSave: (_) {},
-                  ),
+                  builder: (_) => MenuDisplayOptionsDialog(onSave: (_) {}),
                 ),
                 child: const Text('Open'),
               ),

@@ -543,7 +543,7 @@ void main() {
         await tester.tap(find.byType(Card));
         await tester.pumpAndSettle();
 
-        expect(find.text('Calories (optional)'), findsOneWidget);
+        expect(find.text('Calories'), findsOneWidget);
       });
 
       testWidgets(
@@ -566,7 +566,7 @@ void main() {
           await tester.pumpAndSettle();
 
           final textField = tester.widget<TextField>(
-            find.widgetWithText(TextField, 'Calories (optional)'),
+            find.widgetWithText(TextField, 'Calories'),
           );
           expect(textField.controller?.text, '450');
         },
@@ -592,7 +592,7 @@ void main() {
           await tester.pumpAndSettle();
 
           final textField = tester.widget<TextField>(
-            find.widgetWithText(TextField, 'Calories (optional)'),
+            find.widgetWithText(TextField, 'Calories'),
           );
           expect(textField.controller?.text, '');
         },
@@ -620,7 +620,7 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.enterText(
-          find.widgetWithText(TextField, 'Calories (optional)'),
+          find.widgetWithText(TextField, 'Calories'),
           '350',
         );
 
@@ -656,7 +656,7 @@ void main() {
 
         // Clear the calories field
         await tester.enterText(
-          find.widgetWithText(TextField, 'Calories (optional)'),
+          find.widgetWithText(TextField, 'Calories'),
           '',
         );
 

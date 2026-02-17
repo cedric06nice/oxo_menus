@@ -64,25 +64,26 @@ void main() {
     });
 
     group('loadTemplates', () {
-      test('should load templates successfully and filter out assigned menus',
-          () async {
-        when(() => mockMenuRepository.listAll(onlyPublished: false))
-            .thenAnswer((_) async => Success(mixedMenus));
+      test(
+        'should load templates successfully and filter out assigned menus',
+        () async {
+          when(
+            () => mockMenuRepository.listAll(onlyPublished: false),
+          ).thenAnswer((_) async => Success(mixedMenus));
 
-        await notifier.loadTemplates();
+          await notifier.loadTemplates();
 
-        expect(notifier.state.isLoading, false);
-        expect(notifier.state.templates, hasLength(3));
-        expect(
-          notifier.state.templates.every((t) => t.area == null),
-          true,
-        );
-        expect(notifier.state.errorMessage, isNull);
-      });
+          expect(notifier.state.isLoading, false);
+          expect(notifier.state.templates, hasLength(3));
+          expect(notifier.state.templates.every((t) => t.area == null), true);
+          expect(notifier.state.errorMessage, isNull);
+        },
+      );
 
       test('should apply status filter when loading', () async {
-        when(() => mockMenuRepository.listAll(onlyPublished: false))
-            .thenAnswer((_) async => Success(mixedMenus));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: false),
+        ).thenAnswer((_) async => Success(mixedMenus));
 
         await notifier.loadTemplates(statusFilter: 'draft');
 
@@ -92,8 +93,9 @@ void main() {
       });
 
       test('should return all templates when filter is "all"', () async {
-        when(() => mockMenuRepository.listAll(onlyPublished: false))
-            .thenAnswer((_) async => Success(mixedMenus));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: false),
+        ).thenAnswer((_) async => Success(mixedMenus));
 
         await notifier.loadTemplates(statusFilter: 'all');
 
@@ -101,10 +103,8 @@ void main() {
       });
 
       test('should set error message on failure', () async {
-        when(() => mockMenuRepository.listAll(onlyPublished: false))
-            .thenAnswer(
-          (_) async =>
-              const Failure(ServerError('Failed to fetch templates')),
+        when(() => mockMenuRepository.listAll(onlyPublished: false)).thenAnswer(
+          (_) async => const Failure(ServerError('Failed to fetch templates')),
         );
 
         await notifier.loadTemplates();
@@ -114,46 +114,48 @@ void main() {
         expect(notifier.state.templates, isEmpty);
       });
 
-      test('should preserve existing status filter when not specified',
-          () async {
-        when(() => mockMenuRepository.listAll(onlyPublished: false))
-            .thenAnswer((_) async => Success(mixedMenus));
+      test(
+        'should preserve existing status filter when not specified',
+        () async {
+          when(
+            () => mockMenuRepository.listAll(onlyPublished: false),
+          ).thenAnswer((_) async => Success(mixedMenus));
 
-        // Set a filter first
-        await notifier.loadTemplates(statusFilter: 'published');
-        expect(notifier.state.statusFilter, 'published');
+          // Set a filter first
+          await notifier.loadTemplates(statusFilter: 'published');
+          expect(notifier.state.statusFilter, 'published');
 
-        // Reload without specifying filter
-        await notifier.loadTemplates();
-        expect(notifier.state.statusFilter, 'published');
-      });
+          // Reload without specifying filter
+          await notifier.loadTemplates();
+          expect(notifier.state.statusFilter, 'published');
+        },
+      );
     });
 
     group('deleteTemplate', () {
       test('should remove template from state on success', () async {
         // First load templates
-        when(() => mockMenuRepository.listAll(onlyPublished: false))
-            .thenAnswer((_) async => Success(templateMenus));
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: false),
+        ).thenAnswer((_) async => Success(templateMenus));
         await notifier.loadTemplates();
         expect(notifier.state.templates, hasLength(3));
 
         // Delete template
-        when(() => mockMenuRepository.delete(1))
-            .thenAnswer((_) async => const Success(null));
+        when(
+          () => mockMenuRepository.delete(1),
+        ).thenAnswer((_) async => const Success(null));
 
         await notifier.deleteTemplate(1);
 
         expect(notifier.state.templates, hasLength(2));
-        expect(
-          notifier.state.templates.any((t) => t.id == 1),
-          false,
-        );
+        expect(notifier.state.templates.any((t) => t.id == 1), false);
       });
 
       test('should set error message on delete failure', () async {
-        when(() => mockMenuRepository.delete(1)).thenAnswer(
-          (_) async => const Failure(ServerError('Delete failed')),
-        );
+        when(
+          () => mockMenuRepository.delete(1),
+        ).thenAnswer((_) async => const Failure(ServerError('Delete failed')));
 
         await notifier.deleteTemplate(1);
 
@@ -164,10 +166,9 @@ void main() {
     group('clearError', () {
       test('should clear error message', () async {
         // Trigger an error
-        when(() => mockMenuRepository.listAll(onlyPublished: false))
-            .thenAnswer(
-          (_) async => const Failure(ServerError('Some error')),
-        );
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: false),
+        ).thenAnswer((_) async => const Failure(ServerError('Some error')));
         await notifier.loadTemplates();
         expect(notifier.state.errorMessage, isNotNull);
 

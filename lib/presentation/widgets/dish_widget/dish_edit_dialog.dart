@@ -76,16 +76,6 @@ class _DishEditDialogState extends State<DishEditDialog> {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: _caloriesController,
-              decoration: const InputDecoration(
-                labelText: 'Calories (optional)',
-                hintText: 'Enter calories',
-                suffixText: 'KCAL',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 12),
-            TextField(
               controller: _priceController,
               decoration: const InputDecoration(
                 labelText: 'Price',
@@ -95,6 +85,16 @@ class _DishEditDialogState extends State<DishEditDialog> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _caloriesController,
+              decoration: const InputDecoration(
+                labelText: 'Calories',
+                hintText: 'Enter calories',
+                suffixText: 'KCAL',
+              ),
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 12),
             Row(
