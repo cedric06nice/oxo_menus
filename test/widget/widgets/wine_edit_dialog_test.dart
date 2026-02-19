@@ -16,10 +16,7 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (_) => WineEditDialog(
-                    props: props,
-                    onSave: (_) {},
-                  ),
+                  builder: (_) => WineEditDialog(props: props, onSave: (_) {}),
                 ),
                 child: const Text('Open'),
               ),
@@ -57,10 +54,7 @@ void main() {
               builder: (context) => ElevatedButton(
                 onPressed: () => showDialog(
                   context: context,
-                  builder: (_) => WineEditDialog(
-                    props: props,
-                    onSave: (_) {},
-                  ),
+                  builder: (_) => WineEditDialog(props: props, onSave: (_) {}),
                 ),
                 child: const Text('Open'),
               ),
@@ -192,10 +186,7 @@ void main() {
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Price'),
-        '15.50',
-      );
+      await tester.enterText(find.widgetWithText(TextField, 'Price'), '15.50');
 
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
@@ -232,10 +223,7 @@ void main() {
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Price'),
-        '',
-      );
+      await tester.enterText(find.widgetWithText(TextField, 'Price'), '');
 
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
@@ -270,10 +258,7 @@ void main() {
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
 
-      await tester.enterText(
-        find.widgetWithText(TextField, 'Vintage'),
-        '2020',
-      );
+      await tester.enterText(find.widgetWithText(TextField, 'Vintage'), '2020');
 
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();

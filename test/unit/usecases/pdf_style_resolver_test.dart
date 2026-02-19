@@ -181,10 +181,7 @@ void main() {
       });
 
       test('should return 0.0 for StyleConfig with null borderType', () {
-        expect(
-          resolver.resolveBorderHorizontalInset(const StyleConfig()),
-          0.0,
-        );
+        expect(resolver.resolveBorderHorizontalInset(const StyleConfig()), 0.0);
       });
 
       test('should return 0.0 for BorderType.none', () {

@@ -655,10 +655,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Clear the calories field
-        await tester.enterText(
-          find.widgetWithText(TextField, 'Calories'),
-          '',
-        );
+        await tester.enterText(find.widgetWithText(TextField, 'Calories'), '');
 
         await tester.tap(find.text('Save'));
         await tester.pumpAndSettle();

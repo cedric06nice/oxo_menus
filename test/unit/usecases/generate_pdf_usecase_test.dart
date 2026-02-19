@@ -1667,58 +1667,55 @@ void main() {
         },
       );
 
-      test(
-        'should generate PDF with 30 dishes and footer (no clip)',
-        () async {
-          final menuTree = MenuTree(
-            menu: const Menu(
-              id: 1,
-              name: 'Overflow Footer Test',
-              status: Status.published,
-              version: '1.0.0',
+      test('should generate PDF with 30 dishes and footer (no clip)', () async {
+        final menuTree = MenuTree(
+          menu: const Menu(
+            id: 1,
+            name: 'Overflow Footer Test',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [pageWith30Dishes()],
+          footerPage: const PageWithContainers(
+            page: entity.Page(
+              id: 98,
+              menuId: 1,
+              name: 'Footer',
+              index: -1,
+              type: entity.PageType.footer,
             ),
-            pages: [pageWith30Dishes()],
-            footerPage: const PageWithContainers(
-              page: entity.Page(
-                id: 98,
-                menuId: 1,
-                name: 'Footer',
-                index: -1,
-                type: entity.PageType.footer,
-              ),
-              containers: [
-                ContainerWithColumns(
-                  container: entity.Container(id: 98, pageId: 98, index: 0),
-                  columns: [
-                    ColumnWithWidgets(
-                      column: entity.Column(
-                        id: 98,
-                        containerId: 98,
-                        index: 0,
-                        flex: 1,
-                      ),
-                      widgets: [
-                        WidgetInstance(
-                          id: 98,
-                          columnId: 98,
-                          type: 'text',
-                          version: '1.0.0',
-                          index: 0,
-                          props: {'text': 'FOOTER', 'align': 'center'},
-                        ),
-                      ],
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 98, pageId: 98, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 98,
+                      containerId: 98,
+                      index: 0,
+                      flex: 1,
                     ),
-                  ],
-                ),
-              ],
-            ),
-          );
+                    widgets: [
+                      WidgetInstance(
+                        id: 98,
+                        columnId: 98,
+                        type: 'text',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {'text': 'FOOTER', 'align': 'center'},
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
 
-          final result = await useCase.execute(menuTree);
-          expect(result.isSuccess, true);
-          expect(result.valueOrNull!.isNotEmpty, true);
-        },
-      );
+        final result = await useCase.execute(menuTree);
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull!.isNotEmpty, true);
+      });
 
       test(
         'should generate PDF with 30 dishes, border and padding style (no clip)',
@@ -1957,155 +1954,149 @@ void main() {
         },
       );
 
-      test(
-        'should generate PDF with styled columns in grid layout',
-        () async {
-          // Two columns with padding + border styles applied per cell.
-          const menuTree = MenuTree(
-            menu: Menu(
-              id: 1,
-              name: 'Styled Grid',
-              status: Status.published,
-              version: '1.0.0',
-            ),
-            pages: [
-              PageWithContainers(
-                page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
-                containers: [
-                  ContainerWithColumns(
-                    container: entity.Container(id: 1, pageId: 1, index: 0),
-                    columns: [
-                      ColumnWithWidgets(
-                        column: entity.Column(
+      test('should generate PDF with styled columns in grid layout', () async {
+        // Two columns with padding + border styles applied per cell.
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Styled Grid',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                        styleConfig: StyleConfig(
+                          paddingLeft: 8.0,
+                          paddingRight: 8.0,
+                          borderType: BorderType.plainThin,
+                        ),
+                      ),
+                      widgets: [
+                        WidgetInstance(
                           id: 1,
-                          containerId: 1,
+                          columnId: 1,
+                          type: 'text',
+                          version: '1.0.0',
                           index: 0,
-                          flex: 1,
-                          styleConfig: StyleConfig(
-                            paddingLeft: 8.0,
-                            paddingRight: 8.0,
-                            borderType: BorderType.plainThin,
-                          ),
+                          props: {
+                            'text': 'Styled Left',
+                            'align': 'left',
+                            'bold': false,
+                            'italic': false,
+                          },
                         ),
-                        widgets: [
-                          WidgetInstance(
-                            id: 1,
-                            columnId: 1,
-                            type: 'text',
-                            version: '1.0.0',
-                            index: 0,
-                            props: {
-                              'text': 'Styled Left',
-                              'align': 'left',
-                              'bold': false,
-                              'italic': false,
-                            },
-                          ),
-                        ],
+                      ],
+                    ),
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 2,
+                        containerId: 1,
+                        index: 1,
+                        flex: 1,
+                        styleConfig: StyleConfig(
+                          paddingTop: 12.0,
+                          paddingBottom: 12.0,
+                          borderType: BorderType.dropShadow,
+                        ),
                       ),
-                      ColumnWithWidgets(
-                        column: entity.Column(
+                      widgets: [
+                        WidgetInstance(
                           id: 2,
-                          containerId: 1,
-                          index: 1,
-                          flex: 1,
-                          styleConfig: StyleConfig(
-                            paddingTop: 12.0,
-                            paddingBottom: 12.0,
-                            borderType: BorderType.dropShadow,
-                          ),
+                          columnId: 2,
+                          type: 'text',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {
+                            'text': 'Styled Right',
+                            'align': 'left',
+                            'bold': false,
+                            'italic': false,
+                          },
                         ),
-                        widgets: [
-                          WidgetInstance(
-                            id: 2,
-                            columnId: 2,
-                            type: 'text',
-                            version: '1.0.0',
-                            index: 0,
-                            props: {
-                              'text': 'Styled Right',
-                              'align': 'left',
-                              'bold': false,
-                              'italic': false,
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          );
-
-          final result = await useCase.execute(menuTree);
-          expect(result.isSuccess, true);
-          expect(result.valueOrNull!.isNotEmpty, true);
-        },
-      );
-
-      test(
-        'should generate PDF when one column in grid is empty',
-        () async {
-          // Two columns: col1 has widgets, col2 is empty.
-          const menuTree = MenuTree(
-            menu: Menu(
-              id: 1,
-              name: 'Empty Column Grid',
-              status: Status.published,
-              version: '1.0.0',
+                      ],
+                    ),
+                  ],
+                ),
+              ],
             ),
-            pages: [
-              PageWithContainers(
-                page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
-                containers: [
-                  ContainerWithColumns(
-                    container: entity.Container(id: 1, pageId: 1, index: 0),
-                    columns: [
-                      ColumnWithWidgets(
-                        column: entity.Column(
-                          id: 1,
-                          containerId: 1,
-                          index: 0,
-                          flex: 1,
-                        ),
-                        widgets: [
-                          WidgetInstance(
-                            id: 1,
-                            columnId: 1,
-                            type: 'text',
-                            version: '1.0.0',
-                            index: 0,
-                            props: {
-                              'text': 'Only in col 1',
-                              'align': 'left',
-                              'bold': false,
-                              'italic': false,
-                            },
-                          ),
-                        ],
-                      ),
-                      ColumnWithWidgets(
-                        column: entity.Column(
-                          id: 2,
-                          containerId: 1,
-                          index: 1,
-                          flex: 1,
-                        ),
-                        widgets: [],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          );
+          ],
+        );
 
-          final result = await useCase.execute(menuTree);
-          expect(result.isSuccess, true);
-          expect(result.valueOrNull!.isNotEmpty, true);
-        },
-      );
+        final result = await useCase.execute(menuTree);
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull!.isNotEmpty, true);
+      });
+
+      test('should generate PDF when one column in grid is empty', () async {
+        // Two columns: col1 has widgets, col2 is empty.
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Empty Column Grid',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'text',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {
+                            'text': 'Only in col 1',
+                            'align': 'left',
+                            'bold': false,
+                            'italic': false,
+                          },
+                        ),
+                      ],
+                    ),
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 2,
+                        containerId: 1,
+                        index: 1,
+                        flex: 1,
+                      ),
+                      widgets: [],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final result = await useCase.execute(menuTree);
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull!.isNotEmpty, true);
+      });
 
       test(
         'should generate PDF with null flex values defaulting to equal width',

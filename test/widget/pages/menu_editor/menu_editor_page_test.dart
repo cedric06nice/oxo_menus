@@ -1161,8 +1161,12 @@ void main() {
           status: Status.draft,
           version: '1.0.0',
         );
-        const page =
-            entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+        const page = entity.Page(
+          id: 1,
+          menuId: menuId,
+          name: 'Page 1',
+          index: 0,
+        );
         const container = entity.Container(id: 1, pageId: 1, index: 0);
         const column = entity.Column(
           id: 1,

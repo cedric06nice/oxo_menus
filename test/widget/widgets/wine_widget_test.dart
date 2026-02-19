@@ -161,7 +161,11 @@ void main() {
     testWidgets(
       'should display SULPHITES when containsSulphites and showAllergens true',
       (tester) async {
-        const props = WineProps(name: 'Merlot', price: 9.0, containsSulphites: true);
+        const props = WineProps(
+          name: 'Merlot',
+          price: 9.0,
+          containsSulphites: true,
+        );
 
         await tester.pumpWidget(
           const MaterialApp(
@@ -178,28 +182,31 @@ void main() {
       },
     );
 
-    testWidgets(
-      'should hide SULPHITES when showAllergens is false',
-      (tester) async {
-        const props = WineProps(name: 'Merlot', price: 9.0, containsSulphites: true);
+    testWidgets('should hide SULPHITES when showAllergens is false', (
+      tester,
+    ) async {
+      const props = WineProps(
+        name: 'Merlot',
+        price: 9.0,
+        containsSulphites: true,
+      );
 
-        await tester.pumpWidget(
-          const MaterialApp(
-            home: Scaffold(
-              body: WineWidget(
-                props: props,
-                context: WidgetContext(
-                  isEditable: false,
-                  displayOptions: MenuDisplayOptions(showAllergens: false),
-                ),
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: WineWidget(
+              props: props,
+              context: WidgetContext(
+                isEditable: false,
+                displayOptions: MenuDisplayOptions(showAllergens: false),
               ),
             ),
           ),
-        );
+        ),
+      );
 
-        expect(find.text('SULPHITES'), findsNothing);
-      },
-    );
+      expect(find.text('SULPHITES'), findsNothing);
+    });
 
     testWidgets(
       'should not display SULPHITES when containsSulphites is false',
