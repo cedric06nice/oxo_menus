@@ -1,0 +1,146 @@
+services:
+  # ─── Reverse Proxy (HTTPS termination for all 4 domains) ───
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: oxo-nginx-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - oxo-menus-prod
+      - oxo-menus-staging
+      - directus-prod
+      - directus-dev
+    networks:
+      - oxo-network
+
+  # ═══════════════════════════════════════════════════
+  # PRODUCTION
+  # ═══════════════════════════════════════════════════
+
+  # ─── PostgreSQL Production ───
+  postgres-prod:
+    image: postgres:16-alpine
+    container_name: oxo-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PROD_DB_NAME:-directus_prod}
+      POSTGRES_USER: ${PROD_DB_USER:-directus}
+      POSTGRES_PASSWORD: ${PROD_DB_PASSWORD:?Set PROD_DB_PASSWORD in .env}
+    volumes:
+      - postgres-prod-data:/var/lib/postgresql/data
+    networks:
+      - oxo-network
+
+  # ─── Directus Production ───
+  directus-prod:
+    image: directus/directus:11
+    container_name: oxo-directus-prod
+    restart: unless-stopped
+    depends_on:
+      - postgres-prod
+    environment:
+      KEY: ${PROD_DIRECTUS_KEY:?Set PROD_DIRECTUS_KEY in .env}
+      SECRET: ${PROD_DIRECTUS_SECRET:?Set PROD_DIRECTUS_SECRET in .env}
+      ADMIN_EMAIL: ${PROD_ADMIN_EMAIL:-admin@cedric06nice.com}
+      ADMIN_PASSWORD: ${PROD_ADMIN_PASSWORD:?Set PROD_ADMIN_PASSWORD in .env}
+      PUBLIC_URL: https://api.oxo-menus.cedric06nice.com
+      DB_CLIENT: pg
+      DB_HOST: postgres-prod
+      DB_PORT: 5432
+      DB_DATABASE: ${PROD_DB_NAME:-directus_prod}
+      DB_USER: ${PROD_DB_USER:-directus}
+      DB_PASSWORD: ${PROD_DB_PASSWORD}
+      SCHEMA_SYNC: IMPORT
+    volumes:
+      - directus-prod-uploads:/directus/uploads
+      - directus-prod-extensions:/directus/extensions
+      - directus-schema-sync:/directus/schema-sync
+    expose:
+      - "8055"
+    networks:
+      - oxo-network
+
+  # ─── Flutter Web Production ───
+  oxo-menus-prod:
+    image: oxo-menus-prod:latest
+    container_name: oxo-menus-prod
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - oxo-network
+
+  # ═══════════════════════════════════════════════════
+  # DEV / STAGING
+  # ═══════════════════════════════════════════════════
+
+  # ─── PostgreSQL Dev ───
+  postgres-dev:
+    image: postgres:16-alpine
+    container_name: oxo-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DEV_DB_NAME:-directus_dev}
+      POSTGRES_USER: ${DEV_DB_USER:-directus}
+      POSTGRES_PASSWORD: ${DEV_DB_PASSWORD:?Set DEV_DB_PASSWORD in .env}
+    volumes:
+      - postgres-dev-data:/var/lib/postgresql/data
+    networks:
+      - oxo-network
+
+  # ─── Directus Dev ───
+  directus-dev:
+    image: directus/directus:11
+    container_name: oxo-directus-dev
+    restart: unless-stopped
+    depends_on:
+      - postgres-dev
+    environment:
+      KEY: ${DEV_DIRECTUS_KEY:?Set DEV_DIRECTUS_KEY in .env}
+      SECRET: ${DEV_DIRECTUS_SECRET:?Set DEV_DIRECTUS_SECRET in .env}
+      ADMIN_EMAIL: ${DEV_ADMIN_EMAIL:-admin@cedric06nice.com}
+      ADMIN_PASSWORD: ${DEV_ADMIN_PASSWORD:?Set DEV_ADMIN_PASSWORD in .env}
+      PUBLIC_URL: https://api.oxo-menus-dev.cedric06nice.com
+      DB_CLIENT: pg
+      DB_HOST: postgres-dev
+      DB_PORT: 5432
+      DB_DATABASE: ${DEV_DB_NAME:-directus_dev}
+      DB_USER: ${DEV_DB_USER:-directus}
+      DB_PASSWORD: ${DEV_DB_PASSWORD}
+      SCHEMA_SYNC: EXPORT
+    volumes:
+      - directus-dev-uploads:/directus/uploads
+      - directus-dev-extensions:/directus/extensions
+      - directus-schema-sync:/directus/schema-sync
+    expose:
+      - "8055"
+    networks:
+      - oxo-network
+
+  # ─── Flutter Web Staging ───
+  oxo-menus-staging:
+    image: oxo-menus-staging:latest
+    container_name: oxo-menus-staging
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - oxo-network
+
+volumes:
+  postgres-prod-data:
+  postgres-dev-data:
+  directus-prod-uploads:
+  directus-prod-extensions:
+  directus-dev-uploads:
+  directus-dev-extensions:
+  directus-schema-sync:
+
+networks:
+  oxo-network:
+    driver: bridge
