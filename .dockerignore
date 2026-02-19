@@ -24,8 +24,14 @@
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-build/
 coverage/
+
+# Keep build/web/ for Docker (exclude everything else in build/)
+build/app/
+build/ios/
+build/linux/
+build/macos/
+build/windows/
 
 # Android
 android/app/debug
@@ -34,9 +40,6 @@ android/app/release
 
 # iOS
 ios/Flutter/.last_build_id
-
-# Web
-build/web/
 
 # Environment files
 .env
