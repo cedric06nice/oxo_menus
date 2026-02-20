@@ -83,3 +83,13 @@ web/.dart_tool/
 
 # Reflectable generated files
 *.reflectable.dart
+
+# Fastlane
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/screenshots/
+ios/fastlane/test_output/
+ios/fastlane/README.md
+ios/build/
+ios/vendor/bundle/
+ios/.bundle/

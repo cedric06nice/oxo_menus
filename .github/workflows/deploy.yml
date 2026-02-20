@@ -180,17 +180,31 @@ jobs:
           path: build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
 
-  build-ios:
-    name: Build iOS → ${{ github.ref_name == 'main' && 'Production' || 'Staging' }}
+  deploy-ios:
+    name: Deploy iOS → ${{ github.ref_name == 'main' && 'App Store' || 'TestFlight' }}
     runs-on: macos-latest
     needs: test
+    timeout-minutes: 45
+    env:
+      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.41.0'
           channel: 'stable'
           cache: true
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: ios
 
       - name: Set Directus URL
         run: |
@@ -203,3 +217,17 @@ jobs:
       - run: flutter pub get
       - run: flutter pub run build_runner build --delete-conflicting-outputs
       - run: flutter build ios --release --no-codesign --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
+
+      - name: Install CocoaPods dependencies
+        run: bundle exec pod install
+        working-directory: ios
+
+      - name: Deploy to TestFlight
+        if: github.ref_name == 'develop'
+        run: bundle exec fastlane beta
+        working-directory: ios
+
+      - name: Deploy to App Store
+        if: github.ref_name == 'main'
+        run: bundle exec fastlane release
+        working-directory: ios
