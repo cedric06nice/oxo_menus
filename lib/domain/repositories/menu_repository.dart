@@ -53,7 +53,7 @@ abstract class UpdateMenuInput with _$UpdateMenuInput {
     String? version,
     Status? status,
     StyleConfig? styleConfig,
-    PageSize? pageSize,
+    int? sizeId,
     String? area,
     MenuDisplayOptions? displayOptions,
     List<String>? allowedWidgetTypes,

@@ -13,11 +13,13 @@ import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
+import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
+import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/admin_template_editor_page.dart';
@@ -40,6 +42,8 @@ class MockColumnRepository extends Mock implements ColumnRepository {}
 
 class MockWidgetRepository extends Mock implements WidgetRepository {}
 
+class MockSizeRepository extends Mock implements SizeRepository {}
+
 class MockGoRouter extends Mock implements GoRouter {}
 
 void main() {
@@ -48,6 +52,7 @@ void main() {
   late MockContainerRepository mockContainerRepository;
   late MockColumnRepository mockColumnRepository;
   late MockWidgetRepository mockWidgetRepository;
+  late MockSizeRepository mockSizeRepository;
   late WidgetRegistry testWidgetRegistry;
   late MockGoRouter mockRouter;
 
@@ -57,6 +62,7 @@ void main() {
     mockContainerRepository = MockContainerRepository();
     mockColumnRepository = MockColumnRepository();
     mockWidgetRepository = MockWidgetRepository();
+    mockSizeRepository = MockSizeRepository();
     mockRouter = MockGoRouter();
 
     testWidgetRegistry = WidgetRegistry();
@@ -107,6 +113,7 @@ void main() {
         containerRepositoryProvider.overrideWithValue(mockContainerRepository),
         columnRepositoryProvider.overrideWithValue(mockColumnRepository),
         widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
+        sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
         widgetRegistryProvider.overrideWithValue(testWidgetRegistry),
         currentUserProvider.overrideWithValue(mockUser),
       ],
@@ -2078,6 +2085,247 @@ void main() {
       // The widget is rendered via WidgetRenderer with onDelete callback
       // We verify the delete flow exists by checking WidgetRenderer is present
       expect(find.byType(WidgetRenderer), findsOneWidget);
+    });
+  });
+
+  group('AdminTemplateEditorPage - Page Size', () {
+    testWidgets('should have page size button in toolbar', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.byKey(const Key('page_size_button')), findsOneWidget);
+      expect(find.byIcon(Icons.straighten), findsOneWidget);
+    });
+
+    testWidgets('tapping page size button opens dialog with available sizes', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final sizes = [
+        const domain.Size(
+          id: 1,
+          name: 'A4',
+          width: 210,
+          height: 297,
+          status: Status.published,
+          direction: 'portrait',
+        ),
+        const domain.Size(
+          id: 2,
+          name: 'A5',
+          width: 148,
+          height: 210,
+          status: Status.published,
+          direction: 'portrait',
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockSizeRepository.getAll(),
+      ).thenAnswer((_) async => Success(sizes));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('page_size_button')));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.text('Select Page Size'), findsOneWidget);
+      expect(find.text('A4'), findsOneWidget);
+      expect(find.text('A5'), findsOneWidget);
+    });
+
+    testWidgets('selecting a size updates the menu pageSize', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final sizes = [
+        const domain.Size(
+          id: 1,
+          name: 'A4',
+          width: 210,
+          height: 297,
+          status: Status.published,
+          direction: 'portrait',
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockSizeRepository.getAll(),
+      ).thenAnswer((_) async => Success(sizes));
+      when(() => mockMenuRepository.update(any())).thenAnswer(
+        (_) async => Success(
+          menu.copyWith(
+            pageSize: const PageSize(name: 'A4', width: 210, height: 297),
+          ),
+        ),
+      );
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('page_size_button')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('A4'));
+      await tester.pumpAndSettle();
+
+      // Assert
+      final captured =
+          verify(() => mockMenuRepository.update(captureAny())).captured.single
+              as UpdateMenuInput;
+      expect(captured.id, menuId);
+      expect(captured.sizeId, 1);
+    });
+
+    testWidgets('shows current page size name highlighted in dialog', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+        pageSize: PageSize(name: 'A4', width: 210, height: 297),
+      );
+      final sizes = [
+        const domain.Size(
+          id: 1,
+          name: 'A4',
+          width: 210,
+          height: 297,
+          status: Status.published,
+          direction: 'portrait',
+        ),
+        const domain.Size(
+          id: 2,
+          name: 'A5',
+          width: 148,
+          height: 210,
+          status: Status.published,
+          direction: 'portrait',
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockSizeRepository.getAll(),
+      ).thenAnswer((_) async => Success(sizes));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('page_size_button')));
+      await tester.pumpAndSettle();
+
+      // Assert - the current size should have a check icon
+      expect(find.byIcon(Icons.check), findsOneWidget);
+    });
+
+    testWidgets('shows snackbar after successful page size update', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final sizes = [
+        const domain.Size(
+          id: 1,
+          name: 'A4',
+          width: 210,
+          height: 297,
+          status: Status.published,
+          direction: 'portrait',
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockSizeRepository.getAll(),
+      ).thenAnswer((_) async => Success(sizes));
+      when(() => mockMenuRepository.update(any())).thenAnswer(
+        (_) async => Success(
+          menu.copyWith(
+            pageSize: const PageSize(name: 'A4', width: 210, height: 297),
+          ),
+        ),
+      );
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('page_size_button')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('A4'));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.text('Page size updated'), findsOneWidget);
     });
   });
 }

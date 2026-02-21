@@ -348,7 +348,7 @@ $MenuDisplayOptionsCopyWith<$Res>? get displayOptions {
 /// @nodoc
 mixin _$UpdateMenuInput {
 
- int get id; String? get name; String? get version; Status? get status; StyleConfig? get styleConfig; PageSize? get pageSize; String? get area; MenuDisplayOptions? get displayOptions; List<String>? get allowedWidgetTypes;
+ int get id; String? get name; String? get version; Status? get status; StyleConfig? get styleConfig; int? get sizeId; String? get area; MenuDisplayOptions? get displayOptions; List<String>? get allowedWidgetTypes;
 /// Create a copy of UpdateMenuInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -359,16 +359,16 @@ $UpdateMenuInputCopyWith<UpdateMenuInput> get copyWith => _$UpdateMenuInputCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateMenuInput&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.version, version) || other.version == version)&&(identical(other.status, status) || other.status == status)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.area, area) || other.area == area)&&(identical(other.displayOptions, displayOptions) || other.displayOptions == displayOptions)&&const DeepCollectionEquality().equals(other.allowedWidgetTypes, allowedWidgetTypes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateMenuInput&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.version, version) || other.version == version)&&(identical(other.status, status) || other.status == status)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.sizeId, sizeId) || other.sizeId == sizeId)&&(identical(other.area, area) || other.area == area)&&(identical(other.displayOptions, displayOptions) || other.displayOptions == displayOptions)&&const DeepCollectionEquality().equals(other.allowedWidgetTypes, allowedWidgetTypes));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,version,status,styleConfig,pageSize,area,displayOptions,const DeepCollectionEquality().hash(allowedWidgetTypes));
+int get hashCode => Object.hash(runtimeType,id,name,version,status,styleConfig,sizeId,area,displayOptions,const DeepCollectionEquality().hash(allowedWidgetTypes));
 
 @override
 String toString() {
-  return 'UpdateMenuInput(id: $id, name: $name, version: $version, status: $status, styleConfig: $styleConfig, pageSize: $pageSize, area: $area, displayOptions: $displayOptions, allowedWidgetTypes: $allowedWidgetTypes)';
+  return 'UpdateMenuInput(id: $id, name: $name, version: $version, status: $status, styleConfig: $styleConfig, sizeId: $sizeId, area: $area, displayOptions: $displayOptions, allowedWidgetTypes: $allowedWidgetTypes)';
 }
 
 
@@ -379,11 +379,11 @@ abstract mixin class $UpdateMenuInputCopyWith<$Res>  {
   factory $UpdateMenuInputCopyWith(UpdateMenuInput value, $Res Function(UpdateMenuInput) _then) = _$UpdateMenuInputCopyWithImpl;
 @useResult
 $Res call({
- int id, String? name, String? version, Status? status, StyleConfig? styleConfig, PageSize? pageSize, String? area, MenuDisplayOptions? displayOptions, List<String>? allowedWidgetTypes
+ int id, String? name, String? version, Status? status, StyleConfig? styleConfig, int? sizeId, String? area, MenuDisplayOptions? displayOptions, List<String>? allowedWidgetTypes
 });
 
 
-$StyleConfigCopyWith<$Res>? get styleConfig;$PageSizeCopyWith<$Res>? get pageSize;$MenuDisplayOptionsCopyWith<$Res>? get displayOptions;
+$StyleConfigCopyWith<$Res>? get styleConfig;$MenuDisplayOptionsCopyWith<$Res>? get displayOptions;
 
 }
 /// @nodoc
@@ -396,15 +396,15 @@ class _$UpdateMenuInputCopyWithImpl<$Res>
 
 /// Create a copy of UpdateMenuInput
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? version = freezed,Object? status = freezed,Object? styleConfig = freezed,Object? pageSize = freezed,Object? area = freezed,Object? displayOptions = freezed,Object? allowedWidgetTypes = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = freezed,Object? version = freezed,Object? status = freezed,Object? styleConfig = freezed,Object? sizeId = freezed,Object? area = freezed,Object? displayOptions = freezed,Object? allowedWidgetTypes = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,version: freezed == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
-as StyleConfig?,pageSize: freezed == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
-as PageSize?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
+as StyleConfig?,sizeId: freezed == sizeId ? _self.sizeId : sizeId // ignore: cast_nullable_to_non_nullable
+as int?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
 as String?,displayOptions: freezed == displayOptions ? _self.displayOptions : displayOptions // ignore: cast_nullable_to_non_nullable
 as MenuDisplayOptions?,allowedWidgetTypes: freezed == allowedWidgetTypes ? _self.allowedWidgetTypes : allowedWidgetTypes // ignore: cast_nullable_to_non_nullable
 as List<String>?,
@@ -421,18 +421,6 @@ $StyleConfigCopyWith<$Res>? get styleConfig {
 
   return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
     return _then(_self.copyWith(styleConfig: value));
-  });
-}/// Create a copy of UpdateMenuInput
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$PageSizeCopyWith<$Res>? get pageSize {
-    if (_self.pageSize == null) {
-    return null;
-  }
-
-  return $PageSizeCopyWith<$Res>(_self.pageSize!, (value) {
-    return _then(_self.copyWith(pageSize: value));
   });
 }/// Create a copy of UpdateMenuInput
 /// with the given fields replaced by the non-null parameter values.
@@ -528,10 +516,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String? name,  String? version,  Status? status,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area,  MenuDisplayOptions? displayOptions,  List<String>? allowedWidgetTypes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String? name,  String? version,  Status? status,  StyleConfig? styleConfig,  int? sizeId,  String? area,  MenuDisplayOptions? displayOptions,  List<String>? allowedWidgetTypes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdateMenuInput() when $default != null:
-return $default(_that.id,_that.name,_that.version,_that.status,_that.styleConfig,_that.pageSize,_that.area,_that.displayOptions,_that.allowedWidgetTypes);case _:
+return $default(_that.id,_that.name,_that.version,_that.status,_that.styleConfig,_that.sizeId,_that.area,_that.displayOptions,_that.allowedWidgetTypes);case _:
   return orElse();
 
 }
@@ -549,10 +537,10 @@ return $default(_that.id,_that.name,_that.version,_that.status,_that.styleConfig
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String? name,  String? version,  Status? status,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area,  MenuDisplayOptions? displayOptions,  List<String>? allowedWidgetTypes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String? name,  String? version,  Status? status,  StyleConfig? styleConfig,  int? sizeId,  String? area,  MenuDisplayOptions? displayOptions,  List<String>? allowedWidgetTypes)  $default,) {final _that = this;
 switch (_that) {
 case _UpdateMenuInput():
-return $default(_that.id,_that.name,_that.version,_that.status,_that.styleConfig,_that.pageSize,_that.area,_that.displayOptions,_that.allowedWidgetTypes);case _:
+return $default(_that.id,_that.name,_that.version,_that.status,_that.styleConfig,_that.sizeId,_that.area,_that.displayOptions,_that.allowedWidgetTypes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -569,10 +557,10 @@ return $default(_that.id,_that.name,_that.version,_that.status,_that.styleConfig
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String? name,  String? version,  Status? status,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area,  MenuDisplayOptions? displayOptions,  List<String>? allowedWidgetTypes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String? name,  String? version,  Status? status,  StyleConfig? styleConfig,  int? sizeId,  String? area,  MenuDisplayOptions? displayOptions,  List<String>? allowedWidgetTypes)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdateMenuInput() when $default != null:
-return $default(_that.id,_that.name,_that.version,_that.status,_that.styleConfig,_that.pageSize,_that.area,_that.displayOptions,_that.allowedWidgetTypes);case _:
+return $default(_that.id,_that.name,_that.version,_that.status,_that.styleConfig,_that.sizeId,_that.area,_that.displayOptions,_that.allowedWidgetTypes);case _:
   return null;
 
 }
@@ -584,7 +572,7 @@ return $default(_that.id,_that.name,_that.version,_that.status,_that.styleConfig
 
 
 class _UpdateMenuInput extends UpdateMenuInput {
-  const _UpdateMenuInput({required this.id, this.name, this.version, this.status, this.styleConfig, this.pageSize, this.area, this.displayOptions, final  List<String>? allowedWidgetTypes}): _allowedWidgetTypes = allowedWidgetTypes,super._();
+  const _UpdateMenuInput({required this.id, this.name, this.version, this.status, this.styleConfig, this.sizeId, this.area, this.displayOptions, final  List<String>? allowedWidgetTypes}): _allowedWidgetTypes = allowedWidgetTypes,super._();
   
 
 @override final  int id;
@@ -592,7 +580,7 @@ class _UpdateMenuInput extends UpdateMenuInput {
 @override final  String? version;
 @override final  Status? status;
 @override final  StyleConfig? styleConfig;
-@override final  PageSize? pageSize;
+@override final  int? sizeId;
 @override final  String? area;
 @override final  MenuDisplayOptions? displayOptions;
  final  List<String>? _allowedWidgetTypes;
@@ -615,16 +603,16 @@ _$UpdateMenuInputCopyWith<_UpdateMenuInput> get copyWith => __$UpdateMenuInputCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateMenuInput&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.version, version) || other.version == version)&&(identical(other.status, status) || other.status == status)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.pageSize, pageSize) || other.pageSize == pageSize)&&(identical(other.area, area) || other.area == area)&&(identical(other.displayOptions, displayOptions) || other.displayOptions == displayOptions)&&const DeepCollectionEquality().equals(other._allowedWidgetTypes, _allowedWidgetTypes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateMenuInput&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.version, version) || other.version == version)&&(identical(other.status, status) || other.status == status)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.sizeId, sizeId) || other.sizeId == sizeId)&&(identical(other.area, area) || other.area == area)&&(identical(other.displayOptions, displayOptions) || other.displayOptions == displayOptions)&&const DeepCollectionEquality().equals(other._allowedWidgetTypes, _allowedWidgetTypes));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,name,version,status,styleConfig,pageSize,area,displayOptions,const DeepCollectionEquality().hash(_allowedWidgetTypes));
+int get hashCode => Object.hash(runtimeType,id,name,version,status,styleConfig,sizeId,area,displayOptions,const DeepCollectionEquality().hash(_allowedWidgetTypes));
 
 @override
 String toString() {
-  return 'UpdateMenuInput(id: $id, name: $name, version: $version, status: $status, styleConfig: $styleConfig, pageSize: $pageSize, area: $area, displayOptions: $displayOptions, allowedWidgetTypes: $allowedWidgetTypes)';
+  return 'UpdateMenuInput(id: $id, name: $name, version: $version, status: $status, styleConfig: $styleConfig, sizeId: $sizeId, area: $area, displayOptions: $displayOptions, allowedWidgetTypes: $allowedWidgetTypes)';
 }
 
 
@@ -635,11 +623,11 @@ abstract mixin class _$UpdateMenuInputCopyWith<$Res> implements $UpdateMenuInput
   factory _$UpdateMenuInputCopyWith(_UpdateMenuInput value, $Res Function(_UpdateMenuInput) _then) = __$UpdateMenuInputCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String? name, String? version, Status? status, StyleConfig? styleConfig, PageSize? pageSize, String? area, MenuDisplayOptions? displayOptions, List<String>? allowedWidgetTypes
+ int id, String? name, String? version, Status? status, StyleConfig? styleConfig, int? sizeId, String? area, MenuDisplayOptions? displayOptions, List<String>? allowedWidgetTypes
 });
 
 
-@override $StyleConfigCopyWith<$Res>? get styleConfig;@override $PageSizeCopyWith<$Res>? get pageSize;@override $MenuDisplayOptionsCopyWith<$Res>? get displayOptions;
+@override $StyleConfigCopyWith<$Res>? get styleConfig;@override $MenuDisplayOptionsCopyWith<$Res>? get displayOptions;
 
 }
 /// @nodoc
@@ -652,15 +640,15 @@ class __$UpdateMenuInputCopyWithImpl<$Res>
 
 /// Create a copy of UpdateMenuInput
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = freezed,Object? version = freezed,Object? status = freezed,Object? styleConfig = freezed,Object? pageSize = freezed,Object? area = freezed,Object? displayOptions = freezed,Object? allowedWidgetTypes = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = freezed,Object? version = freezed,Object? status = freezed,Object? styleConfig = freezed,Object? sizeId = freezed,Object? area = freezed,Object? displayOptions = freezed,Object? allowedWidgetTypes = freezed,}) {
   return _then(_UpdateMenuInput(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,version: freezed == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
 as String?,status: freezed == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as Status?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
-as StyleConfig?,pageSize: freezed == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
-as PageSize?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
+as StyleConfig?,sizeId: freezed == sizeId ? _self.sizeId : sizeId // ignore: cast_nullable_to_non_nullable
+as int?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
 as String?,displayOptions: freezed == displayOptions ? _self.displayOptions : displayOptions // ignore: cast_nullable_to_non_nullable
 as MenuDisplayOptions?,allowedWidgetTypes: freezed == allowedWidgetTypes ? _self._allowedWidgetTypes : allowedWidgetTypes // ignore: cast_nullable_to_non_nullable
 as List<String>?,
@@ -678,18 +666,6 @@ $StyleConfigCopyWith<$Res>? get styleConfig {
 
   return $StyleConfigCopyWith<$Res>(_self.styleConfig!, (value) {
     return _then(_self.copyWith(styleConfig: value));
-  });
-}/// Create a copy of UpdateMenuInput
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$PageSizeCopyWith<$Res>? get pageSize {
-    if (_self.pageSize == null) {
-    return null;
-  }
-
-  return $PageSizeCopyWith<$Res>(_self.pageSize!, (value) {
-    return _then(_self.copyWith(pageSize: value));
   });
 }/// Create a copy of UpdateMenuInput
 /// with the given fields replaced by the non-null parameter values.

@@ -26,6 +26,7 @@ import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/menu_display_options_dialog.dart';
+import 'package:oxo_menus/presentation/widgets/page_size_picker_dialog.dart';
 
 /// Admin Template Editor Page
 ///
@@ -269,6 +270,53 @@ class _AdminTemplateEditorPageState
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Display options saved')),
+              );
+            }
+          }
+        },
+      ),
+    );
+  }
+
+  Future<void> _showPageSizeDialog() async {
+    final result = await ref.read(sizeRepositoryProvider).getAll();
+    if (result.isFailure) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to load sizes: ${result.errorOrNull?.message ?? 'Unknown error'}',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => PageSizePickerDialog(
+        sizes: result.valueOrNull!,
+        currentPageSize: _menu?.pageSize,
+        onSelect: (size) async {
+          final pageSize = PageSize(
+            name: size.name,
+            width: size.width,
+            height: size.height,
+          );
+          final updateResult = await ref
+              .read(menuRepositoryProvider)
+              .update(UpdateMenuInput(id: widget.menuId, sizeId: size.id));
+          if (updateResult.isSuccess) {
+            setState(() {
+              _menu = _menu?.copyWith(pageSize: pageSize);
+            });
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Page size updated')),
               );
             }
           }
@@ -663,6 +711,12 @@ class _AdminTemplateEditorPageState
     return AuthenticatedScaffold(
       title: _menu?.name ?? 'Template Editor',
       actions: [
+        IconButton(
+          key: const Key('page_size_button'),
+          onPressed: _showPageSizeDialog,
+          icon: const Icon(Icons.straighten),
+          tooltip: 'Page Size',
+        ),
         IconButton(
           key: const Key('display_options_button'),
           onPressed: _showDisplayOptionsDialog,

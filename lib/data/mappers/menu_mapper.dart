@@ -122,8 +122,8 @@ class MenuMapper {
     if (input.styleConfig != null) {
       map['style_json'] = StyleConfigMapper.toJson(input.styleConfig!);
     }
-    if (input.pageSize != null) {
-      map['size'] = _mapPageSizeToJson(input.pageSize!);
+    if (input.sizeId != null) {
+      map['size'] = input.sizeId;
     }
     if (input.area != null) {
       map['area'] = _mapAreaStringToId(input.area!);

@@ -371,6 +371,22 @@ void main() {
 
         expect(dto.containsKey('allowed_widget_types'), false);
       });
+
+      test('toUpdateDto - includes sizeId as integer when provided', () {
+        const input = UpdateMenuInput(id: 1, sizeId: 42);
+
+        final dto = MenuMapper.toUpdateDto(input);
+
+        expect(dto['size'], 42);
+      });
+
+      test('toUpdateDto - omits size when sizeId is null', () {
+        const input = UpdateMenuInput(id: 1, name: 'Updated');
+
+        final dto = MenuMapper.toUpdateDto(input);
+
+        expect(dto.containsKey('size'), false);
+      });
     });
 
     group('per-side padding', () {
