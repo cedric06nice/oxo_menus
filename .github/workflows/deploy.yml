@@ -197,7 +197,7 @@ jobs:
 
   deploy-ios:
     name: Deploy iOS → ${{ github.ref_name == 'main' && 'App Store' || 'TestFlight' }}
-    runs-on: macos-latest
+    runs-on: macos-26
     needs: test
     timeout-minutes: 45
     env:
