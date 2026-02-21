@@ -172,7 +172,7 @@ jobs:
 
       - run: flutter pub get
       - run: flutter pub run build_runner build --delete-conflicting-outputs
-      - run: flutter build apk --release --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
+      - run: flutter build apk --release --build-number=${{ github.run_number }} --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
 
       - uses: actions/upload-artifact@v4
         with:

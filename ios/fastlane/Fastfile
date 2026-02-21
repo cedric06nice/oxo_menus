@@ -9,9 +9,6 @@ platform :ios do
 
     sync_certificates(api_key: api_key)
 
-    build_number = latest_testflight_build_number(api_key: api_key) + 1
-    UI.message("Using build number: #{build_number}")
-
     build_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
@@ -20,8 +17,7 @@ platform :ios do
         provisioningProfiles: {
           "com.cedric06nice.oxomenus" => "match AppStore com.cedric06nice.oxomenus"
         }
-      },
-      xcargs: "CURRENT_PROJECT_VERSION=#{build_number}"
+      }
     )
 
     upload_to_testflight(
@@ -38,9 +34,6 @@ platform :ios do
 
     sync_certificates(api_key: api_key)
 
-    build_number = app_store_build_number(api_key: api_key, live: false) + 1
-    UI.message("Using build number: #{build_number}")
-
     build_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
@@ -49,8 +42,7 @@ platform :ios do
         provisioningProfiles: {
           "com.cedric06nice.oxomenus" => "match AppStore com.cedric06nice.oxomenus"
         }
-      },
-      xcargs: "CURRENT_PROJECT_VERSION=#{build_number}"
+      }
     )
 
     upload_to_app_store(
