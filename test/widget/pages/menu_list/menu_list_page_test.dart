@@ -40,7 +40,14 @@ void main() {
     // Default behavior for size repository
     when(() => mockSizeRepository.getAll()).thenAnswer(
       (_) async => const Success([
-        domain.Size(id: 1, name: 'A4', width: 210, height: 297),
+        domain.Size(
+          id: 1,
+          name: 'A4',
+          width: 210,
+          height: 297,
+          status: Status.published,
+          direction: 'portrait',
+        ),
       ]),
     );
   });

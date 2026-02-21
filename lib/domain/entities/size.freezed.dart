@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Size {
 
- int get id; String get name; double get width; double get height;
+ int get id; String get name; double get width; double get height; Status get status; String get direction;
 /// Create a copy of Size
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $SizeCopyWith<Size> get copyWith => _$SizeCopyWithImpl<Size>(this as Size, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Size&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Size&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.status, status) || other.status == status)&&(identical(other.direction, direction) || other.direction == direction));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,width,height);
+int get hashCode => Object.hash(runtimeType,id,name,width,height,status,direction);
 
 @override
 String toString() {
-  return 'Size(id: $id, name: $name, width: $width, height: $height)';
+  return 'Size(id: $id, name: $name, width: $width, height: $height, status: $status, direction: $direction)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $SizeCopyWith<$Res>  {
   factory $SizeCopyWith(Size value, $Res Function(Size) _then) = _$SizeCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, double width, double height
+ int id, String name, double width, double height, Status status, String direction
 });
 
 
@@ -65,13 +65,15 @@ class _$SizeCopyWithImpl<$Res>
 
 /// Create a copy of Size
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? width = null,Object? height = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? width = null,Object? height = null,Object? status = null,Object? direction = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as double,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
-as double,
+as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as Status,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -156,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  double width,  double height)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  double width,  double height,  Status status,  String direction)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Size() when $default != null:
-return $default(_that.id,_that.name,_that.width,_that.height);case _:
+return $default(_that.id,_that.name,_that.width,_that.height,_that.status,_that.direction);case _:
   return orElse();
 
 }
@@ -177,10 +179,10 @@ return $default(_that.id,_that.name,_that.width,_that.height);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  double width,  double height)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  double width,  double height,  Status status,  String direction)  $default,) {final _that = this;
 switch (_that) {
 case _Size():
-return $default(_that.id,_that.name,_that.width,_that.height);case _:
+return $default(_that.id,_that.name,_that.width,_that.height,_that.status,_that.direction);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +199,10 @@ return $default(_that.id,_that.name,_that.width,_that.height);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  double width,  double height)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  double width,  double height,  Status status,  String direction)?  $default,) {final _that = this;
 switch (_that) {
 case _Size() when $default != null:
-return $default(_that.id,_that.name,_that.width,_that.height);case _:
+return $default(_that.id,_that.name,_that.width,_that.height,_that.status,_that.direction);case _:
   return null;
 
 }
@@ -212,13 +214,15 @@ return $default(_that.id,_that.name,_that.width,_that.height);case _:
 @JsonSerializable()
 
 class _Size extends Size {
-  const _Size({required this.id, required this.name, required this.width, required this.height}): super._();
+  const _Size({required this.id, required this.name, required this.width, required this.height, required this.status, required this.direction}): super._();
   factory _Size.fromJson(Map<String, dynamic> json) => _$SizeFromJson(json);
 
 @override final  int id;
 @override final  String name;
 @override final  double width;
 @override final  double height;
+@override final  Status status;
+@override final  String direction;
 
 /// Create a copy of Size
 /// with the given fields replaced by the non-null parameter values.
@@ -233,16 +237,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Size&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Size&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.width, width) || other.width == width)&&(identical(other.height, height) || other.height == height)&&(identical(other.status, status) || other.status == status)&&(identical(other.direction, direction) || other.direction == direction));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,width,height);
+int get hashCode => Object.hash(runtimeType,id,name,width,height,status,direction);
 
 @override
 String toString() {
-  return 'Size(id: $id, name: $name, width: $width, height: $height)';
+  return 'Size(id: $id, name: $name, width: $width, height: $height, status: $status, direction: $direction)';
 }
 
 
@@ -253,7 +257,7 @@ abstract mixin class _$SizeCopyWith<$Res> implements $SizeCopyWith<$Res> {
   factory _$SizeCopyWith(_Size value, $Res Function(_Size) _then) = __$SizeCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, double width, double height
+ int id, String name, double width, double height, Status status, String direction
 });
 
 
@@ -270,13 +274,15 @@ class __$SizeCopyWithImpl<$Res>
 
 /// Create a copy of Size
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? width = null,Object? height = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? width = null,Object? height = null,Object? status = null,Object? direction = null,}) {
   return _then(_Size(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,width: null == width ? _self.width : width // ignore: cast_nullable_to_non_nullable
 as double,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
-as double,
+as double,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as Status,direction: null == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 

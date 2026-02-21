@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
@@ -129,9 +130,22 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
     }
 
     if (_sizes.isEmpty) {
-      return Text(
-        'No sizes available. Please add sizes in Directus first.',
-        style: TextStyle(color: Theme.of(context).colorScheme.error),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'No page sizes available.',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.push('/admin/sizes');
+            },
+            child: const Text('Manage Page Sizes'),
+          ),
+        ],
       );
     }
 

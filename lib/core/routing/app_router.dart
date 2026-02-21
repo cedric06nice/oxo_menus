@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
+import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_page.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/admin_template_editor_page.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_page.dart';
 import 'package:oxo_menus/presentation/pages/home/home_page.dart';
@@ -142,6 +143,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             },
           ),
         ],
+      ),
+      GoRoute(
+        path: '/admin/sizes',
+        name: 'admin-sizes',
+        builder: (context, state) => const AdminSizesPage(),
       ),
       GoRoute(
         path: '/admin/templates',

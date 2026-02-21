@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
 
 part 'size.freezed.dart';
 part 'size.g.dart';
@@ -13,6 +14,8 @@ abstract class Size with _$Size {
     required String name,
     required double width,
     required double height,
+    required Status status,
+    required String direction,
   }) = _Size;
 
   factory Size.fromJson(Map<String, dynamic> json) => _$SizeFromJson(json);

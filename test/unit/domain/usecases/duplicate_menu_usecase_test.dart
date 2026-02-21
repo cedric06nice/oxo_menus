@@ -155,7 +155,14 @@ void main() {
         pageSize: PageSize(name: 'A4', width: 210, height: 297),
       );
       const menuTree = MenuTree(menu: sourceMenu, pages: []);
-      const matchingSize = Size(id: 5, name: 'A4', width: 210, height: 297);
+      const matchingSize = Size(
+        id: 5,
+        name: 'A4',
+        width: 210,
+        height: 297,
+        status: Status.published,
+        direction: 'portrait',
+      );
       const newMenu = Menu(
         id: 2,
         name: 'Summer Menu (copy)',
