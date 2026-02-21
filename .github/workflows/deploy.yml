@@ -52,6 +52,14 @@ jobs:
     environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from git tag
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0")
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "App version: $VERSION"
 
       - uses: subosito/flutter-action@v2
         with:
@@ -73,7 +81,7 @@ jobs:
           fi
 
       - name: Build web
-        run: flutter build web --release --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
+        run: flutter build web --release --build-name=${{ env.APP_VERSION }} --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
 
       - name: Set up QEMU (for ARM64 cross-build)
         uses: docker/setup-qemu-action@v3
@@ -152,6 +160,13 @@ jobs:
     needs: test
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Get version from git tag
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0")
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "App version: $VERSION"
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.41.0'
@@ -172,7 +187,7 @@ jobs:
 
       - run: flutter pub get
       - run: flutter pub run build_runner build --delete-conflicting-outputs
-      - run: flutter build apk --release --build-number=${{ github.run_number }} --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
+      - run: flutter build apk --release --build-name=${{ env.APP_VERSION }} --build-number=${{ github.run_number }} --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -193,6 +208,14 @@ jobs:
       ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version from git tag
+        run: |
+          VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0")
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "App version: $VERSION"
 
       - uses: subosito/flutter-action@v2
         with:
@@ -216,7 +239,7 @@ jobs:
 
       - run: flutter pub get
       - run: flutter pub run build_runner build --delete-conflicting-outputs
-      - run: flutter build ios --release --no-codesign --build-number=${{ github.run_number }} --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
+      - run: flutter build ios --release --no-codesign --build-name=${{ env.APP_VERSION }} --build-number=${{ github.run_number }} --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
 
       - name: Install CocoaPods dependencies
         run: bundle exec pod install
