@@ -1,8 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/presentation/helpers/status_helpers.dart';
 import 'package:oxo_menus/presentation/widgets/menu_list_item.dart';
+import 'package:oxo_menus/presentation/widgets/menu_status_indicator.dart';
 
 void main() {
   group('MenuListItem', () {
@@ -15,179 +18,211 @@ void main() {
       dateUpdated: DateTime.parse('2024-01-20T15:30:00Z'),
     );
 
-    testWidgets('should display menu name', (tester) async {
-      // Act
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(menu: testMenu, isAdmin: false, onTap: () {}),
+    Widget buildWidget({
+      Menu? menu,
+      bool isAdmin = false,
+      VoidCallback? onTap,
+      VoidCallback? onEdit,
+      VoidCallback? onDelete,
+      VoidCallback? onDuplicate,
+      TargetPlatform platform = TargetPlatform.android,
+    }) {
+      return MaterialApp(
+        theme: ThemeData(platform: platform),
+        home: Scaffold(
+          body: MenuListItem(
+            menu: menu ?? testMenu,
+            isAdmin: isAdmin,
+            onTap: onTap ?? () {},
+            onEdit: onEdit,
+            onDelete: onDelete,
+            onDuplicate: onDuplicate,
           ),
         ),
       );
+    }
 
-      // Assert
+    testWidgets('should display menu name', (tester) async {
+      await tester.pumpWidget(buildWidget());
+
       expect(find.text('Summer Menu'), findsOneWidget);
     });
 
-    testWidgets('should display menu status', (tester) async {
-      // Act — subtitle (status/version/date) is only shown for admin users
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(menu: testMenu, isAdmin: true, onTap: () {}),
-          ),
-        ),
-      );
+    testWidgets('should display menu status via MenuStatusIndicator', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildWidget());
 
-      // Assert — status is displayed in uppercase
+      expect(find.byType(MenuStatusIndicator), findsOneWidget);
       expect(find.text('PUBLISHED'), findsOneWidget);
     });
 
-    testWidgets('should display menu version', (tester) async {
-      // Act — subtitle is only shown for admin users
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(menu: testMenu, isAdmin: true, onTap: () {}),
-          ),
-        ),
-      );
+    testWidgets('should display version for admin', (tester) async {
+      await tester.pumpWidget(buildWidget(isAdmin: true));
 
-      // Assert
       expect(find.text('v1.0.0'), findsOneWidget);
     });
 
-    testWidgets('should display last updated date', (tester) async {
-      // Act — subtitle is only shown for admin users
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(menu: testMenu, isAdmin: true, onTap: () {}),
-          ),
-        ),
-      );
+    testWidgets('should display version for non-admin', (tester) async {
+      await tester.pumpWidget(buildWidget(isAdmin: false));
 
-      // Assert
+      expect(find.text('v1.0.0'), findsOneWidget);
+    });
+
+    testWidgets('should display last updated date for admin', (tester) async {
+      await tester.pumpWidget(buildWidget(isAdmin: true));
+
       expect(find.textContaining('Updated'), findsOneWidget);
     });
 
-    testWidgets('should call onTap when tapped', (tester) async {
-      // Arrange
+    testWidgets('should not display last updated date for non-admin', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildWidget(isAdmin: false));
+
+      expect(find.textContaining('Updated'), findsNothing);
+    });
+
+    testWidgets('should call onTap when tapped on Material', (tester) async {
       bool tapped = false;
 
-      // Act
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(
-              menu: testMenu,
-              isAdmin: false,
-              onTap: () => tapped = true,
-            ),
-          ),
+        buildWidget(
+          onTap: () => tapped = true,
+          platform: TargetPlatform.android,
         ),
       );
 
       await tester.tap(find.byType(MenuListItem));
       await tester.pumpAndSettle();
 
-      // Assert
       expect(tapped, true);
     });
 
-    testWidgets('should show delete icon for admin users', (tester) async {
-      // Act
+    testWidgets('should call onTap when tapped on Apple', (tester) async {
+      bool tapped = false;
+
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(
-              menu: testMenu,
-              isAdmin: true,
-              onTap: () {},
-              onDelete: () {},
-            ),
-          ),
+        buildWidget(onTap: () => tapped = true, platform: TargetPlatform.iOS),
+      );
+
+      await tester.tap(find.byType(MenuListItem));
+      await tester.pumpAndSettle();
+
+      expect(tapped, true);
+    });
+
+    testWidgets('should show delete icon for admin users on Material', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildWidget(
+          isAdmin: true,
+          onDelete: () {},
+          platform: TargetPlatform.android,
         ),
       );
 
-      // Assert
       expect(find.byIcon(Icons.delete), findsOneWidget);
+    });
+
+    testWidgets('should show delete icon for admin users on Apple', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildWidget(
+          isAdmin: true,
+          onDelete: () {},
+          platform: TargetPlatform.iOS,
+        ),
+      );
+
+      expect(find.byIcon(CupertinoIcons.delete), findsOneWidget);
     });
 
     testWidgets('should not show delete icon for regular users', (
       tester,
     ) async {
-      // Act
+      await tester.pumpWidget(buildWidget(isAdmin: false));
+
+      expect(find.byIcon(Icons.delete), findsNothing);
+      expect(find.byIcon(CupertinoIcons.delete), findsNothing);
+    });
+
+    testWidgets('should call onDelete when delete icon tapped on Material', (
+      tester,
+    ) async {
+      bool deleteTapped = false;
+
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(menu: testMenu, isAdmin: false, onTap: () {}),
-          ),
+        buildWidget(
+          isAdmin: true,
+          onDelete: () => deleteTapped = true,
+          platform: TargetPlatform.android,
         ),
       );
 
-      // Assert
+      await tester.tap(find.byIcon(Icons.delete));
+      await tester.pumpAndSettle();
+
+      expect(deleteTapped, true);
+    });
+
+    testWidgets('should show edit icon for admin on Material', (tester) async {
+      await tester.pumpWidget(
+        buildWidget(
+          isAdmin: true,
+          onEdit: () {},
+          platform: TargetPlatform.android,
+        ),
+      );
+
+      expect(find.byIcon(Icons.edit), findsOneWidget);
+    });
+
+    testWidgets('should show edit icon for admin on Apple', (tester) async {
+      await tester.pumpWidget(
+        buildWidget(isAdmin: true, onEdit: () {}, platform: TargetPlatform.iOS),
+      );
+
+      expect(find.byIcon(CupertinoIcons.pencil), findsOneWidget);
+    });
+
+    testWidgets('should show copy icon for admin on Material', (tester) async {
+      await tester.pumpWidget(
+        buildWidget(
+          isAdmin: true,
+          onDuplicate: () {},
+          platform: TargetPlatform.android,
+        ),
+      );
+
+      expect(find.byIcon(Icons.copy), findsOneWidget);
+    });
+
+    testWidgets('should show copy icon for admin on Apple', (tester) async {
+      await tester.pumpWidget(
+        buildWidget(
+          isAdmin: true,
+          onDuplicate: () {},
+          platform: TargetPlatform.iOS,
+        ),
+      );
+
+      expect(find.byIcon(CupertinoIcons.doc_on_doc), findsOneWidget);
+    });
+
+    testWidgets('should not show action icons for regular users', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildWidget(isAdmin: false));
+
+      expect(find.byIcon(Icons.edit), findsNothing);
+      expect(find.byIcon(Icons.copy), findsNothing);
       expect(find.byIcon(Icons.delete), findsNothing);
     });
 
-    testWidgets('should call onDelete when delete icon tapped', (tester) async {
-      // Arrange
-      bool deleteTapped = false;
-
-      // Act
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(
-              menu: testMenu,
-              isAdmin: true,
-              onTap: () {},
-              onDelete: () => deleteTapped = true,
-            ),
-          ),
-        ),
-      );
-
-      await tester.tap(find.byIcon(Icons.delete));
-      await tester.pumpAndSettle();
-
-      // Assert
-      expect(deleteTapped, true);
-    });
-
-    testWidgets('should not call onTap when delete icon tapped', (
-      tester,
-    ) async {
-      // Arrange
-      bool tapped = false;
-      bool deleteTapped = false;
-
-      // Act
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(
-              menu: testMenu,
-              isAdmin: true,
-              onTap: () => tapped = true,
-              onDelete: () => deleteTapped = true,
-            ),
-          ),
-        ),
-      );
-
-      await tester.tap(find.byIcon(Icons.delete));
-      await tester.pumpAndSettle();
-
-      // Assert
-      expect(deleteTapped, true);
-      expect(tapped, false); // onTap should not be called
-    });
-
-    testWidgets('should display draft status with different color', (
-      tester,
-    ) async {
-      // Arrange
+    testWidgets('should display draft status', (tester) async {
       const draftMenu = Menu(
         id: 2,
         name: 'Draft Menu',
@@ -195,27 +230,13 @@ void main() {
         version: '1.0.0',
       );
 
-      // Act
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(menu: draftMenu, isAdmin: true, onTap: () {}),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildWidget(menu: draftMenu, isAdmin: true));
 
-      // Assert — status is displayed in uppercase
       expect(find.text('DRAFT'), findsOneWidget);
-
-      // Find the chip widget and verify it has a different color
-      final chipFinder = find.byType(Chip);
-      expect(chipFinder, findsOneWidget);
+      expect(find.byType(MenuStatusIndicator), findsOneWidget);
     });
 
-    testWidgets('should display archived status with different color', (
-      tester,
-    ) async {
-      // Arrange
+    testWidgets('should display archived status', (tester) async {
       const archivedMenu = Menu(
         id: 3,
         name: 'Archived Menu',
@@ -223,21 +244,12 @@ void main() {
         version: '1.0.0',
       );
 
-      // Act
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(menu: archivedMenu, isAdmin: true, onTap: () {}),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildWidget(menu: archivedMenu, isAdmin: true));
 
-      // Assert — status is displayed in uppercase
       expect(find.text('ARCHIVED'), findsOneWidget);
     });
 
     testWidgets('should handle menu without dates gracefully', (tester) async {
-      // Arrange
       const menuWithoutDates = Menu(
         id: 4,
         name: 'Menu Without Dates',
@@ -245,49 +257,69 @@ void main() {
         version: '1.0.0',
       );
 
-      // Act
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(
-              menu: menuWithoutDates,
-              isAdmin: false,
-              onTap: () {},
-            ),
-          ),
-        ),
+        buildWidget(menu: menuWithoutDates, isAdmin: false),
       );
 
-      // Assert - should still render without crashing
       expect(find.text('Menu Without Dates'), findsOneWidget);
     });
 
     testWidgets('should be wrapped in Card widget', (tester) async {
-      // Act
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: MenuListItem(menu: testMenu, isAdmin: false, onTap: () {}),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildWidget());
 
-      // Assert
       expect(find.byType(Card), findsOneWidget);
     });
 
-    testWidgets('should use ListTile for layout', (tester) async {
-      // Act
+    testWidgets('should have status header with container color', (
+      tester,
+    ) async {
+      final colorScheme = ColorScheme.fromSeed(seedColor: Colors.purple);
+
       await tester.pumpWidget(
         MaterialApp(
+          theme: ThemeData(colorScheme: colorScheme),
           home: Scaffold(
             body: MenuListItem(menu: testMenu, isAdmin: false, onTap: () {}),
           ),
         ),
       );
 
-      // Assert
-      expect(find.byType(ListTile), findsOneWidget);
+      final expectedColor = statusContainerColor(Status.published, colorScheme);
+
+      // Find the status header container by its background color
+      final containerFinder = find.byWidgetPredicate(
+        (widget) => widget is Container && widget.color == expectedColor,
+      );
+      expect(containerFinder, findsOneWidget);
+    });
+
+    testWidgets('should show divider for admin only', (tester) async {
+      await tester.pumpWidget(buildWidget(isAdmin: true, onDelete: () {}));
+      expect(find.byType(Divider), findsOneWidget);
+    });
+
+    testWidgets('should not show divider for non-admin', (tester) async {
+      await tester.pumpWidget(buildWidget(isAdmin: false));
+      expect(find.byType(Divider), findsNothing);
+    });
+
+    testWidgets('uses InkWell on Material platform', (tester) async {
+      await tester.pumpWidget(buildWidget(platform: TargetPlatform.android));
+
+      expect(find.byType(InkWell), findsOneWidget);
+    });
+
+    testWidgets('uses CupertinoButton on Apple platform', (tester) async {
+      await tester.pumpWidget(buildWidget(platform: TargetPlatform.iOS));
+
+      // CupertinoButton wrapping the card for tap
+      expect(
+        find.ancestor(
+          of: find.byType(Card),
+          matching: find.byType(CupertinoButton),
+        ),
+        findsOneWidget,
+      );
     });
   });
 }

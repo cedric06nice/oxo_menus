@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -56,7 +57,10 @@ void main() {
     registerFallbackValue(Uri());
   });
 
-  Widget createWidgetUnderTest({bool isAdmin = false}) {
+  Widget createWidgetUnderTest({
+    bool isAdmin = false,
+    TargetPlatform platform = TargetPlatform.android,
+  }) {
     final mockUser = User(
       id: 'user-1',
       email: 'test@example.com',
@@ -76,6 +80,7 @@ void main() {
         currentUserProvider.overrideWithValue(mockUser),
       ],
       child: MaterialApp(
+        theme: ThemeData(platform: platform),
         home: InheritedGoRouter(
           goRouter: mockRouter,
           child: const MenuListPage(),
@@ -85,8 +90,9 @@ void main() {
   }
 
   group('MenuListPage - Initial State', () {
-    testWidgets('should show loading indicator initially', (tester) async {
-      // Arrange
+    testWidgets('should show loading indicator initially on Material', (
+      tester,
+    ) async {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
@@ -98,88 +104,159 @@ void main() {
         ),
       );
 
-      // Act
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pump(); // Let the widget initialize and trigger loadMenus
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.android),
+      );
+      await tester.pump();
 
-      // Assert - should show loading indicator before data loads
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-      // Clean up - let the future complete
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('should show CupertinoActivityIndicator on Apple', (
+      tester,
+    ) async {
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer(
+        (_) async => Future.delayed(
+          const Duration(milliseconds: 100),
+          () => const Success([]),
+        ),
+      );
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pump();
+
+      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+
       await tester.pumpAndSettle();
     });
 
     testWidgets('should have app bar with title', (tester) async {
-      // Arrange
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
-      // Act
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Assert
       expect(find.widgetWithText(AppBar, 'Menus'), findsOneWidget);
     });
 
-    testWidgets('should show add button for admin users', (tester) async {
-      // Arrange
+    testWidgets('should show Material add button for admin on Android', (
+      tester,
+    ) async {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
-      // Act
-      await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
+      await tester.pumpWidget(
+        createWidgetUnderTest(isAdmin: true, platform: TargetPlatform.android),
+      );
       await tester.pumpAndSettle();
 
-      // Assert
       expect(find.byIcon(Icons.add), findsOneWidget);
     });
 
-    testWidgets('should not show add button for regular users', (tester) async {
-      // Arrange
+    testWidgets('should show Cupertino add button for admin on iOS', (
+      tester,
+    ) async {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
-      // Act
+      await tester.pumpWidget(
+        createWidgetUnderTest(isAdmin: true, platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(CupertinoIcons.add), findsOneWidget);
+    });
+
+    testWidgets('should not show add button for regular users', (tester) async {
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Success([]));
+
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: false));
       await tester.pumpAndSettle();
 
-      // Assert
       expect(find.byIcon(Icons.add), findsNothing);
+      expect(find.byIcon(CupertinoIcons.add), findsNothing);
     });
   });
 
   group('MenuListPage - Empty State', () {
-    testWidgets('should show empty message when no menus', (tester) async {
-      // Arrange
+    testWidgets('should show themed empty state with icon on Material', (
+      tester,
+    ) async {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
-      // Act
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.android),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.restaurant_menu), findsOneWidget);
+      expect(find.text('No menus found'), findsOneWidget);
+      expect(
+        find.text('Browse available menus or check back later'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('should show themed empty state with icon on Apple', (
+      tester,
+    ) async {
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Success([]));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(CupertinoIcons.doc_text), findsOneWidget);
+      expect(find.text('No menus found'), findsOneWidget);
+    });
+
+    testWidgets('should not show GridView when empty', (tester) async {
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Success([]));
+
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.text('No menus found'), findsOneWidget);
-      expect(find.byType(ListView), findsNothing);
+      expect(find.byType(GridView), findsNothing);
     });
   });
 
   group('MenuListPage - Menu List Display', () {
-    testWidgets('should display list of menus', (tester) async {
-      // Arrange
+    testWidgets('should display menus in a GridView', (tester) async {
       final menus = [
         const Menu(
           id: 1,
@@ -201,63 +278,102 @@ void main() {
         ),
       ).thenAnswer((_) async => Success(menus));
 
-      // Act
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Assert
       expect(find.text('Summer Menu'), findsOneWidget);
       expect(find.text('Winter Menu'), findsOneWidget);
-      expect(find.byType(ListView), findsOneWidget);
+      expect(find.byType(GridView), findsOneWidget);
     });
 
     testWidgets('should load only published menus for regular users', (
       tester,
     ) async {
-      // Arrange
       when(
         () => mockMenuRepository.listAll(onlyPublished: true),
       ).thenAnswer((_) async => const Success([]));
 
-      // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: false));
       await tester.pumpAndSettle();
 
-      // Assert
       verify(() => mockMenuRepository.listAll(onlyPublished: true)).called(1);
     });
 
     testWidgets('should load all menus for admin users', (tester) async {
-      // Arrange
       when(
         () => mockMenuRepository.listAll(onlyPublished: false),
       ).thenAnswer((_) async => const Success([]));
 
-      // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
       await tester.pumpAndSettle();
 
-      // Assert
       verify(() => mockMenuRepository.listAll(onlyPublished: false)).called(1);
     });
   });
 
   group('MenuListPage - Error Handling', () {
-    testWidgets('should show error message when loading fails', (tester) async {
-      // Arrange
+    testWidgets('should show themed error state with retry on Material', (
+      tester,
+    ) async {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
         ),
       ).thenAnswer((_) async => const Failure(NetworkError('Network error')));
 
-      // Act
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.android),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.text('Error: Network error'), findsOneWidget);
+      expect(find.byType(FilledButton), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+    });
+
+    testWidgets('should show themed error state with retry on Apple', (
+      tester,
+    ) async {
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Failure(NetworkError('Network error')));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byIcon(CupertinoIcons.exclamationmark_triangle),
+        findsOneWidget,
+      );
+      expect(find.text('Error: Network error'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+    });
+
+    testWidgets('should retry on button press', (tester) async {
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Failure(NetworkError('Network error')));
+
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.text('Error: Network error'), findsOneWidget);
-      expect(find.byType(ListView), findsNothing);
+      // Tap retry
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+
+      // loadMenus called initially + retry = 2
+      verify(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).called(2);
     });
   });
 
@@ -265,7 +381,6 @@ void main() {
     testWidgets('should navigate to menu editor when menu is tapped', (
       tester,
     ) async {
-      // Arrange
       final menus = [
         const Menu(
           id: 123,
@@ -282,42 +397,37 @@ void main() {
       ).thenAnswer((_) async => Success(menus));
       when(() => mockRouter.push(any())).thenAnswer((_) async => null);
 
-      // Act
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Summer Menu'));
       await tester.pumpAndSettle();
 
-      // Assert
       verify(() => mockRouter.push('/menus/123')).called(1);
     });
 
     testWidgets('should open create template dialog when add button tapped', (
       tester,
     ) async {
-      // Arrange
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
-      // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.add));
       await tester.pumpAndSettle();
 
-      // Assert — TemplateCreateDialog should be shown
+      // TemplateCreateDialog should be shown
       expect(find.text('Create Template'), findsOneWidget);
     });
   });
 
   group('MenuListPage - Delete Menu (Admin)', () {
     testWidgets('should show delete button for admin users', (tester) async {
-      // Arrange
       final menus = [
         const Menu(
           id: 1,
@@ -333,18 +443,15 @@ void main() {
         ),
       ).thenAnswer((_) async => Success(menus));
 
-      // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
       await tester.pumpAndSettle();
 
-      // Assert
       expect(find.byIcon(Icons.delete), findsOneWidget);
     });
 
     testWidgets('should not show delete button for regular users', (
       tester,
     ) async {
-      // Arrange
       final menus = [
         const Menu(
           id: 1,
@@ -360,53 +467,82 @@ void main() {
         ),
       ).thenAnswer((_) async => Success(menus));
 
-      // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: false));
       await tester.pumpAndSettle();
 
-      // Assert
       expect(find.byIcon(Icons.delete), findsNothing);
     });
 
-    testWidgets('should show confirmation dialog when delete is tapped', (
-      tester,
-    ) async {
-      // Arrange
-      final menus = [
-        const Menu(
-          id: 1,
-          name: 'Summer Menu',
-          status: Status.published,
-          version: '1.0.0',
-        ),
-      ];
+    testWidgets(
+      'should show AlertDialog confirmation on Material when delete tapped',
+      (tester) async {
+        final menus = [
+          const Menu(
+            id: 1,
+            name: 'Summer Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+        ];
 
-      when(
-        () => mockMenuRepository.listAll(
-          onlyPublished: any(named: 'onlyPublished'),
-        ),
-      ).thenAnswer((_) async => Success(menus));
+        when(
+          () => mockMenuRepository.listAll(
+            onlyPublished: any(named: 'onlyPublished'),
+          ),
+        ).thenAnswer((_) async => Success(menus));
 
-      // Act
-      await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          createWidgetUnderTest(
+            isAdmin: true,
+            platform: TargetPlatform.android,
+          ),
+        );
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.delete));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.delete));
+        await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.text('Delete Menu'), findsOneWidget);
-      expect(
-        find.text('Are you sure you want to delete "Summer Menu"?'),
-        findsOneWidget,
-      );
-      expect(find.text('Cancel'), findsOneWidget);
-      expect(find.text('Delete'), findsOneWidget);
-    });
+        expect(find.byType(AlertDialog), findsOneWidget);
+        expect(find.text('Delete Menu'), findsOneWidget);
+        expect(
+          find.text('Are you sure you want to delete "Summer Menu"?'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'should show CupertinoAlertDialog on Apple when delete tapped',
+      (tester) async {
+        final menus = [
+          const Menu(
+            id: 1,
+            name: 'Summer Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+        ];
+
+        when(
+          () => mockMenuRepository.listAll(
+            onlyPublished: any(named: 'onlyPublished'),
+          ),
+        ).thenAnswer((_) async => Success(menus));
+
+        await tester.pumpWidget(
+          createWidgetUnderTest(isAdmin: true, platform: TargetPlatform.iOS),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byIcon(CupertinoIcons.delete));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(CupertinoAlertDialog), findsOneWidget);
+        expect(find.text('Delete Menu'), findsOneWidget);
+      },
+    );
 
     testWidgets('should delete menu when confirmed', (tester) async {
-      // Arrange
       final menus = [
         const Menu(
           id: 1,
@@ -425,7 +561,6 @@ void main() {
         () => mockMenuRepository.delete(1),
       ).thenAnswer((_) async => const Success(null));
 
-      // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
       await tester.pumpAndSettle();
 
@@ -435,16 +570,11 @@ void main() {
       await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();
 
-      // Assert
       verify(() => mockMenuRepository.delete(1)).called(1);
-      expect(
-        find.text('Summer Menu'),
-        findsNothing,
-      ); // Menu should be removed from list
+      expect(find.text('Summer Menu'), findsNothing);
     });
 
     testWidgets('should not delete menu when cancelled', (tester) async {
-      // Arrange
       final menus = [
         const Menu(
           id: 1,
@@ -460,7 +590,6 @@ void main() {
         ),
       ).thenAnswer((_) async => Success(menus));
 
-      // Act
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
       await tester.pumpAndSettle();
 
@@ -470,18 +599,13 @@ void main() {
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
 
-      // Assert
       verifyNever(() => mockMenuRepository.delete(any()));
-      expect(
-        find.text('Summer Menu'),
-        findsOneWidget,
-      ); // Menu should still be there
+      expect(find.text('Summer Menu'), findsOneWidget);
     });
   });
 
   group('MenuListPage - Pull to Refresh', () {
     testWidgets('should support pull to refresh', (tester) async {
-      // Arrange
       final menus = [
         const Menu(
           id: 1,
@@ -497,16 +621,134 @@ void main() {
         ),
       ).thenAnswer((_) async => Success(menus));
 
-      // Act
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Perform pull to refresh gesture on the scrollable content
-      await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
+      // Perform pull to refresh on the scrollable content
+      await tester.fling(
+        find.byType(SingleChildScrollView),
+        const Offset(0, 300),
+        1000,
+      );
       await tester.pumpAndSettle();
 
-      // Assert - loadMenus should be called twice (initial + refresh)
+      // loadMenus called twice (initial + refresh)
       verify(() => mockMenuRepository.listAll(onlyPublished: true)).called(2);
     });
+  });
+
+  group('MenuListPage - Status Filters', () {
+    testWidgets('should show status filter chips for admin', (tester) async {
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Success([]));
+
+      await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ChoiceChip), findsNWidgets(4));
+      expect(find.text('All'), findsOneWidget);
+      expect(find.text('Draft'), findsOneWidget);
+      expect(find.text('Published'), findsOneWidget);
+      expect(find.text('Archived'), findsOneWidget);
+    });
+
+    testWidgets('should not show status filter chips for regular users', (
+      tester,
+    ) async {
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => const Success([]));
+
+      await tester.pumpWidget(createWidgetUnderTest(isAdmin: false));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ChoiceChip), findsNothing);
+    });
+
+    testWidgets('should filter menus by status when chip is tapped', (
+      tester,
+    ) async {
+      final menus = [
+        const Menu(
+          id: 1,
+          name: 'Published Menu',
+          status: Status.published,
+          version: '1.0.0',
+        ),
+        const Menu(
+          id: 2,
+          name: 'Draft Menu',
+          status: Status.draft,
+          version: '1.0.0',
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
+
+      await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
+      await tester.pumpAndSettle();
+
+      // Both menus shown initially
+      expect(find.text('Published Menu'), findsOneWidget);
+      expect(find.text('Draft Menu'), findsOneWidget);
+
+      // Tap 'Draft' chip to filter
+      await tester.tap(find.text('Draft'));
+      await tester.pumpAndSettle();
+
+      // Only draft menu shown
+      expect(find.text('Draft Menu'), findsOneWidget);
+      expect(find.text('Published Menu'), findsNothing);
+    });
+
+    testWidgets(
+      'should show all menus when All chip is tapped after filtering',
+      (tester) async {
+        final menus = [
+          const Menu(
+            id: 1,
+            name: 'Published Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          const Menu(
+            id: 2,
+            name: 'Draft Menu',
+            status: Status.draft,
+            version: '1.0.0',
+          ),
+        ];
+
+        when(
+          () => mockMenuRepository.listAll(
+            onlyPublished: any(named: 'onlyPublished'),
+          ),
+        ).thenAnswer((_) async => Success(menus));
+
+        await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
+        await tester.pumpAndSettle();
+
+        // Filter to Draft
+        await tester.tap(find.text('Draft'));
+        await tester.pumpAndSettle();
+        expect(find.text('Published Menu'), findsNothing);
+
+        // Tap All to reset
+        await tester.tap(find.text('All'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Published Menu'), findsOneWidget);
+        expect(find.text('Draft Menu'), findsOneWidget);
+      },
+    );
   });
 }

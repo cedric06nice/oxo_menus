@@ -1,12 +1,14 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
-import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/presentation/helpers/status_helpers.dart';
+import 'package:oxo_menus/presentation/widgets/menu_status_indicator.dart';
 
 /// Menu list item widget
 ///
-/// Displays a menu in a list with its name, status, version, and last updated date.
-/// Admin users can see a delete button to remove the menu.
+/// Displays a menu in a rich card with status header, name, version,
+/// optional date, and platform-adaptive action buttons for admins.
 class MenuListItem extends StatelessWidget {
   final Menu menu;
   final bool isAdmin;
@@ -25,91 +27,143 @@ class MenuListItem extends StatelessWidget {
     this.onDuplicate,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
-      child: ListTile(
-        onTap: onTap,
-        title: Text(
-          menu.name,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        subtitle: isAdmin
-            ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      _buildStatusChip(context),
-                      const SizedBox(width: 8),
-                      Text(
-                        'v${menu.version}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                  if (menu.dateUpdated != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      'Updated ${_formatDate(menu.dateUpdated!)}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
-                  ],
-                ],
-              )
-            : null,
-        trailing: isAdmin && onDelete != null
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: onEdit,
-                    tooltip: 'Edit menu',
-                  ),
-                  if (onDuplicate != null)
-                    IconButton(
-                      icon: const Icon(Icons.copy),
-                      onPressed: onDuplicate,
-                      tooltip: 'Duplicate menu',
-                    ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: onDelete,
-                    tooltip: 'Delete menu',
-                  ),
-                ],
-              )
-            : null,
-      ),
-    );
+  bool _isApple(BuildContext context) {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
   }
 
-  Widget _buildStatusChip(BuildContext context) {
-    Color chipColor;
-    switch (menu.status) {
-      case Status.published:
-        chipColor = Colors.green;
-        break;
-      case Status.draft:
-        chipColor = Colors.orange;
-        break;
-      case Status.archived:
-        chipColor = Colors.grey;
-        break;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isApple = _isApple(context);
+    final containerColor = statusContainerColor(menu.status, colorScheme);
+
+    final cardContent = Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Status header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            color: containerColor,
+            child: MenuStatusIndicator(status: menu.status),
+          ),
+          // Body
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  menu.name,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'v${menu.version}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                if (isAdmin && menu.dateUpdated != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'Updated ${_formatDate(menu.dateUpdated!)}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          // Action row (admin only)
+          if (isAdmin) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: isApple
+                    ? _buildAppleActions(colorScheme)
+                    : _buildMaterialActions(colorScheme),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+
+    if (isApple) {
+      return CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: onTap,
+        child: cardContent,
+      );
     }
 
-    return Chip(
-      label: Text(
-        menu.status.name.toUpperCase(),
-        style: const TextStyle(fontSize: 12, color: Colors.white),
-      ),
-      backgroundColor: chipColor,
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-      visualDensity: VisualDensity.compact,
-    );
+    return InkWell(onTap: onTap, child: cardContent);
+  }
+
+  List<Widget> _buildMaterialActions(ColorScheme colorScheme) {
+    return [
+      if (onEdit != null)
+        IconButton(
+          icon: const Icon(Icons.edit),
+          onPressed: onEdit,
+          tooltip: 'Edit menu',
+          iconSize: 20,
+        ),
+      if (onDuplicate != null)
+        IconButton(
+          icon: const Icon(Icons.copy),
+          onPressed: onDuplicate,
+          tooltip: 'Duplicate menu',
+          iconSize: 20,
+        ),
+      if (onDelete != null)
+        IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: onDelete,
+          tooltip: 'Delete menu',
+          iconSize: 20,
+          color: colorScheme.error,
+        ),
+    ];
+  }
+
+  List<Widget> _buildAppleActions(ColorScheme colorScheme) {
+    return [
+      if (onEdit != null)
+        CupertinoButton(
+          padding: const EdgeInsets.all(8),
+          onPressed: onEdit,
+          child: const Icon(CupertinoIcons.pencil, size: 20),
+        ),
+      if (onDuplicate != null)
+        CupertinoButton(
+          padding: const EdgeInsets.all(8),
+          onPressed: onDuplicate,
+          child: const Icon(CupertinoIcons.doc_on_doc, size: 20),
+        ),
+      if (onDelete != null)
+        CupertinoButton(
+          padding: const EdgeInsets.all(8),
+          onPressed: onDelete,
+          child: Icon(
+            CupertinoIcons.delete,
+            size: 20,
+            color: colorScheme.error,
+          ),
+        ),
+    ];
   }
 
   String _formatDate(DateTime date) {
