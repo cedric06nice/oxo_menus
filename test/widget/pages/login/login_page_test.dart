@@ -563,6 +563,50 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('should disable autocorrect on email field on iOS', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      final cupertinoField = tester.widget<CupertinoTextField>(
+        find.descendant(
+          of: find.byKey(const Key('email_field')),
+          matching: find.byType(CupertinoTextField),
+        ),
+      );
+
+      expect(cupertinoField.autocorrect, isFalse);
+    });
+
+    testWidgets('should disable autocorrect on password field on iOS', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      final cupertinoField = tester.widget<CupertinoTextField>(
+        find.descendant(
+          of: find.byKey(const Key('password_field')),
+          matching: find.byType(CupertinoTextField),
+        ),
+      );
+
+      expect(cupertinoField.autocorrect, isFalse);
+    });
+
     testWidgets('should hide password text on iOS', (tester) async {
       when(
         () => mockAuthRepository.tryRestoreSession(),
@@ -731,6 +775,72 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+  });
+
+  group('LoginPage macOS', () {
+    testWidgets('should use CupertinoTextField for email on macOS', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.macOS),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('email_field')),
+          matching: find.byType(CupertinoTextField),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('should use CupertinoButton for login on macOS', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.macOS),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('login_button')),
+          matching: find.byType(CupertinoButton),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('should disable autocorrect on email field on macOS', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.macOS),
+      );
+      await tester.pumpAndSettle();
+
+      final cupertinoField = tester.widget<CupertinoTextField>(
+        find.descendant(
+          of: find.byKey(const Key('email_field')),
+          matching: find.byType(CupertinoTextField),
+        ),
+      );
+
+      expect(cupertinoField.autocorrect, isFalse);
     });
   });
 }

@@ -20,9 +20,9 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/printing/macos
 
 SPEC CHECKSUMS:
-  flutter_secure_storage_darwin: 557817588b80e60213cbecb573c45c76b788018d
+  flutter_secure_storage_darwin: acdb3f316ed05a3e68f856e0353b133eec373a23
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  printing: 1dd6a1fce2209ec240698e2439a4adbb9b427637
+  printing: c4cf83c78fd684f9bc318e6aadc18972aa48f617
 
 PODFILE CHECKSUM: 54d867c82ac51cbd61b565781b9fada492027009
 

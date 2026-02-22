@@ -16,7 +16,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   String? _emailError;
   String? _passwordError;
 
-  bool get _isIOS => Theme.of(context).platform == TargetPlatform.iOS;
+  bool get _isApple {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
 
   @override
   void dispose() {
@@ -53,7 +56,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildEmailField() {
-    if (_isIOS) {
+    if (_isApple) {
       return Column(
         key: const Key('email_field'),
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,6 +70,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ),
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
+            autocorrect: false,
             autofillHints: const [AutofillHints.email],
           ),
           if (_emailError != null)
@@ -92,7 +96,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildPasswordField() {
-    if (_isIOS) {
+    if (_isApple) {
       return Column(
         key: const Key('password_field'),
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,6 +109,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               child: Icon(CupertinoIcons.lock),
             ),
             obscureText: true,
+            autocorrect: false,
+            enableSuggestions: false,
             textInputAction: TextInputAction.done,
             onSubmitted: (_) => _handleLogin(),
             autofillHints: const [AutofillHints.password],
@@ -138,7 +144,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       orElse: () => false,
     );
 
-    if (_isIOS) {
+    if (_isApple) {
       return SizedBox(
         key: const Key('login_button'),
         width: double.infinity,

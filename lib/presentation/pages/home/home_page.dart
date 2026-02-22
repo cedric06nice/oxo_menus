@@ -1,136 +1,78 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oxo_menus/domain/entities/user.dart';
+import 'package:oxo_menus/presentation/pages/home/home_helpers.dart';
+import 'package:oxo_menus/presentation/pages/home/widgets/quick_action_card.dart';
+import 'package:oxo_menus/presentation/pages/home/widgets/welcome_card.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 
-/// Home page with welcome message and quick action cards
-///
-/// Features:
-/// - Welcome message with user's first name
-/// - Role badge (Admin/User)
 class HomePage extends ConsumerWidget {
-  const HomePage({super.key});
+  final DateTime? now;
+
+  const HomePage({super.key, this.now});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final isAdmin = ref.watch(isAdminProvider);
+    final theme = Theme.of(context);
+    final name = user?.firstName ?? user?.email.split('@')[0] ?? 'User';
+    final greeting = buildGreeting(name, now ?? DateTime.now());
 
     return AuthenticatedScaffold(
       title: 'Home',
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildWelcomeSection(user),
-            const SizedBox(height: 24),
-            _buildQuickActions(context, isAdmin),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWelcomeSection(User? user) {
-    final name = user?.firstName ?? user?.email.split('@')[0] ?? 'User';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Welcome back, $name!',
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        Chip(
-          label: Text(user?.role == UserRole.admin ? 'Admin' : 'User'),
-          avatar: Icon(
-            user?.role == UserRole.admin
-                ? Icons.admin_panel_settings
-                : Icons.person,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuickActions(BuildContext context, bool isAdmin) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Quick Actions',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          children: [
-            _QuickActionCard(
-              icon: Icons.restaurant_menu,
-              title: 'OXO Menus',
-              onTap: () => context.push('/menus'),
-            ),
-            // _QuickActionCard(
-            //   icon: Icons.restaurant_menu,
-            //   title: isAdmin ? 'Manage Templates' : 'Browse Templates',
-            //   onTap: () => context.push(
-            //     isAdmin ? '/admin/templates' : '/admin/templates',
-            //   ),
-            // ),
-            // if (isAdmin) ...[
-            //   _QuickActionCard(
-            //     icon: Icons.add_box,
-            //     title: 'Create Template',
-            //     onTap: () => context.push('/admin/templates/create'),
-            //   ),
-            // ],
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _QuickActionCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-
-  const _QuickActionCard({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 48, color: Theme.of(context).primaryColor),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  WelcomeCard(user: user, isAdmin: isAdmin, greeting: greeting),
+                  const SizedBox(height: 24),
+                  Text('Quick Actions', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 16),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final columns = computeGridColumns(constraints.maxWidth);
+                      return GridView.count(
+                        crossAxisCount: columns,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        children: [
+                          QuickActionCard(
+                            icon: Icons.restaurant_menu,
+                            title: 'OXO Menus',
+                            subtitle: 'Browse and manage menus',
+                            onTap: () => context.push('/menus'),
+                          ),
+                          if (isAdmin)
+                            QuickActionCard(
+                              icon: Icons.dashboard,
+                              title: 'Manage Templates',
+                              subtitle: 'Edit and organise templates',
+                              onTap: () => context.push('/admin/templates'),
+                            ),
+                          if (isAdmin)
+                            QuickActionCard(
+                              icon: Icons.add_box,
+                              title: 'Create Template',
+                              subtitle: 'Start a new template',
+                              onTap: () =>
+                                  context.push('/admin/templates/create'),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
