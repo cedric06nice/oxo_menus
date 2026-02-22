@@ -45,6 +45,11 @@ class SecureTokenStorage {
     return accessToken != null && refreshToken != null;
   }
 
+  /// Store only the refresh token (used by DirectusApiManager save callback)
+  Future<void> saveRefreshToken(String refreshToken) async {
+    await _storage.write(key: _refreshTokenKey, value: refreshToken);
+  }
+
   /// Clear all stored tokens
   Future<void> clearTokens() async {
     await Future.wait([

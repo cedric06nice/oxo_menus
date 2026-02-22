@@ -14,17 +14,49 @@ import 'package:oxo_menus/data/datasources/secure_token_storage.dart';
 class DirectusDataSource {
   final DirectusApiManager _apiManager;
   final SecureTokenStorage _tokenStorage;
+  final http.Client _httpClient;
   final String _baseUrl;
 
   // Internal token state for restored sessions
   String? _restoredAccessToken;
 
-  DirectusDataSource({
+  DirectusDataSource._({
+    required DirectusApiManager apiManager,
+    required SecureTokenStorage tokenStorage,
+    required http.Client httpClient,
+    required String baseUrl,
+  }) : _apiManager = apiManager,
+       _tokenStorage = tokenStorage,
+       _httpClient = httpClient,
+       _baseUrl = baseUrl;
+
+  factory DirectusDataSource({
     required String baseUrl,
     SecureTokenStorage? tokenStorage,
-  }) : _apiManager = DirectusApiManager(baseURL: baseUrl),
-       _tokenStorage = tokenStorage ?? SecureTokenStorage(),
-       _baseUrl = baseUrl;
+    DirectusApiManager? apiManager,
+    http.Client? httpClient,
+  }) {
+    final storage = tokenStorage ?? SecureTokenStorage();
+    final client = httpClient ?? http.Client();
+    final manager =
+        apiManager ??
+        DirectusApiManager(
+          baseURL: baseUrl,
+          httpClient: client,
+          saveRefreshTokenCallback: (token) async {
+            if (token.isNotEmpty) {
+              await storage.saveRefreshToken(token);
+            }
+          },
+          loadRefreshTokenCallback: () => storage.getRefreshToken(),
+        );
+    return DirectusDataSource._(
+      apiManager: manager,
+      tokenStorage: storage,
+      httpClient: client,
+      baseUrl: baseUrl,
+    );
+  }
 
   /// Get the current access token (from api manager or restored session)
   String? get _currentAccessToken =>
@@ -111,7 +143,7 @@ class DirectusDataSource {
       );
     }
 
-    final response = await http.post(
+    final response = await _httpClient.post(
       Uri.parse('$_baseUrl/auth/refresh'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'refresh_token': refreshToken, 'mode': 'json'}),
@@ -129,6 +161,7 @@ class DirectusDataSource {
           refreshToken: newRefreshToken,
         );
         _restoredAccessToken = newAccessToken;
+        _apiManager.refreshToken = newRefreshToken;
         return;
       }
     }
@@ -184,7 +217,7 @@ class DirectusDataSource {
       '$_baseUrl/users/me?fields=id,email,first_name,last_name,avatar,role.name',
     );
 
-    final response = await http.get(
+    final response = await _httpClient.get(
       url,
       headers: {'Authorization': 'Bearer $accessToken'},
     );
@@ -321,7 +354,7 @@ class DirectusDataSource {
       http.MultipartFile.fromBytes('file', bytes, filename: filename),
     );
 
-    final streamedResponse = await request.send();
+    final streamedResponse = await _httpClient.send(request);
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -392,7 +425,7 @@ class DirectusDataSource {
       );
     }
 
-    final response = await http.get(
+    final response = await _httpClient.get(
       Uri.parse('$_baseUrl/assets/$fileId'),
       headers: {'Authorization': 'Bearer $accessToken'},
     );
