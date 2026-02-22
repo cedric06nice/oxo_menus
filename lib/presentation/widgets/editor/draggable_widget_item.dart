@@ -32,6 +32,8 @@ class DraggableWidgetItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (isLocked) {
       return Container(
         key: Key('template_widget_${widgetInstance.id}'),
@@ -42,7 +44,11 @@ class DraggableWidgetItem extends StatelessWidget {
             Positioned(
               top: 4,
               right: 4,
-              child: Icon(Icons.lock, size: 16, color: Colors.grey[500]),
+              child: Icon(
+                Icons.lock,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -69,9 +75,9 @@ class DraggableWidgetItem extends StatelessWidget {
           width: 200,
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.blue, width: 2),
+            border: Border.all(color: theme.colorScheme.primary, width: 2),
           ),
           child: Text(
             widgetInstance.type.toUpperCase(),
@@ -94,10 +100,10 @@ class DraggableWidgetItem extends StatelessWidget {
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 16),
           decoration: BoxDecoration(
-            color: Colors.red,
+            color: theme.colorScheme.error,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Icon(Icons.delete, color: Colors.white),
+          child: Icon(Icons.delete, color: theme.colorScheme.onError),
         ),
         child: widgetContent,
       ),

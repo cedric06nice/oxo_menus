@@ -314,6 +314,101 @@ void main() {
       });
     });
 
+    testWidgets('palette item has 12px border radius', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: WidgetPalette(registry: registry)),
+        ),
+      );
+
+      final container = tester.widget<Container>(
+        find.byKey(const Key('palette_item_dish')),
+      );
+      final decoration = container.decoration as BoxDecoration;
+      expect(decoration.borderRadius, BorderRadius.circular(12));
+    });
+
+    testWidgets('palette item uses theme surface color', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: WidgetPalette(registry: registry)),
+        ),
+      );
+
+      final container = tester.widget<Container>(
+        find.byKey(const Key('palette_item_dish')),
+      );
+      final decoration = container.decoration as BoxDecoration;
+      // Should use theme.colorScheme.surface instead of hardcoded Colors.white
+      final theme = Theme.of(
+        tester.element(find.byKey(const Key('palette_item_dish'))),
+      );
+      expect(decoration.color, theme.colorScheme.surface);
+    });
+
+    testWidgets('palette item border uses theme outlineVariant', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: WidgetPalette(registry: registry)),
+        ),
+      );
+
+      final container = tester.widget<Container>(
+        find.byKey(const Key('palette_item_dish')),
+      );
+      final decoration = container.decoration as BoxDecoration;
+      final theme = Theme.of(
+        tester.element(find.byKey(const Key('palette_item_dish'))),
+      );
+      expect(
+        decoration.border,
+        Border.all(color: theme.colorScheme.outlineVariant),
+      );
+    });
+
+    testWidgets('icon uses theme onSurfaceVariant color', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: WidgetPalette(registry: registry)),
+        ),
+      );
+
+      final icon = tester.widget<Icon>(find.byIcon(Icons.restaurant_menu));
+      final theme = Theme.of(
+        tester.element(find.byIcon(Icons.restaurant_menu)),
+      );
+      expect(icon.color, theme.colorScheme.onSurfaceVariant);
+    });
+
+    testWidgets('palette container uses theme surfaceContainerLow', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: WidgetPalette(registry: registry)),
+        ),
+      );
+
+      final widgetPalette = find.byType(WidgetPalette);
+      // The WidgetPalette's root Container should use surfaceContainerLow
+      final containers = find.descendant(
+        of: widgetPalette,
+        matching: find.byType(Container),
+      );
+      // First container is the root one with background color
+      final rootContainer = tester.widget<Container>(containers.first);
+      final theme = Theme.of(tester.element(widgetPalette));
+      expect(rootContainer.color, theme.colorScheme.surfaceContainerLow);
+    });
+
     testWidgets('wraps items in Draggable', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(

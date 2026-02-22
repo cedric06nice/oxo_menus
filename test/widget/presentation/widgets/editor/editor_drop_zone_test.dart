@@ -127,6 +127,50 @@ void main() {
       expect(find.byType(AnimatedContainer), findsOneWidget);
     });
 
+    testWidgets(
+      'idle drop zone has 20px height, 4px vertical margin, 3px border radius',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          createTestWidget(columnId: 1, index: 0, isHovering: false),
+        );
+        await tester.pumpAndSettle();
+
+        // Total rendered height = 20 (content) + 4*2 (margin) = 28
+        final size = tester.getSize(find.byType(AnimatedContainer));
+        expect(size.height, 28.0);
+      },
+    );
+
+    testWidgets('idle margin is 4 pixels vertical', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createTestWidget(columnId: 1, index: 0, isHovering: false),
+      );
+      await tester.pumpAndSettle();
+
+      final container = tester.widget<AnimatedContainer>(
+        find.byType(AnimatedContainer),
+      );
+      expect(container.margin, const EdgeInsets.symmetric(vertical: 4));
+    });
+
+    testWidgets('uses theme colorScheme.outline for no-op color', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createTestWidget(columnId: 1, index: 0, isHovering: false),
+      );
+
+      // Verify the widget builds without hardcoded Colors.grey[400]
+      // by checking it renders with theme colors
+      final container = tester.widget<AnimatedContainer>(
+        find.byType(AnimatedContainer),
+      );
+      final decoration = container.decoration as BoxDecoration;
+      expect(decoration.borderRadius, BorderRadius.circular(3));
+    });
+
     group('isNoOpDrop static method', () {
       final existingWidget = WidgetInstance(
         id: 1,

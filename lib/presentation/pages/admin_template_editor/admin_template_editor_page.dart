@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +21,7 @@ import 'package:oxo_menus/presentation/providers/menu_display_options_provider.d
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/editor/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
@@ -59,6 +61,13 @@ class _AdminTemplateEditorPageState
   late EditorWidgetCrudHelper _crudHelper;
   late EditorSelectionNotifier _selectionNotifier;
   EditorSelection? _currentSelection;
+
+  final ScrollController _scrollController = ScrollController();
+
+  bool get _isApple {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
 
   @override
   void didChangeDependencies() {
@@ -104,6 +113,7 @@ class _AdminTemplateEditorPageState
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _selectionNotifier.dispose();
     super.dispose();
   }
@@ -692,10 +702,16 @@ class _AdminTemplateEditorPageState
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (_isLoading) {
-      return const AuthenticatedScaffold(
+      return AuthenticatedScaffold(
         title: 'Loading...',
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: _isApple
+              ? const CupertinoActivityIndicator()
+              : const CircularProgressIndicator(),
+        ),
       );
     }
 
@@ -752,8 +768,14 @@ class _AdminTemplateEditorPageState
         child: Row(
           children: [
             // Left Panel: Widget Palette + Side Panel Style Editor
-            SizedBox(
-              width: 240,
+            Container(
+              width: 260,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerLow,
+                border: Border(
+                  right: BorderSide(color: theme.colorScheme.outlineVariant),
+                ),
+              ),
               child: Column(
                 children: [
                   Expanded(
@@ -772,9 +794,6 @@ class _AdminTemplateEditorPageState
                 ],
               ),
             ),
-
-            // Divider
-            const VerticalDivider(width: 1),
 
             // Right Panel: Canvas
             Expanded(child: _buildCanvas()),
@@ -828,82 +847,96 @@ class _AdminTemplateEditorPageState
   }
 
   Widget _buildCanvas() {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Menu Style Selector
-            GestureDetector(
-              key: const Key('selectable_menu'),
-              onTap: () => _selectElement(
-                const EditorSelection(type: EditorElementType.menu, id: 0),
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: _currentSelection?.type == EditorElementType.menu
-                        ? Theme.of(context).colorScheme.primary
-                        : Colors.transparent,
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.style, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Page Style',
-                      style: Theme.of(context).textTheme.titleMedium,
+    final theme = Theme.of(context);
+    return AutoScrollListener(
+      scrollController: _scrollController,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Menu Style Selector
+                  GestureDetector(
+                    key: const Key('selectable_menu'),
+                    onTap: () => _selectElement(
+                      const EditorSelection(
+                        type: EditorElementType.menu,
+                        id: 0,
+                      ),
                     ),
-                  ],
-                ),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color:
+                              _currentSelection?.type == EditorElementType.menu
+                              ? theme.colorScheme.primary
+                              : Colors.transparent,
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.style, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Page Style',
+                            style: theme.textTheme.titleMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Header Section
+                  if (_headerPage == null)
+                    ElevatedButton.icon(
+                      key: const Key('add_header_button'),
+                      onPressed: _addHeader,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Header'),
+                    )
+                  else
+                    _buildPageCard(_headerPage!),
+                  const SizedBox(height: 16),
+
+                  // Add Page Button
+                  ElevatedButton.icon(
+                    key: const Key('add_page_button'),
+                    onPressed: _addPage,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add Page'),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Pages List
+                  ..._pages.map((page) => _buildPageCard(page)),
+
+                  // Footer Section
+                  const SizedBox(height: 16),
+                  if (_footerPage == null)
+                    ElevatedButton.icon(
+                      key: const Key('add_footer_button'),
+                      onPressed: _addFooter,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Footer'),
+                    )
+                  else
+                    _buildPageCard(_footerPage!),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Header Section
-            if (_headerPage == null)
-              ElevatedButton.icon(
-                key: const Key('add_header_button'),
-                onPressed: _addHeader,
-                icon: const Icon(Icons.add),
-                label: const Text('Add Header'),
-              )
-            else
-              _buildPageCard(_headerPage!),
-            const SizedBox(height: 16),
-
-            // Add Page Button
-            ElevatedButton.icon(
-              key: const Key('add_page_button'),
-              onPressed: _addPage,
-              icon: const Icon(Icons.add),
-              label: const Text('Add Page'),
-            ),
-            const SizedBox(height: 16),
-
-            // Pages List
-            ..._pages.map((page) => _buildPageCard(page)),
-
-            // Footer Section
-            const SizedBox(height: 16),
-            if (_footerPage == null)
-              ElevatedButton.icon(
-                key: const Key('add_footer_button'),
-                onPressed: _addFooter,
-                icon: const Icon(Icons.add),
-                label: const Text('Add Footer'),
-              )
-            else
-              _buildPageCard(_footerPage!),
-          ],
+          ),
         ),
       ),
     );
@@ -913,6 +946,8 @@ class _AdminTemplateEditorPageState
     final containers = _containers[page.id] ?? [];
     final isHeader = page.type == entity.PageType.header;
     final isFooter = page.type == entity.PageType.footer;
+    final isSpecial = isHeader || isFooter;
+    final theme = Theme.of(context);
 
     // Determine delete button key and action
     final String deleteKey;
@@ -931,6 +966,20 @@ class _AdminTemplateEditorPageState
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
+      color: isSpecial
+          ? Color.alphaBlend(
+              theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+              theme.colorScheme.surface,
+            )
+          : null,
+      shape: isSpecial
+          ? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
+              ),
+            )
+          : RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -939,12 +988,25 @@ class _AdminTemplateEditorPageState
             // Page Header
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    page.name,
-                    style: Theme.of(context).textTheme.titleLarge,
+                if (isSpecial) ...[
+                  Icon(
+                    isHeader
+                        ? Icons.vertical_align_top
+                        : Icons.vertical_align_bottom,
+                    size: 18,
+                    color: theme.colorScheme.primary,
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      isHeader ? 'Header' : 'Footer',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ] else
+                  const Spacer(),
                 IconButton(
                   key: Key(deleteKey),
                   icon: const Icon(Icons.delete),
@@ -953,19 +1015,21 @@ class _AdminTemplateEditorPageState
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-
-            // Add Container Button
-            ElevatedButton.icon(
-              key: Key('add_container_${page.id}'),
-              onPressed: () => _addContainer(page.id),
-              icon: const Icon(Icons.add),
-              label: const Text('Add Container'),
-            ),
-            const SizedBox(height: 8),
 
             // Containers
             ...containers.map((container) => _buildContainerCard(container)),
+
+            // Add Container Button (after containers)
+            const SizedBox(height: 8),
+            TextButton.icon(
+              key: Key('add_container_${page.id}'),
+              onPressed: () => _addContainer(page.id),
+              icon: const Icon(Icons.add, size: 16),
+              label: const Text(
+                'Add Container',
+                style: TextStyle(fontSize: 12),
+              ),
+            ),
           ],
         ),
       ),
@@ -974,6 +1038,7 @@ class _AdminTemplateEditorPageState
 
   Widget _buildContainerCard(entity.Container container) {
     final columns = _columns[container.id] ?? [];
+    final theme = Theme.of(context);
     final isSelected =
         _currentSelection?.type == EditorElementType.container &&
         _currentSelection?.id == container.id;
@@ -984,15 +1049,15 @@ class _AdminTemplateEditorPageState
         EditorSelection(type: EditorElementType.container, id: container.id),
       ),
       child: Card(
-        color: Colors.grey[100],
+        color: theme.colorScheme.surfaceContainerLow,
         margin: const EdgeInsets.only(top: 8),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(12),
           side: BorderSide(
             color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.transparent,
-            width: 2,
+                ? theme.colorScheme.primary
+                : theme.colorScheme.outlineVariant,
+            width: isSelected ? 2 : 1,
           ),
         ),
         child: Padding(
@@ -1000,31 +1065,28 @@ class _AdminTemplateEditorPageState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Container Header
+              // Container Header — no name, just action buttons
               Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Expanded(
-                    child: Text(
-                      container.name ?? 'Container',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
+                  IconButton(
+                    key: Key('add_column_${container.id}'),
+                    icon: const Icon(Icons.view_column, size: 20),
+                    onPressed: () => _addColumn(container.id),
+                    tooltip: 'Add Column',
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.all(4),
                   ),
+                  const SizedBox(width: 4),
                   IconButton(
                     key: Key('delete_container_${container.id}'),
                     icon: const Icon(Icons.delete, size: 20),
                     onPressed: () => _deleteContainer(container.id),
                     tooltip: 'Delete Container',
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.all(4),
                   ),
                 ],
-              ),
-              const SizedBox(height: 8),
-
-              // Add Column Button
-              ElevatedButton.icon(
-                key: Key('add_column_${container.id}'),
-                onPressed: () => _addColumn(container.id),
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text('Add Column', style: TextStyle(fontSize: 12)),
               ),
               const SizedBox(height: 8),
 
@@ -1051,6 +1113,7 @@ class _AdminTemplateEditorPageState
   Widget _buildColumnCard(entity.Column column) {
     final widgets = _widgets[column.id] ?? [];
     final registry = ref.watch(widgetRegistryProvider);
+    final theme = Theme.of(context);
     final currentHoverIndex = _hoverIndex[column.id] ?? -1;
     final isSelected =
         _currentSelection?.type == EditorElementType.column &&
@@ -1068,12 +1131,12 @@ class _AdminTemplateEditorPageState
         decoration: BoxDecoration(
           border: Border.all(
             color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.grey[300]!,
+                ? theme.colorScheme.primary
+                : theme.colorScheme.outlineVariant,
             width: isSelected ? 2 : 1,
           ),
-          borderRadius: BorderRadius.circular(4),
-          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          color: theme.colorScheme.surface,
         ),
         constraints: const BoxConstraints(minHeight: 100),
         child: Column(
@@ -1148,7 +1211,10 @@ class _AdminTemplateEditorPageState
                   padding: const EdgeInsets.all(12.0),
                   child: Text(
                     'Drop widgets here',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ),

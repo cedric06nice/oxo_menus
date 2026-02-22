@@ -127,7 +127,7 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
           if (widget.type == EditorElementType.column &&
               widget.isDroppable != null &&
               widget.onDroppableChanged != null)
-            SwitchListTile(
+            SwitchListTile.adaptive(
               title: const Text('Allow Widget Drops'),
               value: widget.isDroppable!,
               onChanged: widget.onDroppableChanged,

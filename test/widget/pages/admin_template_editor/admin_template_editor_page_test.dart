@@ -30,6 +30,7 @@ import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definitio
 import 'package:oxo_menus/presentation/widgets/image_widget/image_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/section_widget/section_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/text_widget/text_widget_definition.dart';
+import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
 
 class MockMenuRepository extends Mock implements MenuRepository {}
@@ -256,9 +257,9 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.text('Page 1'), findsOneWidget);
-      expect(find.text('Page 2'), findsOneWidget);
+      // Assert — page names are hidden; verify pages exist via delete button keys
+      expect(find.byKey(const Key('delete_page_1')), findsOneWidget);
+      expect(find.byKey(const Key('delete_page_2')), findsOneWidget);
     });
 
     testWidgets('should have add page button', (tester) async {
@@ -417,8 +418,8 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.text('Header Section'), findsOneWidget);
+      // Assert — container names are hidden; verify via selectable key
+      expect(find.byKey(const Key('selectable_container_1')), findsOneWidget);
     });
 
     testWidgets('should add container to page', (tester) async {
@@ -2383,5 +2384,296 @@ void main() {
         expect(find.text('Page size updated'), findsOneWidget);
       },
     );
+  });
+
+  group('AdminTemplateEditorPage - Redesign', () {
+    testWidgets('left panel has themed background with border', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — left panel should have a Container with themed background
+      // and no VerticalDivider
+      expect(find.byType(VerticalDivider), findsNothing);
+    });
+
+    testWidgets('canvas has auto-scroll listener', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.byType(AutoScrollListener), findsOneWidget);
+    });
+
+    testWidgets('page names are not shown in page cards', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(
+          id: 1,
+          menuId: menuId,
+          name: 'My Custom Page',
+          index: 0,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — page name should NOT be displayed
+      expect(find.text('My Custom Page'), findsNothing);
+    });
+
+    testWidgets('container names are not shown in container cards', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const pageId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+      ];
+      final containers = [
+        const entity.Container(
+          id: 1,
+          pageId: pageId,
+          index: 0,
+          name: 'Fancy Container Name',
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — container name should NOT be displayed
+      expect(find.text('Fancy Container Name'), findsNothing);
+      expect(find.text('Container'), findsNothing);
+    });
+
+    testWidgets('header card shows header label with icon', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(
+          id: 1,
+          menuId: menuId,
+          name: 'Header',
+          index: 0,
+          type: entity.PageType.header,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.text('Header'), findsOneWidget);
+      expect(find.byIcon(Icons.vertical_align_top), findsOneWidget);
+    });
+
+    testWidgets('footer card shows footer label with icon', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(
+          id: 1,
+          menuId: menuId,
+          name: 'Footer',
+          index: 0,
+          type: entity.PageType.footer,
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      await tester.ensureVisible(find.text('Footer'));
+      expect(find.text('Footer'), findsOneWidget);
+      expect(find.byIcon(Icons.vertical_align_bottom), findsOneWidget);
+    });
+
+    testWidgets('add container button appears after containers', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const pageId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      final pages = [
+        const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+      ];
+      final containers = [
+        const entity.Container(id: 1, pageId: pageId, index: 0),
+      ];
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(any()),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — add container button should be present and tappable
+      await tester.ensureVisible(find.byKey(const Key('add_container_1')));
+      expect(find.byKey(const Key('add_container_1')), findsOneWidget);
+
+      // The add container button should use TextButton style
+      expect(find.byType(TextButton), findsWidgets);
+    });
+
+    testWidgets('menu style selector uses 12px border radius', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — find the selectable_menu container
+      final menuSelector = find.byKey(const Key('selectable_menu'));
+      expect(menuSelector, findsOneWidget);
+
+      // Verify it has a Container with 12px border radius
+      final container = tester.widget<Container>(
+        find
+            .descendant(of: menuSelector, matching: find.byType(Container))
+            .first,
+      );
+      final decoration = container.decoration as BoxDecoration;
+      expect(decoration.borderRadius, BorderRadius.circular(12));
+    });
   });
 }

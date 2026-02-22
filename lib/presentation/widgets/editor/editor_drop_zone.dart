@@ -93,15 +93,18 @@ class _EditorDropZoneState extends State<EditorDropZone> {
               widget.index,
             );
 
+        final theme = Theme.of(context);
         return AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          height: showLine ? 4 : 8,
-          margin: const EdgeInsets.symmetric(vertical: 2),
+          height: showLine ? 6 : 20,
+          margin: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
             color: showLine
-                ? (isNoOp ? Colors.grey[400] : Colors.blue)
+                ? (isNoOp
+                      ? theme.colorScheme.outline
+                      : theme.colorScheme.primary)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(3),
           ),
         );
       },

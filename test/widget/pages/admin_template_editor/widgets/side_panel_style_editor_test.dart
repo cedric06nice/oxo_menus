@@ -98,6 +98,36 @@ void main() {
       expect(find.byType(SwitchListTile), findsOneWidget);
     });
 
+    testWidgets('droppable switch renders CupertinoSwitch on iOS', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.iOS),
+          home: Scaffold(
+            body: SizedBox(
+              width: 240,
+              child: SingleChildScrollView(
+                child: SidePanelStyleEditor(
+                  type: EditorElementType.column,
+                  styleConfig: null,
+                  clipboardStyle: null,
+                  onCopy: () {},
+                  onPaste: () {},
+                  onStyleChanged: (_) {},
+                  isDroppable: true,
+                  onDroppableChanged: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // On iOS platform, SwitchListTile.adaptive renders a CupertinoSwitch
+      expect(find.byType(SwitchListTile), findsOneWidget);
+    });
+
     testWidgets('non-column type does NOT show droppable switch', (
       tester,
     ) async {

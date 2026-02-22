@@ -26,6 +26,7 @@ class WidgetPalette extends StatelessWidget {
   Widget build(BuildContext context) {
     final allTypes = registry.registeredTypes;
     final isAdminMode = onAllowedTypesChanged != null;
+    final theme = Theme.of(context);
 
     // In admin mode, show all types. In regular mode, filter.
     final typesToShow = isAdminMode
@@ -35,16 +36,13 @@ class WidgetPalette extends StatelessWidget {
         : allTypes;
 
     return Container(
-      color: Colors.grey[100],
+      color: theme.colorScheme.surfaceContainerLow,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Widget Palette',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            child: Text('Widget Palette', style: theme.textTheme.titleMedium),
           ),
           Expanded(
             child: ListView(
@@ -91,6 +89,7 @@ class _PaletteItem extends StatelessWidget {
   Widget build(BuildContext context) {
     if (definition == null) return const SizedBox();
 
+    final theme = Theme.of(context);
     return Draggable<WidgetDragData>(
       data: WidgetDragData.newWidget(type),
       feedback: Material(
@@ -98,9 +97,9 @@ class _PaletteItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: Colors.grey),
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: theme.colorScheme.outline),
           ),
           child: Text(
             type.toUpperCase(),
@@ -108,24 +107,31 @@ class _PaletteItem extends StatelessWidget {
           ),
         ),
       ),
-      childWhenDragging: Opacity(opacity: 0.3, child: _paletteItemContent()),
-      child: _paletteItemContent(),
+      childWhenDragging: Opacity(
+        opacity: 0.3,
+        child: _paletteItemContent(theme),
+      ),
+      child: _paletteItemContent(theme),
     );
   }
 
-  Widget _paletteItemContent() {
+  Widget _paletteItemContent(ThemeData theme) {
     return Container(
       key: Key('palette_item_$type'),
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey[300]!),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
-          Icon(_getIconForType(type), size: 20, color: Colors.grey[700]),
+          Icon(
+            _getIconForType(type),
+            size: 20,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
           const SizedBox(width: 8),
           Text(
             type.toUpperCase(),
@@ -172,6 +178,7 @@ class _AdminPaletteItem extends StatelessWidget {
   Widget build(BuildContext context) {
     if (definition == null) return const SizedBox();
 
+    final theme = Theme.of(context);
     return Draggable<WidgetDragData>(
       data: WidgetDragData.newWidget(type),
       feedback: Material(
@@ -179,9 +186,9 @@ class _AdminPaletteItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: Colors.grey),
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: theme.colorScheme.outline),
           ),
           child: Text(
             type.toUpperCase(),
@@ -189,20 +196,20 @@ class _AdminPaletteItem extends StatelessWidget {
           ),
         ),
       ),
-      childWhenDragging: Opacity(opacity: 0.3, child: _content()),
-      child: _content(),
+      childWhenDragging: Opacity(opacity: 0.3, child: _content(theme)),
+      child: _content(theme),
     );
   }
 
-  Widget _content() {
+  Widget _content(ThemeData theme) {
     return Container(
       key: Key('palette_item_$type'),
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.grey[300]!),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
@@ -214,7 +221,7 @@ class _AdminPaletteItem extends StatelessWidget {
           Icon(
             _PaletteItem._getIconForType(type),
             size: 20,
-            color: Colors.grey[700],
+            color: theme.colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 8),
           Text(

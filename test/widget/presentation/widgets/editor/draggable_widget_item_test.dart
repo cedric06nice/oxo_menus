@@ -149,6 +149,90 @@ void main() {
       });
     });
 
+    group('theme colors', () {
+      testWidgets('dismiss background uses theme error color during swipe', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            child: DraggableWidgetItem(
+              widgetInstance: testWidget,
+              columnId: 1,
+              isEditable: true,
+              isLocked: false,
+              onConfirmDismiss: () async => false,
+              onDismissed: (_) {},
+            ),
+          ),
+        );
+
+        // Start a swipe to reveal the dismiss background
+        await tester.drag(
+          find.byKey(const Key('dismissible_42')),
+          const Offset(-200, 0),
+        );
+        await tester.pump();
+
+        // Now the dismiss background should be visible
+        final theme = Theme.of(
+          tester.element(find.byKey(const Key('dismissible_42'))),
+        );
+        bool foundErrorColor = false;
+        for (final element in tester.widgetList<Container>(
+          find.byType(Container),
+        )) {
+          final decoration = element.decoration;
+          if (decoration is BoxDecoration &&
+              element.alignment == Alignment.centerRight &&
+              decoration.color == theme.colorScheme.error) {
+            foundErrorColor = true;
+          }
+        }
+        expect(foundErrorColor, isTrue);
+
+        await tester.pumpAndSettle();
+      });
+
+      testWidgets('dismiss icon uses theme onError color during swipe', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            child: DraggableWidgetItem(
+              widgetInstance: testWidget,
+              columnId: 1,
+              isEditable: true,
+              isLocked: false,
+              onConfirmDismiss: () async => false,
+              onDismissed: (_) {},
+            ),
+          ),
+        );
+
+        // Start a swipe to reveal the dismiss background
+        await tester.drag(
+          find.byKey(const Key('dismissible_42')),
+          const Offset(-200, 0),
+        );
+        await tester.pump();
+
+        final theme = Theme.of(
+          tester.element(find.byKey(const Key('dismissible_42'))),
+        );
+        bool foundOnErrorIcon = false;
+        for (final element in tester.widgetList<Icon>(
+          find.byIcon(Icons.delete),
+        )) {
+          if (element.color == theme.colorScheme.onError) {
+            foundOnErrorIcon = true;
+          }
+        }
+        expect(foundOnErrorIcon, isTrue);
+
+        await tester.pumpAndSettle();
+      });
+    });
+
     group('locked mode (template widgets)', () {
       final templateWidget = WidgetInstance(
         id: 99,
@@ -190,6 +274,27 @@ void main() {
         );
 
         expect(find.byIcon(Icons.lock), findsOneWidget);
+      });
+
+      testWidgets('lock icon uses theme onSurfaceVariant color', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            child: DraggableWidgetItem(
+              widgetInstance: templateWidget,
+              columnId: 1,
+              isEditable: false,
+              isLocked: true,
+            ),
+          ),
+        );
+
+        final icon = tester.widget<Icon>(find.byIcon(Icons.lock));
+        final theme = Theme.of(
+          tester.element(find.byKey(const Key('template_widget_99'))),
+        );
+        expect(icon.color, theme.colorScheme.onSurfaceVariant);
       });
 
       testWidgets('does NOT contain LongPressDraggable', (
