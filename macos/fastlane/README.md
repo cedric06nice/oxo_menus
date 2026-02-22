@@ -31,6 +31,14 @@ Push a new beta build to TestFlight
 
 Push a new release build to App Store Connect
 
+### mac install_profiles
+
+```sh
+[bundle exec] fastlane mac install_profiles
+```
+
+Install certificates and provisioning profiles (CI: call before flutter build)
+
 ### mac init_match
 
 ```sh
