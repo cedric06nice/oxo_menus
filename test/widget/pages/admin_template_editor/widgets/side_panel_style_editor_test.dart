@@ -16,6 +16,8 @@ void main() {
     ValueChanged<StyleConfig>? onStyleChanged,
     bool? isDroppable,
     ValueChanged<bool>? onDroppableChanged,
+    PageSize? pageSize,
+    VoidCallback? onPageSizePressed,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -31,6 +33,8 @@ void main() {
               onStyleChanged: onStyleChanged ?? (_) {},
               isDroppable: isDroppable,
               onDroppableChanged: onDroppableChanged,
+              pageSize: pageSize,
+              onPageSizePressed: onPageSizePressed,
             ),
           ),
         ),
@@ -300,6 +304,104 @@ void main() {
 
       // Title should update too
       expect(find.text('Column Style'), findsOneWidget);
+    });
+
+    group('Page Size Row', () {
+      testWidgets('shows page size row with size name for menu type', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildSubject(
+            type: EditorElementType.menu,
+            pageSize: const PageSize(name: 'A4', width: 210, height: 297),
+            onPageSizePressed: () {},
+          ),
+        );
+
+        expect(find.text('Page Size'), findsOneWidget);
+        expect(find.text('A4'), findsOneWidget);
+        expect(find.byKey(const Key('page_size_tile')), findsOneWidget);
+        expect(
+          find.byKey(const Key('change_page_size_button')),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('does NOT show page size row for container type', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildSubject(
+            type: EditorElementType.container,
+            pageSize: const PageSize(name: 'A4', width: 210, height: 297),
+            onPageSizePressed: () {},
+          ),
+        );
+
+        expect(find.byKey(const Key('page_size_tile')), findsNothing);
+      });
+
+      testWidgets('does NOT show page size row for column type', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildSubject(
+            type: EditorElementType.column,
+            pageSize: const PageSize(name: 'A4', width: 210, height: 297),
+            onPageSizePressed: () {},
+          ),
+        );
+
+        expect(find.byKey(const Key('page_size_tile')), findsNothing);
+      });
+
+      testWidgets('shows "Not set" when pageSize is null', (tester) async {
+        await tester.pumpWidget(
+          buildSubject(
+            type: EditorElementType.menu,
+            pageSize: null,
+            onPageSizePressed: () {},
+          ),
+        );
+
+        expect(find.text('Not set'), findsOneWidget);
+      });
+
+      testWidgets('tapping change button calls onPageSizePressed', (
+        tester,
+      ) async {
+        bool pressed = false;
+
+        await tester.pumpWidget(
+          buildSubject(
+            type: EditorElementType.menu,
+            pageSize: const PageSize(name: 'A4', width: 210, height: 297),
+            onPageSizePressed: () => pressed = true,
+          ),
+        );
+
+        await tester.tap(find.byKey(const Key('change_page_size_button')));
+        await tester.pump();
+
+        expect(pressed, isTrue);
+      });
+
+      testWidgets('change button disabled when onPageSizePressed is null', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildSubject(
+            type: EditorElementType.menu,
+            pageSize: const PageSize(name: 'A4', width: 210, height: 297),
+            onPageSizePressed: null,
+          ),
+        );
+
+        final button = tester.widget<IconButton>(
+          find.byKey(const Key('change_page_size_button')),
+        );
+        expect(button.onPressed, isNull);
+      });
     });
 
     testWidgets(

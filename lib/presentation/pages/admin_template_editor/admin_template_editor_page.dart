@@ -713,9 +713,9 @@ class _AdminTemplateEditorPageState
       actions: [
         IconButton(
           key: const Key('page_size_button'),
-          onPressed: _showPageSizeDialog,
+          onPressed: () => context.push('/admin/sizes'),
           icon: const Icon(Icons.straighten),
-          tooltip: 'Page Size',
+          tooltip: 'Manage Page Sizes',
         ),
         IconButton(
           key: const Key('display_options_button'),
@@ -820,6 +820,10 @@ class _AdminTemplateEditorPageState
       onStyleChanged: _onSidePanelStyleChanged,
       isDroppable: isDroppable,
       onDroppableChanged: onDroppableChanged,
+      pageSize: sel.type == EditorElementType.menu ? _menu?.pageSize : null,
+      onPageSizePressed: sel.type == EditorElementType.menu
+          ? _showPageSizeDialog
+          : null,
     );
   }
 

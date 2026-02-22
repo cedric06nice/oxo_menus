@@ -2115,7 +2115,7 @@ void main() {
       expect(find.byIcon(Icons.straighten), findsOneWidget);
     });
 
-    testWidgets('tapping page size button opens dialog with available sizes', (
+    testWidgets('tapping page_size_button navigates to /admin/sizes', (
       tester,
     ) async {
       // Arrange
@@ -2126,24 +2126,6 @@ void main() {
         status: Status.draft,
         version: '1.0.0',
       );
-      final sizes = [
-        const domain.Size(
-          id: 1,
-          name: 'A4',
-          width: 210,
-          height: 297,
-          status: Status.published,
-          direction: 'portrait',
-        ),
-        const domain.Size(
-          id: 2,
-          name: 'A5',
-          width: 148,
-          height: 210,
-          status: Status.published,
-          direction: 'portrait',
-        ),
-      ];
 
       when(
         () => mockMenuRepository.getById(menuId),
@@ -2151,9 +2133,7 @@ void main() {
       when(
         () => mockPageRepository.getAllForMenu(menuId),
       ).thenAnswer((_) async => const Success([]));
-      when(
-        () => mockSizeRepository.getAll(),
-      ).thenAnswer((_) async => Success(sizes));
+      when(() => mockRouter.push<Object?>(any())).thenAnswer((_) async => null);
 
       // Act
       await tester.pumpWidget(createWidgetUnderTest(menuId));
@@ -2163,12 +2143,71 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert
-      expect(find.text('Select Page Size'), findsOneWidget);
-      expect(find.text('A4'), findsOneWidget);
-      expect(find.text('A5'), findsOneWidget);
+      verify(() => mockRouter.push<Object?>('/admin/sizes')).called(1);
     });
 
-    testWidgets('selecting a size updates the menu pageSize', (tester) async {
+    testWidgets(
+      'tapping change_page_size_button in side panel opens dialog with available sizes',
+      (tester) async {
+        // Arrange
+        const menuId = 1;
+        const menu = Menu(
+          id: menuId,
+          name: 'Test Template',
+          status: Status.draft,
+          version: '1.0.0',
+        );
+        final sizes = [
+          const domain.Size(
+            id: 1,
+            name: 'A4',
+            width: 210,
+            height: 297,
+            status: Status.published,
+            direction: 'portrait',
+          ),
+          const domain.Size(
+            id: 2,
+            name: 'A5',
+            width: 148,
+            height: 210,
+            status: Status.published,
+            direction: 'portrait',
+          ),
+        ];
+
+        when(
+          () => mockMenuRepository.getById(menuId),
+        ).thenAnswer((_) async => const Success(menu));
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => const Success([]));
+        when(
+          () => mockSizeRepository.getAll(),
+        ).thenAnswer((_) async => Success(sizes));
+
+        // Act
+        await tester.pumpWidget(createWidgetUnderTest(menuId));
+        await tester.pumpAndSettle();
+
+        // Select menu to show side panel
+        await tester.tap(find.byKey(const Key('selectable_menu')));
+        await tester.pumpAndSettle();
+
+        // Tap change page size button in side panel
+        await tester.tap(find.byKey(const Key('change_page_size_button')));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Select Page Size'), findsOneWidget);
+        expect(find.text('A4'), findsOneWidget);
+        expect(find.text('A5'), findsOneWidget);
+      },
+    );
+
+    testWidgets('selecting a size via side panel updates the menu pageSize', (
+      tester,
+    ) async {
       // Arrange
       const menuId = 1;
       const menu = Menu(
@@ -2209,7 +2248,12 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(const Key('page_size_button')));
+      // Select menu to show side panel
+      await tester.tap(find.byKey(const Key('selectable_menu')));
+      await tester.pumpAndSettle();
+
+      // Tap change page size button in side panel
+      await tester.tap(find.byKey(const Key('change_page_size_button')));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('A4'));
@@ -2223,109 +2267,121 @@ void main() {
       expect(captured.sizeId, 1);
     });
 
-    testWidgets('shows current page size name highlighted in dialog', (
-      tester,
-    ) async {
-      // Arrange
-      const menuId = 1;
-      const menu = Menu(
-        id: menuId,
-        name: 'Test Template',
-        status: Status.draft,
-        version: '1.0.0',
-        pageSize: PageSize(name: 'A4', width: 210, height: 297),
-      );
-      final sizes = [
-        const domain.Size(
-          id: 1,
-          name: 'A4',
-          width: 210,
-          height: 297,
-          status: Status.published,
-          direction: 'portrait',
-        ),
-        const domain.Size(
-          id: 2,
-          name: 'A5',
-          width: 148,
-          height: 210,
-          status: Status.published,
-          direction: 'portrait',
-        ),
-      ];
-
-      when(
-        () => mockMenuRepository.getById(menuId),
-      ).thenAnswer((_) async => const Success(menu));
-      when(
-        () => mockPageRepository.getAllForMenu(menuId),
-      ).thenAnswer((_) async => const Success([]));
-      when(
-        () => mockSizeRepository.getAll(),
-      ).thenAnswer((_) async => Success(sizes));
-
-      // Act
-      await tester.pumpWidget(createWidgetUnderTest(menuId));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('page_size_button')));
-      await tester.pumpAndSettle();
-
-      // Assert - the current size should have a check icon
-      expect(find.byIcon(Icons.check), findsOneWidget);
-    });
-
-    testWidgets('shows snackbar after successful page size update', (
-      tester,
-    ) async {
-      // Arrange
-      const menuId = 1;
-      const menu = Menu(
-        id: menuId,
-        name: 'Test Template',
-        status: Status.draft,
-        version: '1.0.0',
-      );
-      final sizes = [
-        const domain.Size(
-          id: 1,
-          name: 'A4',
-          width: 210,
-          height: 297,
-          status: Status.published,
-          direction: 'portrait',
-        ),
-      ];
-
-      when(
-        () => mockMenuRepository.getById(menuId),
-      ).thenAnswer((_) async => const Success(menu));
-      when(
-        () => mockPageRepository.getAllForMenu(menuId),
-      ).thenAnswer((_) async => const Success([]));
-      when(
-        () => mockSizeRepository.getAll(),
-      ).thenAnswer((_) async => Success(sizes));
-      when(() => mockMenuRepository.update(any())).thenAnswer(
-        (_) async => Success(
-          menu.copyWith(
-            pageSize: const PageSize(name: 'A4', width: 210, height: 297),
+    testWidgets(
+      'shows current page size name highlighted in dialog via side panel',
+      (tester) async {
+        // Arrange
+        const menuId = 1;
+        const menu = Menu(
+          id: menuId,
+          name: 'Test Template',
+          status: Status.draft,
+          version: '1.0.0',
+          pageSize: PageSize(name: 'A4', width: 210, height: 297),
+        );
+        final sizes = [
+          const domain.Size(
+            id: 1,
+            name: 'A4',
+            width: 210,
+            height: 297,
+            status: Status.published,
+            direction: 'portrait',
           ),
-        ),
-      );
+          const domain.Size(
+            id: 2,
+            name: 'A5',
+            width: 148,
+            height: 210,
+            status: Status.published,
+            direction: 'portrait',
+          ),
+        ];
 
-      // Act
-      await tester.pumpWidget(createWidgetUnderTest(menuId));
-      await tester.pumpAndSettle();
+        when(
+          () => mockMenuRepository.getById(menuId),
+        ).thenAnswer((_) async => const Success(menu));
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => const Success([]));
+        when(
+          () => mockSizeRepository.getAll(),
+        ).thenAnswer((_) async => Success(sizes));
 
-      await tester.tap(find.byKey(const Key('page_size_button')));
-      await tester.pumpAndSettle();
+        // Act
+        await tester.pumpWidget(createWidgetUnderTest(menuId));
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.text('A4'));
-      await tester.pumpAndSettle();
+        // Select menu to show side panel
+        await tester.tap(find.byKey(const Key('selectable_menu')));
+        await tester.pumpAndSettle();
 
-      // Assert
-      expect(find.text('Page size updated'), findsOneWidget);
-    });
+        // Tap change page size button in side panel
+        await tester.tap(find.byKey(const Key('change_page_size_button')));
+        await tester.pumpAndSettle();
+
+        // Assert - the current size should have a check icon
+        expect(find.byIcon(Icons.check), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'shows snackbar after successful page size update via side panel',
+      (tester) async {
+        // Arrange
+        const menuId = 1;
+        const menu = Menu(
+          id: menuId,
+          name: 'Test Template',
+          status: Status.draft,
+          version: '1.0.0',
+        );
+        final sizes = [
+          const domain.Size(
+            id: 1,
+            name: 'A4',
+            width: 210,
+            height: 297,
+            status: Status.published,
+            direction: 'portrait',
+          ),
+        ];
+
+        when(
+          () => mockMenuRepository.getById(menuId),
+        ).thenAnswer((_) async => const Success(menu));
+        when(
+          () => mockPageRepository.getAllForMenu(menuId),
+        ).thenAnswer((_) async => const Success([]));
+        when(
+          () => mockSizeRepository.getAll(),
+        ).thenAnswer((_) async => Success(sizes));
+        when(() => mockMenuRepository.update(any())).thenAnswer(
+          (_) async => Success(
+            menu.copyWith(
+              pageSize: const PageSize(name: 'A4', width: 210, height: 297),
+            ),
+          ),
+        );
+
+        // Act
+        await tester.pumpWidget(createWidgetUnderTest(menuId));
+        await tester.pumpAndSettle();
+
+        // Select menu to show side panel
+        await tester.tap(find.byKey(const Key('selectable_menu')));
+        await tester.pumpAndSettle();
+
+        // Tap change page size button in side panel
+        await tester.tap(find.byKey(const Key('change_page_size_button')));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('A4'));
+        await tester.pumpAndSettle();
+
+        // Assert
+        expect(find.text('Page size updated'), findsOneWidget);
+      },
+    );
   });
 }

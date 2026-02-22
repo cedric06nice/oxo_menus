@@ -13,6 +13,8 @@ class SidePanelStyleEditor extends StatefulWidget {
   final ValueChanged<StyleConfig> onStyleChanged;
   final bool? isDroppable;
   final ValueChanged<bool>? onDroppableChanged;
+  final PageSize? pageSize;
+  final VoidCallback? onPageSizePressed;
 
   const SidePanelStyleEditor({
     super.key,
@@ -24,6 +26,8 @@ class SidePanelStyleEditor extends StatefulWidget {
     required this.onStyleChanged,
     this.isDroppable,
     this.onDroppableChanged,
+    this.pageSize,
+    this.onPageSizePressed,
   });
 
   @override
@@ -101,6 +105,23 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
             ],
           ),
           const SizedBox(height: 8),
+
+          // Page Size (menu only)
+          if (widget.type == EditorElementType.menu)
+            ListTile(
+              key: const Key('page_size_tile'),
+              dense: true,
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Page Size'),
+              subtitle: Text(widget.pageSize?.name ?? 'Not set'),
+              trailing: IconButton(
+                key: const Key('change_page_size_button'),
+                icon: const Icon(Icons.edit, size: 18),
+                onPressed: widget.onPageSizePressed,
+                constraints: const BoxConstraints(),
+                padding: const EdgeInsets.all(4),
+              ),
+            ),
 
           // Droppable switch (column only)
           if (widget.type == EditorElementType.column &&
