@@ -54,6 +54,15 @@ platform :mac do
     )
   end
 
+  desc "Install certificates and provisioning profiles (CI: call before flutter build)"
+  lane :install_profiles do
+    setup_ci if is_ci
+
+    api_key = configure_api_key
+
+    sync_certificates(api_key: api_key)
+  end
+
   desc "Initialize Match: generate certificates and profiles (run locally once)"
   lane :init_match do
     api_key = configure_api_key
