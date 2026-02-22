@@ -72,7 +72,7 @@ class DraggableWidgetItem extends StatelessWidget {
         elevation: 4.0,
         borderRadius: BorderRadius.circular(8),
         child: Container(
-          width: 200,
+          constraints: const BoxConstraints(maxWidth: 200),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,

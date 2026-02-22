@@ -149,6 +149,48 @@ void main() {
       });
     });
 
+    group('feedback widget', () {
+      testWidgets(
+        'feedback container uses maxWidth constraint instead of fixed width',
+        (WidgetTester tester) async {
+          await tester.pumpWidget(
+            createTestWidget(
+              child: DraggableWidgetItem(
+                widgetInstance: testWidget,
+                columnId: 1,
+                isEditable: true,
+                isLocked: false,
+              ),
+            ),
+          );
+
+          // Start a long press drag to trigger the feedback widget
+          final gesture = await tester.startGesture(
+            tester.getCenter(find.byKey(const Key('widget_42'))),
+          );
+          await tester.pump(const Duration(seconds: 1));
+          await gesture.moveBy(const Offset(0, 50));
+          await tester.pump();
+
+          // Find the feedback Container (it's in an overlay)
+          // The feedback should use constraints instead of fixed width
+          bool foundMaxWidthContainer = false;
+          for (final element in tester.widgetList<Container>(
+            find.byType(Container),
+          )) {
+            if (element.constraints?.maxWidth == 200 &&
+                element.constraints?.minWidth == 0) {
+              foundMaxWidthContainer = true;
+            }
+          }
+          expect(foundMaxWidthContainer, isTrue);
+
+          await gesture.up();
+          await tester.pumpAndSettle();
+        },
+      );
+    });
+
     group('theme colors', () {
       testWidgets('dismiss background uses theme error color during swipe', (
         WidgetTester tester,

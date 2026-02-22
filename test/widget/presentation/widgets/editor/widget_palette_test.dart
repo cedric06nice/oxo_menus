@@ -409,6 +409,128 @@ void main() {
       expect(rootContainer.color, theme.colorScheme.surfaceContainerLow);
     });
 
+    group('horizontal mode', () {
+      testWidgets('renders horizontally when axis is Axis.horizontal', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: WidgetPalette(registry: registry, axis: Axis.horizontal),
+            ),
+          ),
+        );
+
+        // Title should be hidden in horizontal mode
+        expect(find.text('Widget Palette'), findsNothing);
+
+        // Items should still be present
+        expect(find.byKey(const Key('palette_item_dish')), findsOneWidget);
+        expect(find.byKey(const Key('palette_item_section')), findsOneWidget);
+        expect(find.byKey(const Key('palette_item_text')), findsOneWidget);
+      });
+
+      testWidgets('horizontal mode uses horizontal scrolling ListView', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: WidgetPalette(registry: registry, axis: Axis.horizontal),
+            ),
+          ),
+        );
+
+        // Find a ListView with horizontal scroll direction
+        final listView = tester.widget<ListView>(find.byType(ListView));
+        expect(listView.scrollDirection, Axis.horizontal);
+      });
+
+      testWidgets('horizontal mode container has fixed height', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: WidgetPalette(registry: registry, axis: Axis.horizontal),
+            ),
+          ),
+        );
+
+        // The root container should have a constrained height
+        final widgetPalette = find.byType(WidgetPalette);
+        final rootContainer = tester.widget<Container>(
+          find
+              .descendant(of: widgetPalette, matching: find.byType(Container))
+              .first,
+        );
+        expect(rootContainer.constraints?.maxHeight, 60);
+      });
+
+      testWidgets('defaults to vertical axis', (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(body: WidgetPalette(registry: registry)),
+          ),
+        );
+
+        // Default axis is vertical — title visible
+        expect(find.text('Widget Palette'), findsOneWidget);
+      });
+    });
+
+    group('text overflow', () {
+      testWidgets(
+        'palette item text uses Flexible to prevent overflow in narrow container',
+        (WidgetTester tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: SizedBox(
+                  width: 100,
+                  child: WidgetPalette(registry: registry),
+                ),
+              ),
+            ),
+          );
+
+          // Should not overflow — the Flexible widget should handle it
+          // Find the Text widget inside a palette item
+          final textFinder = find.descendant(
+            of: find.byKey(const Key('palette_item_dish')),
+            matching: find.byType(Text),
+          );
+          expect(textFinder, findsOneWidget);
+
+          final text = tester.widget<Text>(textFinder);
+          expect(text.overflow, TextOverflow.ellipsis);
+        },
+      );
+
+      testWidgets('palette item text is wrapped in Flexible', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(body: WidgetPalette(registry: registry)),
+          ),
+        );
+
+        // Find a Flexible ancestor of the Text inside palette_item_dish
+        final textFinder = find.descendant(
+          of: find.byKey(const Key('palette_item_dish')),
+          matching: find.byType(Text),
+        );
+        expect(textFinder, findsOneWidget);
+
+        final flexibleFinder = find.ancestor(
+          of: textFinder,
+          matching: find.byType(Flexible),
+        );
+        expect(flexibleFinder, findsOneWidget);
+      });
+    });
+
     testWidgets('wraps items in Draggable', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(

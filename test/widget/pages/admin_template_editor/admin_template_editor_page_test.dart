@@ -31,6 +31,7 @@ import 'package:oxo_menus/presentation/widgets/image_widget/image_widget_definit
 import 'package:oxo_menus/presentation/widgets/section_widget/section_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/text_widget/text_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
+import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
 
 class MockMenuRepository extends Mock implements MenuRepository {}
@@ -2675,5 +2676,143 @@ void main() {
       final decoration = container.decoration as BoxDecoration;
       expect(decoration.borderRadius, BorderRadius.circular(12));
     });
+  });
+
+  group('AdminTemplateEditorPage - Responsive Layout', () {
+    void setupBasicMocks({
+      required MockMenuRepository menuRepo,
+      required MockPageRepository pageRepo,
+      required MockContainerRepository containerRepo,
+    }) {
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Responsive Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(
+        () => menuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => pageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+    }
+
+    testWidgets(
+      'on narrow screen, shows horizontal palette at top instead of side panel',
+      (tester) async {
+        setupBasicMocks(
+          menuRepo: mockMenuRepository,
+          pageRepo: mockPageRepository,
+          containerRepo: mockContainerRepository,
+        );
+
+        // Set narrow screen size (iPhone portrait)
+        tester.view.physicalSize = const Size(375, 667);
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(createWidgetUnderTest(1));
+        await tester.pumpAndSettle();
+
+        // Should have a horizontal WidgetPalette
+        final palette = tester.widget<WidgetPalette>(
+          find.byType(WidgetPalette),
+        );
+        expect(palette.axis, Axis.horizontal);
+
+        // Should NOT have the 260px wide side panel container
+        bool found260Container = false;
+        for (final element in tester.widgetList<Container>(
+          find.byType(Container),
+        )) {
+          if (element.constraints?.maxWidth == 260 ||
+              (element.constraints == null && element.decoration != null)) {
+            // Check if it looks like the side panel
+          }
+        }
+        // Simpler check: the 'Widget Palette' title should be hidden
+        // (horizontal mode hides title)
+        expect(find.text('Widget Palette'), findsNothing);
+
+        // Reset view size
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      },
+    );
+
+    testWidgets('on narrow screen, no RenderFlex overflow', (tester) async {
+      setupBasicMocks(
+        menuRepo: mockMenuRepository,
+        pageRepo: mockPageRepository,
+        containerRepo: mockContainerRepository,
+      );
+
+      // Set narrow screen size
+      tester.view.physicalSize = const Size(375, 667);
+      tester.view.devicePixelRatio = 1.0;
+
+      await tester.pumpWidget(createWidgetUnderTest(1));
+      await tester.pumpAndSettle();
+
+      // If no RenderFlex overflow exception is thrown, the test passes
+      // The test framework will catch any overflow errors automatically
+      expect(find.byType(AdminTemplateEditorPage), findsOneWidget);
+
+      // Reset view size
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    testWidgets('on wide screen, layout is unchanged with side panel', (
+      tester,
+    ) async {
+      setupBasicMocks(
+        menuRepo: mockMenuRepository,
+        pageRepo: mockPageRepository,
+        containerRepo: mockContainerRepository,
+      );
+
+      // Default 800x600 — above breakpoint
+      await tester.pumpWidget(createWidgetUnderTest(1));
+      await tester.pumpAndSettle();
+
+      // Should have vertical palette with title visible
+      expect(find.text('Widget Palette'), findsOneWidget);
+
+      // The palette should be vertical (default)
+      final palette = tester.widget<WidgetPalette>(find.byType(WidgetPalette));
+      expect(palette.axis, Axis.vertical);
+    });
+
+    testWidgets(
+      'on narrow screen, selecting element opens bottom sheet with style editor',
+      (tester) async {
+        setupBasicMocks(
+          menuRepo: mockMenuRepository,
+          pageRepo: mockPageRepository,
+          containerRepo: mockContainerRepository,
+        );
+
+        // Set narrow screen size
+        tester.view.physicalSize = const Size(375, 667);
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(createWidgetUnderTest(1));
+        await tester.pumpAndSettle();
+
+        // Tap on selectable_menu to select it
+        await tester.tap(find.byKey(const Key('selectable_menu')));
+        await tester.pumpAndSettle();
+
+        // A BottomSheet should appear with style editor
+        expect(find.byType(BottomSheet), findsOneWidget);
+
+        // Reset view size
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      },
+    );
   });
 }

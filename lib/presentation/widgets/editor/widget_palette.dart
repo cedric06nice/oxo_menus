@@ -8,12 +8,14 @@ class WidgetPalette extends StatelessWidget {
   final WidgetRegistry registry;
   final List<String>? allowedWidgetTypes;
   final ValueChanged<List<String>>? onAllowedTypesChanged;
+  final Axis axis;
 
   const WidgetPalette({
     super.key,
     required this.registry,
     this.allowedWidgetTypes,
     this.onAllowedTypesChanged,
+    this.axis = Axis.vertical,
   });
 
   bool _isTypeAllowed(String type) {
@@ -34,6 +36,23 @@ class WidgetPalette extends StatelessWidget {
         : (allowedWidgetTypes != null && allowedWidgetTypes!.isNotEmpty)
         ? allTypes.where((type) => allowedWidgetTypes!.contains(type)).toList()
         : allTypes;
+
+    if (axis == Axis.horizontal) {
+      return Container(
+        constraints: const BoxConstraints(maxHeight: 60),
+        color: theme.colorScheme.surfaceContainerLow,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: typesToShow.map((type) {
+            final definition = registry.getDefinition(type);
+            return ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 200),
+              child: _PaletteItem(type: type, definition: definition),
+            );
+          }).toList(),
+        ),
+      );
+    }
 
     return Container(
       color: theme.colorScheme.surfaceContainerLow,
@@ -133,9 +152,12 @@ class _PaletteItem extends StatelessWidget {
             color: theme.colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 8),
-          Text(
-            type.toUpperCase(),
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          Flexible(
+            child: Text(
+              type.toUpperCase(),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -224,9 +246,12 @@ class _AdminPaletteItem extends StatelessWidget {
             color: theme.colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 8),
-          Text(
-            type.toUpperCase(),
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          Flexible(
+            child: Text(
+              type.toUpperCase(),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),

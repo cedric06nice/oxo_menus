@@ -46,6 +46,8 @@ class AdminTemplateEditorPage extends ConsumerStatefulWidget {
 
 class _AdminTemplateEditorPageState
     extends ConsumerState<AdminTemplateEditorPage> {
+  static const narrowBreakpoint = 600.0;
+
   Menu? _menu;
   entity.Page? _headerPage;
   entity.Page? _footerPage;
@@ -54,6 +56,7 @@ class _AdminTemplateEditorPageState
   final Map<int, List<entity.Column>> _columns = {};
   final Map<int, List<WidgetInstance>> _widgets = {};
   bool _isLoading = true;
+  bool _isNarrow = false;
   String? _errorMessage;
 
   final Map<int, int> _hoverIndex = {};
@@ -634,6 +637,29 @@ class _AdminTemplateEditorPageState
   void _selectElement(EditorSelection selection) {
     final style = _resolveStyle(selection);
     _selectionNotifier.select(selection, style);
+
+    if (_isNarrow) {
+      _showStyleEditorBottomSheet();
+    }
+  }
+
+  void _showStyleEditorBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (ctx, scrollController) => SingleChildScrollView(
+          controller: scrollController,
+          child: _buildSidePanel(),
+        ),
+      ),
+    ).whenComplete(() {
+      _deselectElement();
+    });
   }
 
   void _deselectElement() {
@@ -765,39 +791,62 @@ class _AdminTemplateEditorPageState
             _deselectElement();
           }
         },
-        child: Row(
-          children: [
-            // Left Panel: Widget Palette + Side Panel Style Editor
-            Container(
-              width: 260,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerLow,
-                border: Border(
-                  right: BorderSide(color: theme.colorScheme.outlineVariant),
-                ),
-              ),
-              child: Column(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            _isNarrow = constraints.maxWidth < narrowBreakpoint;
+
+            if (_isNarrow) {
+              return Column(
                 children: [
-                  Expanded(
-                    child: WidgetPalette(
-                      registry: registry,
-                      allowedWidgetTypes: _menu?.allowedWidgetTypes,
-                      onAllowedTypesChanged: _onAllowedWidgetTypesChanged,
+                  WidgetPalette(
+                    axis: Axis.horizontal,
+                    registry: registry,
+                    allowedWidgetTypes: _menu?.allowedWidgetTypes,
+                  ),
+                  Expanded(child: _buildCanvas()),
+                ],
+              );
+            }
+
+            return Row(
+              children: [
+                // Left Panel: Widget Palette + Side Panel Style Editor
+                Container(
+                  width: 260,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surfaceContainerLow,
+                    border: Border(
+                      right: BorderSide(
+                        color: theme.colorScheme.outlineVariant,
+                      ),
                     ),
                   ),
-                  if (_currentSelection != null) ...[
-                    const Divider(height: 1),
-                    Expanded(
-                      child: SingleChildScrollView(child: _buildSidePanel()),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: WidgetPalette(
+                          registry: registry,
+                          allowedWidgetTypes: _menu?.allowedWidgetTypes,
+                          onAllowedTypesChanged: _onAllowedWidgetTypesChanged,
+                        ),
+                      ),
+                      if (_currentSelection != null) ...[
+                        const Divider(height: 1),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: _buildSidePanel(),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
 
-            // Right Panel: Canvas
-            Expanded(child: _buildCanvas()),
-          ],
+                // Right Panel: Canvas
+                Expanded(child: _buildCanvas()),
+              ],
+            );
+          },
         ),
       ),
     );
