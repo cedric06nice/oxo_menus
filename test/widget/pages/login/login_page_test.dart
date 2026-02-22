@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -18,10 +21,13 @@ void main() {
     mockAuthRepository = MockAuthRepository();
   });
 
-  Widget createWidgetUnderTest() {
+  Widget createWidgetUnderTest({TargetPlatform? platform}) {
     return ProviderScope(
       overrides: [authRepositoryProvider.overrideWithValue(mockAuthRepository)],
-      child: const MaterialApp(home: LoginPage()),
+      child: MaterialApp(
+        theme: platform != null ? ThemeData(platform: platform) : null,
+        home: const LoginPage(),
+      ),
     );
   }
 
@@ -396,6 +402,335 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Invalid credentials'), findsNothing);
+    });
+
+    testWidgets('should not use Form widget for validation', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(Form), findsNothing);
+    });
+  });
+
+  group('LoginPage iOS', () {
+    testWidgets('should use CupertinoTextField for email on iOS', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('email_field')),
+          matching: find.byType(CupertinoTextField),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('should use CupertinoTextField for password on iOS', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('password_field')),
+          matching: find.byType(CupertinoTextField),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('should use CupertinoButton for login on iOS', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('login_button')),
+          matching: find.byType(CupertinoButton),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('should validate empty email on iOS', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      // Clear email, enter password
+      await tester.enterText(find.byKey(const Key('email_field')), '');
+      await tester.enterText(
+        find.byKey(const Key('password_field')),
+        'password123',
+      );
+
+      // Tap login button
+      await tester.tap(find.byKey(const Key('login_button')));
+      await tester.pump();
+
+      expect(find.text('Please enter your email'), findsOneWidget);
+      verifyNever(() => mockAuthRepository.login(any(), any()));
+    });
+
+    testWidgets('should validate empty password on iOS', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('email_field')),
+        'test@example.com',
+      );
+      await tester.enterText(find.byKey(const Key('password_field')), '');
+
+      await tester.tap(find.byKey(const Key('login_button')));
+      await tester.pump();
+
+      expect(find.text('Please enter your password'), findsOneWidget);
+      verifyNever(() => mockAuthRepository.login(any(), any()));
+    });
+
+    testWidgets('should use CupertinoActivityIndicator when loading on iOS', (
+      tester,
+    ) async {
+      final loginCompleter = Completer<Result<User, DomainError>>();
+
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.login(any(), any()),
+      ).thenAnswer((_) => loginCompleter.future);
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('email_field')),
+        'test@example.com',
+      );
+      await tester.enterText(
+        find.byKey(const Key('password_field')),
+        'password123',
+      );
+
+      await tester.tap(find.byKey(const Key('login_button')));
+      await tester.pump();
+
+      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+
+      // Complete to avoid pending futures
+      loginCompleter.complete(const Failure(UnauthorizedError()));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('should hide password text on iOS', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      final cupertinoField = tester.widget<CupertinoTextField>(
+        find.descendant(
+          of: find.byKey(const Key('password_field')),
+          matching: find.byType(CupertinoTextField),
+        ),
+      );
+
+      expect(cupertinoField.obscureText, isTrue);
+    });
+
+    testWidgets('should have email placeholder on iOS', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      final cupertinoField = tester.widget<CupertinoTextField>(
+        find.descendant(
+          of: find.byKey(const Key('email_field')),
+          matching: find.byType(CupertinoTextField),
+        ),
+      );
+
+      expect(cupertinoField.placeholder, 'Email');
+    });
+
+    testWidgets('should call login with correct credentials on iOS', (
+      tester,
+    ) async {
+      const testUser = User(
+        id: '1',
+        email: 'test@example.com',
+        role: UserRole.user,
+      );
+
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(
+        () => mockAuthRepository.login(any(), any()),
+      ).thenAnswer((_) async => const Success(testUser));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('email_field')),
+        'test@example.com',
+      );
+      await tester.enterText(
+        find.byKey(const Key('password_field')),
+        'password123',
+      );
+
+      await tester.tap(find.byKey(const Key('login_button')));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => mockAuthRepository.login('test@example.com', 'password123'),
+      ).called(1);
+    });
+
+    testWidgets('should display error message on login failure on iOS', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+      when(() => mockAuthRepository.login(any(), any())).thenAnswer(
+        (_) async =>
+            const Failure(InvalidCredentialsError('Invalid credentials')),
+      );
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byKey(const Key('email_field')),
+        'test@example.com',
+      );
+      await tester.enterText(
+        find.byKey(const Key('password_field')),
+        'wrong_password',
+      );
+
+      await tester.tap(find.byKey(const Key('login_button')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Invalid credentials'), findsOneWidget);
+    });
+
+    testWidgets('should display CupertinoIcons.mail in email field on iOS', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('email_field')),
+          matching: find.byIcon(CupertinoIcons.mail),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('should display CupertinoIcons.lock in password field on iOS', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('password_field')),
+          matching: find.byIcon(CupertinoIcons.lock),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('should wrap fields in a Card on iOS', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(platform: TargetPlatform.iOS),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.ancestor(
+          of: find.byKey(const Key('email_field')),
+          matching: find.byType(Card),
+        ),
+        findsOneWidget,
+      );
     });
   });
 }
