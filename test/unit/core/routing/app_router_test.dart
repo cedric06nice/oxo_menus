@@ -11,8 +11,10 @@ import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
+import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
+import 'package:oxo_menus/presentation/pages/admin_template_creator/admin_template_creator_page.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
@@ -30,6 +32,8 @@ class MockColumnRepository extends Mock implements ColumnRepository {}
 
 class MockWidgetRepository extends Mock implements WidgetRepository {}
 
+class MockSizeRepository extends Mock implements SizeRepository {}
+
 class MockDuplicateMenuUseCase extends Mock implements DuplicateMenuUseCase {}
 
 void main() {
@@ -40,6 +44,7 @@ void main() {
   late MockContainerRepository mockContainerRepository;
   late MockColumnRepository mockColumnRepository;
   late MockWidgetRepository mockWidgetRepository;
+  late MockSizeRepository mockSizeRepository;
   late MockDuplicateMenuUseCase mockDuplicateMenuUseCase;
 
   setUp(() {
@@ -49,6 +54,7 @@ void main() {
     mockContainerRepository = MockContainerRepository();
     mockColumnRepository = MockColumnRepository();
     mockWidgetRepository = MockWidgetRepository();
+    mockSizeRepository = MockSizeRepository();
     mockDuplicateMenuUseCase = MockDuplicateMenuUseCase();
 
     // Default behavior for menu repository (return empty list)
@@ -265,6 +271,54 @@ void main() {
 
       // Should show admin templates page
       expect(find.text('No templates found'), findsOneWidget);
+    });
+
+    testWidgets('should have /admin/templates/create route for admins', (
+      tester,
+    ) async {
+      const testUser = User(
+        id: '1',
+        email: 'admin@example.com',
+        role: UserRole.admin,
+      );
+
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Success(testUser));
+
+      when(
+        () => mockSizeRepository.getAll(),
+      ).thenAnswer((_) async => const Success([]));
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(mockAuthRepository),
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(
+              mockDuplicateMenuUseCase,
+            ),
+          ],
+          child: Consumer(
+            builder: (context, ref, _) {
+              router = ref.watch(appRouterProvider);
+              return MaterialApp.router(routerConfig: router);
+            },
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Navigate to admin template creator
+      router.go('/admin/templates/create');
+      await tester.pumpAndSettle();
+
+      // Should show the admin template creator page (not a FormatException)
+      expect(find.byType(AdminTemplateCreatorPage), findsOneWidget);
     });
 
     testWidgets('should have /admin/templates/:id route for admins', (

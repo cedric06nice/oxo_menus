@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -38,7 +39,8 @@ class AuthenticatedScaffold extends ConsumerWidget {
           // Avatar button always last
           IconButton(
             icon: UserAvatarWidget(user: user, radius: 16),
-            onPressed: () => context.push('/settings'),
+            onPressed: () =>
+                kIsWeb ? context.go('/settings') : context.push('/settings'),
             tooltip: 'Settings',
           ),
           const SizedBox(width: 8),

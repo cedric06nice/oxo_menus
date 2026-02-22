@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -49,22 +50,27 @@ class HomePage extends ConsumerWidget {
                             icon: Icons.restaurant_menu,
                             title: 'OXO Menus',
                             subtitle: 'Browse and manage menus',
-                            onTap: () => context.push('/menus'),
+                            onTap: () => kIsWeb
+                                ? context.go('/menus')
+                                : context.push('/menus'),
                           ),
                           if (isAdmin)
                             QuickActionCard(
                               icon: Icons.dashboard,
                               title: 'Manage Templates',
                               subtitle: 'Edit and organise templates',
-                              onTap: () => context.push('/admin/templates'),
+                              onTap: () => kIsWeb
+                                  ? context.go('/admin/templates')
+                                  : context.push('/admin/templates'),
                             ),
                           if (isAdmin)
                             QuickActionCard(
                               icon: Icons.add_box,
                               title: 'Create Template',
                               subtitle: 'Start a new template',
-                              onTap: () =>
-                                  context.push('/admin/templates/create'),
+                              onTap: () => kIsWeb
+                                  ? context.go('/admin/templates/create')
+                                  : context.push('/admin/templates/create'),
                             ),
                         ],
                       );
