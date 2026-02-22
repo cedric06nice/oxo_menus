@@ -261,7 +261,7 @@ void main() {
       expect(textField.keyboardType, TextInputType.emailAddress);
     });
 
-    testWidgets('should pre-fill credentials in debug mode', (tester) async {
+    testWidgets('should have empty fields initially', (tester) async {
       when(
         () => mockAuthRepository.tryRestoreSession(),
       ).thenAnswer((_) async => const Failure(UnauthorizedError()));
@@ -282,8 +282,109 @@ void main() {
         ),
       );
 
-      expect(emailField.controller?.text, 'admin@example.com');
-      expect(passwordField.controller?.text, 'Admin!123');
+      expect(emailField.controller?.text, isEmpty);
+      expect(passwordField.controller?.text, isEmpty);
+    });
+
+    testWidgets('should constrain form width for responsive layout', (
+      tester,
+    ) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      final constrainedBox = tester.widget<ConstrainedBox>(
+        find
+            .ancestor(
+              of: find.byKey(const Key('email_field')),
+              matching: find.byType(ConstrainedBox),
+            )
+            .first,
+      );
+      expect(constrainedBox.constraints.maxWidth, 400);
+    });
+
+    testWidgets('should display subtitle text', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Menu Template Builder'), findsOneWidget);
+    });
+
+    testWidgets('should wrap form fields in a Card', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // Card should contain the email field
+      expect(
+        find.ancestor(
+          of: find.byKey(const Key('email_field')),
+          matching: find.byType(Card),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('should display email icon in email field', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('email_field')),
+          matching: find.byIcon(Icons.email_outlined),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('should display lock icon in password field', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('password_field')),
+          matching: find.byIcon(Icons.lock_outlined),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('should use FilledButton for login', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.ancestor(
+          of: find.text('Login'),
+          matching: find.byType(FilledButton),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('should not show error initially', (tester) async {

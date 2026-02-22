@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
+import 'package:oxo_menus/presentation/theme/app_theme.dart';
 import 'main.reflectable.dart';
 
 void main() {
@@ -18,10 +19,8 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: 'OXO Menus',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
       routerConfig: router,
     );
   }
