@@ -15,6 +15,7 @@ class EditorDropZone extends StatefulWidget {
   final WidgetRegistry registry;
   final ValueChanged<int> onHoverIndexChanged;
   final void Function(WidgetDragData) onAccept;
+  final double idleHeight;
 
   const EditorDropZone({
     super.key,
@@ -24,6 +25,7 @@ class EditorDropZone extends StatefulWidget {
     required this.registry,
     required this.onHoverIndexChanged,
     required this.onAccept,
+    this.idleHeight = 32,
   });
 
   /// Check if dropping at this position would be a no-op (widget already at this position)
@@ -96,7 +98,7 @@ class _EditorDropZoneState extends State<EditorDropZone> {
         final theme = Theme.of(context);
         return AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          height: showLine ? 6 : 20,
+          height: showLine ? 6 : widget.idleHeight,
           margin: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
             color: showLine

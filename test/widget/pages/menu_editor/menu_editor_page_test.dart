@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,8 +27,10 @@ import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/section_widget/section_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/text_widget/text_widget_definition.dart';
+import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
+import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
 
 // Mock classes
@@ -144,6 +147,65 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('displays CupertinoActivityIndicator on Apple platforms', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      when(() => mockMenuRepository.getById(menuId)).thenAnswer(
+        (_) async => const Success(
+          Menu(
+            id: menuId,
+            name: 'Test Menu',
+            status: Status.draft,
+            version: '1.0.0',
+          ),
+        ),
+      );
+      when(() => mockPageRepository.getAllForMenu(menuId)).thenAnswer(
+        (_) async => Future.delayed(
+          const Duration(milliseconds: 100),
+          () => const Success([]),
+        ),
+      );
+
+      // Act — use macOS platform
+      final mockUser = User(
+        id: 'user-1',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        role: UserRole.user,
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            pageRepositoryProvider.overrideWithValue(mockPageRepository),
+            containerRepositoryProvider.overrideWithValue(
+              mockContainerRepository,
+            ),
+            columnRepositoryProvider.overrideWithValue(mockColumnRepository),
+            widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
+            widgetRegistryProvider.overrideWithValue(mockWidgetRegistry),
+            currentUserProvider.overrideWithValue(mockUser),
+          ],
+          child: MaterialApp(
+            theme: ThemeData(platform: TargetPlatform.macOS),
+            home: const MenuEditorPage(menuId: menuId),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Assert
+      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+
+      // Clean up
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('should display error when menu load fails', (tester) async {
       // Arrange
       const menuId = 1;
@@ -248,6 +310,134 @@ void main() {
   });
 
   group('MenuEditorPage - Canvas Display', () {
+    testWidgets('column cards have margin and padding', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const page = entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+      const container = entity.Container(id: 1, pageId: 1, index: 0);
+      const column = entity.Column(id: 1, containerId: 1, index: 0, flex: 1);
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([page]));
+      when(
+        () => mockContainerRepository.getAllForPage(1),
+      ).thenAnswer((_) async => const Success([container]));
+      when(
+        () => mockColumnRepository.getAllForContainer(1),
+      ).thenAnswer((_) async => const Success([column]));
+      when(
+        () => mockWidgetRepository.getAllForColumn(1),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — column container has margin and padding
+      final columnContainer = tester.widget<Container>(
+        find.byKey(const Key('column_1')),
+      );
+      expect(columnContainer.margin, const EdgeInsets.symmetric(horizontal: 4));
+      expect(columnContainer.padding, const EdgeInsets.all(8));
+    });
+
+    testWidgets('page cards have rounded border with radius 12', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const page = entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([page]));
+      when(
+        () => mockContainerRepository.getAllForPage(1),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — find the Card and check its shape
+      final card = tester.widget<Card>(find.byType(Card).first);
+      final shape = card.shape as RoundedRectangleBorder;
+      expect(shape.borderRadius, equals(BorderRadius.circular(12)));
+    });
+
+    testWidgets('canvas has ConstrainedBox with maxWidth 900', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      final constrainedBox = find.byWidgetPredicate(
+        (widget) =>
+            widget is ConstrainedBox && widget.constraints.maxWidth == 900,
+      );
+      expect(constrainedBox, findsOneWidget);
+    });
+
+    testWidgets('canvas is wrapped in AutoScrollListener', (tester) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.byType(AutoScrollListener), findsOneWidget);
+    });
+
     testWidgets('should display pages, containers, and columns', (
       tester,
     ) async {
@@ -346,6 +536,92 @@ void main() {
       // Widget rendering tested separately in widget-specific tests
       // This test verifies the structure is loaded correctly
       expect(find.byType(WidgetRenderer), findsOneWidget);
+    });
+  });
+
+  group('MenuEditorPage - Responsive Layout', () {
+    void setupLoadedMenu(int menuId) {
+      const menu = Menu(
+        id: 1,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+    }
+
+    testWidgets('displays sidebar on wide screens (>=600px)', (tester) async {
+      // Arrange
+      const menuId = 1;
+      setupLoadedMenu(menuId);
+
+      // Act — use wide screen (800px)
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — WidgetPalette should be in a vertical sidebar (default axis)
+      final palette = tester.widget<WidgetPalette>(find.byType(WidgetPalette));
+      expect(palette.axis, Axis.vertical);
+    });
+
+    testWidgets('displays horizontal palette on narrow screens (<600px)', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      setupLoadedMenu(menuId);
+
+      // Act — use narrow screen (500px)
+      tester.view.physicalSize = const Size(500, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — WidgetPalette should have horizontal axis
+      final palette = tester.widget<WidgetPalette>(find.byType(WidgetPalette));
+      expect(palette.axis, Axis.horizontal);
+    });
+
+    testWidgets('sidebar uses surfaceContainerLow background', (tester) async {
+      // Arrange
+      const menuId = 1;
+      setupLoadedMenu(menuId);
+
+      // Act — use wide screen (800px)
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert — Find the sidebar container (260px wide with decoration)
+      final theme = Theme.of(tester.element(find.byType(WidgetPalette)));
+      final sidebarFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is Container &&
+            widget.constraints?.maxWidth == 260 &&
+            widget.decoration is BoxDecoration,
+      );
+      expect(sidebarFinder, findsOneWidget);
+      final sidebar = tester.widget<Container>(sidebarFinder);
+      final decoration = sidebar.decoration as BoxDecoration;
+      expect(decoration.color, theme.colorScheme.surfaceContainerLow);
     });
   });
 
@@ -634,7 +910,7 @@ void main() {
       expect(find.text('Drop widgets here'), findsOneWidget);
     });
 
-    testWidgets('droppable column has light green background', (tester) async {
+    testWidgets('droppable column uses theme surface color', (tester) async {
       // Arrange
       const menuId = 1;
       const menu = Menu(
@@ -673,15 +949,16 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
-      // Assert - column container has green background
+      // Assert - column container uses theme surface color
+      final theme = Theme.of(tester.element(find.byKey(const Key('column_1'))));
       final columnContainer = tester.widget<Container>(
         find.byKey(const Key('column_1')),
       );
       final decoration = columnContainer.decoration as BoxDecoration;
-      expect(decoration.color, equals(Colors.green[50]));
+      expect(decoration.color, equals(theme.colorScheme.surface));
     });
 
-    testWidgets('non-droppable column does not have green background', (
+    testWidgets('non-droppable column uses theme surface color', (
       tester,
     ) async {
       // Arrange
@@ -722,12 +999,60 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
-      // Assert - column container has white background
+      // Assert - column container uses theme surface color
+      final theme = Theme.of(tester.element(find.byKey(const Key('column_1'))));
       final columnContainer = tester.widget<Container>(
         find.byKey(const Key('column_1')),
       );
       final decoration = columnContainer.decoration as BoxDecoration;
-      expect(decoration.color, equals(Colors.white));
+      expect(decoration.color, equals(theme.colorScheme.surface));
+    });
+
+    testWidgets('empty column text uses onSurfaceVariant color', (
+      tester,
+    ) async {
+      // Arrange
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const page = entity.Page(id: 1, menuId: menuId, name: 'Page 1', index: 0);
+      const container = entity.Container(id: 1, pageId: 1, index: 0);
+      const column = entity.Column(
+        id: 1,
+        containerId: 1,
+        index: 0,
+        flex: 1,
+        isDroppable: true,
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([page]));
+      when(
+        () => mockContainerRepository.getAllForPage(1),
+      ).thenAnswer((_) async => const Success([container]));
+      when(
+        () => mockColumnRepository.getAllForContainer(1),
+      ).thenAnswer((_) async => const Success([column]));
+      when(
+        () => mockWidgetRepository.getAllForColumn(1),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // Assert - "Drop widgets here" text uses onSurfaceVariant
+      final theme = Theme.of(tester.element(find.text('Drop widgets here')));
+      final text = tester.widget<Text>(find.text('Drop widgets here'));
+      expect(text.style?.color, theme.colorScheme.onSurfaceVariant);
     });
   });
 

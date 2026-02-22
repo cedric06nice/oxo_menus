@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +13,7 @@ import 'package:oxo_menus/presentation/providers/menu_display_options_provider.d
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/editor/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
@@ -37,6 +39,8 @@ class MenuEditorPage extends ConsumerStatefulWidget {
 }
 
 class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
+  static const narrowBreakpoint = 600.0;
+
   Menu? _menu;
   List<entity.Page> _pages = [];
   final Map<int, List<entity.Container>> _containers = {};
@@ -48,7 +52,14 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   // Track hover position for drag-and-drop: columnId -> hoverIndex (-1 = not hovering)
   final Map<int, int> _hoverIndex = {};
 
+  final ScrollController _scrollController = ScrollController();
+
   late EditorWidgetCrudHelper _crudHelper;
+
+  bool get _isApple {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
 
   @override
   void didChangeDependencies() {
@@ -77,6 +88,12 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMenu(isInitialLoad: true);
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadMenu({bool isInitialLoad = false}) async {
@@ -224,9 +241,13 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const AuthenticatedScaffold(
+      return AuthenticatedScaffold(
         title: 'Loading...',
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: _isApple
+              ? const CupertinoActivityIndicator()
+              : const CircularProgressIndicator(),
+        ),
       );
     }
 
@@ -238,6 +259,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     }
 
     final registry = ref.watch(widgetRegistryProvider);
+    final theme = Theme.of(context);
 
     return AuthenticatedScaffold(
       title: _menu?.name ?? 'Menu Editor',
@@ -261,34 +283,62 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
           tooltip: 'Save',
         ),
       ],
-      body: Row(
-        children: [
-          // Left Panel: Widget Palette
-          SizedBox(
-            width: 200,
-            child: WidgetPalette(
-              registry: registry,
-              allowedWidgetTypes: _menu?.allowedWidgetTypes,
-            ),
-          ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < narrowBreakpoint;
 
-          // Divider
-          const VerticalDivider(width: 1),
+          if (isNarrow) {
+            return Column(
+              children: [
+                WidgetPalette(
+                  axis: Axis.horizontal,
+                  registry: registry,
+                  allowedWidgetTypes: _menu?.allowedWidgetTypes,
+                ),
+                Expanded(child: _buildCanvas()),
+              ],
+            );
+          }
 
-          // Right Panel: Canvas Preview
-          Expanded(child: _buildCanvas()),
-        ],
+          return Row(
+            children: [
+              Container(
+                width: 260,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerLow,
+                  border: Border(
+                    right: BorderSide(color: theme.colorScheme.outlineVariant),
+                  ),
+                ),
+                child: WidgetPalette(
+                  registry: registry,
+                  allowedWidgetTypes: _menu?.allowedWidgetTypes,
+                ),
+              ),
+              Expanded(child: _buildCanvas()),
+            ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildCanvas() {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: _pages.map((page) => _buildPageCard(page)).toList(),
+    return AutoScrollListener(
+      scrollController: _scrollController,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 900),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _pages.map((page) => _buildPageCard(page)).toList(),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -299,6 +349,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -339,13 +390,16 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     final widgets = _widgets[column.id] ?? [];
     final registry = ref.watch(widgetRegistryProvider);
     final currentHoverIndex = _hoverIndex[column.id] ?? -1;
+    final theme = Theme.of(context);
 
     return Container(
       key: Key('column_${column.id}'),
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(4),
-        color: column.isDroppable ? Colors.green[50] : Colors.white,
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(8),
+        color: theme.colorScheme.surface,
       ),
       constraints: const BoxConstraints(minHeight: 100),
       child: Column(
@@ -406,7 +460,10 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
                   padding: const EdgeInsets.all(12.0),
                   child: Text(
                     'Drop widgets here',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ),
@@ -428,7 +485,11 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
             // Empty state for locked column
             if (widgets.isEmpty)
               Center(
-                child: Icon(Icons.lock, color: Colors.grey[400], size: 16),
+                child: Icon(
+                  Icons.lock,
+                  color: theme.colorScheme.onSurfaceVariant,
+                  size: 16,
+                ),
               ),
           ],
         ],

@@ -127,19 +127,43 @@ void main() {
       expect(find.byType(AnimatedContainer), findsOneWidget);
     });
 
-    testWidgets(
-      'idle drop zone has 20px height, 4px vertical margin, 3px border radius',
-      (WidgetTester tester) async {
-        await tester.pumpWidget(
-          createTestWidget(columnId: 1, index: 0, isHovering: false),
-        );
-        await tester.pumpAndSettle();
+    testWidgets('idle drop zone has 32px height, 4px vertical margin', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createTestWidget(columnId: 1, index: 0, isHovering: false),
+      );
+      await tester.pumpAndSettle();
 
-        // Total rendered height = 20 (content) + 4*2 (margin) = 28
-        final size = tester.getSize(find.byType(AnimatedContainer));
-        expect(size.height, 28.0);
-      },
-    );
+      // Total rendered height = 32 (content) + 4*2 (margin) = 40
+      final size = tester.getSize(find.byType(AnimatedContainer));
+      expect(size.height, 40.0);
+    });
+
+    testWidgets('custom idleHeight overrides default height', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: EditorDropZone(
+              columnId: 1,
+              index: 0,
+              isHovering: false,
+              registry: registry,
+              onHoverIndexChanged: (_) {},
+              onAccept: (_) {},
+              idleHeight: 50,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Total rendered height = 50 (content) + 4*2 (margin) = 58
+      final size = tester.getSize(find.byType(AnimatedContainer));
+      expect(size.height, 58.0);
+    });
 
     testWidgets('idle margin is 4 pixels vertical', (
       WidgetTester tester,
