@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/core/utils/directus_url_resolver.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/repositories/auth_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/column_repository_impl.dart';
@@ -19,13 +21,16 @@ import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 
 /// Directus base URL provider
 ///
-/// This can be overridden in tests or when launching the app with different environments
+/// This can be overridden in tests or when launching the app with different environments.
+/// Uses [resolveDirectusUrl] to derive the API URL from the hostname on web
+/// when no explicit URL is configured via `--dart-define=DIRECTUS_URL`.
 final directusBaseUrlProvider = Provider<String>((ref) {
-  const baseUrl = String.fromEnvironment(
-    'DIRECTUS_URL',
-    defaultValue: 'http://localhost:8055',
+  const dartDefineUrl = String.fromEnvironment('DIRECTUS_URL');
+  return resolveDirectusUrl(
+    dartDefineUrl: dartDefineUrl,
+    isWeb: kIsWeb,
+    baseUri: Uri.base,
   );
-  return baseUrl;
 });
 
 /// Directus data source provider
