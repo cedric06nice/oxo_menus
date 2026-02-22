@@ -49,6 +49,8 @@ services:
       ADMIN_EMAIL: ${PROD_ADMIN_EMAIL:-admin@cedric06nice.com}
       ADMIN_PASSWORD: ${PROD_ADMIN_PASSWORD:?Set PROD_ADMIN_PASSWORD in .env}
       PUBLIC_URL: https://api.oxo-menus.cedric06nice.com
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "https://oxo-menus.cedric06nice.com"
       DB_CLIENT: pg
       DB_HOST: postgres-prod
       DB_PORT: 5432
@@ -106,6 +108,8 @@ services:
       ADMIN_EMAIL: ${DEV_ADMIN_EMAIL:-admin@cedric06nice.com}
       ADMIN_PASSWORD: ${DEV_ADMIN_PASSWORD:?Set DEV_ADMIN_PASSWORD in .env}
       PUBLIC_URL: https://api.oxo-menus-dev.cedric06nice.com
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "https://oxo-menus-dev.cedric06nice.com"
       DB_CLIENT: pg
       DB_HOST: postgres-dev
       DB_PORT: 5432
