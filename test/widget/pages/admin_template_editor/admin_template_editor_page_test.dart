@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -2723,7 +2722,6 @@ void main() {
         expect(palette.axis, Axis.horizontal);
 
         // Should NOT have the 260px wide side panel container
-        bool found260Container = false;
         for (final element in tester.widgetList<Container>(
           find.byType(Container),
         )) {
