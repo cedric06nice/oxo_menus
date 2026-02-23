@@ -73,10 +73,10 @@ jobs:
       - name: Set environment
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "DIRECTUS_URL=https://api.oxo-menus.cedric06nice.com" >> $GITHUB_ENV
+            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_PROD }}" >> $GITHUB_ENV
             echo "IMAGE_NAME=oxo-menus-prod" >> $GITHUB_ENV
           else
-            echo "DIRECTUS_URL=https://api.oxo-menus-dev.cedric06nice.com" >> $GITHUB_ENV
+            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_DEV }}" >> $GITHUB_ENV
             echo "IMAGE_NAME=oxo-menus-staging" >> $GITHUB_ENV
           fi
 
@@ -180,9 +180,9 @@ jobs:
       - name: Set Directus URL
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "DIRECTUS_URL=https://api.oxo-menus.cedric06nice.com" >> $GITHUB_ENV
+            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_PROD }}" >> $GITHUB_ENV
           else
-            echo "DIRECTUS_URL=https://api.oxo-menus-dev.cedric06nice.com" >> $GITHUB_ENV
+            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_DEV }}" >> $GITHUB_ENV
           fi
 
       - run: flutter pub get
@@ -232,9 +232,9 @@ jobs:
       - name: Set Directus URL
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "DIRECTUS_URL=https://api.oxo-menus.cedric06nice.com" >> $GITHUB_ENV
+            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_PROD }}" >> $GITHUB_ENV
           else
-            echo "DIRECTUS_URL=https://api.oxo-menus-dev.cedric06nice.com" >> $GITHUB_ENV
+            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_DEV }}" >> $GITHUB_ENV
           fi
 
       - run: flutter pub get
@@ -292,9 +292,9 @@ jobs:
       - name: Set Directus URL
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "DIRECTUS_URL=https://api.oxo-menus.cedric06nice.com" >> $GITHUB_ENV
+            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_PROD }}" >> $GITHUB_ENV
           else
-            echo "DIRECTUS_URL=https://api.oxo-menus-dev.cedric06nice.com" >> $GITHUB_ENV
+            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_DEV }}" >> $GITHUB_ENV
           fi
 
       - run: flutter pub get

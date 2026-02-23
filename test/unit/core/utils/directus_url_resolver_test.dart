@@ -16,7 +16,7 @@ void main() {
       final result = resolveDirectusUrl(
         dartDefineUrl: 'https://custom-api.example.com',
         isWeb: true,
-        baseUri: Uri.parse('https://oxo-menus-dev.cedric06nice.com'),
+        baseUri: Uri.parse('https://oxo-menus-dev.example.com'),
       );
       expect(result, 'https://custom-api.example.com');
     });
@@ -25,9 +25,9 @@ void main() {
       final result = resolveDirectusUrl(
         dartDefineUrl: '',
         isWeb: true,
-        baseUri: Uri.parse('https://oxo-menus-dev.cedric06nice.com'),
+        baseUri: Uri.parse('https://oxo-menus-dev.example.com'),
       );
-      expect(result, 'https://api.oxo-menus-dev.cedric06nice.com');
+      expect(result, 'https://api.oxo-menus-dev.example.com');
     });
 
     test('falls back to localhost on web when hostname is localhost', () {

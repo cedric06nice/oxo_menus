@@ -56,6 +56,8 @@ macos/Flutter/ephemeral/
 macos/Runner.xcworkspace/xcuserdata/
 macos/Runner.xcodeproj/project.xcworkspace/xcuserdata/
 macos/DerivedData/
+macos/build/
+macos/Runner.xcworkspace/build/
 
 # iOS build artifacts
 ios/Pods/
@@ -79,7 +81,7 @@ web/.dart_tool/
 .env.*.local
 !.env.example
 !.env.development
-!.env.production
+!.env.production.example
 
 # Reflectable generated files
 *.reflectable.dart

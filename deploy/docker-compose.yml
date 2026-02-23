@@ -46,11 +46,11 @@ services:
     environment:
       KEY: ${PROD_DIRECTUS_KEY:?Set PROD_DIRECTUS_KEY in .env}
       SECRET: ${PROD_DIRECTUS_SECRET:?Set PROD_DIRECTUS_SECRET in .env}
-      ADMIN_EMAIL: ${PROD_ADMIN_EMAIL:-admin@cedric06nice.com}
+      ADMIN_EMAIL: ${PROD_ADMIN_EMAIL:-admin@example.com}
       ADMIN_PASSWORD: ${PROD_ADMIN_PASSWORD:?Set PROD_ADMIN_PASSWORD in .env}
-      PUBLIC_URL: https://api.oxo-menus.cedric06nice.com
+      PUBLIC_URL: https://${DOMAIN_API_PROD:-api.your-app.example.com}
       CORS_ENABLED: "true"
-      CORS_ORIGIN: "https://oxo-menus.cedric06nice.com"
+      CORS_ORIGIN: "https://${DOMAIN_FLUTTER_PROD:-your-app.example.com}"
       DB_CLIENT: pg
       DB_HOST: postgres-prod
       DB_PORT: 5432
@@ -105,11 +105,11 @@ services:
     environment:
       KEY: ${DEV_DIRECTUS_KEY:?Set DEV_DIRECTUS_KEY in .env}
       SECRET: ${DEV_DIRECTUS_SECRET:?Set DEV_DIRECTUS_SECRET in .env}
-      ADMIN_EMAIL: ${DEV_ADMIN_EMAIL:-admin@cedric06nice.com}
+      ADMIN_EMAIL: ${DEV_ADMIN_EMAIL:-admin@example.com}
       ADMIN_PASSWORD: ${DEV_ADMIN_PASSWORD:?Set DEV_ADMIN_PASSWORD in .env}
-      PUBLIC_URL: https://api.oxo-menus-dev.cedric06nice.com
+      PUBLIC_URL: https://${DOMAIN_API_DEV:-api.your-app-dev.example.com}
       CORS_ENABLED: "true"
-      CORS_ORIGIN: "https://oxo-menus-dev.cedric06nice.com"
+      CORS_ORIGIN: "https://${DOMAIN_FLUTTER_DEV:-your-app-dev.example.com}"
       DB_CLIENT: pg
       DB_HOST: postgres-dev
       DB_PORT: 5432

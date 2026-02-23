@@ -3,13 +3,13 @@
 # Run on the VPS as root: sudo bash setup.sh
 set -euo pipefail
 
-DOMAIN_FLUTTER_PROD="oxo-menus.cedric06nice.com"
-DOMAIN_FLUTTER_DEV="oxo-menus-dev.cedric06nice.com"
-DOMAIN_API_PROD="api.oxo-menus.cedric06nice.com"
-DOMAIN_API_DEV="api.oxo-menus-dev.cedric06nice.com"
+DOMAIN_FLUTTER_PROD="your-app.example.com"
+DOMAIN_FLUTTER_DEV="your-app-dev.example.com"
+DOMAIN_API_PROD="api.your-app.example.com"
+DOMAIN_API_DEV="api.your-app-dev.example.com"
 DEPLOY_USER="directus"
 DEPLOY_DIR="/home/${DEPLOY_USER}/oxo-menus"
-EMAIL="admin@cedric06nice.com"
+EMAIL="admin@example.com"
 
 echo "=== Installing Docker ==="
 if ! command -v docker &> /dev/null; then
