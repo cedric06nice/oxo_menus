@@ -9,8 +9,9 @@ import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
-import 'package:oxo_menus/presentation/pages/menu_editor/pdf_preview_dialog.dart';
+import 'package:oxo_menus/presentation/pages/menu_editor/pdf_preview_page.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 
 class MockFetchMenuTreeUseCase extends Mock implements FetchMenuTreeUseCase {}
 
@@ -36,7 +37,6 @@ void main() {
     bool pendingForever = false,
   }) {
     if (pendingForever) {
-      // Never resolve to keep loading state
       when(
         () => mockFetchMenuTree.execute(any()),
       ).thenAnswer((_) => Completer<Result<MenuTree, DomainError>>().future);
@@ -49,61 +49,39 @@ void main() {
       ],
       child: MaterialApp(
         theme: ThemeData(platform: platform),
-        home: Scaffold(
-          body: Builder(
-            builder: (context) => ElevatedButton(
-              onPressed: () => showDialog(
-                context: context,
-                builder: (_) => const PdfPreviewDialog(menuId: 1),
-              ),
-              child: const Text('Open'),
-            ),
-          ),
-        ),
+        home: const PdfPreviewPage(menuId: 1),
       ),
     );
   }
 
-  group('PdfPreviewDialog', () {
-    testWidgets('renders AppBar with Material icons on Android', (
+  group('PdfPreviewPage', () {
+    testWidgets('uses AuthenticatedScaffold with PDF Preview title', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(buildWidget(pendingForever: true));
-      await tester.tap(find.text('Open'));
-      await tester.pump();
       await tester.pump();
 
-      expect(find.byType(AppBar), findsOneWidget);
-      expect(find.byIcon(Icons.close), findsOneWidget);
-      expect(find.byIcon(Icons.download), findsOneWidget);
-      expect(find.byIcon(Icons.print), findsOneWidget);
+      expect(find.byType(AuthenticatedScaffold), findsOneWidget);
+      expect(find.text('PDF Preview'), findsOneWidget);
     });
 
-    testWidgets('renders CupertinoNavigationBar on iOS', (
+    testWidgets('does not render custom download or print buttons', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        buildWidget(platform: TargetPlatform.iOS, pendingForever: true),
-      );
-      await tester.tap(find.text('Open'));
-      await tester.pump();
+      await tester.pumpWidget(buildWidget(pendingForever: true));
       await tester.pump();
 
-      expect(find.byType(CupertinoNavigationBar), findsOneWidget);
-      expect(find.byType(AppBar), findsNothing);
+      expect(find.byIcon(Icons.download), findsNothing);
+      expect(find.byIcon(Icons.print), findsNothing);
+      expect(find.byKey(const Key('download_pdf_button')), findsNothing);
+      expect(find.byKey(const Key('print_pdf_button')), findsNothing);
     });
 
-    testWidgets('uses CupertinoIcons on iOS', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        buildWidget(platform: TargetPlatform.iOS, pendingForever: true),
-      );
-      await tester.tap(find.text('Open'));
-      await tester.pump();
+    testWidgets('does not render Dialog widget', (WidgetTester tester) async {
+      await tester.pumpWidget(buildWidget(pendingForever: true));
       await tester.pump();
 
-      expect(find.byIcon(CupertinoIcons.xmark), findsOneWidget);
-      expect(find.byIcon(CupertinoIcons.arrow_down_doc), findsOneWidget);
-      expect(find.byIcon(CupertinoIcons.printer), findsOneWidget);
+      expect(find.byType(Dialog), findsNothing);
     });
 
     testWidgets('shows CupertinoActivityIndicator while loading on iOS', (
@@ -112,8 +90,6 @@ void main() {
       await tester.pumpWidget(
         buildWidget(platform: TargetPlatform.iOS, pendingForever: true),
       );
-      await tester.tap(find.text('Open'));
-      await tester.pump();
       await tester.pump();
 
       expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
@@ -124,12 +100,52 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(buildWidget(pendingForever: true));
-      await tester.tap(find.text('Open'));
-      await tester.pump();
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(find.byType(CupertinoActivityIndicator), findsNothing);
+    });
+
+    testWidgets('shows error state with Cupertino icon on iOS', (
+      WidgetTester tester,
+    ) async {
+      when(() => mockFetchMenuTree.execute(any())).thenAnswer(
+        (_) async => const Failure<MenuTree, DomainError>(
+          ServerError('PDF generation failed'),
+        ),
+      );
+
+      await tester.pumpWidget(buildWidget(platform: TargetPlatform.iOS));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byIcon(CupertinoIcons.exclamationmark_circle),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows error state with Material icon on Android', (
+      WidgetTester tester,
+    ) async {
+      when(() => mockFetchMenuTree.execute(any())).thenAnswer(
+        (_) async => const Failure<MenuTree, DomainError>(
+          ServerError('PDF generation failed'),
+        ),
+      );
+
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+    });
+
+    testWidgets('shows Generating PDF text while loading', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(buildWidget(pendingForever: true));
+      await tester.pump();
+
+      expect(find.text('Generating PDF...'), findsOneWidget);
     });
   });
 }

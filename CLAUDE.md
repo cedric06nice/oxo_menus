@@ -81,7 +81,7 @@ flutter pub run build_runner build --delete-conflicting-outputs
 
 ## Pages
 
-`login`, `home`, `menu_list`, `menu_editor` (with `pdf_preview_dialog`), `admin_templates`, `admin_template_creator`, `admin_template_editor`, `admin_sizes`, `settings`
+`login`, `home`, `menu_list`, `menu_editor`, `pdf_preview`, `admin_templates`, `admin_template_creator`, `admin_template_editor`, `admin_sizes`, `settings`
 
 ## Testing
 

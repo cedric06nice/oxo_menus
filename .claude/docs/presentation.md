@@ -11,7 +11,7 @@
 | `/home` | HomePage | Authenticated |
 | `/menus` | MenuListPage | Authenticated |
 | `/menus/:id` | MenuEditorPage | Authenticated |
-| `/menus/pdf/:id` | PdfPreviewDialog | Authenticated |
+| `/menus/pdf/:id` | PdfPreviewPage | Authenticated |
 | `/settings` | SettingsPage | Authenticated |
 | `/admin/sizes` | AdminSizesPage | Admin only |
 | `/admin/templates` | AdminTemplatesPage | Admin only |

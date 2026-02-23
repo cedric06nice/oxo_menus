@@ -9,7 +9,7 @@ import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_pag
 import 'package:oxo_menus/presentation/pages/home/home_page.dart';
 import 'package:oxo_menus/presentation/pages/login/login_page.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/menu_editor_page.dart';
-import 'package:oxo_menus/presentation/pages/menu_editor/pdf_preview_dialog.dart';
+import 'package:oxo_menus/presentation/pages/menu_editor/pdf_preview_page.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
 import 'package:oxo_menus/presentation/pages/settings/settings_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
@@ -137,7 +137,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'menu-pdf',
                 builder: (context, state) {
                   final int menuId = int.parse(state.pathParameters['id']!);
-                  return PdfPreviewDialog(menuId: menuId);
+                  return PdfPreviewPage(menuId: menuId);
                 },
               ),
               GoRoute(
