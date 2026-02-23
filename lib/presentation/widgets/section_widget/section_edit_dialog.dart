@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widgets/section/section_props.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_edit_scaffold.dart';
 
 /// Dialog for editing section properties
 class SectionEditDialog extends StatefulWidget {
@@ -22,11 +23,6 @@ class _SectionEditDialogState extends State<SectionEditDialog> {
   late bool _uppercase;
   late bool _showDivider;
 
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -43,113 +39,74 @@ class _SectionEditDialogState extends State<SectionEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
-  }
-
-  Widget _buildAppleForm(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: const Text('Edit Section'),
-        leading: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _handleSave,
-          child: const Text('Save'),
-        ),
-      ),
-      child: SafeArea(
-        child: ListView(
+    return AdaptiveEditScaffold(
+      title: 'Edit Section',
+      onSave: _handleSave,
+      appleFormChildren: [
+        CupertinoFormSection.insetGrouped(
+          header: const Text('SECTION DETAILS'),
           children: [
-            CupertinoFormSection.insetGrouped(
-              header: const Text('SECTION DETAILS'),
+            CupertinoTextFormFieldRow(
+              controller: _titleController,
+              prefix: const Text('Title'),
+              placeholder: 'Enter section title',
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CupertinoTextFormFieldRow(
-                  controller: _titleController,
-                  prefix: const Text('Title'),
-                  placeholder: 'Enter section title',
+                const Padding(
+                  padding: EdgeInsets.only(left: 20),
+                  child: Text('Uppercase'),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 20),
-                      child: Text('Uppercase'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 14),
-                      child: CupertinoSwitch(
-                        value: _uppercase,
-                        onChanged: (value) =>
-                            setState(() => _uppercase = value),
-                      ),
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.only(right: 14),
+                  child: CupertinoSwitch(
+                    value: _uppercase,
+                    onChanged: (value) => setState(() => _uppercase = value),
+                  ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 20),
-                      child: Text('Show Divider'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 14),
-                      child: CupertinoSwitch(
-                        value: _showDivider,
-                        onChanged: (value) =>
-                            setState(() => _showDivider = value),
-                      ),
-                    ),
-                  ],
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(left: 20),
+                  child: Text('Show Divider'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 14),
+                  child: CupertinoSwitch(
+                    value: _showDivider,
+                    onChanged: (value) => setState(() => _showDivider = value),
+                  ),
                 ),
               ],
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildMaterialDialog(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Edit Section'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'Enter section title',
-              ),
-            ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              title: const Text('Uppercase'),
-              value: _uppercase,
-              onChanged: (value) => setState(() => _uppercase = value),
-              dense: true,
-            ),
-            SwitchListTile(
-              title: const Text('Show Divider'),
-              value: _showDivider,
-              onChanged: (value) => setState(() => _showDivider = value),
-              dense: true,
-            ),
-          ],
+      ],
+      materialFormChildren: [
+        TextField(
+          controller: _titleController,
+          decoration: const InputDecoration(
+            labelText: 'Title',
+            hintText: 'Enter section title',
+          ),
         ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+        const SizedBox(height: 8),
+        SwitchListTile(
+          title: const Text('Uppercase'),
+          value: _uppercase,
+          onChanged: (value) => setState(() => _uppercase = value),
+          dense: true,
         ),
-        ElevatedButton(onPressed: _handleSave, child: const Text('Save')),
+        SwitchListTile(
+          title: const Text('Show Divider'),
+          value: _showDivider,
+          onChanged: (value) => setState(() => _showDivider = value),
+          dense: true,
+        ),
       ],
     );
   }

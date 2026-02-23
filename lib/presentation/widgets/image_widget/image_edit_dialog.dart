@@ -6,6 +6,7 @@ import 'package:oxo_menus/domain/entities/image_file_info.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_edit_scaffold.dart';
 
 /// Dialog for editing image properties
 class ImageEditDialog extends ConsumerStatefulWidget {
@@ -79,10 +80,15 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
+    return AdaptiveEditScaffold(
+      title: 'Edit Image',
+      onSave: _handleSave,
+      appleFormChildren: _buildAppleFormChildren(context),
+      materialFormChildren: _buildMaterialFormChildren(context),
+    );
   }
 
-  Widget _buildAppleForm(BuildContext context) {
+  List<Widget> _buildAppleFormChildren(BuildContext context) {
     final baseUrl = ref.watch(directusBaseUrlProvider);
     final alignLabels = {'left': 'Left', 'center': 'Center', 'right': 'Right'};
     final fitLabels = {
@@ -93,155 +99,115 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
       'fitheight': 'Fit Height',
     };
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: const Text('Edit Image'),
-        leading: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _handleSave,
-          child: const Text('Save'),
-        ),
+    return [
+      _buildImageGrid(baseUrl),
+      CupertinoFormSection.insetGrouped(
+        header: const Text('LAYOUT'),
+        children: [
+          CupertinoListTile(
+            title: const Text('Alignment'),
+            additionalInfo: Text(alignLabels[_align] ?? 'Center'),
+            trailing: const CupertinoListTileChevron(),
+            onTap: () {
+              final alignments = ['left', 'center', 'right'];
+              showCupertinoPicker<String>(
+                context,
+                items: alignments,
+                currentValue: _align,
+                labelBuilder: (a) => alignLabels[a] ?? a,
+                onSelected: (v) => setState(() => _align = v),
+              );
+            },
+          ),
+          CupertinoListTile(
+            title: const Text('Fit'),
+            additionalInfo: Text(fitLabels[_fit] ?? 'Contain'),
+            trailing: const CupertinoListTileChevron(),
+            onTap: () {
+              final fits = fitLabels.keys.toList();
+              showCupertinoPicker<String>(
+                context,
+                items: fits,
+                currentValue: _fit,
+                labelBuilder: (f) => fitLabels[f] ?? f,
+                onSelected: (v) => setState(() => _fit = v),
+              );
+            },
+          ),
+          CupertinoTextFormFieldRow(
+            controller: _widthController,
+            prefix: const Text('Width'),
+            placeholder: 'Optional width in pixels',
+            keyboardType: TextInputType.number,
+          ),
+          CupertinoTextFormFieldRow(
+            controller: _heightController,
+            prefix: const Text('Height'),
+            placeholder: 'Optional height in pixels',
+            keyboardType: TextInputType.number,
+          ),
+        ],
       ),
-      child: SafeArea(
-        child: ListView(
-          children: [
-            _buildImageGrid(baseUrl),
-            CupertinoFormSection.insetGrouped(
-              header: const Text('LAYOUT'),
-              children: [
-                CupertinoListTile(
-                  title: const Text('Alignment'),
-                  additionalInfo: Text(alignLabels[_align] ?? 'Center'),
-                  trailing: const CupertinoListTileChevron(),
-                  onTap: () {
-                    final alignments = ['left', 'center', 'right'];
-                    showCupertinoPicker<String>(
-                      context,
-                      items: alignments,
-                      currentValue: _align,
-                      labelBuilder: (a) => alignLabels[a] ?? a,
-                      onSelected: (v) => setState(() => _align = v),
-                    );
-                  },
-                ),
-                CupertinoListTile(
-                  title: const Text('Fit'),
-                  additionalInfo: Text(fitLabels[_fit] ?? 'Contain'),
-                  trailing: const CupertinoListTileChevron(),
-                  onTap: () {
-                    final fits = fitLabels.keys.toList();
-                    showCupertinoPicker<String>(
-                      context,
-                      items: fits,
-                      currentValue: _fit,
-                      labelBuilder: (f) => fitLabels[f] ?? f,
-                      onSelected: (v) => setState(() => _fit = v),
-                    );
-                  },
-                ),
-                CupertinoTextFormFieldRow(
-                  controller: _widthController,
-                  prefix: const Text('Width'),
-                  placeholder: 'Optional width in pixels',
-                  keyboardType: TextInputType.number,
-                ),
-                CupertinoTextFormFieldRow(
-                  controller: _heightController,
-                  prefix: const Text('Height'),
-                  placeholder: 'Optional height in pixels',
-                  keyboardType: TextInputType.number,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+    ];
   }
 
-  Widget _buildMaterialDialog(BuildContext context) {
+  List<Widget> _buildMaterialFormChildren(BuildContext context) {
     final baseUrl = ref.watch(directusBaseUrlProvider);
 
-    return AlertDialog(
-      title: const Text('Edit Image'),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Thumbnail grid section
-              _buildImageGrid(baseUrl),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _align,
-                decoration: const InputDecoration(labelText: 'Alignment'),
-                items: const [
-                  DropdownMenuItem(value: 'left', child: Text('Left')),
-                  DropdownMenuItem(value: 'center', child: Text('Center')),
-                  DropdownMenuItem(value: 'right', child: Text('Right')),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _align = value);
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _fit,
-                decoration: const InputDecoration(labelText: 'Fit'),
-                items: const [
-                  DropdownMenuItem(value: 'contain', child: Text('Contain')),
-                  DropdownMenuItem(value: 'cover', child: Text('Cover')),
-                  DropdownMenuItem(value: 'fill', child: Text('Fill')),
-                  DropdownMenuItem(value: 'fitwidth', child: Text('Fit Width')),
-                  DropdownMenuItem(
-                    value: 'fitheight',
-                    child: Text('Fit Height'),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _fit = value);
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _widthController,
-                decoration: const InputDecoration(
-                  labelText: 'Width',
-                  hintText: 'Optional width in pixels',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _heightController,
-                decoration: const InputDecoration(
-                  labelText: 'Height',
-                  hintText: 'Optional height in pixels',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-            ],
-          ),
-        ),
+    return [
+      // Thumbnail grid section
+      _buildImageGrid(baseUrl),
+      const SizedBox(height: 12),
+      DropdownButtonFormField<String>(
+        initialValue: _align,
+        decoration: const InputDecoration(labelText: 'Alignment'),
+        items: const [
+          DropdownMenuItem(value: 'left', child: Text('Left')),
+          DropdownMenuItem(value: 'center', child: Text('Center')),
+          DropdownMenuItem(value: 'right', child: Text('Right')),
+        ],
+        onChanged: (value) {
+          if (value != null) {
+            setState(() => _align = value);
+          }
+        },
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+      const SizedBox(height: 12),
+      DropdownButtonFormField<String>(
+        initialValue: _fit,
+        decoration: const InputDecoration(labelText: 'Fit'),
+        items: const [
+          DropdownMenuItem(value: 'contain', child: Text('Contain')),
+          DropdownMenuItem(value: 'cover', child: Text('Cover')),
+          DropdownMenuItem(value: 'fill', child: Text('Fill')),
+          DropdownMenuItem(value: 'fitwidth', child: Text('Fit Width')),
+          DropdownMenuItem(value: 'fitheight', child: Text('Fit Height')),
+        ],
+        onChanged: (value) {
+          if (value != null) {
+            setState(() => _fit = value);
+          }
+        },
+      ),
+      const SizedBox(height: 12),
+      TextField(
+        controller: _widthController,
+        decoration: const InputDecoration(
+          labelText: 'Width',
+          hintText: 'Optional width in pixels',
         ),
-        ElevatedButton(onPressed: _handleSave, child: const Text('Save')),
-      ],
-    );
+        keyboardType: TextInputType.number,
+      ),
+      const SizedBox(height: 8),
+      TextField(
+        controller: _heightController,
+        decoration: const InputDecoration(
+          labelText: 'Height',
+          hintText: 'Optional height in pixels',
+        ),
+        keyboardType: TextInputType.number,
+      ),
+    ];
   }
 
   Widget _buildImageGrid(String baseUrl) {

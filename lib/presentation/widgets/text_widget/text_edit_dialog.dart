@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widgets/text/text_props.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_edit_scaffold.dart';
 
 /// Dialog for editing text properties
 class TextEditDialog extends StatefulWidget {
@@ -20,11 +21,6 @@ class _TextEditDialogState extends State<TextEditDialog> {
   late bool _bold;
   late bool _italic;
 
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -43,111 +39,93 @@ class _TextEditDialogState extends State<TextEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
+    return AdaptiveEditScaffold(
+      title: 'Edit Text',
+      onSave: _handleSave,
+      appleFormChildren: _buildAppleFormChildren(context),
+      materialFormChildren: _buildMaterialFormChildren(),
+    );
   }
 
-  Widget _buildAppleForm(BuildContext context) {
+  List<Widget> _buildAppleFormChildren(BuildContext context) {
     final alignLabels = {'left': 'Left', 'center': 'Center', 'right': 'Right'};
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: const Text('Edit Text'),
-        leading: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: _handleSave,
-          child: const Text('Save'),
-        ),
+    return [
+      CupertinoFormSection.insetGrouped(
+        header: const Text('TEXT CONTENT'),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: CupertinoTextField(
+              controller: _textController,
+              placeholder: 'Enter text content',
+              maxLines: 5,
+            ),
+          ),
+        ],
       ),
-      child: SafeArea(
-        child: ListView(
-          children: [
-            CupertinoFormSection.insetGrouped(
-              header: const Text('TEXT CONTENT'),
+      CupertinoFormSection.insetGrouped(
+        header: const Text('FORMATTING'),
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            child: Row(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: CupertinoTextField(
-                    controller: _textController,
-                    placeholder: 'Enter text content',
-                    maxLines: 5,
+                const Text('Font Size'),
+                const SizedBox(width: 12),
+                Text('${_fontSize.toInt()}'),
+                Expanded(
+                  child: CupertinoSlider(
+                    value: _fontSize,
+                    min: 4,
+                    max: 36,
+                    divisions: 28,
+                    onChanged: (value) => setState(() => _fontSize = value),
                   ),
                 ),
               ],
             ),
-            CupertinoFormSection.insetGrouped(
-              header: const Text('FORMATTING'),
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    children: [
-                      const Text('Font Size'),
-                      const SizedBox(width: 12),
-                      Text('${_fontSize.toInt()}'),
-                      Expanded(
-                        child: CupertinoSlider(
-                          value: _fontSize,
-                          min: 4,
-                          max: 36,
-                          divisions: 28,
-                          onChanged: (value) =>
-                              setState(() => _fontSize = value),
-                        ),
-                      ),
-                    ],
-                  ),
+          ),
+          _buildPickerRow(
+            'Alignment',
+            alignLabels[_align] ?? 'Left',
+            () => _showAlignmentPicker(context),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(left: 20),
+                child: Text('Bold'),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 14),
+                child: CupertinoSwitch(
+                  value: _bold,
+                  onChanged: (value) => setState(() => _bold = value),
                 ),
-                _buildPickerRow(
-                  'Alignment',
-                  alignLabels[_align] ?? 'Left',
-                  () => _showAlignmentPicker(context),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(left: 20),
+                child: Text('Italic'),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 14),
+                child: CupertinoSwitch(
+                  value: _italic,
+                  onChanged: (value) => setState(() => _italic = value),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 20),
-                      child: Text('Bold'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 14),
-                      child: CupertinoSwitch(
-                        value: _bold,
-                        onChanged: (value) => setState(() => _bold = value),
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(left: 20),
-                      child: Text('Italic'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 14),
-                      child: CupertinoSwitch(
-                        value: _italic,
-                        onChanged: (value) => setState(() => _italic = value),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
-    );
+    ];
   }
 
   Widget _buildPickerRow(String label, String value, VoidCallback onTap) {
@@ -219,69 +197,54 @@ class _TextEditDialogState extends State<TextEditDialog> {
     );
   }
 
-  Widget _buildMaterialDialog(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Edit Text'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _textController,
-              decoration: const InputDecoration(
-                labelText: 'Text',
-                hintText: 'Enter text content',
-              ),
-              maxLines: 5,
-            ),
-            const SizedBox(height: 12),
-            Slider(
-              value: _fontSize,
-              min: 4,
-              max: 36,
-              divisions: 28,
-              label: 'Font Size: ${_fontSize.toInt()}',
-              onChanged: (value) => setState(() => _fontSize = value),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              initialValue: _align,
-              decoration: const InputDecoration(labelText: 'Alignment'),
-              items: const [
-                DropdownMenuItem(value: 'left', child: Text('Left')),
-                DropdownMenuItem(value: 'center', child: Text('Center')),
-                DropdownMenuItem(value: 'right', child: Text('Right')),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _align = value);
-                }
-              },
-            ),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              title: const Text('Bold'),
-              value: _bold,
-              onChanged: (value) => setState(() => _bold = value),
-              dense: true,
-            ),
-            SwitchListTile(
-              title: const Text('Italic'),
-              value: _italic,
-              onChanged: (value) => setState(() => _italic = value),
-              dense: true,
-            ),
-          ],
+  List<Widget> _buildMaterialFormChildren() {
+    return [
+      TextField(
+        controller: _textController,
+        decoration: const InputDecoration(
+          labelText: 'Text',
+          hintText: 'Enter text content',
         ),
+        maxLines: 5,
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(onPressed: _handleSave, child: const Text('Save')),
-      ],
-    );
+      const SizedBox(height: 12),
+      Slider(
+        value: _fontSize,
+        min: 4,
+        max: 36,
+        divisions: 28,
+        label: 'Font Size: ${_fontSize.toInt()}',
+        onChanged: (value) => setState(() => _fontSize = value),
+      ),
+      const SizedBox(height: 8),
+      DropdownButtonFormField<String>(
+        initialValue: _align,
+        decoration: const InputDecoration(labelText: 'Alignment'),
+        items: const [
+          DropdownMenuItem(value: 'left', child: Text('Left')),
+          DropdownMenuItem(value: 'center', child: Text('Center')),
+          DropdownMenuItem(value: 'right', child: Text('Right')),
+        ],
+        onChanged: (value) {
+          if (value != null) {
+            setState(() => _align = value);
+          }
+        },
+      ),
+      const SizedBox(height: 8),
+      SwitchListTile(
+        title: const Text('Bold'),
+        value: _bold,
+        onChanged: (value) => setState(() => _bold = value),
+        dense: true,
+      ),
+      SwitchListTile(
+        title: const Text('Italic'),
+        value: _italic,
+        onChanged: (value) => setState(() => _italic = value),
+        dense: true,
+      ),
+    ];
   }
 
   void _handleSave() {

@@ -4,6 +4,18 @@ import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
 
+/// Resolves the icon for a widget definition, falling back to generic icons.
+IconData _getDefinitionIcon(
+  WidgetDefinition? definition, {
+  required bool isApple,
+}) {
+  if (definition != null) {
+    final icon = isApple ? definition.cupertinoIcon : definition.materialIcon;
+    if (icon != null) return icon;
+  }
+  return isApple ? CupertinoIcons.square_grid_2x2 : Icons.widgets;
+}
+
 /// Widget palette for dragging widgets into the editor canvas.
 class WidgetPalette extends StatelessWidget {
   final WidgetRegistry registry;
@@ -151,7 +163,7 @@ class _PaletteItem extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            _getIconForType(type, isApple: isApple),
+            _getIcon(isApple: isApple),
             size: 20,
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -168,38 +180,8 @@ class _PaletteItem extends StatelessWidget {
     );
   }
 
-  static IconData _getIconForType(String type, {bool isApple = false}) {
-    if (isApple) {
-      switch (type) {
-        case 'dish':
-          return CupertinoIcons.list_bullet;
-        case 'image':
-          return CupertinoIcons.photo;
-        case 'section':
-          return CupertinoIcons.textformat;
-        case 'text':
-          return CupertinoIcons.text_justify;
-        case 'wine':
-          return CupertinoIcons.drop;
-        default:
-          return CupertinoIcons.square_grid_2x2;
-      }
-    }
-    switch (type) {
-      case 'dish':
-        return Icons.restaurant_menu;
-      case 'image':
-        return Icons.image;
-      case 'section':
-        return Icons.title;
-      case 'text':
-        return Icons.text_fields;
-      case 'wine':
-        return Icons.wine_bar;
-      default:
-        return Icons.widgets;
-    }
-  }
+  IconData _getIcon({required bool isApple}) =>
+      _getDefinitionIcon(definition, isApple: isApple);
 }
 
 /// Admin palette item with checkbox for toggling widget availability
@@ -271,7 +253,7 @@ class _AdminPaletteItem extends StatelessWidget {
               onChanged: (value) => onChanged(value ?? false),
             ),
           Icon(
-            _PaletteItem._getIconForType(type, isApple: isApple),
+            _getDefinitionIcon(definition, isApple: isApple),
             size: 20,
             color: theme.colorScheme.onSurfaceVariant,
           ),

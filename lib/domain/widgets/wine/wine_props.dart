@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
+import 'package:oxo_menus/domain/widgets/shared/dietary_type.dart';
 
 part 'wine_props.freezed.dart';
 part 'wine_props.g.dart';

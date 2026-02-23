@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widgets/text/text_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'text_widget.dart';
@@ -18,4 +20,7 @@ final textWidgetDefinition = WidgetDefinition<TextProps>(
     bold: false,
     italic: false,
   ),
+  displayName: 'Text',
+  materialIcon: Icons.text_fields,
+  cupertinoIcon: CupertinoIcons.text_justify,
 );

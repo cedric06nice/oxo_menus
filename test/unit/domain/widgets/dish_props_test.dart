@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
+import 'package:oxo_menus/domain/widgets/shared/dietary_type.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 
 void main() {

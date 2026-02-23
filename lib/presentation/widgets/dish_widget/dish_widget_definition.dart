@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/allergens/allergen_info.dart';
-import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
+import 'package:oxo_menus/domain/widgets/shared/dietary_type.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'dish_widget.dart';
@@ -21,6 +23,9 @@ final dishWidgetDefinition = WidgetDefinition<DishProps>(
   render: (props, context) => DishWidget(props: props, context: context),
   defaultProps: const DishProps(name: 'New Dish', price: 0.0),
   migrate: _migrateDishProps,
+  displayName: 'Dish',
+  materialIcon: Icons.restaurant_menu,
+  cupertinoIcon: CupertinoIcons.list_bullet,
 );
 
 /// Migrate dish props from older versions

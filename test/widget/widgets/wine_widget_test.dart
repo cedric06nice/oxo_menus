@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
-import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
+import 'package:oxo_menus/domain/widgets/shared/dietary_type.dart';
 import 'package:oxo_menus/domain/widgets/wine/wine_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/wine_widget/wine_widget.dart';

@@ -13,7 +13,7 @@ import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/file_repository.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
-import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
+import 'package:oxo_menus/domain/widgets/shared/dietary_type.dart';
 import '../../helpers/test_image_data.dart';
 
 class MockFileRepository extends Mock implements FileRepository {}

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 
@@ -66,6 +67,17 @@ class WidgetDefinition<P> {
   /// this function is called to migrate the props to the new format.
   final P Function(Map<String, dynamic>)? migrate;
 
+  /// Human-readable display name (e.g., 'Dish', 'Wine')
+  ///
+  /// Falls back to [type] if not provided.
+  final String? displayName;
+
+  /// Material icon for palette and UI display
+  final IconData? materialIcon;
+
+  /// Cupertino icon for palette and UI display on Apple platforms
+  final IconData? cupertinoIcon;
+
   const WidgetDefinition({
     required this.type,
     required this.version,
@@ -73,6 +85,9 @@ class WidgetDefinition<P> {
     required this.render,
     required this.defaultProps,
     this.migrate,
+    this.displayName,
+    this.materialIcon,
+    this.cupertinoIcon,
   });
 
   /// Render the widget with dynamic props (type-erased version)

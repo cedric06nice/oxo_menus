@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'image_widget.dart';
@@ -16,4 +18,7 @@ final imageWidgetDefinition = WidgetDefinition<ImageProps>(
     align: 'center',
     fit: 'contain',
   ),
+  displayName: 'Image',
+  materialIcon: Icons.image,
+  cupertinoIcon: CupertinoIcons.photo,
 );

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
@@ -105,6 +106,37 @@ void main() {
       );
 
       expect(definitionWithoutMigration.migrate, isNull);
+    });
+
+    test('should accept optional displayName, materialIcon, cupertinoIcon', () {
+      final definition = WidgetDefinition<TestProps>(
+        type: 'test',
+        version: '1.0.0',
+        parseProps: (json) => TestProps.fromJson(json),
+        render: (props, context) => Text(props.name),
+        defaultProps: const TestProps(name: 'default', value: 0),
+        displayName: 'Test Widget',
+        materialIcon: Icons.widgets,
+        cupertinoIcon: CupertinoIcons.square_grid_2x2,
+      );
+
+      expect(definition.displayName, 'Test Widget');
+      expect(definition.materialIcon, Icons.widgets);
+      expect(definition.cupertinoIcon, CupertinoIcons.square_grid_2x2);
+    });
+
+    test('display metadata defaults to null when not provided', () {
+      final definition = WidgetDefinition<TestProps>(
+        type: 'test',
+        version: '1.0.0',
+        parseProps: (json) => TestProps.fromJson(json),
+        render: (props, context) => Text(props.name),
+        defaultProps: const TestProps(name: 'default', value: 0),
+      );
+
+      expect(definition.displayName, isNull);
+      expect(definition.materialIcon, isNull);
+      expect(definition.cupertinoIcon, isNull);
     });
   });
 

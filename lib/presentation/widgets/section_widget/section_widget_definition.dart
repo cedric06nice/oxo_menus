@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widgets/section/section_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'section_widget.dart';
@@ -16,4 +18,7 @@ final sectionWidgetDefinition = WidgetDefinition<SectionProps>(
     uppercase: false,
     showDivider: true,
   ),
+  displayName: 'Section',
+  materialIcon: Icons.title,
+  cupertinoIcon: CupertinoIcons.textformat,
 );

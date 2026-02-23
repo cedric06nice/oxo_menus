@@ -1,8 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/allergens/allergen_formatter.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
+import 'package:oxo_menus/presentation/helpers/edit_dialog_helper.dart';
 import 'dish_edit_dialog.dart';
 
 /// Widget that displays a menu dish with name, price, description, and dietary information
@@ -106,29 +106,14 @@ class DishWidget extends StatelessWidget {
   }
 
   void _handleEdit(BuildContext buildContext) {
-    final platform = Theme.of(buildContext).platform;
-    final isApple =
-        platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-
-    final dialog = DishEditDialog(
-      props: props,
-      onSave: (updatedProps) {
-        context.onUpdate?.call(updatedProps.toJson());
-      },
+    showEditDialog(
+      buildContext,
+      DishEditDialog(
+        props: props,
+        onSave: (updatedProps) {
+          context.onUpdate?.call(updatedProps.toJson());
+        },
+      ),
     );
-
-    if (isApple) {
-      Navigator.of(buildContext).push(
-        CupertinoPageRoute<void>(
-          fullscreenDialog: true,
-          builder: (_) => dialog,
-        ),
-      );
-    } else {
-      showDialog<DishProps>(
-        context: buildContext,
-        builder: (dialogContext) => dialog,
-      );
-    }
   }
 }

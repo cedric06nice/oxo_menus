@@ -1,10 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/image_widget/image_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/section_widget/section_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/text_widget/text_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/wine_widget/wine_widget_definition.dart';
+
+/// All built-in widget definitions.
+///
+/// To add a new widget type, add its definition to this list.
+final allWidgetDefinitions = <WidgetDefinition>[
+  dishWidgetDefinition,
+  imageWidgetDefinition,
+  sectionWidgetDefinition,
+  textWidgetDefinition,
+  wineWidgetDefinition,
+];
 
 /// Global widget registry provider
 ///
@@ -23,13 +35,8 @@ import 'package:oxo_menus/presentation/widgets/wine_widget/wine_widget_definitio
 /// ```
 final widgetRegistryProvider = Provider<WidgetRegistry>((ref) {
   final registry = WidgetRegistry();
-
-  // Register all built-in widgets
-  registry.register(dishWidgetDefinition);
-  registry.register(imageWidgetDefinition);
-  registry.register(sectionWidgetDefinition);
-  registry.register(textWidgetDefinition);
-  registry.register(wineWidgetDefinition);
-
+  for (final definition in allWidgetDefinitions) {
+    registry.register(definition);
+  }
   return registry;
 });
