@@ -255,6 +255,46 @@ void main() {
       expect(result!.first.allergen, UkAllergen.celery);
     });
 
+    testWidgets('uses CupertinoFormSection.insetGrouped on iOS', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.iOS),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: AllergenSelector(
+                initialSelection: const [],
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(CupertinoFormSection), findsOneWidget);
+      expect(find.byType(Card), findsNothing);
+    });
+
+    testWidgets('uses Card tiles on Android', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.android),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: AllergenSelector(
+                initialSelection: const [],
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(Card), findsNWidgets(14));
+      expect(find.byType(CupertinoFormSection), findsNothing);
+    });
+
     testWidgets('renders Checkbox on Android', (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(

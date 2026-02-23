@@ -58,17 +58,21 @@ class _WineEditDialogState extends State<WineEditDialog> {
     return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
   }
 
+  void _toggleAllergen() {
+    setState(() => _containsSulphites = !_containsSulphites);
+  }
+
   Widget _buildAppleForm(BuildContext context) {
     final dietaryLabel = _selectedDietary?.displayName ?? 'None';
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: const Text('Edit Wine'),
-        leading: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
+        // leading: CupertinoButton(
+        //   padding: EdgeInsets.zero,
+        //   onPressed: () => Navigator.of(context).pop(),
+        //   child: const Text('Cancel'),
+        // ),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
           onPressed: _handleSave,
@@ -109,7 +113,7 @@ class _WineEditDialogState extends State<WineEditDialog> {
               ],
             ),
             CupertinoFormSection.insetGrouped(
-              header: const Text('OPTIONS'),
+              header: const Text('DIETARY INFO'),
               children: [
                 CupertinoListTile(
                   title: const Text('Dietary type'),
@@ -117,11 +121,13 @@ class _WineEditDialogState extends State<WineEditDialog> {
                   trailing: const CupertinoListTileChevron(),
                   onTap: () => _showDietaryPicker(context),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
+              ],
+            ),
+            CupertinoFormSection.insetGrouped(
+              header: const Text('ALLERGENS'),
+              children: [
+                GestureDetector(
+                  onTap: () => _toggleAllergen(),
                   child: Row(
                     children: [
                       CupertinoCheckbox(
@@ -131,7 +137,7 @@ class _WineEditDialogState extends State<WineEditDialog> {
                         },
                       ),
                       const SizedBox(width: 8),
-                      const Flexible(child: Text('Contains sulphites')),
+                      const Expanded(child: Text('Contains sulphites')),
                     ],
                   ),
                 ),

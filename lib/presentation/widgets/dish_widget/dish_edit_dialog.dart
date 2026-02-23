@@ -122,14 +122,11 @@ class _DishEditDialogState extends State<DishEditDialog> {
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: AllergenSelector(
-                initialSelection: _selectedAllergens,
-                onChanged: (allergens) {
-                  setState(() => _selectedAllergens = allergens);
-                },
-              ),
+            AllergenSelector(
+              initialSelection: _selectedAllergens,
+              onChanged: (allergens) {
+                setState(() => _selectedAllergens = allergens);
+              },
             ),
           ],
         ),

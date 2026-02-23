@@ -70,17 +70,96 @@ class _AllergenSelectorState extends State<AllergenSelector> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isApple) {
+      return _buildAppleLayout();
+    }
+    return _buildMaterialLayout();
+  }
+
+  Widget _buildMaterialLayout() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Allergens', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 3),
-        ...UkAllergen.values.map((allergen) => _buildAllergenTile(allergen)),
+        ...UkAllergen.values.map(_buildMaterialTile),
       ],
     );
   }
 
-  Widget _buildAllergenTile(UkAllergen allergen) {
+  Widget _buildAppleLayout() {
+    return CupertinoFormSection.insetGrouped(
+      header: const Text('ALLERGENS'),
+      children: UkAllergen.values.map(_buildAppleTile).toList(),
+    );
+  }
+
+  Widget _buildAppleTile(UkAllergen allergen) {
+    final isSelected = _selections[allergen] != null;
+    final info = _selections[allergen];
+
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () => _toggleAllergen(allergen),
+          child: Row(
+            children: [
+              _buildCheckbox(
+                value: isSelected,
+                onChanged: (_) => _toggleAllergen(allergen),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  allergen.displayName,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (isSelected) ...[
+          Padding(
+            padding: const EdgeInsets.only(left: 48, right: 16, bottom: 8),
+            child:
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    SizedBox(
+                      height: 32,
+                      child: _buildCheckbox(
+                        value: info?.mayContain ?? false,
+                        onChanged: (checked) {
+                          setState(() {
+                            _selections[allergen] = info?.copyWith(
+                              mayContain: checked ?? false,
+                            );
+                          });
+                          _notifyChange();
+                        },
+                      ),
+                    ),
+                    const Text(
+                      'May contain (trace amounts)',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                  ],
+                ),
+                if (allergen.supportsDetails) ...[
+                  const SizedBox(height: 8),
+                  _buildDetailsField(allergen, info),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMaterialTile(UkAllergen allergen) {
     final isSelected = _selections[allergen] != null;
     final info = _selections[allergen];
 
@@ -91,31 +170,11 @@ class _AllergenSelectorState extends State<AllergenSelector> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Checkbox and allergen name
             Row(
               children: [
                 _buildCheckbox(
                   value: isSelected,
-                  onChanged: (checked) {
-                    setState(() {
-                      if (checked == true) {
-                        _selections[allergen] = AllergenInfo(
-                          allergen: allergen,
-                          mayContain: false,
-                          details:
-                              _detailsControllers[allergen]?.text.isEmpty ==
-                                  true
-                              ? null
-                              : _detailsControllers[allergen]?.text,
-                        );
-                      } else {
-                        _selections[allergen] = null;
-                        // Clear details when deselected
-                        _detailsControllers[allergen]?.clear();
-                      }
-                    });
-                    _notifyChange();
-                  },
+                  onChanged: (_) => _toggleAllergen(allergen),
                 ),
                 Expanded(
                   child: Text(
@@ -125,15 +184,12 @@ class _AllergenSelectorState extends State<AllergenSelector> {
                 ),
               ],
             ),
-
-            // May contain toggle and details (when selected)
             if (isSelected) ...[
               Padding(
                 padding: const EdgeInsets.only(left: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // May contain checkbox
                     Row(
                       children: [
                         SizedBox(
@@ -156,8 +212,6 @@ class _AllergenSelectorState extends State<AllergenSelector> {
                         ),
                       ],
                     ),
-
-                    // Details field for gluten and nuts
                     if (allergen.supportsDetails) ...[
                       const SizedBox(height: 8),
                       _buildDetailsField(allergen, info),
@@ -170,6 +224,25 @@ class _AllergenSelectorState extends State<AllergenSelector> {
         ),
       ),
     );
+  }
+
+  void _toggleAllergen(UkAllergen allergen) {
+    final isSelected = _selections[allergen] != null;
+    setState(() {
+      if (!isSelected) {
+        _selections[allergen] = AllergenInfo(
+          allergen: allergen,
+          mayContain: false,
+          details: _detailsControllers[allergen]?.text.isEmpty == true
+              ? null
+              : _detailsControllers[allergen]?.text,
+        );
+      } else {
+        _selections[allergen] = null;
+        _detailsControllers[allergen]?.clear();
+      }
+    });
+    _notifyChange();
   }
 
   Widget _buildCheckbox({
