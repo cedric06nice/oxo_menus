@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -43,7 +46,10 @@ final _sizes = [
   ),
 ];
 
-Widget _buildApp({required MockSizeRepository mockSizeRepository}) {
+Widget _buildApp({
+  required MockSizeRepository mockSizeRepository,
+  TargetPlatform platform = TargetPlatform.android,
+}) {
   final router = GoRouter(
     routes: [
       GoRoute(path: '/', builder: (_, _) => const AdminSizesPage()),
@@ -61,7 +67,10 @@ Widget _buildApp({required MockSizeRepository mockSizeRepository}) {
         (ref) => AdminSizesNotifier(mockSizeRepository),
       ),
     ],
-    child: MaterialApp.router(routerConfig: router),
+    child: MaterialApp.router(
+      routerConfig: router,
+      theme: ThemeData(platform: platform),
+    ),
   );
 }
 
@@ -244,6 +253,119 @@ void main() {
 
       expect(find.textContaining('Portrait'), findsWidgets);
       expect(find.textContaining('Landscape'), findsWidgets);
+    });
+
+    group('iOS platform', () {
+      testWidgets('shows CupertinoActivityIndicator while loading on iOS', (
+        tester,
+      ) async {
+        final completer = Completer<Result<List<domain.Size>, DomainError>>();
+        when(
+          () => mockSizeRepository.getAll(),
+        ).thenAnswer((_) => completer.future);
+
+        await tester.pumpWidget(
+          _buildApp(
+            mockSizeRepository: mockSizeRepository,
+            platform: TargetPlatform.iOS,
+          ),
+        );
+
+        await tester.pump();
+
+        expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+
+        // Complete to avoid pending timer
+        completer.complete(Success(_sizes));
+        await tester.pumpAndSettle();
+      });
+
+      testWidgets('shows CupertinoIcons in size cards on iOS', (tester) async {
+        when(
+          () => mockSizeRepository.getAll(),
+        ).thenAnswer((_) async => Success(_sizes));
+
+        await tester.pumpWidget(
+          _buildApp(
+            mockSizeRepository: mockSizeRepository,
+            platform: TargetPlatform.iOS,
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(find.byIcon(CupertinoIcons.pencil), findsNWidgets(2));
+        expect(find.byIcon(CupertinoIcons.delete), findsNWidgets(2));
+        expect(find.byIcon(Icons.edit), findsNothing);
+        expect(find.byIcon(Icons.delete), findsNothing);
+      });
+
+      testWidgets('shows CupertinoAlertDialog for delete confirmation on iOS', (
+        tester,
+      ) async {
+        when(
+          () => mockSizeRepository.getAll(),
+        ).thenAnswer((_) async => Success(_sizes));
+
+        await tester.pumpWidget(
+          _buildApp(
+            mockSizeRepository: mockSizeRepository,
+            platform: TargetPlatform.iOS,
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byIcon(CupertinoIcons.delete).first);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(CupertinoAlertDialog), findsOneWidget);
+        expect(find.text('Delete Page Size'), findsOneWidget);
+      });
+
+      testWidgets('opens SizeCreateEditDialog as full-screen on iOS', (
+        tester,
+      ) async {
+        when(
+          () => mockSizeRepository.getAll(),
+        ).thenAnswer((_) async => Success(_sizes));
+
+        await tester.pumpWidget(
+          _buildApp(
+            mockSizeRepository: mockSizeRepository,
+            platform: TargetPlatform.iOS,
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byIcon(CupertinoIcons.add).first);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(CupertinoPageScaffold), findsOneWidget);
+        expect(find.text('Create Page Size'), findsOneWidget);
+      });
+
+      testWidgets('uses CupertinoButton.filled for error retry on iOS', (
+        tester,
+      ) async {
+        when(
+          () => mockSizeRepository.getAll(),
+        ).thenAnswer((_) async => const Failure(ServerError('Network error')));
+
+        await tester.pumpWidget(
+          _buildApp(
+            mockSizeRepository: mockSizeRepository,
+            platform: TargetPlatform.iOS,
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        expect(find.byType(CupertinoButton), findsOneWidget);
+        expect(find.byType(FilledButton), findsNothing);
+      });
     });
   });
 }

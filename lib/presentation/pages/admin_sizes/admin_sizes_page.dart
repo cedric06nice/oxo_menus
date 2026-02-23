@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
@@ -18,6 +19,11 @@ class AdminSizesPage extends ConsumerStatefulWidget {
 }
 
 class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
+  bool get _isApple {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -34,7 +40,7 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
       title: 'Page Sizes',
       actions: [
         IconButton(
-          icon: const Icon(Icons.add),
+          icon: Icon(_isApple ? CupertinoIcons.add : Icons.add),
           onPressed: _showCreateDialog,
           tooltip: 'Create Page Size',
         ),
@@ -92,7 +98,11 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
 
   Widget _buildSizesList(dynamic state) {
     if (state.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: _isApple
+            ? const CupertinoActivityIndicator()
+            : const CircularProgressIndicator(),
+      );
     }
 
     if (state.errorMessage != null) {
@@ -101,19 +111,29 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.error_outline,
+              _isApple
+                  ? CupertinoIcons.exclamationmark_circle
+                  : Icons.error_outline,
               size: 48,
               color: Theme.of(context).colorScheme.error,
             ),
             const SizedBox(height: 16),
             Text('Error: ${state.errorMessage}'),
             const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () {
-                ref.read(adminSizesProvider.notifier).loadSizes();
-              },
-              child: const Text('Retry'),
-            ),
+            if (_isApple)
+              CupertinoButton.filled(
+                onPressed: () {
+                  ref.read(adminSizesProvider.notifier).loadSizes();
+                },
+                child: const Text('Retry'),
+              )
+            else
+              FilledButton(
+                onPressed: () {
+                  ref.read(adminSizesProvider.notifier).loadSizes();
+                },
+                child: const Text('Retry'),
+              ),
           ],
         ),
       );
@@ -144,72 +164,112 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
   }
 
   void _showCreateDialog() {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => SizeCreateEditDialog(
-        onSave: (result) {
-          ref
-              .read(adminSizesProvider.notifier)
-              .createSize(
-                CreateSizeInput(
-                  name: result.name,
-                  width: result.width,
-                  height: result.height,
-                  status: result.status,
-                  direction: result.direction,
-                ),
-              );
-        },
-      ),
+    final dialog = SizeCreateEditDialog(
+      onSave: (result) {
+        ref
+            .read(adminSizesProvider.notifier)
+            .createSize(
+              CreateSizeInput(
+                name: result.name,
+                width: result.width,
+                height: result.height,
+                status: result.status,
+                direction: result.direction,
+              ),
+            );
+      },
     );
+
+    if (_isApple) {
+      Navigator.of(context).push(
+        CupertinoPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => dialog,
+        ),
+      );
+    } else {
+      showDialog(context: context, builder: (_) => dialog);
+    }
   }
 
   void _showEditDialog(domain.Size size) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => SizeCreateEditDialog(
-        existingSize: size,
-        onSave: (result) {
-          ref
-              .read(adminSizesProvider.notifier)
-              .updateSize(
-                UpdateSizeInput(
-                  id: size.id,
-                  name: result.name,
-                  width: result.width,
-                  height: result.height,
-                  status: result.status,
-                  direction: result.direction,
-                ),
-              );
-        },
-      ),
+    final dialog = SizeCreateEditDialog(
+      existingSize: size,
+      onSave: (result) {
+        ref
+            .read(adminSizesProvider.notifier)
+            .updateSize(
+              UpdateSizeInput(
+                id: size.id,
+                name: result.name,
+                width: result.width,
+                height: result.height,
+                status: result.status,
+                direction: result.direction,
+              ),
+            );
+      },
     );
+
+    if (_isApple) {
+      Navigator.of(context).push(
+        CupertinoPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => dialog,
+        ),
+      );
+    } else {
+      showDialog(context: context, builder: (_) => dialog);
+    }
   }
 
   Future<void> _confirmDelete(domain.Size size) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Page Size'),
-        content: Text(
-          'Are you sure you want to delete "${size.name}"? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+    final bool? confirmed;
+    if (_isApple) {
+      confirmed = await showCupertinoDialog<bool>(
+        context: context,
+        builder: (dialogContext) => CupertinoAlertDialog(
+          title: const Text('Delete Page Size'),
+          content: Text(
+            'Are you sure you want to delete "${size.name}"? This action cannot be undone.',
           ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
             ),
-            child: const Text('Delete'),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Delete Page Size'),
+          content: Text(
+            'Are you sure you want to delete "${size.name}"? This action cannot be undone.',
           ),
-        ],
-      ),
-    );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      );
+    }
 
     if (confirmed == true && mounted) {
       await ref.read(adminSizesProvider.notifier).deleteSize(size.id);
@@ -259,6 +319,9 @@ class _SizeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isApple =
+        theme.platform == TargetPlatform.iOS ||
+        theme.platform == TargetPlatform.macOS;
     final accentColor = statusColor(size.status, colorScheme);
 
     return Card(
@@ -304,12 +367,14 @@ class _SizeCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit),
+                      icon: Icon(isApple ? CupertinoIcons.pencil : Icons.edit),
                       onPressed: onEdit,
                       tooltip: 'Edit',
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete),
+                      icon: Icon(
+                        isApple ? CupertinoIcons.delete : Icons.delete,
+                      ),
                       onPressed: onDelete,
                       tooltip: 'Delete',
                       color: colorScheme.error,
