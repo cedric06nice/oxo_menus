@@ -8,7 +8,7 @@ import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_provider.da
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
 import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
-import 'package:oxo_menus/presentation/widgets/size_create_edit_dialog.dart';
+import 'package:oxo_menus/presentation/pages/admin_sizes/widgets/size_create_edit_dialog.dart';
 
 /// Admin page for managing page sizes
 class AdminSizesPage extends ConsumerStatefulWidget {

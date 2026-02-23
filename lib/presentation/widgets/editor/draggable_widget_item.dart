@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
-import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
+import 'package:oxo_menus/presentation/widgets/canvas/widget_renderer.dart';
 
 /// A draggable and dismissible widget item for the editor.
 ///

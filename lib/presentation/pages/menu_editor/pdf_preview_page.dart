@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,9 +72,21 @@ class PdfPreviewPage extends ConsumerWidget {
             canChangeOrientation: false,
             canChangePageFormat: false,
             canDebug: false,
-            allowPrinting: true,
+            allowPrinting: false,
             allowSharing: true,
             pdfFileName: 'menu_$menuId.pdf',
+            useActions: false,
+            actions: [
+              PdfPreviewAction(
+                icon: Icon(isApple ? CupertinoIcons.share_up : Icons.share),
+                onPressed: (context, _, _) {
+                  Printing.sharePdf(
+                    bytes: snapshot.data!,
+                    filename: 'menu_$menuId.pdf',
+                  );
+                },
+              ),
+            ],
           );
         },
       ),

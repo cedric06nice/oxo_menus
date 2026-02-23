@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oxo_menus/presentation/widgets/size_create_edit_dialog.dart';
+import 'package:oxo_menus/presentation/pages/admin_sizes/widgets/size_create_edit_dialog.dart';
 
 void main() {
   group('SizeCreateEditDialog', () {

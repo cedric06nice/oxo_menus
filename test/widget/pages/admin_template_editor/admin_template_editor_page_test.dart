@@ -31,7 +31,7 @@ import 'package:oxo_menus/presentation/widgets/section_widget/section_widget_def
 import 'package:oxo_menus/presentation/widgets/text_widget/text_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
-import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
+import 'package:oxo_menus/presentation/widgets/canvas/widget_renderer.dart';
 
 class MockMenuRepository extends Mock implements MenuRepository {}
 

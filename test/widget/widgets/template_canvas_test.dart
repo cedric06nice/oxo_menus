@@ -8,7 +8,7 @@ import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
-import 'package:oxo_menus/presentation/widgets/template_canvas.dart';
+import 'package:oxo_menus/presentation/widgets/canvas/template_canvas.dart';
 
 void main() {
   group('TemplateCanvas', () {

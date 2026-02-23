@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
-import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
+import 'package:oxo_menus/presentation/widgets/canvas/widget_renderer.dart';
 
 /// Template Canvas
 ///

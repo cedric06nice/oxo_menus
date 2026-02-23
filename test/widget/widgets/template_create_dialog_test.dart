@@ -8,7 +8,7 @@ import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
-import 'package:oxo_menus/presentation/widgets/template_create_dialog.dart';
+import 'package:oxo_menus/presentation/pages/menu_list/widgets/template_create_dialog.dart';
 
 class MockSizeRepository extends Mock implements SizeRepository {}
 

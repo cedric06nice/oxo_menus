@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
-import 'package:oxo_menus/presentation/widgets/widget_renderer.dart';
+import 'package:oxo_menus/presentation/widgets/canvas/widget_renderer.dart';
 
 void main() {
   group('DraggableWidgetItem', () {

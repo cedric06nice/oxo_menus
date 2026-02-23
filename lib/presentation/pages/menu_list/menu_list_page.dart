@@ -5,13 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/presentation/pages/home/home_helpers.dart';
+import 'package:oxo_menus/presentation/helpers/grid_helpers.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_list_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
-import 'package:oxo_menus/presentation/widgets/menu_list_item.dart';
-import 'package:oxo_menus/presentation/widgets/template_create_dialog.dart';
+import 'package:oxo_menus/presentation/pages/menu_list/widgets/menu_list_item.dart';
+import 'package:oxo_menus/presentation/pages/menu_list/widgets/template_create_dialog.dart';
 
 /// Menu list page
 ///
@@ -335,19 +335,4 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
       ),
     );
   }
-}
-
-/// Result from the template create dialog
-class TemplateCreateResult {
-  final String name;
-  final Status status;
-  final String version;
-  final int sizeId;
-
-  const TemplateCreateResult({
-    required this.name,
-    required this.status,
-    required this.version,
-    required this.sizeId,
-  });
 }

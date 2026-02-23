@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
-import 'package:oxo_menus/presentation/widgets/menu_list_item.dart';
+import 'package:oxo_menus/presentation/pages/menu_list/widgets/menu_list_item.dart';
 
 void main() {
   group('MenuListItem', () {

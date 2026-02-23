@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oxo_menus/presentation/widgets/editor/delete_confirmation_dialog.dart';
+import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 
 void main() {
   group('showDeleteConfirmation', () {

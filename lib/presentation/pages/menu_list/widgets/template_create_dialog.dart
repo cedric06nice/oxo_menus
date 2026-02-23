@@ -6,8 +6,22 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
-import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+
+/// Result from the template create dialog
+class TemplateCreateResult {
+  final String name;
+  final Status status;
+  final String version;
+  final int sizeId;
+
+  const TemplateCreateResult({
+    required this.name,
+    required this.status,
+    required this.version,
+    required this.sizeId,
+  });
+}
 
 class TemplateCreateDialog extends ConsumerStatefulWidget {
   final void Function(TemplateCreateResult) onSave;

@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/widgets/template_card.dart';
-import 'package:oxo_menus/presentation/pages/home/home_helpers.dart';
+import 'package:oxo_menus/presentation/helpers/grid_helpers.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
 

@@ -22,13 +22,13 @@ import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
-import 'package:oxo_menus/presentation/widgets/editor/delete_confirmation_dialog.dart';
+import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
-import 'package:oxo_menus/presentation/widgets/menu_display_options_dialog.dart';
-import 'package:oxo_menus/presentation/widgets/page_size_picker_dialog.dart';
+import 'package:oxo_menus/presentation/widgets/dialogs/menu_display_options_dialog.dart';
+import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/page_size_picker_dialog.dart';
 
 /// Admin Template Editor Page
 ///

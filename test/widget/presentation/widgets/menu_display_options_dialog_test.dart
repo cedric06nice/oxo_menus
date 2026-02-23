@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
-import 'package:oxo_menus/presentation/widgets/menu_display_options_dialog.dart';
+import 'package:oxo_menus/presentation/widgets/dialogs/menu_display_options_dialog.dart';
 
 void main() {
   group('MenuDisplayOptionsDialog', () {
