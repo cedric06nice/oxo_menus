@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 /// A widget that auto-scrolls a [ScrollController] when a pointer moves
@@ -32,17 +33,45 @@ class _AutoScrollListenerState extends State<AutoScrollListener> {
   Timer? _scrollTimer;
 
   @override
+  void initState() {
+    super.initState();
+    GestureBinding.instance.pointerRouter.addGlobalRoute(_handlePointerEvent);
+  }
+
+  @override
   void dispose() {
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(
+      _handlePointerEvent,
+    );
     _stopScrolling();
     super.dispose();
   }
 
+  void _handlePointerEvent(PointerEvent event) {
+    if (event is PointerMoveEvent) {
+      _onPointerMove(event);
+    } else if (event is PointerUpEvent || event is PointerCancelEvent) {
+      _stopScrolling();
+    }
+  }
+
   void _onPointerMove(PointerMoveEvent event) {
     final renderBox = context.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
+    if (renderBox == null || !renderBox.hasSize) return;
 
     final localPosition = renderBox.globalToLocal(event.position);
-    final height = renderBox.size.height;
+    final size = renderBox.size;
+
+    // Ignore events outside our bounds (global route receives ALL pointer events)
+    if (localPosition.dx < 0 ||
+        localPosition.dx > size.width ||
+        localPosition.dy < 0 ||
+        localPosition.dy > size.height) {
+      _stopScrolling();
+      return;
+    }
+
+    final height = size.height;
     final threshold = widget.edgeThreshold;
 
     if (localPosition.dy < threshold) {
@@ -56,14 +85,6 @@ class _AutoScrollListenerState extends State<AutoScrollListener> {
     } else {
       _stopScrolling();
     }
-  }
-
-  void _onPointerUp(PointerUpEvent event) {
-    _stopScrolling();
-  }
-
-  void _onPointerCancel(PointerCancelEvent event) {
-    _stopScrolling();
   }
 
   void _startScrolling(double delta) {
@@ -86,12 +107,5 @@ class _AutoScrollListenerState extends State<AutoScrollListener> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Listener(
-      onPointerMove: _onPointerMove,
-      onPointerUp: _onPointerUp,
-      onPointerCancel: _onPointerCancel,
-      child: widget.child,
-    );
-  }
+  Widget build(BuildContext context) => widget.child;
 }

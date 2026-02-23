@@ -121,8 +121,7 @@ class _AllergenSelectorState extends State<AllergenSelector> {
         if (isSelected) ...[
           Padding(
             padding: const EdgeInsets.only(left: 48, right: 16, bottom: 8),
-            child:
-            Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
