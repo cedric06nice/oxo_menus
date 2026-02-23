@@ -6,6 +6,7 @@ import 'package:oxo_menus/presentation/pages/home/home_helpers.dart';
 import 'package:oxo_menus/presentation/pages/home/widgets/quick_action_card.dart';
 import 'package:oxo_menus/presentation/pages/home/widgets/welcome_card.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/theme/app_spacing.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 
 class HomePage extends ConsumerWidget {
@@ -28,14 +29,14 @@ class HomePage extends ConsumerWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 800),
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(AppSpacing.xl),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   WelcomeCard(user: user, isAdmin: isAdmin, greeting: greeting),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
                   Text('Quick Actions', style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final columns = computeGridColumns(constraints.maxWidth);

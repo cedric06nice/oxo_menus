@@ -122,17 +122,24 @@ void main() {
       expect(find.byType(WelcomeCard), findsOneWidget);
     });
 
-    testWidgets('welcome card uses Card with primaryContainer color', (
-      tester,
-    ) async {
+    testWidgets('welcome card uses gradient decoration', (tester) async {
       await tester.pumpWidget(
         createWidgetUnderTest(user: adminUser, isAdmin: true),
       );
       await tester.pumpAndSettle();
 
-      final card = tester.widget<Card>(find.byKey(const Key('welcome_card')));
-      final theme = AppTheme.light;
-      expect(card.color, theme.colorScheme.primaryContainer);
+      // Card should contain a DecoratedBox with gradient
+      final decoratedBox = tester.widget<DecoratedBox>(
+        find
+            .descendant(
+              of: find.byKey(const Key('welcome_card')),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      expect(decoratedBox.decoration, isA<BoxDecoration>());
+      final boxDecoration = decoratedBox.decoration as BoxDecoration;
+      expect(boxDecoration.gradient, isA<LinearGradient>());
     });
 
     testWidgets('contains UserAvatarWidget with radius 36', (tester) async {

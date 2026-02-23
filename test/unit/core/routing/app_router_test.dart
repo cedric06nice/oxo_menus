@@ -184,8 +184,8 @@ void main() {
       router.go('/menus');
       await tester.pumpAndSettle();
 
-      // Should show menus page
-      expect(find.text('Menus'), findsOneWidget);
+      // Should show menus page (text appears in AppBar + NavigationBar)
+      expect(find.text('Menus'), findsAtLeast(1));
     });
 
     testWidgets('should have /menus/:id route', (tester) async {

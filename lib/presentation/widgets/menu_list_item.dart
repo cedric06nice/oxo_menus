@@ -3,12 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/presentation/helpers/status_helpers.dart';
-import 'package:oxo_menus/presentation/widgets/menu_status_indicator.dart';
+import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
 
-/// Menu list item widget
-///
-/// Displays a menu in a rich card with status header, name, version,
-/// optional date, and platform-adaptive action buttons for admins.
+/// Menu list item widget with left accent strip and status badge pill.
 class MenuListItem extends StatelessWidget {
   final Menu menu;
   final bool isAdmin;
@@ -37,67 +34,72 @@ class MenuListItem extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isApple = _isApple(context);
-    final containerColor = statusContainerColor(menu.status, colorScheme);
+    final accentColor = statusColor(menu.status, colorScheme);
 
     final cardContent = Card(
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Status header
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: containerColor,
-            child: MenuStatusIndicator(status: menu.status),
-          ),
-          // Body
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  menu.name,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'v${menu.version}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                if (isAdmin && menu.dateUpdated != null) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    'Updated ${_formatDate(menu.dateUpdated!)}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Left accent strip
+            Container(width: 4, color: accentColor),
+            // Body
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Top row: name + badge
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            menu.name,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        StatusBadge(status: menu.status),
+                      ],
                     ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          // Action row (admin only)
-          if (isAdmin) ...[
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: isApple
-                    ? _buildAppleActions(colorScheme)
-                    : _buildMaterialActions(colorScheme),
+                    const SizedBox(height: 4),
+                    Text(
+                      'v${menu.version}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    if (isAdmin && menu.dateUpdated != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'Updated ${_formatDate(menu.dateUpdated!)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                    // Action row (admin only)
+                    if (isAdmin) ...[
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: isApple
+                            ? _buildAppleActions(colorScheme)
+                            : _buildMaterialActions(colorScheme),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ],
-        ],
+        ),
       ),
     );
 
@@ -109,7 +111,11 @@ class MenuListItem extends StatelessWidget {
       );
     }
 
-    return InkWell(onTap: onTap, child: cardContent);
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: cardContent,
+    );
   }
 
   List<Widget> _buildMaterialActions(ColorScheme colorScheme) {

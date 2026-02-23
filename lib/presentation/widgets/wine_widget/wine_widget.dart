@@ -11,6 +11,8 @@ class WineWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext buildContext) {
+    final colorScheme = Theme.of(buildContext).colorScheme;
+
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
       child: Card(
@@ -46,7 +48,10 @@ class WineWidget extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Vintage: ${props.vintage}',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
               if (props.description != null &&
@@ -54,7 +59,10 @@ class WineWidget extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   props.description!,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
               if (props.containsSulphites &&
@@ -66,7 +74,7 @@ class WineWidget extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontStyle: FontStyle.italic,
-                      color: Colors.grey[700],
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),

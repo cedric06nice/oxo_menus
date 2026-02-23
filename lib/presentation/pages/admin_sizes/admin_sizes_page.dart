@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
-import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
+import 'package:oxo_menus/presentation/helpers/status_helpers.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
 import 'package:oxo_menus/presentation/widgets/size_create_edit_dialog.dart';
 
 /// Admin page for managing page sizes
@@ -98,9 +100,15 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: 16),
             Text('Error: ${state.errorMessage}'),
             const SizedBox(height: 16),
-            ElevatedButton(
+            FilledButton(
               onPressed: () {
                 ref.read(adminSizesProvider.notifier).loadSizes();
               },
@@ -112,25 +120,12 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
     }
 
     if (state.sizes.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.straighten, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text('No page sizes found'),
-            const SizedBox(height: 8),
-            Text(
-              'Create your first page size',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _showCreateDialog,
-              child: const Text('Create Page Size'),
-            ),
-          ],
-        ),
+      return EmptyState(
+        icon: Icons.straighten,
+        title: 'No page sizes found',
+        subtitle: 'Create your first page size',
+        actionLabel: 'Create Page Size',
+        onAction: _showCreateDialog,
       );
     }
 
@@ -205,9 +200,11 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
             onPressed: () => Navigator.of(dialogContext).pop(false),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
             child: const Text('Delete'),
           ),
         ],
@@ -260,88 +257,70 @@ class _SizeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final accentColor = statusColor(size.status, colorScheme);
+
     return Card(
+      clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.only(bottom: 12.0),
-      child: ListTile(
-        title: Text(
-          size.name,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                _StatusBadge(status: size.status),
-                const SizedBox(width: 8),
-                Text(
-                  '${size.width.toStringAsFixed(size.width.truncateToDouble() == size.width ? 0 : 1)} x '
-                  '${size.height.toStringAsFixed(size.height.truncateToDouble() == size.height ? 0 : 1)} mm',
+            Container(width: 4, color: accentColor),
+            Expanded(
+              child: ListTile(
+                title: Text(
+                  size.name,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              size.direction == 'portrait' ? 'Portrait' : 'Landscape',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: onEdit,
-              tooltip: 'Edit',
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: onDelete,
-              tooltip: 'Delete',
-              color: Colors.red,
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        StatusBadge(status: size.status),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${size.width.toStringAsFixed(size.width.truncateToDouble() == size.width ? 0 : 1)} x '
+                          '${size.height.toStringAsFixed(size.height.truncateToDouble() == size.height ? 0 : 1)} mm',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      size.direction == 'portrait' ? 'Portrait' : 'Landscape',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: onEdit,
+                      tooltip: 'Edit',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: onDelete,
+                      tooltip: 'Delete',
+                      color: colorScheme.error,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final Status status;
-
-  const _StatusBadge({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    Color color;
-    IconData icon;
-
-    switch (status) {
-      case Status.draft:
-        color = Colors.orange;
-        icon = Icons.edit;
-        break;
-      case Status.published:
-        color = Colors.green;
-        icon = Icons.check_circle;
-        break;
-      case Status.archived:
-        color = Colors.grey;
-        icon = Icons.archive;
-        break;
-    }
-
-    return Chip(
-      label: Text(
-        status.name.toUpperCase(),
-        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-      ),
-      avatar: Icon(icon, size: 16, color: color),
-      backgroundColor: color.withValues(alpha: 0.1),
-      visualDensity: VisualDensity.compact,
     );
   }
 }

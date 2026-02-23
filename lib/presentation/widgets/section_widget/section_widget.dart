@@ -12,6 +12,8 @@ class SectionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext buildContext) {
+    final colorScheme = Theme.of(buildContext).colorScheme;
+
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
       child: Container(
@@ -32,7 +34,7 @@ class SectionWidget extends StatelessWidget {
             // Divider
             if (props.showDivider) ...[
               const SizedBox(height: 4),
-              Divider(thickness: 2, color: Colors.grey[400]),
+              Divider(thickness: 2, color: colorScheme.outlineVariant),
             ],
           ],
         ),

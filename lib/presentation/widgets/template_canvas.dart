@@ -29,7 +29,10 @@ class TemplateCanvas extends ConsumerWidget {
           padding: const EdgeInsets.all(24.0),
           child: Text(
             'No pages in this menu',
-            style: TextStyle(color: Colors.grey[600], fontSize: 16),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 16,
+            ),
           ),
         ),
       );
@@ -193,12 +196,14 @@ class ColumnCanvas extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4.0),
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
         border: Border.all(
-          color: isEditable ? Colors.grey.shade300 : Colors.transparent,
+          color: isEditable ? colorScheme.outlineVariant : Colors.transparent,
         ),
         borderRadius: BorderRadius.circular(4.0),
       ),
@@ -223,7 +228,7 @@ class ColumnCanvas extends ConsumerWidget {
                 padding: const EdgeInsets.all(20.0),
                 child: Text(
                   'Empty column',
-                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  style: TextStyle(color: colorScheme.outline, fontSize: 12),
                 ),
               ),
             ),

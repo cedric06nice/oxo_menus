@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/presentation/theme/app_colors.dart';
 import 'package:oxo_menus/presentation/theme/app_theme.dart';
 
 void main() {
@@ -13,10 +14,10 @@ void main() {
         expect(AppTheme.light.brightness, Brightness.light);
       });
 
-      test('should use deepPurple seed color', () {
+      test('should use burgundy primary color', () {
         expect(
           AppTheme.light.colorScheme.primary,
-          ColorScheme.fromSeed(seedColor: Colors.deepPurple).primary,
+          AppColors.lightColorScheme.primary,
         );
       });
 
@@ -38,6 +39,26 @@ void main() {
         final minimumSize = style!.minimumSize?.resolve({});
         expect(minimumSize?.height, greaterThanOrEqualTo(48));
       });
+
+      test('should configure card theme', () {
+        final cardTheme = AppTheme.light.cardTheme;
+        expect(cardTheme.clipBehavior, Clip.antiAlias);
+        expect(cardTheme.elevation, 1);
+      });
+
+      test('should configure appBar theme', () {
+        final appBarTheme = AppTheme.light.appBarTheme;
+        expect(appBarTheme.elevation, 0);
+        expect(appBarTheme.centerTitle, false);
+      });
+
+      test('should configure navigation bar theme', () {
+        expect(AppTheme.light.navigationBarTheme.backgroundColor, isNotNull);
+      });
+
+      test('should configure navigation rail theme', () {
+        expect(AppTheme.light.navigationRailTheme.backgroundColor, isNotNull);
+      });
     });
 
     group('dark theme', () {
@@ -49,13 +70,10 @@ void main() {
         expect(AppTheme.dark.brightness, Brightness.dark);
       });
 
-      test('should use deepPurple seed color', () {
+      test('should use burgundy primary color (dark variant)', () {
         expect(
           AppTheme.dark.colorScheme.primary,
-          ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple,
-            brightness: Brightness.dark,
-          ).primary,
+          AppColors.darkColorScheme.primary,
         );
       });
 

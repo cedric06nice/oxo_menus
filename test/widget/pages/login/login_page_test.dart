@@ -41,7 +41,7 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      expect(find.text('OXO Menus'), findsOneWidget);
+      expect(find.textContaining('OXO'), findsOneWidget);
     });
 
     testWidgets('should display email and password fields', (tester) async {

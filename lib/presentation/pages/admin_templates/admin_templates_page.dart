@@ -7,6 +7,7 @@ import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_pro
 import 'package:oxo_menus/presentation/pages/admin_templates/widgets/template_card.dart';
 import 'package:oxo_menus/presentation/pages/home/home_helpers.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
 
 class AdminTemplatesPage extends ConsumerStatefulWidget {
   const AdminTemplatesPage({super.key});
@@ -147,37 +148,12 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
   }
 
   Widget _buildEmptyState() {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            _isApple ? CupertinoIcons.doc_text : Icons.restaurant_menu,
-            size: 64,
-            color: theme.colorScheme.outline,
-          ),
-          const SizedBox(height: 16),
-          const Text('No templates found'),
-          const SizedBox(height: 8),
-          Text(
-            'Create your first template to get started',
-            style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 16),
-          if (_isApple)
-            CupertinoButton.filled(
-              onPressed: () => context.push('/admin/templates/create'),
-              child: const Text('Create Template'),
-            )
-          else
-            FilledButton(
-              onPressed: () => context.push('/admin/templates/create'),
-              child: const Text('Create Template'),
-            ),
-        ],
-      ),
+    return EmptyState(
+      icon: _isApple ? CupertinoIcons.doc_text : Icons.restaurant_menu,
+      title: 'No templates found',
+      subtitle: 'Create your first template to get started',
+      actionLabel: 'Create Template',
+      onAction: () => context.push('/admin/templates/create'),
     );
   }
 

@@ -13,6 +13,8 @@ class DishWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext buildContext) {
+    final colorScheme = Theme.of(buildContext).colorScheme;
+
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
       child: Card(
@@ -52,7 +54,10 @@ class DishWidget extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   props.description!,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
 
@@ -63,11 +68,14 @@ class DishWidget extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       '${props.calories} KCAL',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 Builder(
-                  builder: (context) {
+                  builder: (ctx) {
                     final formattedAllergens =
                         AllergenFormatter.formatForDisplay(
                           props.effectiveAllergenInfo,
@@ -82,7 +90,7 @@ class DishWidget extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontStyle: FontStyle.italic,
-                          color: Colors.grey[700],
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     );

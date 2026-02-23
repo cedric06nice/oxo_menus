@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/theme/app_spacing.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -181,57 +182,80 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'OXO Menus',
-                  style: theme.textTheme.headlineLarge?.copyWith(
-                    color: theme.colorScheme.primary,
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [colorScheme.primaryContainer, colorScheme.surface],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'OXO',
+                          style: theme.textTheme.headlineLarge?.copyWith(
+                            color: colorScheme.tertiary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' Menus',
+                          style: theme.textTheme.headlineLarge?.copyWith(
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Menu Template Builder',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Menu Template Builder',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 48),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: AutofillGroup(
-                      child: Column(
-                        children: [
-                          _buildEmailField(),
-                          const SizedBox(height: 16),
-                          _buildPasswordField(),
-                          const SizedBox(height: 24),
-                          _buildLoginButton(authState, theme),
-                        ],
+                  const SizedBox(height: AppSpacing.xxxl),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.xl),
+                      child: AutofillGroup(
+                        child: Column(
+                          children: [
+                            _buildEmailField(),
+                            const SizedBox(height: AppSpacing.lg),
+                            _buildPasswordField(),
+                            const SizedBox(height: AppSpacing.xl),
+                            _buildLoginButton(authState, theme),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                authState.maybeWhen(
-                  error: (message) => Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(
-                      message,
-                      style: TextStyle(color: theme.colorScheme.error),
+                  authState.maybeWhen(
+                    error: (message) => Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.lg),
+                      child: Text(
+                        message,
+                        style: TextStyle(color: colorScheme.error),
+                      ),
                     ),
+                    orElse: () => const SizedBox.shrink(),
                   ),
-                  orElse: () => const SizedBox.shrink(),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

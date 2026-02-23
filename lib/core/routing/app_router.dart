@@ -13,6 +13,7 @@ import 'package:oxo_menus/presentation/pages/menu_editor/pdf_preview_dialog.dart
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
 import 'package:oxo_menus/presentation/pages/settings/settings_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/app_shell.dart';
 
 /// Listenable that notifies when auth state changes
 class AuthNotifierListenable extends ChangeNotifier {
@@ -112,61 +113,67 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'login',
         builder: (context, state) => const LoginPage(),
       ),
-      GoRoute(
-        path: '/home',
-        name: 'home',
-        builder: (context, state) => const HomePage(),
-      ),
-      GoRoute(
-        path: '/settings',
-        name: 'settings',
-        builder: (context, state) => const SettingsPage(),
-      ),
-      GoRoute(
-        path: '/menus',
-        name: 'menus',
-        builder: (context, state) => const MenuListPage(),
+      // All authenticated routes wrapped in AppShell for persistent navigation
+      ShellRoute(
+        builder: (context, state, child) => AppShell(child: child),
         routes: [
           GoRoute(
-            path: 'pdf/:id',
-            name: 'menu-pdf',
-            builder: (context, state) {
-              final int menuId = int.parse(state.pathParameters['id']!);
-              return PdfPreviewDialog(menuId: menuId);
-            },
+            path: '/home',
+            name: 'home',
+            builder: (context, state) => const HomePage(),
           ),
           GoRoute(
-            path: ':id',
-            name: 'menu-editor',
-            builder: (context, state) {
-              final int menuId = int.parse(state.pathParameters['id']!);
-              return MenuEditorPage(menuId: menuId);
-            },
-          ),
-        ],
-      ),
-      GoRoute(
-        path: '/admin/sizes',
-        name: 'admin-sizes',
-        builder: (context, state) => const AdminSizesPage(),
-      ),
-      GoRoute(
-        path: '/admin/templates',
-        name: 'admin-templates',
-        builder: (context, state) => const AdminTemplatesPage(),
-        routes: [
-          GoRoute(
-            path: 'create',
-            name: 'admin-template-create',
-            builder: (context, state) => const AdminTemplateCreatorPage(),
+            path: '/settings',
+            name: 'settings',
+            builder: (context, state) => const SettingsPage(),
           ),
           GoRoute(
-            path: ':id',
-            name: 'admin-template-editor',
-            builder: (context, state) {
-              final int menuId = int.parse(state.pathParameters['id']!);
-              return AdminTemplateEditorPage(menuId: menuId);
-            },
+            path: '/menus',
+            name: 'menus',
+            builder: (context, state) => const MenuListPage(),
+            routes: [
+              GoRoute(
+                path: 'pdf/:id',
+                name: 'menu-pdf',
+                builder: (context, state) {
+                  final int menuId = int.parse(state.pathParameters['id']!);
+                  return PdfPreviewDialog(menuId: menuId);
+                },
+              ),
+              GoRoute(
+                path: ':id',
+                name: 'menu-editor',
+                builder: (context, state) {
+                  final int menuId = int.parse(state.pathParameters['id']!);
+                  return MenuEditorPage(menuId: menuId);
+                },
+              ),
+            ],
+          ),
+          GoRoute(
+            path: '/admin/sizes',
+            name: 'admin-sizes',
+            builder: (context, state) => const AdminSizesPage(),
+          ),
+          GoRoute(
+            path: '/admin/templates',
+            name: 'admin-templates',
+            builder: (context, state) => const AdminTemplatesPage(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                name: 'admin-template-create',
+                builder: (context, state) => const AdminTemplateCreatorPage(),
+              ),
+              GoRoute(
+                path: ':id',
+                name: 'admin-template-editor',
+                builder: (context, state) {
+                  final int menuId = int.parse(state.pathParameters['id']!);
+                  return AdminTemplateEditorPage(menuId: menuId);
+                },
+              ),
+            ],
           ),
         ],
       ),

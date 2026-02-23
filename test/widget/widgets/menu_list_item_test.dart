@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
-import 'package:oxo_menus/presentation/helpers/status_helpers.dart';
+import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
 import 'package:oxo_menus/presentation/widgets/menu_list_item.dart';
-import 'package:oxo_menus/presentation/widgets/menu_status_indicator.dart';
 
 void main() {
   group('MenuListItem', () {
@@ -48,12 +47,10 @@ void main() {
       expect(find.text('Summer Menu'), findsOneWidget);
     });
 
-    testWidgets('should display menu status via MenuStatusIndicator', (
-      tester,
-    ) async {
+    testWidgets('should display menu status via StatusBadge', (tester) async {
       await tester.pumpWidget(buildWidget());
 
-      expect(find.byType(MenuStatusIndicator), findsOneWidget);
+      expect(find.byType(StatusBadge), findsOneWidget);
       expect(find.text('PUBLISHED'), findsOneWidget);
     });
 
@@ -233,7 +230,7 @@ void main() {
       await tester.pumpWidget(buildWidget(menu: draftMenu, isAdmin: true));
 
       expect(find.text('DRAFT'), findsOneWidget);
-      expect(find.byType(MenuStatusIndicator), findsOneWidget);
+      expect(find.byType(StatusBadge), findsOneWidget);
     });
 
     testWidgets('should display archived status', (tester) async {
@@ -270,37 +267,16 @@ void main() {
       expect(find.byType(Card), findsOneWidget);
     });
 
-    testWidgets('should have status header with container color', (
+    testWidgets('should have left accent strip with status color', (
       tester,
     ) async {
-      final colorScheme = ColorScheme.fromSeed(seedColor: Colors.purple);
+      await tester.pumpWidget(buildWidget());
 
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(colorScheme: colorScheme),
-          home: Scaffold(
-            body: MenuListItem(menu: testMenu, isAdmin: false, onTap: () {}),
-          ),
-        ),
+      // Find the 4px wide left accent container
+      final accentFinder = find.byWidgetPredicate(
+        (widget) => widget is Container && widget.constraints?.maxWidth == 4,
       );
-
-      final expectedColor = statusContainerColor(Status.published, colorScheme);
-
-      // Find the status header container by its background color
-      final containerFinder = find.byWidgetPredicate(
-        (widget) => widget is Container && widget.color == expectedColor,
-      );
-      expect(containerFinder, findsOneWidget);
-    });
-
-    testWidgets('should show divider for admin only', (tester) async {
-      await tester.pumpWidget(buildWidget(isAdmin: true, onDelete: () {}));
-      expect(find.byType(Divider), findsOneWidget);
-    });
-
-    testWidgets('should not show divider for non-admin', (tester) async {
-      await tester.pumpWidget(buildWidget(isAdmin: false));
-      expect(find.byType(Divider), findsNothing);
+      expect(accentFinder, findsOneWidget);
     });
 
     testWidgets('uses InkWell on Material platform', (tester) async {

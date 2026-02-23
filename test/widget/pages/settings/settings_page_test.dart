@@ -66,6 +66,10 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(user: adminUser));
       await tester.pumpAndSettle();
 
+      // Scroll to make SwitchListTile visible
+      await tester.ensureVisible(find.byType(SwitchListTile));
+      await tester.pumpAndSettle();
+
       // Tap the switch
       await tester.tap(find.byType(SwitchListTile));
       await tester.pumpAndSettle();

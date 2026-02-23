@@ -22,13 +22,28 @@ class QuickActionCard extends StatelessWidget {
         theme.platform == TargetPlatform.iOS ||
         theme.platform == TargetPlatform.macOS;
 
+    final colorScheme = theme.colorScheme;
+
     final content = Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: theme.colorScheme.onPrimaryContainer),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Icon(
+                  icon,
+                  size: 28,
+                  color: colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ),
             const SizedBox(height: 12),
             Text(
               title,
@@ -40,7 +55,7 @@ class QuickActionCard extends StatelessWidget {
               subtitle,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
           ],

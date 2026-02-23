@@ -9,6 +9,7 @@ import 'package:oxo_menus/presentation/pages/home/home_helpers.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_list_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
 import 'package:oxo_menus/presentation/widgets/menu_list_item.dart';
 import 'package:oxo_menus/presentation/widgets/template_create_dialog.dart';
 
@@ -286,30 +287,14 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   }
 
   Widget _buildEmptyState() {
-    final theme = Theme.of(context);
-
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverFillRemaining(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  _isApple ? CupertinoIcons.doc_text : Icons.restaurant_menu,
-                  size: 64,
-                  color: theme.colorScheme.outline,
-                ),
-                const SizedBox(height: 16),
-                const Text('No menus found'),
-                const SizedBox(height: 8),
-                Text(
-                  'Browse available menus or check back later',
-                  style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-                ),
-              ],
-            ),
+          child: EmptyState(
+            icon: _isApple ? CupertinoIcons.doc_text : Icons.restaurant_menu,
+            title: 'No menus found',
+            subtitle: 'Browse available menus or check back later',
           ),
         ),
       ],

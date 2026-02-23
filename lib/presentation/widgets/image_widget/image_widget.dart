@@ -24,17 +24,25 @@ class ImageWidget extends ConsumerWidget {
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
           padding: const EdgeInsets.all(8.0),
-          child: Image.network(
-            imageUrl,
-            width: props.width,
-            height: props.height,
-            fit: _getBoxFit(),
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                width: props.width ?? 100,
-                height: props.height ?? 100,
-                color: Colors.grey[300],
-                child: const Icon(Icons.broken_image, color: Colors.grey),
+          child: Builder(
+            builder: (ctx) {
+              final colorScheme = Theme.of(ctx).colorScheme;
+              return Image.network(
+                imageUrl,
+                width: props.width,
+                height: props.height,
+                fit: _getBoxFit(),
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: props.width ?? 100,
+                    height: props.height ?? 100,
+                    color: colorScheme.surfaceContainerHigh,
+                    child: Icon(
+                      Icons.broken_image,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  );
+                },
               );
             },
           ),

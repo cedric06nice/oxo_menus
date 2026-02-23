@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/widgets/template_card.dart';
-import 'package:oxo_menus/presentation/pages/admin_templates/widgets/template_status_indicator.dart';
+import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
 
 const _draftTemplate = Menu(
   id: 1,
@@ -51,10 +51,10 @@ void main() {
       expect(find.text('Sunday Roast'), findsOneWidget);
     });
 
-    testWidgets('displays TemplateStatusIndicator', (tester) async {
+    testWidgets('displays StatusBadge', (tester) async {
       await tester.pumpWidget(_buildCard(template: _draftTemplate));
 
-      expect(find.byType(TemplateStatusIndicator), findsOneWidget);
+      expect(find.byType(StatusBadge), findsOneWidget);
       expect(find.text('DRAFT'), findsOneWidget);
     });
 

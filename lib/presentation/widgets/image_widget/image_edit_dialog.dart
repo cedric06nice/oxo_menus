@@ -192,7 +192,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
                 border: Border.all(
                   color: isSelected
                       ? Theme.of(context).colorScheme.primary
-                      : Colors.grey[300]!,
+                      : Theme.of(context).colorScheme.outlineVariant,
                   width: isSelected ? 3 : 1,
                 ),
                 borderRadius: BorderRadius.circular(8),

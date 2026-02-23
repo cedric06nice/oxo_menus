@@ -27,7 +27,7 @@ class SettingsPage extends ConsumerWidget {
               child: Column(
                 children: [
                   // User profile section
-                  _buildProfileSection(user),
+                  _buildProfileSection(context, user),
                   const SizedBox(height: 32),
                   const Divider(),
                   const SizedBox(height: 16),
@@ -40,7 +40,7 @@ class SettingsPage extends ConsumerWidget {
                     const SizedBox(height: 16),
                     const Divider(),
                     const SizedBox(height: 16),
-                    _buildDebugSection(ref),
+                    _buildDebugSection(context, ref),
                   ],
                 ],
               ),
@@ -48,52 +48,64 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildProfileSection(User user) {
+  Widget _buildProfileSection(BuildContext context, User user) {
+    final theme = Theme.of(context);
     final fullName = '${user.firstName ?? ''} ${user.lastName ?? ''}'.trim();
     final displayName = fullName.isEmpty ? user.email : fullName;
 
-    return Column(
-      children: [
-        UserAvatarWidget(user: user, radius: 50),
-        const SizedBox(height: 16),
-        Text(
-          displayName,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            UserAvatarWidget(user: user, radius: 50),
+            const SizedBox(height: 16),
+            Text(
+              displayName,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              user.email,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Chip(
+              label: Text(user.role == UserRole.admin ? 'Admin' : 'User'),
+              avatar: Icon(
+                user.role == UserRole.admin
+                    ? Icons.admin_panel_settings
+                    : Icons.person,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          user.email,
-          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-        ),
-        const SizedBox(height: 8),
-        Chip(
-          label: Text(user.role == UserRole.admin ? 'Admin' : 'User'),
-          avatar: Icon(
-            user.role == UserRole.admin
-                ? Icons.admin_panel_settings
-                : Icons.person,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
   Widget _buildAccountSection(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            'Account',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text('Account', style: theme.textTheme.titleMedium),
         ),
         const SizedBox(height: 8),
         Card(
           child: ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Logout'),
+            leading: Icon(Icons.logout, color: theme.colorScheme.error),
+            title: Text(
+              'Logout',
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
             onTap: () => _handleLogout(context, ref),
           ),
         ),
@@ -101,18 +113,16 @@ class SettingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDebugSection(WidgetRef ref) {
+  Widget _buildDebugSection(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
     final viewAsUser = ref.watch(adminViewAsUserProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            'Debug',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text('Debug', style: theme.textTheme.titleMedium),
         ),
         const SizedBox(height: 8),
         Card(
