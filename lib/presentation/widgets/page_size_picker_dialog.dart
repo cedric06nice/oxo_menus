@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
@@ -15,8 +16,74 @@ class PageSizePickerDialog extends StatelessWidget {
     this.currentPageSize,
   });
 
+  bool _isApple(BuildContext context) {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
+
   @override
   Widget build(BuildContext context) {
+    return _isApple(context)
+        ? _buildCupertinoDialog(context)
+        : _buildMaterialDialog(context);
+  }
+
+  Widget _buildCupertinoDialog(BuildContext context) {
+    return CupertinoAlertDialog(
+      title: const Text('Select Page Size'),
+      content: Column(
+        children: sizes.map((size) {
+          final isSelected =
+              currentPageSize != null && currentPageSize!.name == size.name;
+          return GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+              onSelect(size);
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          size.name,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        Text(
+                          '${size.width} x ${size.height} mm (${size.direction})',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: CupertinoColors.secondaryLabel,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (isSelected)
+                    const Icon(
+                      CupertinoIcons.checkmark_alt,
+                      color: CupertinoColors.activeBlue,
+                    ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+      actions: [
+        CupertinoDialogAction(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMaterialDialog(BuildContext context) {
     return AlertDialog(
       title: const Text('Select Page Size'),
       content: SizedBox(

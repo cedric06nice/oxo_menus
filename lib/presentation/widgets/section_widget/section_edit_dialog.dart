@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widgets/section/section_props.dart';
 
@@ -21,6 +22,11 @@ class _SectionEditDialogState extends State<SectionEditDialog> {
   late bool _uppercase;
   late bool _showDivider;
 
+  bool get _isApple {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +43,78 @@ class _SectionEditDialogState extends State<SectionEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
+  }
+
+  Widget _buildAppleForm(BuildContext context) {
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Edit Section'),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: _handleSave,
+          child: const Text('Save'),
+        ),
+      ),
+      child: SafeArea(
+        child: ListView(
+          children: [
+            CupertinoFormSection.insetGrouped(
+              header: const Text('SECTION DETAILS'),
+              children: [
+                CupertinoTextFormFieldRow(
+                  controller: _titleController,
+                  prefix: const Text('Title'),
+                  placeholder: 'Enter section title',
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 20),
+                      child: Text('Uppercase'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 14),
+                      child: CupertinoSwitch(
+                        value: _uppercase,
+                        onChanged: (value) =>
+                            setState(() => _uppercase = value),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 20),
+                      child: Text('Show Divider'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 14),
+                      child: CupertinoSwitch(
+                        value: _showDivider,
+                        onChanged: (value) =>
+                            setState(() => _showDivider = value),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaterialDialog(BuildContext context) {
     return AlertDialog(
       title: const Text('Edit Section'),
       content: SingleChildScrollView(

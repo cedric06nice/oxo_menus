@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/allergens/allergen_info.dart';
 import 'package:oxo_menus/domain/allergens/uk_allergen.dart';
@@ -24,6 +25,11 @@ class AllergenSelector extends StatefulWidget {
 class _AllergenSelectorState extends State<AllergenSelector> {
   late Map<UkAllergen, AllergenInfo?> _selections;
   late Map<UkAllergen, TextEditingController> _detailsControllers;
+
+  bool get _isApple {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
 
   @override
   void initState() {
@@ -88,7 +94,7 @@ class _AllergenSelectorState extends State<AllergenSelector> {
             // Checkbox and allergen name
             Row(
               children: [
-                Checkbox(
+                _buildCheckbox(
                   value: isSelected,
                   onChanged: (checked) {
                     setState(() {
@@ -132,7 +138,7 @@ class _AllergenSelectorState extends State<AllergenSelector> {
                       children: [
                         SizedBox(
                           height: 32,
-                          child: Checkbox(
+                          child: _buildCheckbox(
                             value: info?.mayContain ?? false,
                             onChanged: (checked) {
                               setState(() {
@@ -154,23 +160,7 @@ class _AllergenSelectorState extends State<AllergenSelector> {
                     // Details field for gluten and nuts
                     if (allergen.supportsDetails) ...[
                       const SizedBox(height: 8),
-                      TextField(
-                        controller: _detailsControllers[allergen],
-                        decoration: InputDecoration(
-                          labelText: 'Specify details',
-                          hintText: allergen.detailsHint,
-                          isDense: true,
-                          border: const OutlineInputBorder(),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            _selections[allergen] = info?.copyWith(
-                              details: value.isEmpty ? null : value,
-                            );
-                          });
-                          _notifyChange();
-                        },
-                      ),
+                      _buildDetailsField(allergen, info),
                     ],
                   ],
                 ),
@@ -179,6 +169,54 @@ class _AllergenSelectorState extends State<AllergenSelector> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCheckbox({
+    required bool value,
+    required ValueChanged<bool?> onChanged,
+  }) {
+    if (_isApple) {
+      return CupertinoCheckbox(value: value, onChanged: onChanged);
+    }
+    return Checkbox(value: value, onChanged: onChanged);
+  }
+
+  Widget _buildDetailsField(UkAllergen allergen, AllergenInfo? info) {
+    if (_isApple) {
+      return CupertinoTextField(
+        controller: _detailsControllers[allergen],
+        placeholder: allergen.detailsHint,
+        prefix: const Padding(
+          padding: EdgeInsets.only(left: 8),
+          child: Text('Specify details'),
+        ),
+        onChanged: (value) {
+          setState(() {
+            _selections[allergen] = info?.copyWith(
+              details: value.isEmpty ? null : value,
+            );
+          });
+          _notifyChange();
+        },
+      );
+    }
+    return TextField(
+      controller: _detailsControllers[allergen],
+      decoration: InputDecoration(
+        labelText: 'Specify details',
+        hintText: allergen.detailsHint,
+        isDense: true,
+        border: const OutlineInputBorder(),
+      ),
+      onChanged: (value) {
+        setState(() {
+          _selections[allergen] = info?.copyWith(
+            details: value.isEmpty ? null : value,
+          );
+        });
+        _notifyChange();
+      },
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,9 +18,15 @@ void main() {
       isTemplate: false,
     );
 
-    Widget createTestWidget({required Widget child}) {
+    Widget createTestWidget({
+      required Widget child,
+      TargetPlatform platform = TargetPlatform.android,
+    }) {
       return ProviderScope(
-        child: MaterialApp(home: Scaffold(body: child)),
+        child: MaterialApp(
+          theme: ThemeData(platform: platform),
+          home: Scaffold(body: child),
+        ),
       );
     }
 
@@ -374,6 +381,56 @@ void main() {
           find.byType(WidgetRenderer),
         );
         expect(renderer.isEditable, isFalse);
+      });
+
+      testWidgets('shows CupertinoIcons.lock on iOS', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            platform: TargetPlatform.iOS,
+            child: DraggableWidgetItem(
+              widgetInstance: templateWidget,
+              columnId: 1,
+              isEditable: false,
+              isLocked: true,
+            ),
+          ),
+        );
+
+        expect(find.byIcon(CupertinoIcons.lock), findsOneWidget);
+        expect(find.byIcon(Icons.lock), findsNothing);
+      });
+    });
+
+    group('iOS icons', () {
+      testWidgets('dismiss background uses CupertinoIcons.delete on iOS', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            platform: TargetPlatform.iOS,
+            child: DraggableWidgetItem(
+              widgetInstance: testWidget,
+              columnId: 1,
+              isEditable: true,
+              isLocked: false,
+              onConfirmDismiss: () async => false,
+              onDismissed: (_) {},
+            ),
+          ),
+        );
+
+        await tester.drag(
+          find.byKey(const Key('dismissible_42')),
+          const Offset(-200, 0),
+        );
+        await tester.pump();
+
+        expect(find.byIcon(CupertinoIcons.delete), findsOneWidget);
+        expect(find.byIcon(Icons.delete), findsNothing);
+
+        await tester.pumpAndSettle();
       });
     });
   });

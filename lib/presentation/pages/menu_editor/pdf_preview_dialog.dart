@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
@@ -16,45 +17,36 @@ class PdfPreviewDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final isApple =
+        theme.platform == TargetPlatform.iOS ||
+        theme.platform == TargetPlatform.macOS;
+
     return Dialog(
       child: SizedBox(
         width: 600,
         height: 800,
         child: Column(
           children: [
-            AppBar(
-              title: const Text('PDF Preview'),
-              leading: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              actions: [
-                IconButton(
-                  key: const Key('download_pdf_button'),
-                  icon: const Icon(Icons.download),
-                  onPressed: () => _downloadPdf(context, ref),
-                  tooltip: 'Download PDF',
-                ),
-                IconButton(
-                  key: const Key('print_pdf_button'),
-                  icon: const Icon(Icons.print),
-                  onPressed: () => _printPdf(context, ref),
-                  tooltip: 'Print PDF',
-                ),
-              ],
-            ),
+            if (isApple)
+              _buildCupertinoNavBar(context, ref)
+            else
+              _buildMaterialAppBar(context, ref),
             Expanded(
               child: FutureBuilder<Uint8List?>(
                 future: _generatePdf(ref),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
+                    return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 16),
-                          Text('Generating PDF...'),
+                          if (isApple)
+                            const CupertinoActivityIndicator()
+                          else
+                            const CircularProgressIndicator(),
+                          const SizedBox(height: 16),
+                          const Text('Generating PDF...'),
                         ],
                       ),
                     );
@@ -65,18 +57,26 @@ class PdfPreviewDialog extends ConsumerWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
-                            Icons.error_outline,
+                          Icon(
+                            isApple
+                                ? CupertinoIcons.exclamationmark_circle
+                                : Icons.error_outline,
                             color: Colors.red,
                             size: 48,
                           ),
                           const SizedBox(height: 16),
                           Text('Error: ${snapshot.error}'),
                           const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Close'),
-                          ),
+                          if (isApple)
+                            CupertinoButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Close'),
+                            )
+                          else
+                            ElevatedButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Close'),
+                            ),
                         ],
                       ),
                     );
@@ -97,6 +97,58 @@ class PdfPreviewDialog extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMaterialAppBar(BuildContext context, WidgetRef ref) {
+    return AppBar(
+      title: const Text('PDF Preview'),
+      leading: IconButton(
+        icon: const Icon(Icons.close),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+      actions: [
+        IconButton(
+          key: const Key('download_pdf_button'),
+          icon: const Icon(Icons.download),
+          onPressed: () => _downloadPdf(context, ref),
+          tooltip: 'Download PDF',
+        ),
+        IconButton(
+          key: const Key('print_pdf_button'),
+          icon: const Icon(Icons.print),
+          onPressed: () => _printPdf(context, ref),
+          tooltip: 'Print PDF',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCupertinoNavBar(BuildContext context, WidgetRef ref) {
+    return CupertinoNavigationBar(
+      middle: const Text('PDF Preview'),
+      leading: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Icon(CupertinoIcons.xmark),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CupertinoButton(
+            key: const Key('download_pdf_button'),
+            padding: EdgeInsets.zero,
+            onPressed: () => _downloadPdf(context, ref),
+            child: const Icon(CupertinoIcons.arrow_down_doc),
+          ),
+          CupertinoButton(
+            key: const Key('print_pdf_button'),
+            padding: EdgeInsets.zero,
+            onPressed: () => _printPdf(context, ref),
+            child: const Icon(CupertinoIcons.printer),
+          ),
+        ],
       ),
     );
   }

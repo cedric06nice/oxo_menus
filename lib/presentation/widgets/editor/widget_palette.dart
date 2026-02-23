@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
@@ -135,6 +136,9 @@ class _PaletteItem extends StatelessWidget {
   }
 
   Widget _paletteItemContent(ThemeData theme) {
+    final isApple =
+        theme.platform == TargetPlatform.iOS ||
+        theme.platform == TargetPlatform.macOS;
     return Container(
       key: Key('palette_item_$type'),
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -147,7 +151,7 @@ class _PaletteItem extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            _getIconForType(type),
+            _getIconForType(type, isApple: isApple),
             size: 20,
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -164,7 +168,23 @@ class _PaletteItem extends StatelessWidget {
     );
   }
 
-  static IconData _getIconForType(String type) {
+  static IconData _getIconForType(String type, {bool isApple = false}) {
+    if (isApple) {
+      switch (type) {
+        case 'dish':
+          return CupertinoIcons.list_bullet;
+        case 'image':
+          return CupertinoIcons.photo;
+        case 'section':
+          return CupertinoIcons.textformat;
+        case 'text':
+          return CupertinoIcons.text_justify;
+        case 'wine':
+          return CupertinoIcons.drop;
+        default:
+          return CupertinoIcons.square_grid_2x2;
+      }
+    }
     switch (type) {
       case 'dish':
         return Icons.restaurant_menu;
@@ -224,6 +244,9 @@ class _AdminPaletteItem extends StatelessWidget {
   }
 
   Widget _content(ThemeData theme) {
+    final isApple =
+        theme.platform == TargetPlatform.iOS ||
+        theme.platform == TargetPlatform.macOS;
     return Container(
       key: Key('palette_item_$type'),
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -235,13 +258,20 @@ class _AdminPaletteItem extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Checkbox(
-            key: Key('allowed_type_checkbox_$type'),
-            value: isChecked,
-            onChanged: (value) => onChanged(value ?? false),
-          ),
+          if (isApple)
+            CupertinoCheckbox(
+              key: Key('allowed_type_checkbox_$type'),
+              value: isChecked,
+              onChanged: (value) => onChanged(value ?? false),
+            )
+          else
+            Checkbox(
+              key: Key('allowed_type_checkbox_$type'),
+              value: isChecked,
+              onChanged: (value) => onChanged(value ?? false),
+            ),
           Icon(
-            _PaletteItem._getIconForType(type),
+            _PaletteItem._getIconForType(type, isApple: isApple),
             size: 20,
             color: theme.colorScheme.onSurfaceVariant,
           ),

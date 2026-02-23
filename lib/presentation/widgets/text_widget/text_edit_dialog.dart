@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widgets/text/text_props.dart';
 
@@ -19,6 +20,11 @@ class _TextEditDialogState extends State<TextEditDialog> {
   late bool _bold;
   late bool _italic;
 
+  bool get _isApple {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +43,183 @@ class _TextEditDialogState extends State<TextEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
+  }
+
+  Widget _buildAppleForm(BuildContext context) {
+    final alignLabels = {'left': 'Left', 'center': 'Center', 'right': 'Right'};
+
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Edit Text'),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: _handleSave,
+          child: const Text('Save'),
+        ),
+      ),
+      child: SafeArea(
+        child: ListView(
+          children: [
+            CupertinoFormSection.insetGrouped(
+              header: const Text('TEXT CONTENT'),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: CupertinoTextField(
+                    controller: _textController,
+                    placeholder: 'Enter text content',
+                    maxLines: 5,
+                  ),
+                ),
+              ],
+            ),
+            CupertinoFormSection.insetGrouped(
+              header: const Text('FORMATTING'),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    children: [
+                      const Text('Font Size'),
+                      const SizedBox(width: 12),
+                      Text('${_fontSize.toInt()}'),
+                      Expanded(
+                        child: CupertinoSlider(
+                          value: _fontSize,
+                          min: 4,
+                          max: 36,
+                          divisions: 28,
+                          onChanged: (value) =>
+                              setState(() => _fontSize = value),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _buildPickerRow(
+                  'Alignment',
+                  alignLabels[_align] ?? 'Left',
+                  () => _showAlignmentPicker(context),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 20),
+                      child: Text('Bold'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 14),
+                      child: CupertinoSwitch(
+                        value: _bold,
+                        onChanged: (value) => setState(() => _bold = value),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(left: 20),
+                      child: Text('Italic'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 14),
+                      child: CupertinoSwitch(
+                        value: _italic,
+                        onChanged: (value) => setState(() => _italic = value),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPickerRow(String label, String value, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label),
+            Row(
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(color: CupertinoColors.secondaryLabel),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  CupertinoIcons.chevron_right,
+                  size: 16,
+                  color: CupertinoColors.secondaryLabel,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAlignmentPicker(BuildContext context) {
+    final alignments = ['left', 'center', 'right'];
+    final labels = ['Left', 'Center', 'Right'];
+    var selectedIndex = alignments.indexOf(_align).clamp(0, 2);
+
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (popupContext) => Container(
+        height: 260,
+        color: CupertinoColors.systemBackground.resolveFrom(popupContext),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                CupertinoButton(
+                  child: const Text('Done'),
+                  onPressed: () {
+                    Navigator.of(popupContext).pop();
+                    setState(() => _align = alignments[selectedIndex]);
+                  },
+                ),
+              ],
+            ),
+            Expanded(
+              child: CupertinoPicker(
+                scrollController: FixedExtentScrollController(
+                  initialItem: selectedIndex,
+                ),
+                itemExtent: 32,
+                onSelectedItemChanged: (index) => selectedIndex = index,
+                children: labels.map((l) => Center(child: Text(l))).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaterialDialog(BuildContext context) {
     return AlertDialog(
       title: const Text('Edit Text'),
       content: SingleChildScrollView(

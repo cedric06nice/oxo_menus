@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
 
 /// Result returned from the SizeCreateEditDialog
 class SizeCreateEditResult {
@@ -43,6 +45,11 @@ class _SizeCreateEditDialogState extends State<SizeCreateEditDialog> {
 
   bool get _isEditMode => widget.existingSize != null;
 
+  bool get _isApple {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -76,6 +83,104 @@ class _SizeCreateEditDialogState extends State<SizeCreateEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
+  }
+
+  Widget _buildAppleForm(BuildContext context) {
+    final title = _isEditMode ? 'Edit Page Size' : 'Create Page Size';
+    final directionLabels = {'portrait': 'Portrait', 'landscape': 'Landscape'};
+    final statusLabels = {
+      for (final s in Status.values)
+        s: s.name[0].toUpperCase() + s.name.substring(1),
+    };
+
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(title),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: _canSave() ? _handleSave : null,
+          child: const Text('Save'),
+        ),
+      ),
+      child: SafeArea(
+        child: ListView(
+          children: [
+            CupertinoFormSection.insetGrouped(
+              header: const Text('SIZE DETAILS'),
+              children: [
+                CupertinoTextFormFieldRow(
+                  controller: _nameController,
+                  prefix: const Text('Name'),
+                  placeholder: 'Enter name',
+                  autofocus: !_isEditMode,
+                ),
+                CupertinoTextFormFieldRow(
+                  controller: _widthController,
+                  prefix: const Text('Width (mm)'),
+                  placeholder: 'Enter width',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                ),
+                CupertinoTextFormFieldRow(
+                  controller: _heightController,
+                  prefix: const Text('Height (mm)'),
+                  placeholder: 'Enter height',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                ),
+              ],
+            ),
+            CupertinoFormSection.insetGrouped(
+              header: const Text('OPTIONS'),
+              children: [
+                CupertinoListTile(
+                  title: const Text('Direction'),
+                  additionalInfo: Text(
+                    directionLabels[_direction] ?? _direction,
+                  ),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: () {
+                    final directions = ['portrait', 'landscape'];
+                    showCupertinoPicker<String>(
+                      context,
+                      items: directions,
+                      currentValue: _direction,
+                      labelBuilder: (d) => directionLabels[d] ?? d,
+                      onSelected: (v) => setState(() => _direction = v),
+                    );
+                  },
+                ),
+                CupertinoListTile(
+                  title: const Text('Status'),
+                  additionalInfo: Text(statusLabels[_status] ?? _status.name),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: () {
+                    showCupertinoPicker<Status>(
+                      context,
+                      items: Status.values,
+                      currentValue: _status,
+                      labelBuilder: (s) => statusLabels[s] ?? s.name,
+                      onSelected: (v) => setState(() => _status = v),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaterialDialog(BuildContext context) {
     return AlertDialog(
       title: Text(_isEditMode ? 'Edit Page Size' : 'Create Page Size'),
       content: SingleChildScrollView(

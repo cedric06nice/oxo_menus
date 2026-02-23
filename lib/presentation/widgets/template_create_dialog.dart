@@ -1,9 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
@@ -26,6 +28,11 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
   bool _isLoadingSizes = true;
   String? _sizeError;
 
+  bool get _isApple {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -40,21 +47,19 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
 
     if (!mounted) return;
 
-    result.fold(
-      onSuccess: (sizes) {
+    switch (result) {
+      case Success(:final value):
         setState(() {
-          _sizes = sizes;
-          _selectedSize = sizes.isNotEmpty ? sizes.first : null;
+          _sizes = value;
+          _selectedSize = value.isNotEmpty ? value.first : null;
           _isLoadingSizes = false;
         });
-      },
-      onFailure: (error) {
+      case Failure(:final error):
         setState(() {
           _sizeError = error.message;
           _isLoadingSizes = false;
         });
-      },
-    );
+    }
   }
 
   @override
@@ -66,6 +71,125 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
 
   @override
   Widget build(BuildContext context) {
+    return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
+  }
+
+  Widget _buildAppleForm(BuildContext context) {
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Create Template'),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: _canSave() ? _handleSave : null,
+          child: const Text('Create'),
+        ),
+      ),
+      child: SafeArea(
+        child: ListView(
+          children: [
+            CupertinoFormSection.insetGrouped(
+              header: const Text('TEMPLATE DETAILS'),
+              children: [
+                CupertinoTextFormFieldRow(
+                  controller: _nameController,
+                  prefix: const Text('Name'),
+                  placeholder: 'Enter template name',
+                  autofocus: true,
+                  onChanged: (_) => setState(() {}),
+                ),
+                CupertinoTextFormFieldRow(
+                  controller: _versionController,
+                  prefix: const Text('Version'),
+                  placeholder: 'e.g. 1.0.0',
+                  onChanged: (_) => setState(() {}),
+                ),
+              ],
+            ),
+            CupertinoFormSection.insetGrouped(
+              header: const Text('PAGE SIZE'),
+              children: [_buildAppleSizeSelector()],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppleSizeSelector() {
+    if (_isLoadingSizes) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Row(
+          children: [
+            CupertinoActivityIndicator(),
+            SizedBox(width: 12),
+            Flexible(child: Text('Loading sizes...')),
+          ],
+        ),
+      );
+    }
+
+    if (_sizeError != null) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          'Error loading sizes: $_sizeError',
+          style: TextStyle(color: CupertinoColors.destructiveRed),
+        ),
+      );
+    }
+
+    if (_sizes.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'No page sizes available.',
+              style: TextStyle(color: CupertinoColors.destructiveRed),
+            ),
+            const SizedBox(height: 8),
+            CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.push('/admin/sizes');
+              },
+              child: const Text('Manage Page Sizes'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final sizeLabel = _selectedSize != null
+        ? '${_selectedSize!.name} (${_selectedSize!.width.toInt()}x${_selectedSize!.height.toInt()} mm)'
+        : 'Select';
+
+    return CupertinoListTile(
+      title: const Text('Page Size'),
+      additionalInfo: Text(sizeLabel),
+      trailing: const CupertinoListTileChevron(),
+      onTap: () {
+        showCupertinoPicker<domain.Size>(
+          context,
+          items: _sizes,
+          currentValue: _selectedSize ?? _sizes.first,
+          labelBuilder: (s) =>
+              '${s.name} (${s.width.toInt()}x${s.height.toInt()} mm)',
+          onSelected: (v) => setState(() => _selectedSize = v),
+        );
+      },
+    );
+  }
+
+  Widget _buildMaterialDialog(BuildContext context) {
     return AlertDialog(
       title: const Text('Create Template'),
       content: SingleChildScrollView(
@@ -90,7 +214,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildSizeDropdown(),
+            _buildMaterialSizeDropdown(),
           ],
         ),
       ),
@@ -107,7 +231,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
     );
   }
 
-  Widget _buildSizeDropdown() {
+  Widget _buildMaterialSizeDropdown() {
     if (_isLoadingSizes) {
       return const Row(
         children: [

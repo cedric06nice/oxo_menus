@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
@@ -529,6 +530,58 @@ void main() {
         );
         expect(flexibleFinder, findsOneWidget);
       });
+    });
+
+    testWidgets('renders CupertinoCheckbox in admin mode on iOS', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.iOS),
+          home: Scaffold(
+            body: WidgetPalette(
+              registry: registry,
+              allowedWidgetTypes: const ['dish', 'text'],
+              onAllowedTypesChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(CupertinoCheckbox), findsNWidgets(3));
+      expect(find.byType(Checkbox), findsNothing);
+    });
+
+    testWidgets('renders Checkbox in admin mode on Android', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.android),
+          home: Scaffold(
+            body: WidgetPalette(
+              registry: registry,
+              allowedWidgetTypes: const ['dish', 'text'],
+              onAllowedTypesChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(Checkbox), findsNWidgets(3));
+      expect(find.byType(CupertinoCheckbox), findsNothing);
+    });
+
+    testWidgets('uses CupertinoIcons on iOS', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.iOS),
+          home: Scaffold(body: WidgetPalette(registry: registry)),
+        ),
+      );
+
+      expect(find.byIcon(CupertinoIcons.text_justify), findsOneWidget);
+      expect(find.byIcon(Icons.restaurant_menu), findsNothing);
     });
 
     testWidgets('wraps items in Draggable', (WidgetTester tester) async {

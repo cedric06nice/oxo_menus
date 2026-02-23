@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/presentation/theme/app_spacing.dart';
 
@@ -45,11 +46,24 @@ class EmptyState extends StatelessWidget {
             ),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: AppSpacing.xl),
-              FilledButton(onPressed: onAction, child: Text(actionLabel!)),
+              _buildActionButton(theme),
             ],
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildActionButton(ThemeData theme) {
+    final isApple =
+        theme.platform == TargetPlatform.iOS ||
+        theme.platform == TargetPlatform.macOS;
+    if (isApple) {
+      return CupertinoButton.filled(
+        onPressed: onAction,
+        child: Text(actionLabel!),
+      );
+    }
+    return FilledButton(onPressed: onAction, child: Text(actionLabel!));
   }
 }

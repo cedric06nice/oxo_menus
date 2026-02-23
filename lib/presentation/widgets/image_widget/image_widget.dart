@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
@@ -27,6 +28,10 @@ class ImageWidget extends ConsumerWidget {
           child: Builder(
             builder: (ctx) {
               final colorScheme = Theme.of(ctx).colorScheme;
+              final platform = Theme.of(ctx).platform;
+              final isApple =
+                  platform == TargetPlatform.iOS ||
+                  platform == TargetPlatform.macOS;
               return Image.network(
                 imageUrl,
                 width: props.width,
@@ -38,7 +43,7 @@ class ImageWidget extends ConsumerWidget {
                     height: props.height ?? 100,
                     color: colorScheme.surfaceContainerHigh,
                     child: Icon(
-                      Icons.broken_image,
+                      isApple ? CupertinoIcons.photo : Icons.broken_image,
                       color: colorScheme.onSurfaceVariant,
                     ),
                   );
@@ -52,15 +57,30 @@ class ImageWidget extends ConsumerWidget {
   }
 
   void _handleEdit(BuildContext buildContext) {
-    showDialog<ImageProps>(
-      context: buildContext,
-      builder: (dialogContext) => ImageEditDialog(
-        props: props,
-        onSave: (updatedProps) {
-          context.onUpdate?.call(updatedProps.toJson());
-        },
-      ),
+    final platform = Theme.of(buildContext).platform;
+    final isApple =
+        platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+
+    final dialog = ImageEditDialog(
+      props: props,
+      onSave: (updatedProps) {
+        context.onUpdate?.call(updatedProps.toJson());
+      },
     );
+
+    if (isApple) {
+      Navigator.of(buildContext).push(
+        CupertinoPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => dialog,
+        ),
+      );
+    } else {
+      showDialog<ImageProps>(
+        context: buildContext,
+        builder: (dialogContext) => dialog,
+      );
+    }
   }
 
   Alignment _getAlignment() {

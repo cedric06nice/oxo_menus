@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/allergens/allergen_info.dart';
@@ -182,6 +183,95 @@ void main() {
 
       // Both "May contain" labels should show (one per selected allergen)
       expect(find.text('May contain (trace amounts)'), findsNWidgets(2));
+    });
+
+    testWidgets('renders CupertinoCheckbox on iOS', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.iOS),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: AllergenSelector(
+                initialSelection: const [],
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(CupertinoCheckbox), findsNWidgets(14));
+      expect(find.byType(Checkbox), findsNothing);
+    });
+
+    testWidgets('renders CupertinoTextField for details on iOS', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.iOS),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: AllergenSelector(
+                initialSelection: const [
+                  AllergenInfo(allergen: UkAllergen.gluten, mayContain: false),
+                ],
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(CupertinoTextField), findsOneWidget);
+    });
+
+    testWidgets('selects allergen on iOS via CupertinoCheckbox', (
+      WidgetTester tester,
+    ) async {
+      List<AllergenInfo>? result;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.iOS),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: AllergenSelector(
+                initialSelection: const [],
+                onChanged: (selection) => result = selection,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(CupertinoCheckbox).first);
+      await tester.pump();
+
+      expect(result, isNotNull);
+      expect(result, hasLength(1));
+      expect(result!.first.allergen, UkAllergen.celery);
+    });
+
+    testWidgets('renders Checkbox on Android', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.android),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: AllergenSelector(
+                initialSelection: const [],
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(Checkbox), findsNWidgets(14));
+      expect(find.byType(CupertinoCheckbox), findsNothing);
     });
   });
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widgets/text/text_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
@@ -43,14 +44,29 @@ class TextWidget extends StatelessWidget {
   }
 
   void _handleEdit(BuildContext buildContext) {
-    showDialog<TextProps>(
-      context: buildContext,
-      builder: (dialogContext) => TextEditDialog(
-        props: props,
-        onSave: (updatedProps) {
-          context.onUpdate?.call(updatedProps.toJson());
-        },
-      ),
+    final platform = Theme.of(buildContext).platform;
+    final isApple =
+        platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+
+    final dialog = TextEditDialog(
+      props: props,
+      onSave: (updatedProps) {
+        context.onUpdate?.call(updatedProps.toJson());
+      },
     );
+
+    if (isApple) {
+      Navigator.of(buildContext).push(
+        CupertinoPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => dialog,
+        ),
+      );
+    } else {
+      showDialog<TextProps>(
+        context: buildContext,
+        builder: (dialogContext) => dialog,
+      );
+    }
   }
 }

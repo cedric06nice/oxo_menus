@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
@@ -33,6 +34,9 @@ class DraggableWidgetItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isApple =
+        theme.platform == TargetPlatform.iOS ||
+        theme.platform == TargetPlatform.macOS;
 
     if (isLocked) {
       return Container(
@@ -45,7 +49,7 @@ class DraggableWidgetItem extends StatelessWidget {
               top: 4,
               right: 4,
               child: Icon(
-                Icons.lock,
+                isApple ? CupertinoIcons.lock : Icons.lock,
                 size: 16,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -103,7 +107,10 @@ class DraggableWidgetItem extends StatelessWidget {
             color: theme.colorScheme.error,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(Icons.delete, color: theme.colorScheme.onError),
+          child: Icon(
+            isApple ? CupertinoIcons.delete : Icons.delete,
+            color: theme.colorScheme.onError,
+          ),
         ),
         child: widgetContent,
       ),

@@ -1,8 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/image_file_info.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
+import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 /// Dialog for editing image properties
@@ -27,6 +29,11 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
   List<ImageFileInfo> _imageFiles = [];
   bool _isLoading = true;
   String? _loadError;
+
+  bool get _isApple {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
 
   @override
   void initState() {
@@ -72,6 +79,92 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
+  }
+
+  Widget _buildAppleForm(BuildContext context) {
+    final baseUrl = ref.watch(directusBaseUrlProvider);
+    final alignLabels = {'left': 'Left', 'center': 'Center', 'right': 'Right'};
+    final fitLabels = {
+      'contain': 'Contain',
+      'cover': 'Cover',
+      'fill': 'Fill',
+      'fitwidth': 'Fit Width',
+      'fitheight': 'Fit Height',
+    };
+
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Edit Image'),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: _handleSave,
+          child: const Text('Save'),
+        ),
+      ),
+      child: SafeArea(
+        child: ListView(
+          children: [
+            _buildImageGrid(baseUrl),
+            CupertinoFormSection.insetGrouped(
+              header: const Text('LAYOUT'),
+              children: [
+                CupertinoListTile(
+                  title: const Text('Alignment'),
+                  additionalInfo: Text(alignLabels[_align] ?? 'Center'),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: () {
+                    final alignments = ['left', 'center', 'right'];
+                    showCupertinoPicker<String>(
+                      context,
+                      items: alignments,
+                      currentValue: _align,
+                      labelBuilder: (a) => alignLabels[a] ?? a,
+                      onSelected: (v) => setState(() => _align = v),
+                    );
+                  },
+                ),
+                CupertinoListTile(
+                  title: const Text('Fit'),
+                  additionalInfo: Text(fitLabels[_fit] ?? 'Contain'),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: () {
+                    final fits = fitLabels.keys.toList();
+                    showCupertinoPicker<String>(
+                      context,
+                      items: fits,
+                      currentValue: _fit,
+                      labelBuilder: (f) => fitLabels[f] ?? f,
+                      onSelected: (v) => setState(() => _fit = v),
+                    );
+                  },
+                ),
+                CupertinoTextFormFieldRow(
+                  controller: _widthController,
+                  prefix: const Text('Width'),
+                  placeholder: 'Optional width in pixels',
+                  keyboardType: TextInputType.number,
+                ),
+                CupertinoTextFormFieldRow(
+                  controller: _heightController,
+                  prefix: const Text('Height'),
+                  placeholder: 'Optional height in pixels',
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaterialDialog(BuildContext context) {
     final baseUrl = ref.watch(directusBaseUrlProvider);
 
     return AlertDialog(
@@ -153,9 +246,13 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
 
   Widget _buildImageGrid(String baseUrl) {
     if (_isLoading) {
-      return const SizedBox(
+      return SizedBox(
         height: 100,
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(
+          child: _isApple
+              ? const CupertinoActivityIndicator()
+              : const CircularProgressIndicator(),
+        ),
       );
     }
 
@@ -206,8 +303,9 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
                         thumbnailUrl,
                         fit: BoxFit.cover,
                         width: double.infinity,
-                        errorBuilder: (_, _, _) =>
-                            const Icon(Icons.broken_image),
+                        errorBuilder: (_, _, _) => Icon(
+                          _isApple ? CupertinoIcons.photo : Icons.broken_image,
+                        ),
                       ),
                     ),
                     if (file.title != null)

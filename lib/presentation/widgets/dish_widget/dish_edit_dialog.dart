@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/allergens/allergen_info.dart';
 import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
+import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
 import 'package:oxo_menus/presentation/widgets/allergen_selector/allergen_selector.dart';
 
 /// Dialog for editing dish properties
@@ -22,6 +24,11 @@ class _DishEditDialogState extends State<DishEditDialog> {
   late TextEditingController _caloriesController;
   late DietaryType? _selectedDietary;
   late List<AllergenInfo> _selectedAllergens;
+
+  bool get _isApple {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
 
   @override
   void initState() {
@@ -51,6 +58,97 @@ class _DishEditDialogState extends State<DishEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
+  }
+
+  Widget _buildAppleForm(BuildContext context) {
+    final dietaryLabel = _selectedDietary?.displayName ?? 'None';
+
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Edit Dish'),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: _handleSave,
+          child: const Text('Save'),
+        ),
+      ),
+      child: SafeArea(
+        child: ListView(
+          children: [
+            CupertinoFormSection.insetGrouped(
+              header: const Text('DISH DETAILS'),
+              children: [
+                CupertinoTextFormFieldRow(
+                  controller: _nameController,
+                  prefix: const Text('Name'),
+                  placeholder: 'Enter dish name',
+                ),
+                CupertinoTextFormFieldRow(
+                  controller: _descriptionController,
+                  prefix: const Text('Description'),
+                  placeholder: 'Enter description',
+                  maxLines: 3,
+                ),
+                CupertinoTextFormFieldRow(
+                  controller: _priceController,
+                  prefix: const Text('Price (£)'),
+                  placeholder: 'Enter price',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                ),
+                CupertinoTextFormFieldRow(
+                  controller: _caloriesController,
+                  prefix: const Text('Calories'),
+                  placeholder: 'Enter calories',
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+            CupertinoFormSection.insetGrouped(
+              header: const Text('OPTIONS'),
+              children: [
+                CupertinoListTile(
+                  title: const Text('Dietary type'),
+                  additionalInfo: Text(dietaryLabel),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: () => _showDietaryPicker(context),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: AllergenSelector(
+                initialSelection: _selectedAllergens,
+                onChanged: (allergens) {
+                  setState(() => _selectedAllergens = allergens);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDietaryPicker(BuildContext context) {
+    final items = [null, ...DietaryType.values];
+    showCupertinoPicker<DietaryType?>(
+      context,
+      items: items,
+      currentValue: _selectedDietary,
+      labelBuilder: (type) => type?.displayName ?? 'None',
+      onSelected: (value) => setState(() => _selectedDietary = value),
+    );
+  }
+
+  Widget _buildMaterialDialog(BuildContext context) {
     return AlertDialog(
       title: const Text('Edit Dish'),
       content: SingleChildScrollView(

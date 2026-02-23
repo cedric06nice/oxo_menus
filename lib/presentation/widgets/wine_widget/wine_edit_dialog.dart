@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widgets/dish/dietary_type.dart';
 import 'package:oxo_menus/domain/widgets/wine/wine_props.dart';
+import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
 
 class WineEditDialog extends StatefulWidget {
   final WineProps props;
@@ -19,6 +21,11 @@ class _WineEditDialogState extends State<WineEditDialog> {
   late TextEditingController _vintageController;
   late DietaryType? _selectedDietary;
   late bool _containsSulphites;
+
+  bool get _isApple {
+    final platform = Theme.of(context).platform;
+    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
 
   @override
   void initState() {
@@ -48,6 +55,106 @@ class _WineEditDialogState extends State<WineEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
+  }
+
+  Widget _buildAppleForm(BuildContext context) {
+    final dietaryLabel = _selectedDietary?.displayName ?? 'None';
+
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Edit Wine'),
+        leading: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: _handleSave,
+          child: const Text('Save'),
+        ),
+      ),
+      child: SafeArea(
+        child: ListView(
+          children: [
+            CupertinoFormSection.insetGrouped(
+              header: const Text('WINE DETAILS'),
+              children: [
+                CupertinoTextFormFieldRow(
+                  controller: _nameController,
+                  prefix: const Text('Name'),
+                  placeholder: 'Enter wine name',
+                ),
+                CupertinoTextFormFieldRow(
+                  controller: _descriptionController,
+                  prefix: const Text('Description'),
+                  placeholder: 'Enter description',
+                  maxLines: 3,
+                ),
+                CupertinoTextFormFieldRow(
+                  controller: _priceController,
+                  prefix: const Text('Price (£)'),
+                  placeholder: 'Enter price',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                ),
+                CupertinoTextFormFieldRow(
+                  controller: _vintageController,
+                  prefix: const Text('Vintage'),
+                  placeholder: 'Enter vintage year',
+                  keyboardType: TextInputType.number,
+                ),
+              ],
+            ),
+            CupertinoFormSection.insetGrouped(
+              header: const Text('OPTIONS'),
+              children: [
+                CupertinoListTile(
+                  title: const Text('Dietary type'),
+                  additionalInfo: Text(dietaryLabel),
+                  trailing: const CupertinoListTileChevron(),
+                  onTap: () => _showDietaryPicker(context),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    children: [
+                      CupertinoCheckbox(
+                        value: _containsSulphites,
+                        onChanged: (value) {
+                          setState(() => _containsSulphites = value ?? false);
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      const Flexible(child: Text('Contains sulphites')),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDietaryPicker(BuildContext context) {
+    final items = [null, ...DietaryType.values];
+    showCupertinoPicker<DietaryType?>(
+      context,
+      items: items,
+      currentValue: _selectedDietary,
+      labelBuilder: (type) => type?.displayName ?? 'None',
+      onSelected: (value) => setState(() => _selectedDietary = value),
+    );
+  }
+
+  Widget _buildMaterialDialog(BuildContext context) {
     return AlertDialog(
       title: const Text('Edit Wine'),
       content: SingleChildScrollView(

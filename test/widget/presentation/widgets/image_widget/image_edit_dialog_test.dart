@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -341,6 +342,114 @@ void main() {
       // Verify dimensions were saved
       expect(savedProps?.width, 200.0);
       expect(savedProps?.height, 150.0);
+    });
+
+    testWidgets('renders CupertinoPageScaffold on iOS', (tester) async {
+      const props = ImageProps(fileId: 'test-file');
+      when(
+        () => mockFileRepository.listImageFiles(),
+      ).thenAnswer((_) async => const Success([]));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            fileRepositoryProvider.overrideWithValue(mockFileRepository),
+            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+          ],
+          child: MaterialApp(
+            theme: ThemeData(platform: TargetPlatform.iOS),
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    CupertinoPageRoute<void>(
+                      fullscreenDialog: true,
+                      builder: (_) =>
+                          ImageEditDialog(props: props, onSave: (_) {}),
+                    ),
+                  ),
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CupertinoPageScaffold), findsOneWidget);
+      expect(find.byType(CupertinoNavigationBar), findsOneWidget);
+      expect(find.text('Edit Image'), findsOneWidget);
+    });
+
+    testWidgets('shows CupertinoActivityIndicator while loading on iOS', (
+      tester,
+    ) async {
+      const props = ImageProps(fileId: 'test-file');
+      final completer = Completer<Result<List<ImageFileInfo>, DomainError>>();
+      when(
+        () => mockFileRepository.listImageFiles(),
+      ).thenAnswer((_) => completer.future);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            fileRepositoryProvider.overrideWithValue(mockFileRepository),
+            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+          ],
+          child: MaterialApp(
+            theme: ThemeData(platform: TargetPlatform.iOS),
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    CupertinoPageRoute<void>(
+                      fullscreenDialog: true,
+                      builder: (_) =>
+                          ImageEditDialog(props: props, onSave: (_) {}),
+                    ),
+                  ),
+                  child: const Text('Open'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      // Pump enough for the route transition to complete and widget to build
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+
+      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
+    });
+
+    testWidgets('renders AlertDialog on Android', (tester) async {
+      const props = ImageProps(fileId: 'test-file');
+      when(
+        () => mockFileRepository.listImageFiles(),
+      ).thenAnswer((_) async => const Success([]));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            fileRepositoryProvider.overrideWithValue(mockFileRepository),
+            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+          ],
+          child: MaterialApp(
+            theme: ThemeData(platform: TargetPlatform.android),
+            home: Scaffold(
+              body: ImageEditDialog(props: props, onSave: (_) {}),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
     });
   });
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widgets/wine/wine_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
@@ -86,14 +87,29 @@ class WineWidget extends StatelessWidget {
   }
 
   void _handleEdit(BuildContext buildContext) {
-    showDialog<WineProps>(
-      context: buildContext,
-      builder: (dialogContext) => WineEditDialog(
-        props: props,
-        onSave: (updatedProps) {
-          context.onUpdate?.call(updatedProps.toJson());
-        },
-      ),
+    final platform = Theme.of(buildContext).platform;
+    final isApple =
+        platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+
+    final dialog = WineEditDialog(
+      props: props,
+      onSave: (updatedProps) {
+        context.onUpdate?.call(updatedProps.toJson());
+      },
     );
+
+    if (isApple) {
+      Navigator.of(buildContext).push(
+        CupertinoPageRoute<void>(
+          fullscreenDialog: true,
+          builder: (_) => dialog,
+        ),
+      );
+    } else {
+      showDialog<WineProps>(
+        context: buildContext,
+        builder: (dialogContext) => dialog,
+      );
+    }
   }
 }
