@@ -72,7 +72,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             autocorrect: false,
-            autofillHints: const [AutofillHints.email],
+            autofillHints: const [AutofillHints.username, AutofillHints.email],
           ),
           if (_emailError != null)
             Padding(
@@ -92,7 +92,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       ),
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
-      autofillHints: const [AutofillHints.email],
+      autofillHints: const [AutofillHints.username, AutofillHints.email],
     );
   }
 
@@ -231,16 +231,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(AppSpacing.xl),
-                      child: AutofillGroup(
-                        child: Column(
-                          children: [
-                            _buildEmailField(),
-                            const SizedBox(height: AppSpacing.lg),
-                            _buildPasswordField(),
-                            const SizedBox(height: AppSpacing.xl),
-                            _buildLoginButton(authState, theme),
-                          ],
-                        ),
+                      child: Column(
+                        children: [
+                          AutofillGroup(
+                            child: Column(
+                              children: [
+                                _buildEmailField(),
+                                const SizedBox(height: AppSpacing.lg),
+                                _buildPasswordField(),
+                                const SizedBox(height: AppSpacing.xl),
+                              ],
+                            ),
+                          ),
+                          _buildLoginButton(authState, theme),
+                        ],
                       ),
                     ),
                   ),

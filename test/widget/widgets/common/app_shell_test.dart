@@ -42,8 +42,7 @@ void main() {
             ),
             GoRoute(
               path: '/admin/templates',
-              builder: (_, _) =>
-                  const Center(child: Text('Templates Content')),
+              builder: (_, _) => const Center(child: Text('Templates Content')),
             ),
             GoRoute(
               path: '/admin/sizes',
