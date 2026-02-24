@@ -86,7 +86,7 @@ class DirectusDataSource {
         }
 
         // Get current user data with expanded role relation
-        final userData = await _fetchUserWithRole();
+        final userData = await getCurrentUser();
 
         return {
           'user': userData,
@@ -193,52 +193,25 @@ class DirectusDataSource {
   }
 
   /// Get the current authenticated user with expanded role
-  Future<Map<String, dynamic>> getCurrentUser() async {
-    return await _fetchUserWithRole();
-  }
-
-  /// Fetch current user with role relation expanded
   ///
-  /// Makes a direct HTTP request to /users/me with fields parameter to expand
-  /// the role relation and get the role name instead of just the UUID
-  Future<Map<String, dynamic>> _fetchUserWithRole() async {
-    final accessToken = _currentAccessToken;
+  /// Delegates to the directus_api_manager's [currentDirectusUser] method
+  /// which handles token refresh, URL construction, and authentication
+  /// through its proven request pipeline.
+  Future<Map<String, dynamic>> getCurrentUser() async {
+    final user = await _apiManager.currentDirectusUser(
+      fields: 'id,email,first_name,last_name,avatar,role.name',
+      canUseCacheForResponse: false,
+      canSaveResponseToCache: false,
+    );
 
-    if (accessToken == null || accessToken.isEmpty) {
+    if (user == null) {
       throw DirectusException(
         code: 'NOT_AUTHENTICATED',
-        message: 'No access token available',
+        message: 'No authenticated user found',
       );
     }
 
-    // Fetch user with expanded role using Directus API
-    // The fields parameter tells Directus to expand the role relation
-    final url = Uri.parse(
-      '$_baseUrl/users/me?fields=id,email,first_name,last_name,avatar,role.name',
-    );
-
-    final response = await _httpClient.get(
-      url,
-      headers: {'Authorization': 'Bearer $accessToken'},
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body) as Map<String, dynamic>;
-      return data['data'] as Map<String, dynamic>;
-    } else if (response.statusCode == 401) {
-      // Token might be expired, clear stored tokens
-      await _tokenStorage.clearTokens();
-      _restoredAccessToken = null;
-      throw DirectusException(
-        code: 'NOT_AUTHENTICATED',
-        message: 'Authentication required',
-      );
-    } else {
-      throw DirectusException(
-        code: 'FETCH_USER_FAILED',
-        message: 'Failed to fetch user: ${response.statusCode}',
-      );
-    }
+    return user.getRawData();
   }
 
   // ===== CRUD Operations =====

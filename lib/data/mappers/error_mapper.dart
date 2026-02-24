@@ -67,6 +67,7 @@ DomainError mapDirectusError(dynamic error) {
       case 'DELETE_FAILED':
       case 'LOGIN_ERROR':
       case 'DOWNLOAD_FAILED':
+      case 'FETCH_USER_FAILED':
         return ServerError(message);
 
       default:

@@ -346,6 +346,14 @@ void main() {
         expect(result.message, 'Too many requests');
       });
 
+      test('should map FETCH_USER_FAILED to ServerError', () {
+        final error = DirectusException(
+          code: 'FETCH_USER_FAILED',
+          message: 'Failed to fetch user: 404',
+        );
+        expect(mapDirectusError(error), isA<ServerError>());
+      });
+
       test('should map unknown code to UnknownError', () {
         final error = DirectusException(
           code: 'SOMETHING_ELSE',

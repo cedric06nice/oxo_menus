@@ -170,31 +170,67 @@ void main() {
       });
     });
 
-    group('_fetchUserWithRole uses httpClient', () {
-      test('getCurrentUser uses injected httpClient for GET request', () async {
-        // Arrange
-        when(() => mockApiManager.accessToken).thenReturn('test-token');
-
-        final userJson = {
-          'data': {
+    group('getCurrentUser delegates to apiManager', () {
+      test(
+        'uses apiManager.currentDirectusUser with expanded role fields',
+        () async {
+          // Arrange
+          final mockUser = DirectusUser({
             'id': 'user-1',
             'email': 'test@example.com',
             'first_name': 'Test',
             'last_name': 'User',
             'role': {'name': 'admin'},
-          },
-        };
+          });
+          when(
+            () => mockApiManager.currentDirectusUser(
+              fields: any(named: 'fields'),
+              canUseCacheForResponse: any(named: 'canUseCacheForResponse'),
+              canSaveResponseToCache: any(named: 'canSaveResponseToCache'),
+            ),
+          ).thenAnswer((_) async => mockUser);
+
+          // Act
+          final result = await dataSource.getCurrentUser();
+
+          // Assert — delegated to apiManager, not raw httpClient
+          verify(
+            () => mockApiManager.currentDirectusUser(
+              fields: 'id,email,first_name,last_name,avatar,role.name',
+              canUseCacheForResponse: false,
+              canSaveResponseToCache: false,
+            ),
+          ).called(1);
+          verifyNever(
+            () => mockHttpClient.get(any(), headers: any(named: 'headers')),
+          );
+          expect(result['id'], 'user-1');
+          expect(result['email'], 'test@example.com');
+          expect(result['role'], {'name': 'admin'});
+        },
+      );
+
+      test('throws NOT_AUTHENTICATED when apiManager returns null', () async {
+        // Arrange
         when(
-          () => mockHttpClient.get(any(), headers: any(named: 'headers')),
-        ).thenAnswer((_) async => http.Response(json.encode(userJson), 200));
+          () => mockApiManager.currentDirectusUser(
+            fields: any(named: 'fields'),
+            canUseCacheForResponse: any(named: 'canUseCacheForResponse'),
+            canSaveResponseToCache: any(named: 'canSaveResponseToCache'),
+          ),
+        ).thenAnswer((_) async => null);
 
-        // Act
-        await dataSource.getCurrentUser();
-
-        // Assert — injected httpClient was used
-        verify(
-          () => mockHttpClient.get(any(), headers: any(named: 'headers')),
-        ).called(1);
+        // Act & Assert
+        expect(
+          () => dataSource.getCurrentUser(),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'NOT_AUTHENTICATED',
+            ),
+          ),
+        );
       });
     });
 
