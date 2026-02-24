@@ -332,4 +332,38 @@ class WidgetRepositoryImpl implements WidgetRepository {
       return Failure(mapDirectusError(e));
     }
   }
+
+  @override
+  Future<Result<void, DomainError>> lockForEditing(
+    int widgetId,
+    String userId,
+  ) async {
+    try {
+      final dto = WidgetDto({'id': widgetId});
+      dto.setValue(userId, forKey: 'editing_by');
+      dto.setValue(
+        DateTime.now().toUtc().toIso8601String(),
+        forKey: 'editing_since',
+      );
+
+      await dataSource.updateItem<WidgetDto>(dto);
+      return const Success(null);
+    } catch (e) {
+      return Failure(mapDirectusError(e));
+    }
+  }
+
+  @override
+  Future<Result<void, DomainError>> unlockEditing(int widgetId) async {
+    try {
+      final dto = WidgetDto({'id': widgetId});
+      dto.setValue(null, forKey: 'editing_by');
+      dto.setValue(null, forKey: 'editing_since');
+
+      await dataSource.updateItem<WidgetDto>(dto);
+      return const Success(null);
+    } catch (e) {
+      return Failure(mapDirectusError(e));
+    }
+  }
 }

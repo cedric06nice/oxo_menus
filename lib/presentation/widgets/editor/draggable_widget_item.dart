@@ -14,6 +14,7 @@ class DraggableWidgetItem extends StatelessWidget {
   final int columnId;
   final bool isEditable;
   final bool isLocked;
+  final String? currentUserId;
   final ValueChanged<Map<String, dynamic>>? onUpdate;
   final VoidCallback? onDelete;
   final Future<bool?> Function()? onConfirmDismiss;
@@ -25,11 +26,27 @@ class DraggableWidgetItem extends StatelessWidget {
     required this.columnId,
     this.isEditable = true,
     this.isLocked = false,
+    this.currentUserId,
     this.onUpdate,
     this.onDelete,
     this.onConfirmDismiss,
     this.onDismissed,
   });
+
+  /// Whether this widget is currently being edited by another user.
+  bool get _isEditingLocked {
+    final editingBy = widgetInstance.editingBy;
+    if (editingBy == null || editingBy == currentUserId) return false;
+
+    // Ignore stale locks (>2 minutes old)
+    final editingSince = widgetInstance.editingSince;
+    if (editingSince != null) {
+      final elapsed = DateTime.now().difference(editingSince);
+      if (elapsed.inMinutes >= 2) return false;
+    }
+
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +54,62 @@ class DraggableWidgetItem extends StatelessWidget {
     final isApple =
         theme.platform == TargetPlatform.iOS ||
         theme.platform == TargetPlatform.macOS;
+
+    // Editing lock overlay: another user is editing this widget
+    if (_isEditingLocked) {
+      return Container(
+        key: Key('editing_lock_overlay_${widgetInstance.id}'),
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: theme.colorScheme.tertiary.withValues(alpha: 0.6),
+            width: 2,
+          ),
+        ),
+        child: Stack(
+          children: [
+            Opacity(
+              opacity: 0.5,
+              child: WidgetRenderer(
+                widgetInstance: widgetInstance,
+                isEditable: false,
+              ),
+            ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.tertiary,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isApple ? CupertinoIcons.pencil : Icons.edit,
+                      size: 12,
+                      color: theme.colorScheme.onTertiary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Editing...',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: theme.colorScheme.onTertiary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     if (isLocked) {
       return Container(

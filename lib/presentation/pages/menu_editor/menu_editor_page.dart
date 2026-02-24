@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,12 +9,18 @@ import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
+import 'package:oxo_menus/domain/entities/menu_change_event.dart';
+import 'package:oxo_menus/domain/entities/menu_presence.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
+import 'package:oxo_menus/domain/repositories/presence_repository.dart';
+import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/common/presence_bar.dart';
 import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
@@ -54,6 +62,19 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
 
   final ScrollController _scrollController = ScrollController();
 
+  List<MenuPresence> _presences = [];
+
+  StreamSubscription<dynamic>? _changeSubscription;
+  Timer? _debounceTimer;
+  Timer? _heartbeatTimer;
+  Timer? _pollingTimer;
+  MenuSubscriptionRepository? _menuSubscriptionRepository;
+  PresenceRepository? _presenceRepository;
+  String? _currentUserId;
+  bool _isReconnecting = false;
+  int _wsErrorCount = 0;
+  static const _maxWsErrors = 3;
+
   late EditorWidgetCrudHelper _crudHelper;
 
   bool get _isApple {
@@ -69,6 +90,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       widgetRegistry: ref.read(widgetRegistryProvider),
       onReload: _loadMenu,
       isTemplate: false,
+      currentUserId: ref.read(currentUserProvider)?.id,
       onMessage: (message, {bool isError = false}) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -92,6 +114,14 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
+    _heartbeatTimer?.cancel();
+    _pollingTimer?.cancel();
+    _changeSubscription?.cancel();
+    _menuSubscriptionRepository?.unsubscribe(widget.menuId);
+    if (_currentUserId != null) {
+      _presenceRepository?.leaveMenu(widget.menuId, _currentUserId!);
+    }
     _scrollController.dispose();
     super.dispose();
   }
@@ -188,6 +218,84 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
 
     // Set display options in provider
     ref.read(menuDisplayOptionsProvider.notifier).state = _menu?.displayOptions;
+
+    // Start WebSocket subscription and presence after first successful load
+    if (isInitialLoad) {
+      _subscribeToChanges();
+      _startPresenceTracking();
+    }
+  }
+
+  void _subscribeToChanges() {
+    _menuSubscriptionRepository = ref.read(menuSubscriptionRepositoryProvider);
+    final stream = _menuSubscriptionRepository!.subscribeToMenuChanges(
+      widget.menuId,
+    );
+
+    _changeSubscription = stream.listen(
+      _onChangeEvent,
+      onError: _onStreamError,
+    );
+  }
+
+  void _startPresenceTracking() {
+    _presenceRepository = ref.read(presenceRepositoryProvider);
+    _currentUserId = ref.read(currentUserProvider)?.id;
+
+    if (_currentUserId != null) {
+      _presenceRepository!.joinMenu(widget.menuId, _currentUserId!);
+      _refreshPresences();
+      _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+        _presenceRepository?.heartbeat(widget.menuId, _currentUserId!);
+        _refreshPresences();
+      });
+    }
+  }
+
+  Future<void> _refreshPresences() async {
+    final result = await _presenceRepository?.getActiveUsers(widget.menuId);
+    if (result != null && result.isSuccess && mounted) {
+      setState(() {
+        _presences = result.valueOrNull ?? [];
+      });
+    }
+  }
+
+  void _onChangeEvent(MenuChangeEvent event) {
+    // Clear reconnecting state on successful event
+    if (_isReconnecting) {
+      setState(() {
+        _isReconnecting = false;
+        _wsErrorCount = 0;
+      });
+    }
+
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        _loadMenu();
+      }
+    });
+  }
+
+  void _onStreamError(Object error) {
+    if (!mounted) return;
+    _wsErrorCount++;
+
+    setState(() {
+      _isReconnecting = true;
+    });
+
+    if (_wsErrorCount >= _maxWsErrors) {
+      _startPollingFallback();
+    }
+  }
+
+  void _startPollingFallback() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) _loadMenu();
+    });
   }
 
   Future<void> _showPdf() async {
@@ -264,6 +372,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     return AuthenticatedScaffold(
       title: _menu?.name ?? 'Menu Editor',
       actions: [
+        if (_currentUserId != null)
+          PresenceBar(presences: _presences, currentUserId: _currentUserId!),
         IconButton(
           key: const Key('display_options_button'),
           onPressed: _showDisplayOptionsDialog,
@@ -283,42 +393,77 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
           tooltip: 'Save',
         ),
       ],
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isNarrow = constraints.maxWidth < narrowBreakpoint;
-
-          if (isNarrow) {
-            return Column(
-              children: [
-                WidgetPalette(
-                  axis: Axis.horizontal,
-                  registry: registry,
-                  allowedWidgetTypes: _menu?.allowedWidgetTypes,
-                ),
-                Expanded(child: _buildCanvas()),
-              ],
-            );
-          }
-
-          return Row(
-            children: [
-              Container(
-                width: 260,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerLow,
-                  border: Border(
-                    right: BorderSide(color: theme.colorScheme.outlineVariant),
+      body: Column(
+        children: [
+          if (_isReconnecting)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              color: theme.colorScheme.errorContainer,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: theme.colorScheme.onErrorContainer,
+                    ),
                   ),
-                ),
-                child: WidgetPalette(
-                  registry: registry,
-                  allowedWidgetTypes: _menu?.allowedWidgetTypes,
-                ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Reconnecting...',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: theme.colorScheme.onErrorContainer,
+                    ),
+                  ),
+                ],
               ),
-              Expanded(child: _buildCanvas()),
-            ],
-          );
-        },
+            ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < narrowBreakpoint;
+
+                if (isNarrow) {
+                  return Column(
+                    children: [
+                      WidgetPalette(
+                        axis: Axis.horizontal,
+                        registry: registry,
+                        allowedWidgetTypes: _menu?.allowedWidgetTypes,
+                      ),
+                      Expanded(child: _buildCanvas()),
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Container(
+                      width: 260,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerLow,
+                        border: Border(
+                          right: BorderSide(
+                            color: theme.colorScheme.outlineVariant,
+                          ),
+                        ),
+                      ),
+                      child: WidgetPalette(
+                        registry: registry,
+                        allowedWidgetTypes: _menu?.allowedWidgetTypes,
+                      ),
+                    ),
+                    Expanded(child: _buildCanvas()),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -444,6 +589,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
                   columnId: column.id,
                   isEditable: !widgets[i].isTemplate,
                   isLocked: widgets[i].isTemplate,
+                  currentUserId: ref.read(currentUserProvider)?.id,
                   onUpdate: (props) =>
                       _handleWidgetUpdate(widgets[i].id, props),
                   onDelete: () => _handleWidgetDelete(widgets[i].id),
@@ -475,6 +621,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
                 columnId: column.id,
                 isEditable: !widget.isTemplate,
                 isLocked: widget.isTemplate,
+                currentUserId: ref.read(currentUserProvider)?.id,
                 onUpdate: (props) => _handleWidgetUpdate(widget.id, props),
                 onDelete: () => _handleWidgetDelete(widget.id),
                 onConfirmDismiss: () =>

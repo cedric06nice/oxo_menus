@@ -17,7 +17,11 @@ import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/domain/entities/menu_presence.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
+import 'package:oxo_menus/domain/entities/menu_change_event.dart';
+import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
+import 'package:oxo_menus/domain/repositories/presence_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/menu_editor_page.dart';
@@ -44,12 +48,19 @@ class MockColumnRepository extends Mock implements ColumnRepository {}
 
 class MockWidgetRepository extends Mock implements WidgetRepository {}
 
+class MockMenuSubscriptionRepository extends Mock
+    implements MenuSubscriptionRepository {}
+
+class MockPresenceRepository extends Mock implements PresenceRepository {}
+
 void main() {
   late MockMenuRepository mockMenuRepository;
   late MockPageRepository mockPageRepository;
   late MockContainerRepository mockContainerRepository;
   late MockColumnRepository mockColumnRepository;
   late MockWidgetRepository mockWidgetRepository;
+  late MockMenuSubscriptionRepository mockMenuSubscriptionRepository;
+  late MockPresenceRepository mockPresenceRepository;
   late WidgetRegistry mockWidgetRegistry;
 
   setUp(() {
@@ -58,6 +69,30 @@ void main() {
     mockContainerRepository = MockContainerRepository();
     mockColumnRepository = MockColumnRepository();
     mockWidgetRepository = MockWidgetRepository();
+    mockMenuSubscriptionRepository = MockMenuSubscriptionRepository();
+    mockPresenceRepository = MockPresenceRepository();
+
+    // Stub subscription repository with empty stream
+    when(
+      () => mockMenuSubscriptionRepository.subscribeToMenuChanges(any()),
+    ).thenAnswer((_) => const Stream<MenuChangeEvent>.empty());
+    when(
+      () => mockMenuSubscriptionRepository.unsubscribe(any()),
+    ).thenAnswer((_) async {});
+
+    // Stub presence repository
+    when(
+      () => mockPresenceRepository.joinMenu(any(), any()),
+    ).thenAnswer((_) async => const Success(null));
+    when(
+      () => mockPresenceRepository.leaveMenu(any(), any()),
+    ).thenAnswer((_) async => const Success(null));
+    when(
+      () => mockPresenceRepository.heartbeat(any(), any()),
+    ).thenAnswer((_) async => const Success(null));
+    when(
+      () => mockPresenceRepository.getActiveUsers(any()),
+    ).thenAnswer((_) async => const Success(<MenuPresence>[]));
 
     // Set up widget registry with test widgets
     mockWidgetRegistry = WidgetRegistry();
@@ -108,6 +143,10 @@ void main() {
         widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
         widgetRegistryProvider.overrideWithValue(mockWidgetRegistry),
         currentUserProvider.overrideWithValue(mockUser),
+        menuSubscriptionRepositoryProvider.overrideWithValue(
+          mockMenuSubscriptionRepository,
+        ),
+        presenceRepositoryProvider.overrideWithValue(mockPresenceRepository),
       ],
       child: MaterialApp(home: MenuEditorPage(menuId: menuId)),
     );
@@ -189,6 +228,12 @@ void main() {
             widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
             widgetRegistryProvider.overrideWithValue(mockWidgetRegistry),
             currentUserProvider.overrideWithValue(mockUser),
+            menuSubscriptionRepositoryProvider.overrideWithValue(
+              mockMenuSubscriptionRepository,
+            ),
+            presenceRepositoryProvider.overrideWithValue(
+              mockPresenceRepository,
+            ),
           ],
           child: MaterialApp(
             theme: ThemeData(platform: TargetPlatform.macOS),

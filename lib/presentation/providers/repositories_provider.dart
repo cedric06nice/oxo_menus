@@ -9,8 +9,12 @@ import 'package:oxo_menus/data/repositories/file_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/menu_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/page_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/size_repository_impl.dart';
+import 'package:oxo_menus/data/repositories/menu_subscription_repository_impl.dart';
+import 'package:oxo_menus/data/repositories/presence_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/widget_repository_impl.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
+import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
+import 'package:oxo_menus/domain/repositories/presence_repository.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/file_repository.dart';
@@ -103,4 +107,22 @@ final sizeRepositoryProvider = Provider<SizeRepository>((ref) {
 final fileRepositoryProvider = Provider<FileRepository>((ref) {
   final dataSource = ref.watch(directusDataSourceProvider);
   return FileRepositoryImpl(dataSource);
+});
+
+/// Menu subscription repository provider
+///
+/// Provides real-time WebSocket subscriptions for menu change events
+final menuSubscriptionRepositoryProvider = Provider<MenuSubscriptionRepository>(
+  (ref) {
+    final dataSource = ref.watch(directusDataSourceProvider);
+    return MenuSubscriptionRepositoryImpl(dataSource: dataSource);
+  },
+);
+
+/// Presence repository provider
+///
+/// Provides user presence tracking for collaborative menu editing
+final presenceRepositoryProvider = Provider<PresenceRepository>((ref) {
+  final dataSource = ref.watch(directusDataSourceProvider);
+  return PresenceRepositoryImpl(dataSource: dataSource);
 });

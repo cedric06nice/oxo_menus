@@ -18,6 +18,7 @@ class EditorWidgetCrudHelper {
   final Future<void> Function() onReload;
   final bool isTemplate;
   final void Function(String message, {bool isError})? onMessage;
+  final String? currentUserId;
 
   const EditorWidgetCrudHelper({
     required this.widgetRepository,
@@ -25,6 +26,7 @@ class EditorWidgetCrudHelper {
     required this.onReload,
     required this.isTemplate,
     this.onMessage,
+    this.currentUserId,
   });
 
   /// Handle dropping a new widget at a specific index
@@ -140,5 +142,18 @@ class EditorWidgetCrudHelper {
     } catch (e) {
       onMessage?.call('Error moving widget: $e', isError: true);
     }
+  }
+
+  /// Lock a widget for editing by the current user
+  Future<void> lockWidget(int widgetId) async {
+    final userId = currentUserId;
+    if (userId == null) return;
+
+    await widgetRepository.lockForEditing(widgetId, userId);
+  }
+
+  /// Unlock a widget after editing
+  Future<void> unlockWidget(int widgetId) async {
+    await widgetRepository.unlockEditing(widgetId);
   }
 }

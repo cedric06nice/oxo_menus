@@ -423,6 +423,20 @@ class DirectusDataSource {
     }
   }
 
+  // ===== WebSocket Methods =====
+
+  /// Start a WebSocket subscription via the underlying API manager.
+  Future<void> startSubscription(
+    DirectusWebSocketSubscription subscription,
+  ) async {
+    await _apiManager.startWebsocketSubscription(subscription);
+  }
+
+  /// Stop a WebSocket subscription by its unique ID.
+  Future<void> stopSubscription(String subscriptionUid) async {
+    await _apiManager.stopWebsocketSubscription(subscriptionUid);
+  }
+
   // ===== Helper Methods =====
 
   /// Convert our filter format to directus_api_manager Filter format

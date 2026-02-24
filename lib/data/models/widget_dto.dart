@@ -12,6 +12,8 @@ class WidgetDto extends DirectusItem {
   DateTime? get dateCreated => getOptionalDateTime(forKey: "date_created");
   DateTime? get dateUpdated => getOptionalDateTime(forKey: "date_updated");
   String? get userUpdated => getValue(forKey: "user_updated");
+  String? get editingBy => getValue(forKey: "editing_by");
+  DateTime? get editingSince => getOptionalDateTime(forKey: "editing_since");
 
   Map<String, dynamic> get styleJson =>
       Map<String, dynamic>.from(getValue(forKey: "style_json") ?? const {});

@@ -33,6 +33,12 @@ abstract class WidgetRepository {
     int newColumnId,
     int index,
   );
+
+  /// Lock a widget for editing by a user
+  Future<Result<void, DomainError>> lockForEditing(int widgetId, String userId);
+
+  /// Unlock a widget after editing
+  Future<Result<void, DomainError>> unlockEditing(int widgetId);
 }
 
 /// Input for creating a widget instance
