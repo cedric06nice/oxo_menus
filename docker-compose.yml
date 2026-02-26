@@ -31,6 +31,7 @@ services:
       DB_PASSWORD: directus
       CORS_ENABLED: "true"
       CORS_ORIGIN: "true"
+      WEBSOCKETS_ENABLED: "true"
     ports:
       - "8055:8055"
     volumes:
