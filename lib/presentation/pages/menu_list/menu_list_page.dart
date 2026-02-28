@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/presentation/helpers/grid_helpers.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_list_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
@@ -305,33 +304,20 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1000),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = computeGridColumns(constraints.maxWidth);
-              return GridView.count(
-                crossAxisCount: columns,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.6,
-                children: menus.map((menu) {
-                  return MenuListItem(
-                    menu: menu,
-                    isAdmin: isAdmin,
-                    onTap: () => _handleMenuTap(menu),
-                    onEdit: isAdmin ? () => _editTemplate(menu) : null,
-                    onDuplicate: isAdmin ? () => _handleDuplicate(menu) : null,
-                    onDelete: isAdmin ? () => _confirmDelete(menu) : null,
-                  );
-                }).toList(),
-              );
-            },
-          ),
-        ),
+      child: Column(
+        children: [
+          for (int i = 0; i < menus.length; i++) ...[
+            if (i > 0) const SizedBox(height: 12),
+            MenuListItem(
+              menu: menus[i],
+              isAdmin: isAdmin,
+              onTap: () => _handleMenuTap(menus[i]),
+              onEdit: isAdmin ? () => _editTemplate(menus[i]) : null,
+              onDuplicate: isAdmin ? () => _handleDuplicate(menus[i]) : null,
+              onDelete: isAdmin ? () => _confirmDelete(menus[i]) : null,
+            ),
+          ],
+        ],
       ),
     );
   }

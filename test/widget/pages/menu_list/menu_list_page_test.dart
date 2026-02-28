@@ -14,6 +14,7 @@ import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
+import 'package:oxo_menus/presentation/pages/menu_list/widgets/menu_list_item.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
@@ -241,7 +242,7 @@ void main() {
       expect(find.text('No menus found'), findsOneWidget);
     });
 
-    testWidgets('should not show GridView when empty', (tester) async {
+    testWidgets('should not show menu list when empty', (tester) async {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
@@ -251,12 +252,12 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      expect(find.byType(GridView), findsNothing);
+      expect(find.byType(MenuListItem), findsNothing);
     });
   });
 
   group('MenuListPage - Menu List Display', () {
-    testWidgets('should display menus in a GridView', (tester) async {
+    testWidgets('should display menus in a full-width list', (tester) async {
       final menus = [
         const Menu(
           id: 1,
@@ -283,7 +284,8 @@ void main() {
 
       expect(find.text('Summer Menu'), findsOneWidget);
       expect(find.text('Winter Menu'), findsOneWidget);
-      expect(find.byType(GridView), findsOneWidget);
+      expect(find.byType(MenuListItem), findsNWidgets(2));
+      expect(find.byType(GridView), findsNothing);
     });
 
     testWidgets('should load only published menus for regular users', (

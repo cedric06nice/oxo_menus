@@ -64,8 +64,10 @@ class MenuListItem extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        StatusBadge(status: menu.status),
+                        if (isAdmin) ...[
+                          const SizedBox(width: 8),
+                          StatusBadge(status: menu.status),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 4),
