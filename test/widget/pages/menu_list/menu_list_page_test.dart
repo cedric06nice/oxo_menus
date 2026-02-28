@@ -79,6 +79,7 @@ void main() {
       firstName: 'Test',
       lastName: 'User',
       role: isAdmin ? UserRole.admin : UserRole.user,
+      areas: isAdmin ? const [] : const [Area(id: 1, name: 'Dining')],
     );
 
     return ProviderScope(
@@ -276,12 +277,14 @@ void main() {
           name: 'Summer Menu',
           status: Status.published,
           version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
         ),
         const Menu(
           id: 2,
           name: 'Winter Menu',
           status: Status.published,
           version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
         ),
       ];
 
@@ -401,6 +404,7 @@ void main() {
           name: 'Summer Menu',
           status: Status.published,
           version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
         ),
       ];
 
@@ -626,6 +630,7 @@ void main() {
           name: 'Test Menu',
           status: Status.published,
           version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
         ),
       ];
 
@@ -764,5 +769,136 @@ void main() {
         expect(find.text('Draft Menu'), findsOneWidget);
       },
     );
+  });
+
+  group('MenuListPage - Area Grouping', () {
+    testWidgets('should group menus by area with section headers', (
+      tester,
+    ) async {
+      final menus = [
+        const Menu(
+          id: 1,
+          name: 'Dining Menu',
+          status: Status.published,
+          version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
+        ),
+        const Menu(
+          id: 2,
+          name: 'Bar Menu',
+          status: Status.published,
+          version: '1.0.0',
+          area: Area(id: 2, name: 'Bar'),
+        ),
+        const Menu(
+          id: 3,
+          name: 'Unassigned Menu',
+          status: Status.published,
+          version: '1.0.0',
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
+
+      await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
+      await tester.pumpAndSettle();
+
+      // Should show area section headers
+      expect(find.text('Dining'), findsOneWidget);
+      expect(find.text('Bar'), findsOneWidget);
+      expect(find.text('Unassigned'), findsOneWidget);
+    });
+
+    testWidgets('should filter menus by user areas for non-admin users', (
+      tester,
+    ) async {
+      final menus = [
+        const Menu(
+          id: 1,
+          name: 'Dining Menu',
+          status: Status.published,
+          version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
+        ),
+        const Menu(
+          id: 2,
+          name: 'Bar Menu',
+          status: Status.published,
+          version: '1.0.0',
+          area: Area(id: 2, name: 'Bar'),
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
+
+      // Non-admin user with only Dining area
+      final mockUser = User(
+        id: 'user-1',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        role: UserRole.user,
+        areas: const [Area(id: 1, name: 'Dining')],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+            areaRepositoryProvider.overrideWithValue(mockAreaRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(
+              mockDuplicateMenuUseCase,
+            ),
+            isAdminProvider.overrideWithValue(false),
+            currentUserProvider.overrideWithValue(mockUser),
+          ],
+          child: MaterialApp(
+            home: InheritedGoRouter(
+              goRouter: mockRouter,
+              child: const MenuListPage(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Should only show Dining Menu
+      expect(find.text('Dining Menu'), findsOneWidget);
+      expect(find.text('Bar Menu'), findsNothing);
+    });
+
+    testWidgets('should show area name in menu list item', (tester) async {
+      final menus = [
+        const Menu(
+          id: 1,
+          name: 'Dining Menu',
+          status: Status.published,
+          version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
+
+      await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
+      await tester.pumpAndSettle();
+
+      // Area name should be visible in the item
+      expect(find.text('Dining'), findsWidgets);
+    });
   });
 }

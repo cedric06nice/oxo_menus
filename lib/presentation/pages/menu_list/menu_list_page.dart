@@ -42,12 +42,24 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
 
   void _loadMenus() {
     final isAdmin = ref.read(isAdminProvider);
-    ref.read(menuListProvider.notifier).loadMenus(onlyPublished: !isAdmin);
+    final user = ref.read(currentUserProvider);
+    ref
+        .read(menuListProvider.notifier)
+        .loadMenus(
+          onlyPublished: !isAdmin,
+          userAreas: isAdmin ? null : user?.areas,
+        );
   }
 
   Future<void> _handleRefresh() async {
     final isAdmin = ref.read(isAdminProvider);
-    await ref.read(menuListProvider.notifier).refresh(onlyPublished: !isAdmin);
+    final user = ref.read(currentUserProvider);
+    await ref
+        .read(menuListProvider.notifier)
+        .refresh(
+          onlyPublished: !isAdmin,
+          userAreas: isAdmin ? null : user?.areas,
+        );
   }
 
   Future<void> _confirmDelete(Menu menu) async {
@@ -302,21 +314,47 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   }
 
   Widget _buildMenuGrid(List<Menu> menus, bool isAdmin) {
+    // Group menus by area
+    final grouped = <String, List<Menu>>{};
+    for (final menu in menus) {
+      final key = menu.area?.name ?? 'Unassigned';
+      grouped.putIfAbsent(key, () => []).add(menu);
+    }
+
+    final sortedKeys = grouped.keys.toList()
+      ..sort((a, b) {
+        if (a == 'Unassigned') return 1;
+        if (b == 'Unassigned') return -1;
+        return a.compareTo(b);
+      });
+
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (int i = 0; i < menus.length; i++) ...[
-            if (i > 0) const SizedBox(height: 12),
-            MenuListItem(
-              menu: menus[i],
-              isAdmin: isAdmin,
-              onTap: () => _handleMenuTap(menus[i]),
-              onEdit: isAdmin ? () => _editTemplate(menus[i]) : null,
-              onDuplicate: isAdmin ? () => _handleDuplicate(menus[i]) : null,
-              onDelete: isAdmin ? () => _confirmDelete(menus[i]) : null,
+          for (final key in sortedKeys) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8, top: 8),
+              child: Text(
+                key,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
             ),
+            for (final menu in grouped[key]!) ...[
+              MenuListItem(
+                menu: menu,
+                isAdmin: isAdmin,
+                onTap: () => _handleMenuTap(menu),
+                onEdit: isAdmin ? () => _editTemplate(menu) : null,
+                onDuplicate: isAdmin ? () => _handleDuplicate(menu) : null,
+                onDelete: isAdmin ? () => _confirmDelete(menu) : null,
+              ),
+              const SizedBox(height: 12),
+            ],
           ],
         ],
       ),

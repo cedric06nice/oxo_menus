@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
@@ -38,14 +39,26 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
   ///
   /// If [onlyPublished] is true, only published menus will be loaded.
   /// This should be true for regular users and false for admins.
-  Future<void> loadMenus({bool onlyPublished = true}) async {
+  Future<void> loadMenus({
+    bool onlyPublished = true,
+    List<Area>? userAreas,
+  }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     final result = await _menuRepository.listAll(onlyPublished: onlyPublished);
 
     result.fold(
       onSuccess: (menus) {
-        state = state.copyWith(menus: menus, isLoading: false);
+        final filtered = userAreas != null
+            ? menus
+                  .where(
+                    (m) =>
+                        m.area != null &&
+                        userAreas.any((a) => a.id == m.area!.id),
+                  )
+                  .toList()
+            : menus;
+        state = state.copyWith(menus: filtered, isLoading: false);
       },
       onFailure: (error) {
         state = state.copyWith(isLoading: false, errorMessage: error.message);
@@ -75,8 +88,11 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
   /// Refresh the menu list
   ///
   /// Reloads the menus with the same filter as before
-  Future<void> refresh({bool onlyPublished = true}) async {
-    await loadMenus(onlyPublished: onlyPublished);
+  Future<void> refresh({
+    bool onlyPublished = true,
+    List<Area>? userAreas,
+  }) async {
+    await loadMenus(onlyPublished: onlyPublished, userAreas: userAreas);
   }
 
   /// Clear any error messages

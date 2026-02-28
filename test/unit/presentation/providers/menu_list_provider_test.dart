@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
@@ -354,6 +355,94 @@ void main() {
 
       expect(menuListNotifier.state.menus[0].id, 10);
       expect(menuListNotifier.state.menus[1].id, 1);
+    });
+  });
+
+  group('area filtering', () {
+    final menusWithAreas = [
+      const Menu(
+        id: 1,
+        name: 'Dining Menu',
+        status: Status.published,
+        version: '1.0.0',
+        area: Area(id: 1, name: 'Dining'),
+      ),
+      const Menu(
+        id: 2,
+        name: 'Bar Menu',
+        status: Status.published,
+        version: '1.0.0',
+        area: Area(id: 2, name: 'Bar'),
+      ),
+      const Menu(
+        id: 3,
+        name: 'Unassigned Menu',
+        status: Status.published,
+        version: '1.0.0',
+      ),
+    ];
+
+    test('should show all menus when userAreas is null (admin)', () async {
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: false),
+      ).thenAnswer((_) async => Success(menusWithAreas));
+
+      await menuListNotifier.loadMenus(onlyPublished: false, userAreas: null);
+
+      expect(menuListNotifier.state.menus.length, 3);
+    });
+
+    test(
+      'should filter menus by user areas when userAreas is provided',
+      () async {
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: true),
+        ).thenAnswer((_) async => Success(menusWithAreas));
+
+        await menuListNotifier.loadMenus(
+          onlyPublished: true,
+          userAreas: const [Area(id: 1, name: 'Dining')],
+        );
+
+        expect(menuListNotifier.state.menus.length, 1);
+        expect(menuListNotifier.state.menus.first.name, 'Dining Menu');
+      },
+    );
+
+    test(
+      'should exclude menus with no area when userAreas is provided',
+      () async {
+        when(
+          () => mockMenuRepository.listAll(onlyPublished: true),
+        ).thenAnswer((_) async => Success(menusWithAreas));
+
+        await menuListNotifier.loadMenus(
+          onlyPublished: true,
+          userAreas: const [
+            Area(id: 1, name: 'Dining'),
+            Area(id: 2, name: 'Bar'),
+          ],
+        );
+
+        expect(menuListNotifier.state.menus.length, 2);
+        expect(
+          menuListNotifier.state.menus.every((m) => m.area != null),
+          isTrue,
+        );
+      },
+    );
+
+    test('should return empty list when user has no matching areas', () async {
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: true),
+      ).thenAnswer((_) async => Success(menusWithAreas));
+
+      await menuListNotifier.loadMenus(
+        onlyPublished: true,
+        userAreas: const [Area(id: 99, name: 'VIP')],
+      );
+
+      expect(menuListNotifier.state.menus, isEmpty);
     });
   });
 
