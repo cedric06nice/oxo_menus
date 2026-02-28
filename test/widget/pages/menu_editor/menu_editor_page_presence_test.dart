@@ -171,6 +171,8 @@ void main() {
           mockMenuSubscriptionRepository,
         ),
         presenceRepositoryProvider.overrideWithValue(mockPresenceRepository),
+        directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+        directusAccessTokenProvider.overrideWithValue('test-token'),
       ],
       child: MaterialApp(home: MenuEditorPage(menuId: testMenuId)),
     );

@@ -285,6 +285,50 @@ void main() {
       });
     });
 
+    group('currentAccessToken', () {
+      test('returns accessToken from apiManager when available', () {
+        when(() => mockApiManager.accessToken).thenReturn('api-token');
+
+        expect(dataSource.currentAccessToken, 'api-token');
+      });
+
+      test('returns null when no token is available', () {
+        when(() => mockApiManager.accessToken).thenReturn(null);
+
+        expect(dataSource.currentAccessToken, isNull);
+      });
+
+      test(
+        'returns restored token after session restore when apiManager has none',
+        () async {
+          // Arrange — restore a session
+          fakeTokenStorage._accessToken = 'old-access';
+          fakeTokenStorage._refreshToken = 'old-refresh';
+          when(() => mockApiManager.refreshToken).thenReturn(null);
+          when(() => mockApiManager.accessToken).thenReturn(null);
+
+          final refreshResponse = json.encode({
+            'data': {
+              'access_token': 'restored-access-token',
+              'refresh_token': 'new-refresh-token',
+            },
+          });
+          when(
+            () => mockHttpClient.post(
+              any(),
+              headers: any(named: 'headers'),
+              body: any(named: 'body'),
+            ),
+          ).thenAnswer((_) async => http.Response(refreshResponse, 200));
+
+          await dataSource.tryRestoreSession();
+
+          // Act & Assert — restored token should be available
+          expect(dataSource.currentAccessToken, 'restored-access-token');
+        },
+      );
+    });
+
     group('tryRestoreSession', () {
       test(
         'sets apiManager.refreshToken after successful session restore',

@@ -88,7 +88,14 @@ class PresenceRepositoryImpl implements PresenceRepository {
         filter: {
           'menu': {'_eq': menuId},
         },
-        fields: ['id', 'user', 'menu', 'last_seen', 'user_name'],
+        fields: [
+          'id',
+          'user.id',
+          'user.avatar',
+          'menu',
+          'last_seen',
+          'user_name',
+        ],
       );
 
       final presences = data

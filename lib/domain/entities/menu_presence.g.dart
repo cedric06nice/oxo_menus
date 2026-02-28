@@ -13,6 +13,7 @@ _MenuPresence _$MenuPresenceFromJson(Map<String, dynamic> json) =>
       menuId: (json['menuId'] as num).toInt(),
       lastSeen: DateTime.parse(json['lastSeen'] as String),
       userName: json['userName'] as String?,
+      userAvatar: json['userAvatar'] as String?,
     );
 
 Map<String, dynamic> _$MenuPresenceToJson(_MenuPresence instance) =>
@@ -22,4 +23,5 @@ Map<String, dynamic> _$MenuPresenceToJson(_MenuPresence instance) =>
       'menuId': instance.menuId,
       'lastSeen': instance.lastSeen.toIso8601String(),
       'userName': instance.userName,
+      'userAvatar': instance.userAvatar,
     };

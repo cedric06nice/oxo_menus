@@ -88,6 +88,13 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     );
   }
 
+  Map<String, String>? get _authHeaders {
+    final token = ref.watch(directusAccessTokenProvider);
+    return token != null
+        ? <String, String>{'Authorization': 'Bearer $token'}
+        : null;
+  }
+
   List<Widget> _buildAppleFormChildren(BuildContext context) {
     final baseUrl = ref.watch(directusBaseUrlProvider);
     final alignLabels = {'left': 'Left', 'center': 'Center', 'right': 'Right'};
@@ -100,7 +107,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     };
 
     return [
-      _buildImageGrid(baseUrl),
+      _buildImageGrid(baseUrl, headers: _authHeaders),
       CupertinoFormSection.insetGrouped(
         header: const Text('LAYOUT'),
         children: [
@@ -156,7 +163,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
 
     return [
       // Thumbnail grid section
-      _buildImageGrid(baseUrl),
+      _buildImageGrid(baseUrl, headers: _authHeaders),
       const SizedBox(height: 12),
       DropdownButtonFormField<String>(
         initialValue: _align,
@@ -210,7 +217,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     ];
   }
 
-  Widget _buildImageGrid(String baseUrl) {
+  Widget _buildImageGrid(String baseUrl, {Map<String, String>? headers}) {
     if (_isLoading) {
       return SizedBox(
         height: 100,
@@ -267,6 +274,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
                     Expanded(
                       child: Image.network(
                         thumbnailUrl,
+                        headers: headers,
                         fit: BoxFit.cover,
                         width: double.infinity,
                         errorBuilder: (_, _, _) => Icon(

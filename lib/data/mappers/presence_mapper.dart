@@ -10,6 +10,7 @@ class PresenceMapper {
       menuId: dto.menuId ?? 0,
       lastSeen: dto.lastSeen ?? DateTime.now(),
       userName: dto.userName,
+      userAvatar: dto.userAvatar,
     );
   }
 }

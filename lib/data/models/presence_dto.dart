@@ -3,7 +3,19 @@ import 'package:directus_api_manager/directus_api_manager.dart';
 @DirectusCollection()
 @CollectionMetadata(endpointName: "menu_presence")
 class PresenceDto extends DirectusItem {
-  String? get userId => getValue(forKey: "user");
+  String? get userId {
+    final raw = getValue(forKey: "user");
+    if (raw is String) return raw;
+    if (raw is Map<String, dynamic>) return raw['id'] as String?;
+    return null;
+  }
+
+  String? get userAvatar {
+    final raw = getValue(forKey: "user");
+    if (raw is Map<String, dynamic>) return raw['avatar'] as String?;
+    return null;
+  }
+
   DateTime? get lastSeen => getOptionalDateTime(forKey: "last_seen");
 
   int? get menuId {

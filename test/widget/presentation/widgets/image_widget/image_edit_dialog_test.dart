@@ -37,6 +37,7 @@ void main() {
           overrides: [
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -62,6 +63,7 @@ void main() {
           overrides: [
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -92,6 +94,7 @@ void main() {
           overrides: [
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -125,6 +128,7 @@ void main() {
           overrides: [
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -167,6 +171,7 @@ void main() {
           overrides: [
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -199,6 +204,7 @@ void main() {
               directusBaseUrlProvider.overrideWithValue(
                 'http://localhost:8055',
               ),
+              directusAccessTokenProvider.overrideWithValue('test-token'),
             ],
             child: MaterialApp(
               home: Scaffold(
@@ -237,6 +243,7 @@ void main() {
           overrides: [
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -277,6 +284,7 @@ void main() {
           overrides: [
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -310,6 +318,7 @@ void main() {
           overrides: [
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -355,6 +364,7 @@ void main() {
           overrides: [
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: MaterialApp(
             theme: ThemeData(platform: TargetPlatform.iOS),
@@ -398,6 +408,7 @@ void main() {
           overrides: [
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: MaterialApp(
             theme: ThemeData(platform: TargetPlatform.iOS),
@@ -427,6 +438,41 @@ void main() {
       expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
     });
 
+    testWidgets('should pass auth headers to thumbnail Image.network', (
+      tester,
+    ) async {
+      const props = ImageProps(fileId: 'file-1');
+      final files = [
+        const ImageFileInfo(id: 'file-1', title: 'logo.png', type: 'image/png'),
+      ];
+      when(
+        () => mockFileRepository.listImageFiles(),
+      ).thenAnswer((_) async => Success(files));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            fileRepositoryProvider.overrideWithValue(mockFileRepository),
+            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('edit-dialog-token'),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: ImageEditDialog(props: props, onSave: (_) {}),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final image = tester.widget<Image>(find.byType(Image).first);
+      final networkImage = image.image as NetworkImage;
+      expect(
+        networkImage.headers,
+        containsPair('Authorization', 'Bearer edit-dialog-token'),
+      );
+    });
+
     testWidgets('renders AlertDialog on Android', (tester) async {
       const props = ImageProps(fileId: 'test-file');
       when(
@@ -438,6 +484,7 @@ void main() {
           overrides: [
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: MaterialApp(
             theme: ThemeData(platform: TargetPlatform.android),

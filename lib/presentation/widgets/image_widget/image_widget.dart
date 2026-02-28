@@ -17,7 +17,11 @@ class ImageWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext buildContext, WidgetRef ref) {
     final baseUrl = ref.watch(directusBaseUrlProvider);
+    final token = ref.watch(directusAccessTokenProvider);
     final imageUrl = '$baseUrl/assets/${props.fileId}';
+    final headers = token != null
+        ? <String, String>{'Authorization': 'Bearer $token'}
+        : null;
 
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
@@ -35,6 +39,7 @@ class ImageWidget extends ConsumerWidget {
                   platform == TargetPlatform.macOS;
               return Image.network(
                 imageUrl,
+                headers: headers,
                 width: props.width,
                 height: props.height,
                 fit: _getBoxFit(),

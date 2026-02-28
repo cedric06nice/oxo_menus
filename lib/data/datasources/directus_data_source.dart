@@ -59,7 +59,7 @@ class DirectusDataSource {
   }
 
   /// Get the current access token (from api manager or restored session)
-  String? get _currentAccessToken =>
+  String? get currentAccessToken =>
       _apiManager.accessToken ?? _restoredAccessToken;
 
   // ===== Authentication Methods =====
@@ -311,7 +311,7 @@ class DirectusDataSource {
 
   /// Upload a file to Directus and return the file ID
   Future<String> uploadFile(Uint8List bytes, String filename) async {
-    final accessToken = _currentAccessToken;
+    final accessToken = currentAccessToken;
 
     if (accessToken == null || accessToken.isEmpty) {
       throw DirectusException(
@@ -389,7 +389,7 @@ class DirectusDataSource {
   /// Download file bytes from Directus by file ID
   /// Directus serves files at GET /assets/{fileId}
   Future<Uint8List> downloadFileBytes(String fileId) async {
-    final accessToken = _currentAccessToken;
+    final accessToken = currentAccessToken;
 
     if (accessToken == null || accessToken.isEmpty) {
       throw DirectusException(

@@ -14,6 +14,7 @@ abstract class MenuPresence with _$MenuPresence {
     required int menuId,
     required DateTime lastSeen,
     String? userName,
+    String? userAvatar,
   }) = _MenuPresence;
 
   factory MenuPresence.fromJson(Map<String, dynamic> json) =>

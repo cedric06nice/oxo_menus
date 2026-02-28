@@ -44,5 +44,28 @@ void main() {
 
       expect(presence.userName, isNull);
     });
+
+    test('should store userAvatar when provided', () {
+      final presence = MenuPresence(
+        id: 1,
+        userId: 'user-abc',
+        menuId: 42,
+        lastSeen: DateTime(2025, 1, 15),
+        userAvatar: 'avatar-uuid-123',
+      );
+
+      expect(presence.userAvatar, 'avatar-uuid-123');
+    });
+
+    test('userAvatar should default to null', () {
+      final presence = MenuPresence(
+        id: 1,
+        userId: 'user-abc',
+        menuId: 42,
+        lastSeen: DateTime(2025, 1, 15),
+      );
+
+      expect(presence.userAvatar, isNull);
+    });
   });
 }

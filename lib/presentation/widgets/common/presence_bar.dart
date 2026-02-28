@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/menu_presence.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 /// Displays avatar chips for other users currently editing the same menu.
-class PresenceBar extends StatelessWidget {
+class PresenceBar extends ConsumerWidget {
   final List<MenuPresence> presences;
   final String currentUserId;
 
@@ -13,7 +15,7 @@ class PresenceBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
     final activeOthers = presences.where((p) {
       if (p.userId == currentUserId) return false;
@@ -25,15 +27,57 @@ class PresenceBar extends StatelessWidget {
 
     if (activeOthers.isEmpty) return const SizedBox.shrink();
 
+    final baseUrl = ref.watch(directusBaseUrlProvider);
+    final token = ref.watch(directusAccessTokenProvider);
+
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: activeOthers.map((p) => _buildAvatar(context, p)).toList(),
+      children: activeOthers
+          .map((p) => _buildAvatar(context, p, baseUrl, token))
+          .toList(),
     );
   }
 
-  Widget _buildAvatar(BuildContext context, MenuPresence presence) {
+  Widget _buildAvatar(
+    BuildContext context,
+    MenuPresence presence,
+    String baseUrl,
+    String? token,
+  ) {
     final theme = Theme.of(context);
     final initials = _getInitials(presence.userName);
+
+    final initialsWidget = Text(
+      initials,
+      style: TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        color: theme.colorScheme.onTertiary,
+      ),
+    );
+
+    Widget avatarChild;
+    if (presence.userAvatar != null) {
+      final imageUrl = '$baseUrl/assets/${presence.userAvatar}';
+      final headers = token != null
+          ? <String, String>{'Authorization': 'Bearer $token'}
+          : null;
+
+      avatarChild = ClipOval(
+        child: Image.network(
+          imageUrl,
+          headers: headers,
+          width: 28,
+          height: 28,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Center(child: initialsWidget);
+          },
+        ),
+      );
+    } else {
+      avatarChild = initialsWidget;
+    }
 
     return Padding(
       padding: const EdgeInsets.only(right: 4),
@@ -42,14 +86,7 @@ class PresenceBar extends StatelessWidget {
         child: CircleAvatar(
           radius: 14,
           backgroundColor: theme.colorScheme.tertiary,
-          child: Text(
-            initials,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.onTertiary,
-            ),
-          ),
+          child: avatarChild,
         ),
       ),
     );

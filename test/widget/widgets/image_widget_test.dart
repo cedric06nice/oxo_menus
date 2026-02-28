@@ -20,6 +20,7 @@ void main() {
         ProviderScope(
           overrides: [
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: const MaterialApp(
             home: Scaffold(
@@ -42,6 +43,7 @@ void main() {
         ProviderScope(
           overrides: [
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: const MaterialApp(
             home: Scaffold(
@@ -65,6 +67,7 @@ void main() {
         ProviderScope(
           overrides: [
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: const MaterialApp(
             home: Scaffold(
@@ -88,6 +91,7 @@ void main() {
         ProviderScope(
           overrides: [
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: const MaterialApp(
             home: Scaffold(
@@ -117,6 +121,7 @@ void main() {
         ProviderScope(
           overrides: [
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
           ],
           child: MaterialApp(
@@ -132,6 +137,34 @@ void main() {
       expect(find.byType(GestureDetector), findsOneWidget);
     });
 
+    testWidgets('should pass auth headers to Image.network', (tester) async {
+      const props = ImageProps(fileId: 'test-file-id');
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('my-secret-token'),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(
+              body: ImageWidget(
+                props: props,
+                context: WidgetContext(isEditable: false),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final image = tester.widget<Image>(find.byType(Image));
+      final networkImage = image.image as NetworkImage;
+      expect(
+        networkImage.headers,
+        containsPair('Authorization', 'Bearer my-secret-token'),
+      );
+    });
+
     testWidgets('should NOT respond to tap when isEditable is false', (
       tester,
     ) async {
@@ -140,6 +173,7 @@ void main() {
         ProviderScope(
           overrides: [
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
           ],
           child: const MaterialApp(
             home: Scaffold(
@@ -168,6 +202,7 @@ void main() {
         ProviderScope(
           overrides: [
             directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
+            directusAccessTokenProvider.overrideWithValue('test-token'),
             fileRepositoryProvider.overrideWithValue(mockFileRepository),
           ],
           child: MaterialApp(
@@ -180,8 +215,6 @@ void main() {
           ),
         ),
       );
-      // The dialog itself is tested in image_edit_dialog_test.dart
-      // This test confirms that when isEditable is true, the GestureDetector exists
       expect(find.byType(GestureDetector), findsOneWidget);
       final gesture = tester.widget<GestureDetector>(
         find.byType(GestureDetector),

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MenuPresence {
 
- int get id; String get userId; int get menuId; DateTime get lastSeen; String? get userName;
+ int get id; String get userId; int get menuId; DateTime get lastSeen; String? get userName; String? get userAvatar;
 /// Create a copy of MenuPresence
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $MenuPresenceCopyWith<MenuPresence> get copyWith => _$MenuPresenceCopyWithImpl<M
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MenuPresence&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.menuId, menuId) || other.menuId == menuId)&&(identical(other.lastSeen, lastSeen) || other.lastSeen == lastSeen)&&(identical(other.userName, userName) || other.userName == userName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MenuPresence&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.menuId, menuId) || other.menuId == menuId)&&(identical(other.lastSeen, lastSeen) || other.lastSeen == lastSeen)&&(identical(other.userName, userName) || other.userName == userName)&&(identical(other.userAvatar, userAvatar) || other.userAvatar == userAvatar));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,menuId,lastSeen,userName);
+int get hashCode => Object.hash(runtimeType,id,userId,menuId,lastSeen,userName,userAvatar);
 
 @override
 String toString() {
-  return 'MenuPresence(id: $id, userId: $userId, menuId: $menuId, lastSeen: $lastSeen, userName: $userName)';
+  return 'MenuPresence(id: $id, userId: $userId, menuId: $menuId, lastSeen: $lastSeen, userName: $userName, userAvatar: $userAvatar)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $MenuPresenceCopyWith<$Res>  {
   factory $MenuPresenceCopyWith(MenuPresence value, $Res Function(MenuPresence) _then) = _$MenuPresenceCopyWithImpl;
 @useResult
 $Res call({
- int id, String userId, int menuId, DateTime lastSeen, String? userName
+ int id, String userId, int menuId, DateTime lastSeen, String? userName, String? userAvatar
 });
 
 
@@ -65,13 +65,14 @@ class _$MenuPresenceCopyWithImpl<$Res>
 
 /// Create a copy of MenuPresence
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? menuId = null,Object? lastSeen = null,Object? userName = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? menuId = null,Object? lastSeen = null,Object? userName = freezed,Object? userAvatar = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as String,menuId: null == menuId ? _self.menuId : menuId // ignore: cast_nullable_to_non_nullable
 as int,lastSeen: null == lastSeen ? _self.lastSeen : lastSeen // ignore: cast_nullable_to_non_nullable
 as DateTime,userName: freezed == userName ? _self.userName : userName // ignore: cast_nullable_to_non_nullable
+as String?,userAvatar: freezed == userAvatar ? _self.userAvatar : userAvatar // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -157,10 +158,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String userId,  int menuId,  DateTime lastSeen,  String? userName)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String userId,  int menuId,  DateTime lastSeen,  String? userName,  String? userAvatar)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MenuPresence() when $default != null:
-return $default(_that.id,_that.userId,_that.menuId,_that.lastSeen,_that.userName);case _:
+return $default(_that.id,_that.userId,_that.menuId,_that.lastSeen,_that.userName,_that.userAvatar);case _:
   return orElse();
 
 }
@@ -178,10 +179,10 @@ return $default(_that.id,_that.userId,_that.menuId,_that.lastSeen,_that.userName
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String userId,  int menuId,  DateTime lastSeen,  String? userName)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String userId,  int menuId,  DateTime lastSeen,  String? userName,  String? userAvatar)  $default,) {final _that = this;
 switch (_that) {
 case _MenuPresence():
-return $default(_that.id,_that.userId,_that.menuId,_that.lastSeen,_that.userName);case _:
+return $default(_that.id,_that.userId,_that.menuId,_that.lastSeen,_that.userName,_that.userAvatar);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +199,10 @@ return $default(_that.id,_that.userId,_that.menuId,_that.lastSeen,_that.userName
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String userId,  int menuId,  DateTime lastSeen,  String? userName)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String userId,  int menuId,  DateTime lastSeen,  String? userName,  String? userAvatar)?  $default,) {final _that = this;
 switch (_that) {
 case _MenuPresence() when $default != null:
-return $default(_that.id,_that.userId,_that.menuId,_that.lastSeen,_that.userName);case _:
+return $default(_that.id,_that.userId,_that.menuId,_that.lastSeen,_that.userName,_that.userAvatar);case _:
   return null;
 
 }
@@ -213,7 +214,7 @@ return $default(_that.id,_that.userId,_that.menuId,_that.lastSeen,_that.userName
 @JsonSerializable()
 
 class _MenuPresence extends MenuPresence {
-  const _MenuPresence({required this.id, required this.userId, required this.menuId, required this.lastSeen, this.userName}): super._();
+  const _MenuPresence({required this.id, required this.userId, required this.menuId, required this.lastSeen, this.userName, this.userAvatar}): super._();
   factory _MenuPresence.fromJson(Map<String, dynamic> json) => _$MenuPresenceFromJson(json);
 
 @override final  int id;
@@ -221,6 +222,7 @@ class _MenuPresence extends MenuPresence {
 @override final  int menuId;
 @override final  DateTime lastSeen;
 @override final  String? userName;
+@override final  String? userAvatar;
 
 /// Create a copy of MenuPresence
 /// with the given fields replaced by the non-null parameter values.
@@ -235,16 +237,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MenuPresence&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.menuId, menuId) || other.menuId == menuId)&&(identical(other.lastSeen, lastSeen) || other.lastSeen == lastSeen)&&(identical(other.userName, userName) || other.userName == userName));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MenuPresence&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.menuId, menuId) || other.menuId == menuId)&&(identical(other.lastSeen, lastSeen) || other.lastSeen == lastSeen)&&(identical(other.userName, userName) || other.userName == userName)&&(identical(other.userAvatar, userAvatar) || other.userAvatar == userAvatar));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,menuId,lastSeen,userName);
+int get hashCode => Object.hash(runtimeType,id,userId,menuId,lastSeen,userName,userAvatar);
 
 @override
 String toString() {
-  return 'MenuPresence(id: $id, userId: $userId, menuId: $menuId, lastSeen: $lastSeen, userName: $userName)';
+  return 'MenuPresence(id: $id, userId: $userId, menuId: $menuId, lastSeen: $lastSeen, userName: $userName, userAvatar: $userAvatar)';
 }
 
 
@@ -255,7 +257,7 @@ abstract mixin class _$MenuPresenceCopyWith<$Res> implements $MenuPresenceCopyWi
   factory _$MenuPresenceCopyWith(_MenuPresence value, $Res Function(_MenuPresence) _then) = __$MenuPresenceCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String userId, int menuId, DateTime lastSeen, String? userName
+ int id, String userId, int menuId, DateTime lastSeen, String? userName, String? userAvatar
 });
 
 
@@ -272,13 +274,14 @@ class __$MenuPresenceCopyWithImpl<$Res>
 
 /// Create a copy of MenuPresence
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? menuId = null,Object? lastSeen = null,Object? userName = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? menuId = null,Object? lastSeen = null,Object? userName = freezed,Object? userAvatar = freezed,}) {
   return _then(_MenuPresence(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as String,menuId: null == menuId ? _self.menuId : menuId // ignore: cast_nullable_to_non_nullable
 as int,lastSeen: null == lastSeen ? _self.lastSeen : lastSeen // ignore: cast_nullable_to_non_nullable
 as DateTime,userName: freezed == userName ? _self.userName : userName // ignore: cast_nullable_to_non_nullable
+as String?,userAvatar: freezed == userAvatar ? _self.userAvatar : userAvatar // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

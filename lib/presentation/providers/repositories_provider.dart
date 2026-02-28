@@ -37,6 +37,15 @@ final directusBaseUrlProvider = Provider<String>((ref) {
   );
 });
 
+/// Directus access token provider
+///
+/// Exposes the current access token from the DirectusDataSource for
+/// authenticated asset requests (e.g. Image.network with Bearer headers)
+final directusAccessTokenProvider = Provider<String?>((ref) {
+  final dataSource = ref.watch(directusDataSourceProvider);
+  return dataSource.currentAccessToken;
+});
+
 /// Directus data source provider
 ///
 /// Provides the DirectusDataSource instance for communicating with the Directus backend
