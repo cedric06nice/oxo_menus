@@ -95,5 +95,87 @@ void main() {
 
       expect(find.text('Dialog Content'), findsOneWidget);
     });
+
+    testWidgets(
+      'returns Future that completes when dialog is dismissed on Android',
+      (tester) async {
+        var futureCompleted = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(platform: TargetPlatform.android),
+            home: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () async {
+                  await showEditDialog(
+                    context,
+                    AlertDialog(
+                      content: const Text('Dialog Content'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Close'),
+                        ),
+                      ],
+                    ),
+                  );
+                  futureCompleted = true;
+                },
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Open'));
+        await tester.pumpAndSettle();
+        expect(futureCompleted, isFalse);
+
+        await tester.tap(find.text('Close'));
+        await tester.pumpAndSettle();
+        expect(futureCompleted, isTrue);
+      },
+    );
+
+    testWidgets('returns Future that completes when route is popped on iOS', (
+      tester,
+    ) async {
+      var futureCompleted = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.iOS),
+          home: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () async {
+                await showEditDialog(
+                  context,
+                  CupertinoPageScaffold(
+                    navigationBar: CupertinoNavigationBar(
+                      trailing: CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('Done'),
+                      ),
+                    ),
+                    child: const Center(child: Text('Dialog Content')),
+                  ),
+                );
+                futureCompleted = true;
+              },
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      expect(futureCompleted, isFalse);
+
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+      expect(futureCompleted, isTrue);
+    });
   });
 }

@@ -593,6 +593,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
                   onUpdate: (props) =>
                       _handleWidgetUpdate(widgets[i].id, props),
                   onDelete: () => _handleWidgetDelete(widgets[i].id),
+                  onEditStarted: () => _crudHelper.lockWidget(widgets[i].id),
+                  onEditEnded: () => _crudHelper.unlockWidget(widgets[i].id),
                   onConfirmDismiss: () =>
                       showDeleteConfirmation(context, itemType: 'widget'),
                   onDismissed: (id) => _performWidgetDelete(id),
@@ -624,6 +626,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
                 currentUserId: ref.read(currentUserProvider)?.id,
                 onUpdate: (props) => _handleWidgetUpdate(widget.id, props),
                 onDelete: () => _handleWidgetDelete(widget.id),
+                onEditStarted: () => _crudHelper.lockWidget(widget.id),
+                onEditEnded: () => _crudHelper.unlockWidget(widget.id),
                 onConfirmDismiss: () =>
                     showDeleteConfirmation(context, itemType: 'widget'),
                 onDismissed: (id) => _performWidgetDelete(id),

@@ -17,6 +17,8 @@ class DraggableWidgetItem extends StatelessWidget {
   final String? currentUserId;
   final ValueChanged<Map<String, dynamic>>? onUpdate;
   final VoidCallback? onDelete;
+  final VoidCallback? onEditStarted;
+  final VoidCallback? onEditEnded;
   final Future<bool?> Function()? onConfirmDismiss;
   final ValueChanged<int>? onDismissed;
 
@@ -29,6 +31,8 @@ class DraggableWidgetItem extends StatelessWidget {
     this.currentUserId,
     this.onUpdate,
     this.onDelete,
+    this.onEditStarted,
+    this.onEditEnded,
     this.onConfirmDismiss,
     this.onDismissed,
   });
@@ -139,6 +143,8 @@ class DraggableWidgetItem extends StatelessWidget {
         isEditable: isEditable,
         onUpdate: onUpdate,
         onDelete: onDelete,
+        onEditStarted: onEditStarted,
+        onEditEnded: onEditEnded,
       ),
     );
 

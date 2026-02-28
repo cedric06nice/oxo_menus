@@ -156,6 +156,40 @@ void main() {
       });
     });
 
+    group('edit lifecycle callbacks', () {
+      testWidgets('passes onEditStarted and onEditEnded to WidgetRenderer', (
+        WidgetTester tester,
+      ) async {
+        var editStartedCalled = false;
+        var editEndedCalled = false;
+
+        await tester.pumpWidget(
+          createTestWidget(
+            child: DraggableWidgetItem(
+              widgetInstance: testWidget,
+              columnId: 1,
+              isEditable: true,
+              isLocked: false,
+              onEditStarted: () => editStartedCalled = true,
+              onEditEnded: () => editEndedCalled = true,
+            ),
+          ),
+        );
+
+        final renderer = tester.widget<WidgetRenderer>(
+          find.byType(WidgetRenderer),
+        );
+        expect(renderer.onEditStarted, isNotNull);
+        expect(renderer.onEditEnded, isNotNull);
+
+        renderer.onEditStarted!();
+        expect(editStartedCalled, isTrue);
+
+        renderer.onEditEnded!();
+        expect(editEndedCalled, isTrue);
+      });
+    });
+
     group('feedback widget', () {
       testWidgets(
         'feedback container uses maxWidth constraint instead of fixed width',

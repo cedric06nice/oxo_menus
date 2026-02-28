@@ -14,6 +14,8 @@ class WidgetRenderer extends ConsumerWidget {
   final bool isEditable;
   final void Function(Map<String, dynamic>)? onUpdate;
   final VoidCallback? onDelete;
+  final VoidCallback? onEditStarted;
+  final VoidCallback? onEditEnded;
 
   const WidgetRenderer({
     super.key,
@@ -21,6 +23,8 @@ class WidgetRenderer extends ConsumerWidget {
     this.isEditable = false,
     this.onUpdate,
     this.onDelete,
+    this.onEditStarted,
+    this.onEditEnded,
   });
 
   @override
@@ -46,6 +50,8 @@ class WidgetRenderer extends ConsumerWidget {
         isEditable: isEditable,
         onUpdate: onUpdate,
         onDelete: onDelete,
+        onEditStarted: onEditStarted,
+        onEditEnded: onEditEnded,
         displayOptions: displayOptions,
       );
 

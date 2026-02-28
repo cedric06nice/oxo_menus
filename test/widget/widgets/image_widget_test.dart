@@ -191,6 +191,59 @@ void main() {
       expect(gesture.onTap, isNull);
     });
 
+    testWidgets(
+      'should call onEditStarted before and onEditEnded after edit dialog',
+      (tester) async {
+        const props = ImageProps(fileId: 'test-file-id');
+        var editStartedCount = 0;
+        var editEndedCount = 0;
+        final mockFileRepository = MockFileRepository();
+        when(
+          () => mockFileRepository.listImageFiles(),
+        ).thenAnswer((_) async => const Success([]));
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              directusBaseUrlProvider.overrideWithValue(
+                'http://localhost:8055',
+              ),
+              directusAccessTokenProvider.overrideWithValue('test-token'),
+              fileRepositoryProvider.overrideWithValue(mockFileRepository),
+            ],
+            child: MaterialApp(
+              home: Scaffold(
+                body: ImageWidget(
+                  props: props,
+                  context: WidgetContext(
+                    isEditable: true,
+                    onUpdate: (_) {},
+                    onEditStarted: () => editStartedCount++,
+                    onEditEnded: () => editEndedCount++,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        // Invoke onTap directly — Image.network error builder interferes with hit testing
+        final gesture = tester.widget<GestureDetector>(
+          find.byType(GestureDetector),
+        );
+        gesture.onTap!();
+        await tester.pumpAndSettle();
+
+        expect(editStartedCount, 1);
+        expect(editEndedCount, 0);
+
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+
+        expect(editEndedCount, 1);
+      },
+    );
+
     testWidgets('should be tappable when in editable mode', (tester) async {
       const props = ImageProps(fileId: 'test-file-id');
       final mockFileRepository = MockFileRepository();

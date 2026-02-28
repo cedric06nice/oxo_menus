@@ -62,8 +62,9 @@ class ImageWidget extends ConsumerWidget {
     );
   }
 
-  void _handleEdit(BuildContext buildContext) {
-    showEditDialog(
+  Future<void> _handleEdit(BuildContext buildContext) async {
+    context.onEditStarted?.call();
+    await showEditDialog(
       buildContext,
       ImageEditDialog(
         props: props,
@@ -72,6 +73,7 @@ class ImageWidget extends ConsumerWidget {
         },
       ),
     );
+    context.onEditEnded?.call();
   }
 
   Alignment _getAlignment() {

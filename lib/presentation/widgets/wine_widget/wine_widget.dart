@@ -86,8 +86,9 @@ class WineWidget extends StatelessWidget {
     );
   }
 
-  void _handleEdit(BuildContext buildContext) {
-    showEditDialog(
+  Future<void> _handleEdit(BuildContext buildContext) async {
+    context.onEditStarted?.call();
+    await showEditDialog(
       buildContext,
       WineEditDialog(
         props: props,
@@ -96,5 +97,6 @@ class WineWidget extends StatelessWidget {
         },
       ),
     );
+    context.onEditEnded?.call();
   }
 }
