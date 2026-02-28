@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/utils/directus_url_resolver.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
+import 'package:oxo_menus/data/repositories/area_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/auth_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/column_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/container_repository_impl.dart';
@@ -12,6 +13,7 @@ import 'package:oxo_menus/data/repositories/size_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/menu_subscription_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/presence_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/widget_repository_impl.dart';
+import 'package:oxo_menus/domain/repositories/area_repository.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
 import 'package:oxo_menus/domain/repositories/presence_repository.dart';
@@ -52,6 +54,14 @@ final directusAccessTokenProvider = Provider<String?>((ref) {
 final directusDataSourceProvider = Provider<DirectusDataSource>((ref) {
   final baseUrl = ref.watch(directusBaseUrlProvider);
   return DirectusDataSource(baseUrl: baseUrl);
+});
+
+/// Area repository provider
+///
+/// Provides the AreaRepository implementation for fetching available areas
+final areaRepositoryProvider = Provider<AreaRepository>((ref) {
+  final dataSource = ref.watch(directusDataSourceProvider);
+  return AreaRepositoryImpl(dataSource: dataSource);
 });
 
 /// Menu repository provider

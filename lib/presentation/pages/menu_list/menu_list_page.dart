@@ -115,6 +115,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
             version: result.version,
             status: result.status,
             sizeId: result.sizeId,
+            areaId: result.areaId,
           );
 
           final createdMenu = await ref

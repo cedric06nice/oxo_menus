@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
@@ -31,12 +32,17 @@ class _AdminTemplateCreatorPageState
   String? _sizeError;
   bool _isSaving = false;
 
+  List<Area> _areas = [];
+  Area? _selectedArea;
+  bool _isLoadingAreas = true;
+
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
     _versionController = TextEditingController(text: '1.0.0');
     _loadSizes();
+    _loadAreas();
   }
 
   Future<void> _loadSizes() async {
@@ -57,6 +63,27 @@ class _AdminTemplateCreatorPageState
         setState(() {
           _sizeError = error.message;
           _isLoadingSizes = false;
+        });
+      },
+    );
+  }
+
+  Future<void> _loadAreas() async {
+    final areaRepository = ref.read(areaRepositoryProvider);
+    final result = await areaRepository.getAll();
+
+    if (!mounted) return;
+
+    result.fold(
+      onSuccess: (areas) {
+        setState(() {
+          _areas = areas;
+          _isLoadingAreas = false;
+        });
+      },
+      onFailure: (_) {
+        setState(() {
+          _isLoadingAreas = false;
         });
       },
     );
@@ -86,6 +113,7 @@ class _AdminTemplateCreatorPageState
       version: _versionController.text.trim(),
       status: Status.draft,
       sizeId: _selectedSize!.id,
+      areaId: _selectedArea?.id,
     );
 
     final result = await ref.read(menuRepositoryProvider).create(input);
@@ -140,6 +168,8 @@ class _AdminTemplateCreatorPageState
                   ),
                   const SizedBox(height: 16),
                   _buildSizeDropdown(),
+                  const SizedBox(height: 16),
+                  _buildAreaDropdown(),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -225,6 +255,38 @@ class _AdminTemplateCreatorPageState
       onChanged: (size) {
         setState(() {
           _selectedSize = size;
+        });
+      },
+    );
+  }
+
+  Widget _buildAreaDropdown() {
+    if (_isLoadingAreas) {
+      return const Row(
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          SizedBox(width: 12),
+          Text('Loading areas...'),
+        ],
+      );
+    }
+
+    return DropdownButtonFormField<Area?>(
+      initialValue: _selectedArea,
+      decoration: const InputDecoration(labelText: 'Area'),
+      items: [
+        const DropdownMenuItem<Area?>(value: null, child: Text('None')),
+        ..._areas.map((area) {
+          return DropdownMenuItem<Area?>(value: area, child: Text(area.name));
+        }),
+      ],
+      onChanged: (area) {
+        setState(() {
+          _selectedArea = area;
         });
       },
     );

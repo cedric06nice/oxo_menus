@@ -9,6 +9,7 @@ import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
+import 'package:oxo_menus/domain/repositories/area_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
@@ -34,6 +35,8 @@ class MockWidgetRepository extends Mock implements WidgetRepository {}
 
 class MockSizeRepository extends Mock implements SizeRepository {}
 
+class MockAreaRepository extends Mock implements AreaRepository {}
+
 class MockDuplicateMenuUseCase extends Mock implements DuplicateMenuUseCase {}
 
 void main() {
@@ -45,6 +48,7 @@ void main() {
   late MockColumnRepository mockColumnRepository;
   late MockWidgetRepository mockWidgetRepository;
   late MockSizeRepository mockSizeRepository;
+  late MockAreaRepository mockAreaRepository;
   late MockDuplicateMenuUseCase mockDuplicateMenuUseCase;
 
   setUp(() {
@@ -55,6 +59,7 @@ void main() {
     mockColumnRepository = MockColumnRepository();
     mockWidgetRepository = MockWidgetRepository();
     mockSizeRepository = MockSizeRepository();
+    mockAreaRepository = MockAreaRepository();
     mockDuplicateMenuUseCase = MockDuplicateMenuUseCase();
 
     // Default behavior for menu repository (return empty list)
@@ -79,6 +84,9 @@ void main() {
     ).thenAnswer((_) async => const Success([]));
     when(
       () => mockWidgetRepository.getAllForColumn(any()),
+    ).thenAnswer((_) async => const Success([]));
+    when(
+      () => mockAreaRepository.getAll(),
     ).thenAnswer((_) async => const Success([]));
   });
 
@@ -298,6 +306,7 @@ void main() {
             authRepositoryProvider.overrideWithValue(mockAuthRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
             sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+            areaRepositoryProvider.overrideWithValue(mockAreaRepository),
             duplicateMenuUseCaseProvider.overrideWithValue(
               mockDuplicateMenuUseCase,
             ),

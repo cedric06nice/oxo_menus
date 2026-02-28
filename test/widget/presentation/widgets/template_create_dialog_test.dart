@@ -7,16 +7,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/repositories/area_repository.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/widgets/template_create_dialog.dart';
 
 class MockSizeRepository extends Mock implements SizeRepository {}
 
+class MockAreaRepository extends Mock implements AreaRepository {}
+
 void main() {
   late MockSizeRepository mockSizeRepository;
+  late MockAreaRepository mockAreaRepository;
 
   final testSizes = [
     const domain.Size(
@@ -31,9 +36,13 @@ void main() {
 
   setUp(() {
     mockSizeRepository = MockSizeRepository();
+    mockAreaRepository = MockAreaRepository();
     when(
       () => mockSizeRepository.getAll(),
     ).thenAnswer((_) async => Success(testSizes));
+    when(
+      () => mockAreaRepository.getAll(),
+    ).thenAnswer((_) async => const Success([Area(id: 1, name: 'Dining')]));
   });
 
   group('TemplateCreateDialog', () {
@@ -42,6 +51,7 @@ void main() {
         ProviderScope(
           overrides: [
             sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+            areaRepositoryProvider.overrideWithValue(mockAreaRepository),
           ],
           child: MaterialApp(
             theme: ThemeData(platform: TargetPlatform.android),
@@ -74,6 +84,7 @@ void main() {
         ProviderScope(
           overrides: [
             sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+            areaRepositoryProvider.overrideWithValue(mockAreaRepository),
           ],
           child: MaterialApp(
             theme: ThemeData(platform: TargetPlatform.iOS),
@@ -115,6 +126,7 @@ void main() {
         ProviderScope(
           overrides: [
             sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+            areaRepositoryProvider.overrideWithValue(mockAreaRepository),
           ],
           child: MaterialApp(
             theme: ThemeData(platform: TargetPlatform.iOS),

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$User {
 
- String get id; String get email; String? get firstName; String? get lastName; UserRole? get role; String? get avatar;
+ String get id; String get email; String? get firstName; String? get lastName; UserRole? get role; String? get avatar; List<Area> get areas;
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $UserCopyWith<User> get copyWith => _$UserCopyWithImpl<User>(this as User, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.role, role) || other.role == role)&&(identical(other.avatar, avatar) || other.avatar == avatar));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.role, role) || other.role == role)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&const DeepCollectionEquality().equals(other.areas, areas));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,firstName,lastName,role,avatar);
+int get hashCode => Object.hash(runtimeType,id,email,firstName,lastName,role,avatar,const DeepCollectionEquality().hash(areas));
 
 @override
 String toString() {
-  return 'User(id: $id, email: $email, firstName: $firstName, lastName: $lastName, role: $role, avatar: $avatar)';
+  return 'User(id: $id, email: $email, firstName: $firstName, lastName: $lastName, role: $role, avatar: $avatar, areas: $areas)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $UserCopyWith<$Res>  {
   factory $UserCopyWith(User value, $Res Function(User) _then) = _$UserCopyWithImpl;
 @useResult
 $Res call({
- String id, String email, String? firstName, String? lastName, UserRole? role, String? avatar
+ String id, String email, String? firstName, String? lastName, UserRole? role, String? avatar, List<Area> areas
 });
 
 
@@ -65,7 +65,7 @@ class _$UserCopyWithImpl<$Res>
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? firstName = freezed,Object? lastName = freezed,Object? role = freezed,Object? avatar = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? email = null,Object? firstName = freezed,Object? lastName = freezed,Object? role = freezed,Object? avatar = freezed,Object? areas = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
@@ -73,7 +73,8 @@ as String,firstName: freezed == firstName ? _self.firstName : firstName // ignor
 as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
 as String?,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as UserRole?,avatar: freezed == avatar ? _self.avatar : avatar // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,areas: null == areas ? _self.areas : areas // ignore: cast_nullable_to_non_nullable
+as List<Area>,
   ));
 }
 
@@ -158,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String email,  String? firstName,  String? lastName,  UserRole? role,  String? avatar)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String email,  String? firstName,  String? lastName,  UserRole? role,  String? avatar,  List<Area> areas)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _User() when $default != null:
-return $default(_that.id,_that.email,_that.firstName,_that.lastName,_that.role,_that.avatar);case _:
+return $default(_that.id,_that.email,_that.firstName,_that.lastName,_that.role,_that.avatar,_that.areas);case _:
   return orElse();
 
 }
@@ -179,10 +180,10 @@ return $default(_that.id,_that.email,_that.firstName,_that.lastName,_that.role,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String email,  String? firstName,  String? lastName,  UserRole? role,  String? avatar)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String email,  String? firstName,  String? lastName,  UserRole? role,  String? avatar,  List<Area> areas)  $default,) {final _that = this;
 switch (_that) {
 case _User():
-return $default(_that.id,_that.email,_that.firstName,_that.lastName,_that.role,_that.avatar);case _:
+return $default(_that.id,_that.email,_that.firstName,_that.lastName,_that.role,_that.avatar,_that.areas);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +200,10 @@ return $default(_that.id,_that.email,_that.firstName,_that.lastName,_that.role,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String email,  String? firstName,  String? lastName,  UserRole? role,  String? avatar)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String email,  String? firstName,  String? lastName,  UserRole? role,  String? avatar,  List<Area> areas)?  $default,) {final _that = this;
 switch (_that) {
 case _User() when $default != null:
-return $default(_that.id,_that.email,_that.firstName,_that.lastName,_that.role,_that.avatar);case _:
+return $default(_that.id,_that.email,_that.firstName,_that.lastName,_that.role,_that.avatar,_that.areas);case _:
   return null;
 
 }
@@ -214,7 +215,7 @@ return $default(_that.id,_that.email,_that.firstName,_that.lastName,_that.role,_
 @JsonSerializable()
 
 class _User extends User {
-  const _User({required this.id, required this.email, this.firstName, this.lastName, this.role, this.avatar}): super._();
+  const _User({required this.id, required this.email, this.firstName, this.lastName, this.role, this.avatar, final  List<Area> areas = const []}): _areas = areas,super._();
   factory _User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
 
 @override final  String id;
@@ -223,6 +224,13 @@ class _User extends User {
 @override final  String? lastName;
 @override final  UserRole? role;
 @override final  String? avatar;
+ final  List<Area> _areas;
+@override@JsonKey() List<Area> get areas {
+  if (_areas is EqualUnmodifiableListView) return _areas;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_areas);
+}
+
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +245,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.role, role) || other.role == role)&&(identical(other.avatar, avatar) || other.avatar == avatar));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _User&&(identical(other.id, id) || other.id == id)&&(identical(other.email, email) || other.email == email)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.role, role) || other.role == role)&&(identical(other.avatar, avatar) || other.avatar == avatar)&&const DeepCollectionEquality().equals(other._areas, _areas));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,email,firstName,lastName,role,avatar);
+int get hashCode => Object.hash(runtimeType,id,email,firstName,lastName,role,avatar,const DeepCollectionEquality().hash(_areas));
 
 @override
 String toString() {
-  return 'User(id: $id, email: $email, firstName: $firstName, lastName: $lastName, role: $role, avatar: $avatar)';
+  return 'User(id: $id, email: $email, firstName: $firstName, lastName: $lastName, role: $role, avatar: $avatar, areas: $areas)';
 }
 
 
@@ -257,7 +265,7 @@ abstract mixin class _$UserCopyWith<$Res> implements $UserCopyWith<$Res> {
   factory _$UserCopyWith(_User value, $Res Function(_User) _then) = __$UserCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String email, String? firstName, String? lastName, UserRole? role, String? avatar
+ String id, String email, String? firstName, String? lastName, UserRole? role, String? avatar, List<Area> areas
 });
 
 
@@ -274,7 +282,7 @@ class __$UserCopyWithImpl<$Res>
 
 /// Create a copy of User
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? email = null,Object? firstName = freezed,Object? lastName = freezed,Object? role = freezed,Object? avatar = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? email = null,Object? firstName = freezed,Object? lastName = freezed,Object? role = freezed,Object? avatar = freezed,Object? areas = null,}) {
   return _then(_User(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
@@ -282,7 +290,8 @@ as String,firstName: freezed == firstName ? _self.firstName : firstName // ignor
 as String?,lastName: freezed == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
 as String?,role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
 as UserRole?,avatar: freezed == avatar ? _self.avatar : avatar // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,areas: null == areas ? _self._areas : areas // ignore: cast_nullable_to_non_nullable
+as List<Area>,
   ));
 }
 

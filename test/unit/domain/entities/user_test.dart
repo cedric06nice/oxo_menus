@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 
 void main() {
@@ -12,6 +13,7 @@ void main() {
       expect(user.lastName, null);
       expect(user.role, null);
       expect(user.avatar, null);
+      expect(user.areas, <Area>[]);
     });
 
     test('should create User with all fields', () {
@@ -86,6 +88,21 @@ void main() {
       expect(user.email, 'admin@example.com');
       expect(user.firstName, 'John');
       expect(user.role, UserRole.admin);
+    });
+
+    test('should store areas', () {
+      const user = User(
+        id: '1',
+        email: 'test@example.com',
+        areas: [
+          Area(id: 1, name: 'Dining'),
+          Area(id: 2, name: 'Bar'),
+        ],
+      );
+
+      expect(user.areas, hasLength(2));
+      expect(user.areas[0].name, 'Dining');
+      expect(user.areas[1].name, 'Bar');
     });
   });
 

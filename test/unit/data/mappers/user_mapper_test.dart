@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/data/mappers/user_mapper.dart';
 import 'package:oxo_menus/data/models/user_dto.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 
 void main() {
@@ -43,6 +44,47 @@ void main() {
         expect(user.lastName, isNull);
         expect(user.avatar, isNull);
         expect(user.role, isNull);
+      });
+
+      test('should map areas from M2M junction shape', () {
+        final dto = UserDto.fromJson({
+          'id': 'usr-1',
+          'email': 'chef@oxo.uk',
+          'areas': [
+            {
+              'area_id': {'id': 1, 'name': 'Dining'},
+            },
+            {
+              'area_id': {'id': 2, 'name': 'Bar'},
+            },
+          ],
+        });
+
+        final user = UserMapper.toEntity(dto);
+
+        expect(user.areas, hasLength(2));
+        expect(user.areas[0], const Area(id: 1, name: 'Dining'));
+        expect(user.areas[1], const Area(id: 2, name: 'Bar'));
+      });
+
+      test('should default areas to empty list when not present', () {
+        final dto = UserDto.fromJson({'id': 'usr-1', 'email': 'chef@oxo.uk'});
+
+        final user = UserMapper.toEntity(dto);
+
+        expect(user.areas, isEmpty);
+      });
+
+      test('should handle null areas field', () {
+        final dto = UserDto.fromJson({
+          'id': 'usr-1',
+          'email': 'chef@oxo.uk',
+          'areas': null,
+        });
+
+        final user = UserMapper.toEntity(dto);
+
+        expect(user.areas, isEmpty);
       });
     });
 

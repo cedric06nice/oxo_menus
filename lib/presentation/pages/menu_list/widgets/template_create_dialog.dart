@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
@@ -14,12 +15,14 @@ class TemplateCreateResult {
   final Status status;
   final String version;
   final int sizeId;
+  final int? areaId;
 
   const TemplateCreateResult({
     required this.name,
     required this.status,
     required this.version,
     required this.sizeId,
+    this.areaId,
   });
 }
 
@@ -42,6 +45,10 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
   bool _isLoadingSizes = true;
   String? _sizeError;
 
+  List<Area> _areas = [];
+  Area? _selectedArea;
+  bool _isLoadingAreas = true;
+
   bool get _isApple {
     final platform = Theme.of(context).platform;
     return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
@@ -53,6 +60,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
     _nameController = TextEditingController();
     _versionController = TextEditingController(text: '1.0.0');
     _loadSizes();
+    _loadAreas();
   }
 
   Future<void> _loadSizes() async {
@@ -72,6 +80,25 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
         setState(() {
           _sizeError = error.message;
           _isLoadingSizes = false;
+        });
+    }
+  }
+
+  Future<void> _loadAreas() async {
+    final areaRepository = ref.read(areaRepositoryProvider);
+    final result = await areaRepository.getAll();
+
+    if (!mounted) return;
+
+    switch (result) {
+      case Success(:final value):
+        setState(() {
+          _areas = value;
+          _isLoadingAreas = false;
+        });
+      case Failure():
+        setState(() {
+          _isLoadingAreas = false;
         });
     }
   }
@@ -127,6 +154,10 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
             CupertinoFormSection.insetGrouped(
               header: const Text('PAGE SIZE'),
               children: [_buildAppleSizeSelector()],
+            ),
+            CupertinoFormSection.insetGrouped(
+              header: const Text('AREA'),
+              children: [_buildAppleAreaSelector()],
             ),
           ],
         ),
@@ -203,6 +234,40 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
     );
   }
 
+  Widget _buildAppleAreaSelector() {
+    if (_isLoadingAreas) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Row(
+          children: [
+            CupertinoActivityIndicator(),
+            SizedBox(width: 12),
+            Flexible(child: Text('Loading areas...')),
+          ],
+        ),
+      );
+    }
+
+    final areaLabel = _selectedArea?.name ?? 'None';
+
+    return CupertinoListTile(
+      title: const Text('Area'),
+      additionalInfo: Text(areaLabel),
+      trailing: const CupertinoListTileChevron(),
+      onTap: () {
+        final items = [const Area(id: 0, name: 'None'), ..._areas];
+        showCupertinoPicker<Area>(
+          context,
+          items: items,
+          currentValue: _selectedArea ?? items.first,
+          labelBuilder: (a) => a.name,
+          onSelected: (v) =>
+              setState(() => _selectedArea = v.id == 0 ? null : v),
+        );
+      },
+    );
+  }
+
   Widget _buildMaterialDialog(BuildContext context) {
     return AlertDialog(
       title: const Text('Create Template'),
@@ -218,6 +283,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
                 labelText: 'Template Name',
                 hintText: 'Enter template name',
               ),
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -226,9 +292,12 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
                 labelText: 'Version',
                 hintText: 'Enter template version (e.g. 1.0.0)',
               ),
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 16),
             _buildMaterialSizeDropdown(),
+            const SizedBox(height: 16),
+            _buildMaterialAreaDropdown(),
           ],
         ),
       ),
@@ -306,6 +375,38 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
     );
   }
 
+  Widget _buildMaterialAreaDropdown() {
+    if (_isLoadingAreas) {
+      return const Row(
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          SizedBox(width: 12),
+          Text('Loading areas...'),
+        ],
+      );
+    }
+
+    return DropdownButtonFormField<Area?>(
+      initialValue: _selectedArea,
+      decoration: const InputDecoration(labelText: 'Area'),
+      items: [
+        const DropdownMenuItem<Area?>(value: null, child: Text('None')),
+        ..._areas.map((area) {
+          return DropdownMenuItem<Area?>(value: area, child: Text(area.name));
+        }),
+      ],
+      onChanged: (area) {
+        setState(() {
+          _selectedArea = area;
+        });
+      },
+    );
+  }
+
   bool _canSave() {
     return _nameController.text.trim().isNotEmpty &&
         _versionController.text.trim().isNotEmpty &&
@@ -328,6 +429,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
       status: Status.draft,
       version: version,
       sizeId: _selectedSize!.id,
+      areaId: _selectedArea?.id,
     );
 
     widget.onSave(result);

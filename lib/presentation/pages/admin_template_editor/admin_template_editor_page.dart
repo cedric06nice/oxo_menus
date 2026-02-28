@@ -338,6 +338,68 @@ class _AdminTemplateEditorPageState
     );
   }
 
+  Future<void> _showAreaDialog() async {
+    final result = await ref.read(areaRepositoryProvider).getAll();
+    if (result.isFailure) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to load areas: ${result.errorOrNull?.message ?? 'Unknown error'}',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    final areas = result.valueOrNull!;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Select Area'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              final updateResult = await ref
+                  .read(menuRepositoryProvider)
+                  .update(UpdateMenuInput(id: widget.menuId, areaId: null));
+              if (updateResult.isSuccess) {
+                setState(() {
+                  _menu = _menu?.copyWith(area: null);
+                });
+              }
+            },
+            child: const Text('None'),
+          ),
+          ...areas.map(
+            (area) => SimpleDialogOption(
+              onPressed: () async {
+                Navigator.of(ctx).pop();
+                final updateResult = await ref
+                    .read(menuRepositoryProvider)
+                    .update(
+                      UpdateMenuInput(id: widget.menuId, areaId: area.id),
+                    );
+                if (updateResult.isSuccess) {
+                  setState(() {
+                    _menu = _menu?.copyWith(area: area);
+                  });
+                }
+              },
+              child: Text(area.name),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _addPage() async {
     final result = await ref
         .read(pageRepositoryProvider)
@@ -753,6 +815,14 @@ class _AdminTemplateEditorPageState
     return AuthenticatedScaffold(
       title: _menu?.name ?? 'Template Editor',
       actions: [
+        IconButton(
+          key: const Key('area_button'),
+          onPressed: _showAreaDialog,
+          icon: const Icon(Icons.location_on),
+          tooltip: _menu?.area != null
+              ? 'Area: ${_menu!.area!.name}'
+              : 'Set Area',
+        ),
         IconButton(
           key: const Key('page_size_button'),
           onPressed: () => context.push('/admin/sizes'),

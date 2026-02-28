@@ -1,7 +1,9 @@
 import 'package:oxo_menus/data/mappers/display_options_mapper.dart';
 import 'package:oxo_menus/data/mappers/style_config_mapper.dart';
+import 'package:oxo_menus/data/models/area_dto.dart';
 import 'package:oxo_menus/data/models/menu_dto.dart';
 import 'package:oxo_menus/data/models/size_dto.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
@@ -25,6 +27,7 @@ class MenuMapper {
           ? StyleConfigMapper.fromJson(dto.styleJson)
           : null,
       pageSize: _mapSizeDtoToPageSize(sizeDto),
+      area: _mapAreaDtoToArea(dto.area),
       displayOptions: dto.displayOptionsJson.isNotEmpty
           ? DisplayOptionsMapper.fromJson(dto.displayOptionsJson)
           : null,
@@ -50,6 +53,15 @@ class MenuMapper {
     );
   }
 
+  /// Map AreaDto to Area entity (returns null if AreaDto only has ID, no name data)
+  static Area? _mapAreaDtoToArea(AreaDto? areaDto) {
+    if (areaDto == null) return null;
+    final rawData = areaDto.getRawData();
+    if (!rawData.containsKey('name')) return null;
+    final idString = areaDto.id ?? '0';
+    return Area(id: int.parse(idString), name: areaDto.name);
+  }
+
   /// Convert Menu entity to MenuDto
   static MenuDto toDto(Menu entity) {
     return MenuDto({
@@ -67,7 +79,7 @@ class MenuMapper {
       'size': entity.pageSize != null
           ? _mapPageSizeToJson(entity.pageSize!)
           : null,
-      'area': entity.area != null ? _mapAreaStringToId(entity.area!) : null,
+      'area': entity.area?.id,
       'versions': null,
       'pages': null,
     });
@@ -90,8 +102,8 @@ class MenuMapper {
     if (input.sizeId != null) {
       map['size'] = input.sizeId;
     }
-    if (input.area != null) {
-      map['area'] = _mapAreaStringToId(input.area!);
+    if (input.areaId != null) {
+      map['area'] = input.areaId;
     }
     if (input.displayOptions != null) {
       map['display_options_json'] = DisplayOptionsMapper.toJson(
@@ -125,8 +137,8 @@ class MenuMapper {
     if (input.sizeId != null) {
       map['size'] = input.sizeId;
     }
-    if (input.area != null) {
-      map['area'] = _mapAreaStringToId(input.area!);
+    if (input.areaId != null) {
+      map['area'] = input.areaId;
     }
     if (input.displayOptions != null) {
       map['display_options_json'] = DisplayOptionsMapper.toJson(
@@ -140,15 +152,6 @@ class MenuMapper {
     return map;
   }
 
-  /// Map size JSON to PageSize entity
-  // static PageSize _mapSizeJsonToPageSize(Map<String, dynamic> json) {
-  //   return PageSize(
-  //     name: json['name'] as String,
-  //     width: (json['width'] as num).toDouble(),
-  //     height: (json['height'] as num).toDouble(),
-  //   );
-  // }
-
   /// Map PageSize entity to JSON
   static Map<String, dynamic> _mapPageSizeToJson(PageSize pageSize) {
     return {
@@ -156,11 +159,5 @@ class MenuMapper {
       'width': pageSize.width,
       'height': pageSize.height,
     };
-  }
-
-  /// Map area string (name) to int (ID) for Directus
-  static int? _mapAreaStringToId(String areaName) {
-    const areaIdMap = {'dining': 1, 'bar': 2, 'terrace': 3, 'takeaway': 4};
-    return areaIdMap[areaName.toLowerCase()];
   }
 }

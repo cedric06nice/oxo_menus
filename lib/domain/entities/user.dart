@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 
 part 'user.freezed.dart';
 part 'user.g.dart';
@@ -15,6 +16,7 @@ abstract class User with _$User {
     String? lastName,
     UserRole? role,
     String? avatar,
+    @Default([]) List<Area> areas,
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

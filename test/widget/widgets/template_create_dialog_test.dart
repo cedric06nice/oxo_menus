@@ -4,24 +4,40 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/repositories/area_repository.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/widgets/template_create_dialog.dart';
 
 class MockSizeRepository extends Mock implements SizeRepository {}
 
+class MockAreaRepository extends Mock implements AreaRepository {}
+
 class MockGoRouter extends Mock implements GoRouter {}
+
+const _testAreas = [Area(id: 1, name: 'Dining'), Area(id: 2, name: 'Bar')];
 
 void main() {
   late MockSizeRepository mockSizeRepository;
+  late MockAreaRepository mockAreaRepository;
 
   setUp(() {
     mockSizeRepository = MockSizeRepository();
+    mockAreaRepository = MockAreaRepository();
+    when(
+      () => mockAreaRepository.getAll(),
+    ).thenAnswer((_) async => const Success(_testAreas));
   });
 
-  Widget buildApp({required MockSizeRepository sizeRepo, GoRouter? router}) {
+  Widget buildApp({
+    required MockSizeRepository sizeRepo,
+    MockAreaRepository? areaRepo,
+    GoRouter? router,
+    void Function(TemplateCreateResult)? onSave,
+  }) {
     final goRouter =
         router ??
         GoRouter(
@@ -33,7 +49,8 @@ void main() {
                   builder: (context) => ElevatedButton(
                     onPressed: () => showDialog(
                       context: context,
-                      builder: (_) => TemplateCreateDialog(onSave: (_) {}),
+                      builder: (_) =>
+                          TemplateCreateDialog(onSave: onSave ?? (_) {}),
                     ),
                     child: const Text('Open Dialog'),
                   ),
@@ -48,8 +65,16 @@ void main() {
         );
 
     return ProviderScope(
-      overrides: [sizeRepositoryProvider.overrideWithValue(sizeRepo)],
-      child: MaterialApp.router(routerConfig: goRouter),
+      overrides: [
+        sizeRepositoryProvider.overrideWithValue(sizeRepo),
+        areaRepositoryProvider.overrideWithValue(
+          areaRepo ?? mockAreaRepository,
+        ),
+      ],
+      child: MaterialApp.router(
+        routerConfig: goRouter,
+        theme: ThemeData(platform: TargetPlatform.android),
+      ),
     );
   }
 
@@ -114,6 +139,122 @@ void main() {
 
       expect(find.text('Manage Page Sizes'), findsNothing);
       expect(find.text('Page Size'), findsOneWidget);
+    });
+
+    testWidgets('should show area dropdown with loaded areas', (tester) async {
+      when(() => mockSizeRepository.getAll()).thenAnswer(
+        (_) async => const Success([
+          domain.Size(
+            id: 1,
+            name: 'A4',
+            width: 210,
+            height: 297,
+            status: Status.published,
+            direction: 'portrait',
+          ),
+        ]),
+      );
+
+      await tester.pumpWidget(buildApp(sizeRepo: mockSizeRepository));
+
+      await tester.tap(find.text('Open Dialog'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Area'), findsOneWidget);
+    });
+
+    testWidgets('should include areaId in result when area is selected', (
+      tester,
+    ) async {
+      when(() => mockSizeRepository.getAll()).thenAnswer(
+        (_) async => const Success([
+          domain.Size(
+            id: 1,
+            name: 'A4',
+            width: 210,
+            height: 297,
+            status: Status.published,
+            direction: 'portrait',
+          ),
+        ]),
+      );
+
+      TemplateCreateResult? capturedResult;
+
+      await tester.pumpWidget(
+        buildApp(
+          sizeRepo: mockSizeRepository,
+          onSave: (result) => capturedResult = result,
+        ),
+      );
+
+      await tester.tap(find.text('Open Dialog'));
+      await tester.pumpAndSettle();
+
+      // Enter template name
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Template Name'),
+        'Test Menu',
+      );
+      await tester.pump();
+
+      // Select an area from the dropdown
+      await tester.tap(find.text('Area').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dining').last);
+      await tester.pumpAndSettle();
+
+      // Tap create
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Create'));
+      await tester.pumpAndSettle();
+
+      expect(capturedResult, isNotNull);
+      expect(capturedResult!.areaId, 1);
+    });
+
+    testWidgets('should allow creating template without area (null areaId)', (
+      tester,
+    ) async {
+      when(() => mockSizeRepository.getAll()).thenAnswer(
+        (_) async => const Success([
+          domain.Size(
+            id: 1,
+            name: 'A4',
+            width: 210,
+            height: 297,
+            status: Status.published,
+            direction: 'portrait',
+          ),
+        ]),
+      );
+
+      TemplateCreateResult? capturedResult;
+
+      await tester.pumpWidget(
+        buildApp(
+          sizeRepo: mockSizeRepository,
+          onSave: (result) => capturedResult = result,
+        ),
+      );
+
+      await tester.tap(find.text('Open Dialog'));
+      await tester.pumpAndSettle();
+
+      // Enter template name
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Template Name'),
+        'Test Menu',
+      );
+      await tester.pump();
+
+      // Don't select area — leave as "None"
+
+      // Tap create
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Create'));
+      await tester.pumpAndSettle();
+
+      expect(capturedResult, isNotNull);
+      expect(capturedResult!.areaId, isNull);
     });
   });
 }

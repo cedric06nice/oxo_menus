@@ -13,6 +13,7 @@ abstract class UserDto with _$UserDto {
     @JsonKey(name: 'last_name') String? lastName,
     String? role,
     String? avatar,
+    @Default([]) List<Map<String, dynamic>> areas,
   }) = _UserDto;
 
   /// Custom fromJson to handle role field which can be either:
@@ -32,6 +33,17 @@ abstract class UserDto with _$UserDto {
       roleName = roleData['name'] as String?;
     }
 
+    // Parse areas from M2M junction shape: [{'area_id': {'id': 1, 'name': 'Dining'}}, ...]
+    final rawAreas = json['areas'];
+    final areas = <Map<String, dynamic>>[];
+    if (rawAreas is List) {
+      for (final item in rawAreas) {
+        if (item is Map<String, dynamic>) {
+          areas.add(item);
+        }
+      }
+    }
+
     return UserDto(
       id: json['id'] as String,
       email: json['email'] as String,
@@ -39,6 +51,7 @@ abstract class UserDto with _$UserDto {
       lastName: json['last_name'] as String?,
       role: roleName,
       avatar: json['avatar'] as String?,
+      areas: areas,
     );
   }
 

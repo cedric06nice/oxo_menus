@@ -6,9 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
+import 'package:oxo_menus/domain/repositories/area_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_creator/admin_template_creator_page.dart';
@@ -20,6 +22,8 @@ import 'package:oxo_menus/domain/entities/menu.dart';
 class MockSizeRepository extends Mock implements SizeRepository {}
 
 class MockMenuRepository extends Mock implements MenuRepository {}
+
+class MockAreaRepository extends Mock implements AreaRepository {}
 
 const _testUser = User(
   id: 'user-1',
@@ -48,9 +52,12 @@ const _testSizes = [
   ),
 ];
 
+const _testAreas = [Area(id: 1, name: 'Dining'), Area(id: 2, name: 'Bar')];
+
 Widget _buildApp({
   required MockSizeRepository mockSizeRepository,
   required MockMenuRepository mockMenuRepository,
+  required MockAreaRepository mockAreaRepository,
 }) {
   final router = GoRouter(
     routes: [
@@ -68,6 +75,7 @@ Widget _buildApp({
       currentUserProvider.overrideWithValue(_testUser),
       sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
       menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+      areaRepositoryProvider.overrideWithValue(mockAreaRepository),
     ],
     child: MaterialApp.router(routerConfig: router),
   );
@@ -76,10 +84,15 @@ Widget _buildApp({
 void main() {
   late MockSizeRepository mockSizeRepository;
   late MockMenuRepository mockMenuRepository;
+  late MockAreaRepository mockAreaRepository;
 
   setUp(() {
     mockSizeRepository = MockSizeRepository();
     mockMenuRepository = MockMenuRepository();
+    mockAreaRepository = MockAreaRepository();
+    when(
+      () => mockAreaRepository.getAll(),
+    ).thenAnswer((_) async => const Success(_testAreas));
   });
 
   setUpAll(() {
@@ -98,6 +111,7 @@ void main() {
         _buildApp(
           mockSizeRepository: mockSizeRepository,
           mockMenuRepository: mockMenuRepository,
+          mockAreaRepository: mockAreaRepository,
         ),
       );
 
@@ -119,6 +133,7 @@ void main() {
         _buildApp(
           mockSizeRepository: mockSizeRepository,
           mockMenuRepository: mockMenuRepository,
+          mockAreaRepository: mockAreaRepository,
         ),
       );
 
@@ -139,6 +154,7 @@ void main() {
         _buildApp(
           mockSizeRepository: mockSizeRepository,
           mockMenuRepository: mockMenuRepository,
+          mockAreaRepository: mockAreaRepository,
         ),
       );
 
@@ -162,6 +178,7 @@ void main() {
         _buildApp(
           mockSizeRepository: mockSizeRepository,
           mockMenuRepository: mockMenuRepository,
+          mockAreaRepository: mockAreaRepository,
         ),
       );
 
@@ -181,6 +198,7 @@ void main() {
         _buildApp(
           mockSizeRepository: mockSizeRepository,
           mockMenuRepository: mockMenuRepository,
+          mockAreaRepository: mockAreaRepository,
         ),
       );
 
@@ -215,6 +233,7 @@ void main() {
         _buildApp(
           mockSizeRepository: mockSizeRepository,
           mockMenuRepository: mockMenuRepository,
+          mockAreaRepository: mockAreaRepository,
         ),
       );
 
@@ -266,6 +285,7 @@ void main() {
             currentUserProvider.overrideWithValue(_testUser),
             sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
             menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            areaRepositoryProvider.overrideWithValue(mockAreaRepository),
           ],
           child: MaterialApp.router(routerConfig: router),
         ),
@@ -286,6 +306,79 @@ void main() {
 
       // Should navigate back to templates
       expect(find.text('Templates'), findsOneWidget);
+    });
+
+    testWidgets('should display area dropdown with loaded areas', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockSizeRepository.getAll(),
+      ).thenAnswer((_) async => const Success(_testSizes));
+
+      await tester.pumpWidget(
+        _buildApp(
+          mockSizeRepository: mockSizeRepository,
+          mockMenuRepository: mockMenuRepository,
+          mockAreaRepository: mockAreaRepository,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Area'), findsOneWidget);
+    });
+
+    testWidgets('should pass areaId when creating with selected area', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockSizeRepository.getAll(),
+      ).thenAnswer((_) async => const Success(_testSizes));
+
+      const createdMenu = Menu(
+        id: 42,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(
+        () => mockMenuRepository.create(any()),
+      ).thenAnswer((_) async => const Success(createdMenu));
+
+      await tester.pumpWidget(
+        _buildApp(
+          mockSizeRepository: mockSizeRepository,
+          mockMenuRepository: mockMenuRepository,
+          mockAreaRepository: mockAreaRepository,
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Fill in name
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Template Name'),
+        'Test Template',
+      );
+      await tester.pump();
+
+      // Select area from dropdown
+      await tester.tap(find.text('Area').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dining').last);
+      await tester.pumpAndSettle();
+
+      // Tap create button
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Create'));
+      await tester.pumpAndSettle();
+
+      // Verify the CreateMenuInput had areaId: 1
+      final captured = verify(
+        () => mockMenuRepository.create(captureAny()),
+      ).captured;
+      final input = captured.first as CreateMenuInput;
+      expect(input.areaId, 1);
     });
   });
 }

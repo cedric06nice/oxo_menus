@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
@@ -22,7 +23,7 @@ abstract class Menu with _$Menu {
     String? userUpdated,
     StyleConfig? styleConfig,
     PageSize? pageSize,
-    String? area,
+    Area? area,
     MenuDisplayOptions? displayOptions,
     @Default([]) List<String> allowedWidgetTypes,
   }) = _Menu;

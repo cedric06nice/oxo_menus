@@ -196,7 +196,8 @@ void main() {
           // Assert — delegated to apiManager, not raw httpClient
           verify(
             () => mockApiManager.currentDirectusUser(
-              fields: 'id,email,first_name,last_name,avatar,role.name',
+              fields:
+                  'id,email,first_name,last_name,avatar,role.name,areas.area_id.id,areas.area_id.name',
               canUseCacheForResponse: false,
               canSaveResponseToCache: false,
             ),

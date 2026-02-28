@@ -36,7 +36,7 @@ abstract class CreateMenuInput with _$CreateMenuInput {
     Status? status,
     StyleConfig? styleConfig,
     int? sizeId,
-    String? area,
+    int? areaId,
     MenuDisplayOptions? displayOptions,
     List<String>? allowedWidgetTypes,
   }) = _CreateMenuInput;
@@ -54,7 +54,7 @@ abstract class UpdateMenuInput with _$UpdateMenuInput {
     Status? status,
     StyleConfig? styleConfig,
     int? sizeId,
-    String? area,
+    int? areaId,
     MenuDisplayOptions? displayOptions,
     List<String>? allowedWidgetTypes,
   }) = _UpdateMenuInput;

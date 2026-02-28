@@ -199,7 +199,8 @@ class DirectusDataSource {
   /// through its proven request pipeline.
   Future<Map<String, dynamic>> getCurrentUser() async {
     final user = await _apiManager.currentDirectusUser(
-      fields: 'id,email,first_name,last_name,avatar,role.name',
+      fields:
+          'id,email,first_name,last_name,avatar,role.name,areas.area_id.id,areas.area_id.name',
       canUseCacheForResponse: false,
       canSaveResponseToCache: false,
     );

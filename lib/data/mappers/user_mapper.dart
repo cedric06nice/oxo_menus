@@ -1,4 +1,5 @@
 import 'package:oxo_menus/data/models/user_dto.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 
 /// Mapper for converting between User entity and UserDto
@@ -12,6 +13,7 @@ class UserMapper {
       lastName: dto.lastName,
       role: dto.role != null ? _mapRoleToEnum(dto.role!) : null,
       avatar: dto.avatar,
+      areas: _mapAreas(dto.areas),
     );
   }
 
@@ -25,6 +27,29 @@ class UserMapper {
       role: entity.role != null ? _mapRoleToString(entity.role!) : null,
       avatar: entity.avatar,
     );
+  }
+
+  /// Map junction table items to Area entities
+  ///
+  /// Each item has shape: {'area_id': {'id': 1, 'name': 'Dining'}}
+  static List<Area> _mapAreas(List<Map<String, dynamic>> junctionItems) {
+    final areas = <Area>[];
+    for (final item in junctionItems) {
+      final areaData = item['area_id'];
+      if (areaData is Map<String, dynamic> &&
+          areaData.containsKey('id') &&
+          areaData.containsKey('name')) {
+        areas.add(
+          Area(
+            id: areaData['id'] is int
+                ? areaData['id'] as int
+                : int.parse(areaData['id'].toString()),
+            name: areaData['name'] as String,
+          ),
+        );
+      }
+    }
+    return areas;
   }
 
   // ===== Private helper methods =====

@@ -26,9 +26,6 @@ class AdminTemplatesNotifier extends StateNotifier<AdminTemplatesState> {
         // Filter templates based on status filter
         var templates = menus;
 
-        // Filter to only templates (area == null indicates template)
-        templates = templates.where((m) => m.area == null).toList();
-
         // Apply status filter if not 'all'
         if (state.statusFilter != 'all') {
           templates = templates
