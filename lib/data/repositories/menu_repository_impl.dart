@@ -98,13 +98,29 @@ class MenuRepositoryImpl implements MenuRepository {
   @override
   Future<Result<List<Menu>, DomainError>> listAll({
     bool onlyPublished = true,
+    List<int>? areaIds,
   }) async {
     try {
-      final filter = onlyPublished
+      final publishedFilter = onlyPublished
           ? {
               'status': {'_eq': 'published'},
             }
           : null;
+
+      final areaFilter = (areaIds != null && areaIds.isNotEmpty)
+          ? {
+              'area': {'_in': areaIds},
+            }
+          : null;
+
+      final Map<String, dynamic>? filter;
+      if (publishedFilter != null && areaFilter != null) {
+        filter = {
+          '_and': [publishedFilter, areaFilter],
+        };
+      } else {
+        filter = publishedFilter ?? areaFilter;
+      }
 
       final data = await dataSource.getItems<MenuDto>(
         filter: filter,

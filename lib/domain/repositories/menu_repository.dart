@@ -13,7 +13,10 @@ abstract class MenuRepository {
   Future<Result<Menu, DomainError>> create(CreateMenuInput input);
 
   /// List all menus
-  Future<Result<List<Menu>, DomainError>> listAll({bool onlyPublished = true});
+  Future<Result<List<Menu>, DomainError>> listAll({
+    bool onlyPublished = true,
+    List<int>? areaIds,
+  });
 
   /// Get menu by ID
   Future<Result<Menu, DomainError>> getById(int id);

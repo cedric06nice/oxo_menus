@@ -66,6 +66,7 @@ void main() {
     when(
       () => mockMenuRepository.listAll(
         onlyPublished: any(named: 'onlyPublished'),
+        areaIds: any(named: 'areaIds'),
       ),
     ).thenAnswer((_) async => const Success([]));
 

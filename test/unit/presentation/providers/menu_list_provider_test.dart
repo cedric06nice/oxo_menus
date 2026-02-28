@@ -374,75 +374,48 @@ void main() {
         version: '1.0.0',
         area: Area(id: 2, name: 'Bar'),
       ),
-      const Menu(
-        id: 3,
-        name: 'Unassigned Menu',
-        status: Status.published,
-        version: '1.0.0',
-      ),
     ];
 
-    test('should show all menus when userAreas is null (admin)', () async {
+    test('should not pass areaIds when null (admin)', () async {
       when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
+        () => mockMenuRepository.listAll(onlyPublished: false, areaIds: null),
       ).thenAnswer((_) async => Success(menusWithAreas));
 
-      await menuListNotifier.loadMenus(onlyPublished: false, userAreas: null);
+      await menuListNotifier.loadMenus(onlyPublished: false, areaIds: null);
 
-      expect(menuListNotifier.state.menus.length, 3);
+      expect(menuListNotifier.state.menus.length, 2);
+      verify(
+        () => mockMenuRepository.listAll(onlyPublished: false, areaIds: null),
+      ).called(1);
     });
 
     test(
-      'should filter menus by user areas when userAreas is provided',
+      'should pass areaIds to repository for server-side filtering',
       () async {
         when(
-          () => mockMenuRepository.listAll(onlyPublished: true),
-        ).thenAnswer((_) async => Success(menusWithAreas));
+          () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
+        ).thenAnswer((_) async => Success([menusWithAreas[0]]));
 
-        await menuListNotifier.loadMenus(
-          onlyPublished: true,
-          userAreas: const [Area(id: 1, name: 'Dining')],
-        );
+        await menuListNotifier.loadMenus(onlyPublished: true, areaIds: [1]);
 
         expect(menuListNotifier.state.menus.length, 1);
         expect(menuListNotifier.state.menus.first.name, 'Dining Menu');
+        verify(
+          () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
+        ).called(1);
       },
     );
 
-    test(
-      'should exclude menus with no area when userAreas is provided',
-      () async {
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: true),
-        ).thenAnswer((_) async => Success(menusWithAreas));
-
-        await menuListNotifier.loadMenus(
-          onlyPublished: true,
-          userAreas: const [
-            Area(id: 1, name: 'Dining'),
-            Area(id: 2, name: 'Bar'),
-          ],
-        );
-
-        expect(menuListNotifier.state.menus.length, 2);
-        expect(
-          menuListNotifier.state.menus.every((m) => m.area != null),
-          isTrue,
-        );
-      },
-    );
-
-    test('should return empty list when user has no matching areas', () async {
+    test('should pass areaIds through refresh', () async {
       when(
-        () => mockMenuRepository.listAll(onlyPublished: true),
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1, 2]),
       ).thenAnswer((_) async => Success(menusWithAreas));
 
-      await menuListNotifier.loadMenus(
-        onlyPublished: true,
-        userAreas: const [Area(id: 99, name: 'VIP')],
-      );
+      await menuListNotifier.refresh(onlyPublished: true, areaIds: [1, 2]);
 
-      expect(menuListNotifier.state.menus, isEmpty);
+      verify(
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1, 2]),
+      ).called(1);
     });
   });
 

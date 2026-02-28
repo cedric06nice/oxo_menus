@@ -47,7 +47,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
         .read(menuListProvider.notifier)
         .loadMenus(
           onlyPublished: !isAdmin,
-          userAreas: isAdmin ? null : user?.areas,
+          areaIds: isAdmin ? null : user?.areas.map((a) => a.id).toList(),
         );
   }
 
@@ -58,7 +58,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
         .read(menuListProvider.notifier)
         .refresh(
           onlyPublished: !isAdmin,
-          userAreas: isAdmin ? null : user?.areas,
+          areaIds: isAdmin ? null : user?.areas.map((a) => a.id).toList(),
         );
   }
 

@@ -110,6 +110,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer(
         (_) async => Future.delayed(
@@ -134,6 +135,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer(
         (_) async => Future.delayed(
@@ -156,6 +158,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -171,6 +174,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -188,6 +192,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -203,6 +208,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -221,6 +227,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -243,6 +250,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -259,6 +267,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -291,6 +300,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -307,13 +317,15 @@ void main() {
       tester,
     ) async {
       when(
-        () => mockMenuRepository.listAll(onlyPublished: true),
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
       ).thenAnswer((_) async => const Success([]));
 
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: false));
       await tester.pumpAndSettle();
 
-      verify(() => mockMenuRepository.listAll(onlyPublished: true)).called(1);
+      verify(
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
+      ).called(1);
     });
 
     testWidgets('should load all menus for admin users', (tester) async {
@@ -335,6 +347,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Failure(NetworkError('Network error')));
 
@@ -355,6 +368,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Failure(NetworkError('Network error')));
 
@@ -375,6 +389,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Failure(NetworkError('Network error')));
 
@@ -389,6 +404,7 @@ void main() {
       verify(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).called(2);
     });
@@ -411,6 +427,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
       when(() => mockRouter.push(any())).thenAnswer((_) async => null);
@@ -430,6 +447,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -458,6 +476,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -482,6 +501,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -573,6 +593,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
       when(
@@ -605,6 +626,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -637,6 +659,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -652,7 +675,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // loadMenus called twice (initial + refresh)
-      verify(() => mockMenuRepository.listAll(onlyPublished: true)).called(2);
+      verify(
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
+      ).called(2);
     });
   });
 
@@ -661,6 +686,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -680,6 +706,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -710,6 +737,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -801,6 +829,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -813,10 +842,11 @@ void main() {
       expect(find.text('Unassigned'), findsOneWidget);
     });
 
-    testWidgets('should filter menus by user areas for non-admin users', (
+    testWidgets('should pass area IDs to repository for non-admin users', (
       tester,
     ) async {
-      final menus = [
+      // Server-side filtering: mock returns only menus for user's areas
+      final filteredMenus = [
         const Menu(
           id: 1,
           name: 'Dining Menu',
@@ -824,20 +854,11 @@ void main() {
           version: '1.0.0',
           area: Area(id: 1, name: 'Dining'),
         ),
-        const Menu(
-          id: 2,
-          name: 'Bar Menu',
-          status: Status.published,
-          version: '1.0.0',
-          area: Area(id: 2, name: 'Bar'),
-        ),
       ];
 
       when(
-        () => mockMenuRepository.listAll(
-          onlyPublished: any(named: 'onlyPublished'),
-        ),
-      ).thenAnswer((_) async => Success(menus));
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
+      ).thenAnswer((_) async => Success(filteredMenus));
 
       // Non-admin user with only Dining area
       final mockUser = User(
@@ -872,9 +893,13 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Should only show Dining Menu
+      // Verify areaIds were passed to repository
+      verify(
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
+      ).called(1);
+
+      // Should only show Dining Menu (server returned only this one)
       expect(find.text('Dining Menu'), findsOneWidget);
-      expect(find.text('Bar Menu'), findsNothing);
     });
 
     testWidgets('should show area name in menu list item', (tester) async {
@@ -891,6 +916,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
