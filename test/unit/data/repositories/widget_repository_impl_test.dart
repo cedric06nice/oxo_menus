@@ -139,6 +139,33 @@ void main() {
         expect(captured[0], isNotNull);
       });
 
+      test('should request editing_by and editing_since fields', () async {
+        // Arrange
+        when(
+          () => mockDataSource.getItems<WidgetDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => widgetsJson);
+
+        // Act
+        await repository.getAllForColumn(columnId);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.getItems<WidgetDto>(
+            filter: any(named: 'filter'),
+            fields: captureAny(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
+
+        final fields = captured[0] as List<String>;
+        expect(fields, contains('editing_by'));
+        expect(fields, contains('editing_since'));
+      });
+
       test('should return empty list when no widgets found', () async {
         // Arrange
         when(
@@ -205,6 +232,31 @@ void main() {
             fields: any(named: 'fields'),
           ),
         ).called(1);
+      });
+
+      test('should request editing_by and editing_since fields', () async {
+        // Arrange
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            widgetId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => widgetJson);
+
+        // Act
+        await repository.getById(widgetId);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.getItem<WidgetDto>(
+            widgetId,
+            fields: captureAny(named: 'fields'),
+          ),
+        ).captured;
+
+        final fields = captured[0] as List<String>;
+        expect(fields, contains('editing_by'));
+        expect(fields, contains('editing_since'));
       });
 
       test('should return NotFoundError when widget does not exist', () async {

@@ -68,6 +68,8 @@ class WidgetRepositoryImpl implements WidgetRepository {
           'props_json',
           'style_json',
           'is_template',
+          'editing_by',
+          'editing_since',
         ],
         sort: ['index'],
       );
@@ -101,6 +103,8 @@ class WidgetRepositoryImpl implements WidgetRepository {
           'props_json',
           'style_json',
           'is_template',
+          'editing_by',
+          'editing_since',
         ],
       );
 
