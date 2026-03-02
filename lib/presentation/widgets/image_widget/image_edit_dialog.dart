@@ -244,7 +244,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
       height: 200,
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
+          crossAxisCount: 6,
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
         ),
@@ -252,8 +252,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
         itemBuilder: (context, index) {
           final file = _imageFiles[index];
           final isSelected = file.id == _selectedFileId;
-          final thumbnailUrl =
-              '$baseUrl/assets/${file.id}?width=150&height=150&fit=cover';
+          final thumbnailUrl = '$baseUrl/assets/${file.id}';
 
           return GestureDetector(
             onTap: () => setState(() => _selectedFileId = file.id),
@@ -275,7 +274,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
                       child: Image.network(
                         thumbnailUrl,
                         headers: headers,
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                         width: double.infinity,
                         errorBuilder: (_, _, _) => Icon(
                           _isApple ? CupertinoIcons.photo : Icons.broken_image,

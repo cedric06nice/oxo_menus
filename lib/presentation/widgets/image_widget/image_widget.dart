@@ -27,9 +27,10 @@ class ImageWidget extends ConsumerWidget {
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
       child: Align(
         alignment: _getAlignment(),
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-          padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          // margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+          // padding: const EdgeInsets.all(8.0),
+          width: double.infinity,
           child: Builder(
             builder: (ctx) {
               final colorScheme = Theme.of(ctx).colorScheme;
