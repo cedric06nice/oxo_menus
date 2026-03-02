@@ -189,5 +189,77 @@ void main() {
         expect(find.byType(TextField), findsNWidgets(4));
       },
     );
+    testWidgets(
+      'cursor position preserved when parent rebuilds with same value user typed',
+      (tester) async {
+        // Use a StatefulBuilder to simulate parent rebuild with echoed value
+        double currentValue = 5;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 240,
+                child: StatefulBuilder(
+                  builder: (context, setState) {
+                    return CompactEdgeInsetsEditor(
+                      label: 'Test',
+                      keyPrefix: 'test',
+                      top: currentValue,
+                      bottom: currentValue,
+                      left: currentValue,
+                      right: currentValue,
+                      onChanged: ({top, bottom, left, right}) {
+                        // Parent echoes back the same value (simulates API response)
+                        setState(() {
+                          currentValue = top ?? 0;
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+
+        // Focus the text field and type '2' (value becomes '52' → parsed as 52)
+        final textField = find.byType(TextField);
+        await tester.tap(textField);
+        await tester.pump();
+
+        // Clear and type '12' to get a known value
+        await tester.enterText(textField, '12');
+        await tester.pump();
+
+        // After pump, parent rebuilt with top=12, echoing back same value
+        // Cursor should be at end (position 2), not reset to 0
+        final field = tester.widget<TextField>(textField);
+        expect(field.controller!.text, '12');
+        expect(field.controller!.selection.baseOffset, 2);
+      },
+    );
+
+    testWidgets(
+      'controllers recreate when parent provides externally-changed values',
+      (tester) async {
+        // Start with value 5
+        await tester.pumpWidget(
+          buildSubject(top: 5, bottom: 5, left: 5, right: 5),
+        );
+
+        final textField = find.byType(TextField);
+        var field = tester.widget<TextField>(textField);
+        expect(field.controller!.text, '5');
+
+        // Parent provides a completely different value (e.g., element switch)
+        await tester.pumpWidget(
+          buildSubject(top: 42, bottom: 42, left: 42, right: 42),
+        );
+
+        field = tester.widget<TextField>(textField);
+        expect(field.controller!.text, '42');
+      },
+    );
   });
 }

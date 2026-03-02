@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -60,6 +62,7 @@ class _AdminTemplateEditorPageState
   String? _errorMessage;
 
   final Map<int, int> _hoverIndex = {};
+  Timer? _styleDebounceTimer;
 
   late EditorWidgetCrudHelper _crudHelper;
   late EditorSelectionNotifier _selectionNotifier;
@@ -116,6 +119,7 @@ class _AdminTemplateEditorPageState
 
   @override
   void dispose() {
+    _styleDebounceTimer?.cancel();
     _scrollController.dispose();
     _selectionNotifier.dispose();
     super.dispose();
@@ -601,14 +605,7 @@ class _AdminTemplateEditorPageState
     _selectionNotifier.updateStyle(newStyle);
   }
 
-  Future<void> _onContainerStyleChanged(
-    int containerId,
-    StyleConfig newStyle,
-  ) async {
-    await ref
-        .read(containerRepositoryProvider)
-        .update(UpdateContainerInput(id: containerId, styleConfig: newStyle));
-    // Update local state
+  void _updateContainerStyleLocally(int containerId, StyleConfig newStyle) {
     for (final entry in _containers.entries) {
       final idx = entry.value.indexWhere((c) => c.id == containerId);
       if (idx != -1) {
@@ -620,11 +617,24 @@ class _AdminTemplateEditorPageState
     }
   }
 
-  Future<void> _onColumnStyleChanged(int columnId, StyleConfig newStyle) async {
+  Future<void> _saveContainerStyleToApi(
+    int containerId,
+    StyleConfig newStyle,
+  ) async {
     await ref
-        .read(columnRepositoryProvider)
-        .update(UpdateColumnInput(id: columnId, styleConfig: newStyle));
-    // Update local state
+        .read(containerRepositoryProvider)
+        .update(UpdateContainerInput(id: containerId, styleConfig: newStyle));
+  }
+
+  Future<void> _onContainerStyleChanged(
+    int containerId,
+    StyleConfig newStyle,
+  ) async {
+    await _saveContainerStyleToApi(containerId, newStyle);
+    _updateContainerStyleLocally(containerId, newStyle);
+  }
+
+  void _updateColumnStyleLocally(int columnId, StyleConfig newStyle) {
     for (final entry in _columns.entries) {
       final idx = entry.value.indexWhere((c) => c.id == columnId);
       if (idx != -1) {
@@ -634,6 +644,31 @@ class _AdminTemplateEditorPageState
         break;
       }
     }
+  }
+
+  Future<void> _saveColumnStyleToApi(int columnId, StyleConfig newStyle) async {
+    await ref
+        .read(columnRepositoryProvider)
+        .update(UpdateColumnInput(id: columnId, styleConfig: newStyle));
+  }
+
+  Future<void> _onColumnStyleChanged(int columnId, StyleConfig newStyle) async {
+    await _saveColumnStyleToApi(columnId, newStyle);
+    _updateColumnStyleLocally(columnId, newStyle);
+  }
+
+  void _debounceStyleSave(Future<void> Function() apiCall) {
+    _styleDebounceTimer?.cancel();
+    _styleDebounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) {
+        apiCall();
+      }
+    });
+  }
+
+  void _flushStyleDebounce() {
+    _styleDebounceTimer?.cancel();
+    _styleDebounceTimer = null;
   }
 
   Future<void> _onColumnDroppableChanged(int columnId, bool isDroppable) async {
@@ -697,6 +732,7 @@ class _AdminTemplateEditorPageState
   // ===== Selection =====
 
   void _selectElement(EditorSelection selection) {
+    _flushStyleDebounce();
     final style = _resolveStyle(selection);
     _selectionNotifier.select(selection, style);
 
@@ -725,6 +761,7 @@ class _AdminTemplateEditorPageState
   }
 
   void _deselectElement() {
+    _flushStyleDebounce();
     _selectionNotifier.deselect();
   }
 
@@ -736,11 +773,13 @@ class _AdminTemplateEditorPageState
       case EditorElementType.menu:
         _onStyleChanged(newStyle);
       case EditorElementType.container:
-        _onContainerStyleChanged(sel.id, newStyle);
+        _updateContainerStyleLocally(sel.id, newStyle);
         _selectionNotifier.updateStyle(newStyle);
+        _debounceStyleSave(() => _saveContainerStyleToApi(sel.id, newStyle));
       case EditorElementType.column:
-        _onColumnStyleChanged(sel.id, newStyle);
+        _updateColumnStyleLocally(sel.id, newStyle);
         _selectionNotifier.updateStyle(newStyle);
+        _debounceStyleSave(() => _saveColumnStyleToApi(sel.id, newStyle));
     }
   }
 

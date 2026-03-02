@@ -60,17 +60,25 @@ class _CompactEdgeInsetsEditorState extends State<CompactEdgeInsetsEditor> {
         oldWidget.bottom != widget.bottom ||
         oldWidget.left != widget.left ||
         oldWidget.right != widget.right) {
+      final needsRecreation =
+          _top != widget.top ||
+          _bottom != widget.bottom ||
+          _left != widget.left ||
+          _right != widget.right;
       _top = widget.top;
       _bottom = widget.bottom;
       _left = widget.left;
       _right = widget.right;
-      _currentMode = EdgeInsetsEditor.detectMode(
+      final newMode = EdgeInsetsEditor.detectMode(
         top: _top,
         bottom: _bottom,
         left: _left,
         right: _right,
       );
-      _createControllers();
+      if (needsRecreation || newMode != _currentMode) {
+        _currentMode = newMode;
+        _createControllers();
+      }
     }
   }
 
