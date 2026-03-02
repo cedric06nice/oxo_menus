@@ -5,7 +5,12 @@ import 'package:oxo_menus/domain/entities/menu_presence.dart';
 /// Repository interface for tracking user presence on menu editing sessions.
 abstract class PresenceRepository {
   /// Register that a user has joined a menu editing session.
-  Future<Result<void, DomainError>> joinMenu(int menuId, String userId);
+  Future<Result<void, DomainError>> joinMenu(
+    int menuId,
+    String userId, {
+    String? userName,
+    String? userAvatar,
+  });
 
   /// Register that a user has left a menu editing session.
   Future<Result<void, DomainError>> leaveMenu(int menuId, String userId);
@@ -15,4 +20,10 @@ abstract class PresenceRepository {
 
   /// Get all active users currently editing a menu.
   Future<Result<List<MenuPresence>, DomainError>> getActiveUsers(int menuId);
+
+  /// Watch active users on a menu via WebSocket subscription.
+  Stream<List<MenuPresence>> watchActiveUsers(int menuId);
+
+  /// Stop the WebSocket presence subscription for a menu.
+  Future<void> unsubscribePresence(int menuId);
 }

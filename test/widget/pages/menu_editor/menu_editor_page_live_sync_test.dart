@@ -142,7 +142,12 @@ void main() {
 
   void stubPresence() {
     when(
-      () => mockPresenceRepository.joinMenu(testMenuId, 'user-1'),
+      () => mockPresenceRepository.joinMenu(
+        testMenuId,
+        'user-1',
+        userName: any(named: 'userName'),
+        userAvatar: any(named: 'userAvatar'),
+      ),
     ).thenAnswer((_) async => const Success(null));
     when(
       () => mockPresenceRepository.leaveMenu(testMenuId, 'user-1'),
@@ -153,6 +158,12 @@ void main() {
     when(
       () => mockPresenceRepository.getActiveUsers(testMenuId),
     ).thenAnswer((_) async => const Success(<MenuPresence>[]));
+    when(
+      () => mockPresenceRepository.watchActiveUsers(testMenuId),
+    ).thenAnswer((_) => const Stream<List<MenuPresence>>.empty());
+    when(
+      () => mockPresenceRepository.unsubscribePresence(testMenuId),
+    ).thenAnswer((_) async {});
   }
 
   Widget createWidgetUnderTest() {

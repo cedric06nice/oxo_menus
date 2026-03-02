@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
@@ -19,6 +20,7 @@ import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/domain/repositories/presence_repository.dart';
+import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/menu_editor_page.dart';
@@ -134,9 +136,16 @@ void main() {
     ).thenAnswer((_) async {});
   }
 
-  void stubPresence() {
+  void stubPresence({
+    StreamController<List<MenuPresence>>? presenceStreamController,
+  }) {
     when(
-      () => mockPresenceRepository.joinMenu(testMenuId, 'user-1'),
+      () => mockPresenceRepository.joinMenu(
+        testMenuId,
+        'user-1',
+        userName: any(named: 'userName'),
+        userAvatar: any(named: 'userAvatar'),
+      ),
     ).thenAnswer((_) async => const Success(null));
     when(
       () => mockPresenceRepository.leaveMenu(testMenuId, 'user-1'),
@@ -147,6 +156,14 @@ void main() {
     when(
       () => mockPresenceRepository.getActiveUsers(testMenuId),
     ).thenAnswer((_) async => const Success(<MenuPresence>[]));
+    when(() => mockPresenceRepository.watchActiveUsers(testMenuId)).thenAnswer(
+      (_) =>
+          presenceStreamController?.stream ??
+          const Stream<List<MenuPresence>>.empty(),
+    );
+    when(
+      () => mockPresenceRepository.unsubscribePresence(testMenuId),
+    ).thenAnswer((_) async {});
   }
 
   Widget createWidgetUnderTest() {
@@ -188,8 +205,73 @@ void main() {
       await tester.pumpAndSettle();
 
       verify(
-        () => mockPresenceRepository.joinMenu(testMenuId, 'user-1'),
+        () => mockPresenceRepository.joinMenu(
+          testMenuId,
+          'user-1',
+          userName: any(named: 'userName'),
+          userAvatar: any(named: 'userAvatar'),
+        ),
       ).called(1);
+    });
+
+    testWidgets('should pass user display name to joinMenu', (tester) async {
+      stubSuccessfulLoad();
+      stubSubscription();
+      stubPresence();
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      verify(
+        () => mockPresenceRepository.joinMenu(
+          testMenuId,
+          'user-1',
+          userName: 'Test User',
+          userAvatar: any(named: 'userAvatar'),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('should await joinMenu before refreshing presences', (
+      tester,
+    ) async {
+      stubSuccessfulLoad();
+      stubSubscription();
+      stubPresence();
+
+      // Track when getActiveUsers is called relative to joinMenu completion
+      final joinCompleter = Completer<Result<void, DomainError>>();
+      var getActiveCalledBeforeJoinCompleted = false;
+
+      when(
+        () => mockPresenceRepository.joinMenu(
+          testMenuId,
+          'user-1',
+          userName: any(named: 'userName'),
+          userAvatar: any(named: 'userAvatar'),
+        ),
+      ).thenAnswer((_) => joinCompleter.future);
+      when(() => mockPresenceRepository.getActiveUsers(testMenuId)).thenAnswer((
+        _,
+      ) async {
+        if (!joinCompleter.isCompleted) {
+          getActiveCalledBeforeJoinCompleted = true;
+        }
+        return const Success(<MenuPresence>[]);
+      });
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pump();
+
+      // Complete joinMenu after a microtask delay
+      joinCompleter.complete(const Success(null));
+      await tester.pumpAndSettle();
+
+      expect(
+        getActiveCalledBeforeJoinCompleted,
+        isFalse,
+        reason: 'getActiveUsers should not be called before joinMenu completes',
+      );
     });
 
     testWidgets('should display PresenceBar with active users in AppBar', (
@@ -252,6 +334,126 @@ void main() {
       verify(
         () => mockPresenceRepository.leaveMenu(testMenuId, 'user-1'),
       ).called(1);
+    });
+
+    testWidgets('should subscribe to watchActiveUsers after initial load', (
+      tester,
+    ) async {
+      stubSuccessfulLoad();
+      stubSubscription();
+      stubPresence();
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      verify(
+        () => mockPresenceRepository.watchActiveUsers(testMenuId),
+      ).called(1);
+    });
+
+    testWidgets('should update presences when WebSocket stream emits', (
+      tester,
+    ) async {
+      final presenceController =
+          StreamController<List<MenuPresence>>.broadcast();
+
+      stubSuccessfulLoad();
+      stubSubscription();
+      stubPresence(presenceStreamController: presenceController);
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // Initially no other users
+      expect(find.byType(CircleAvatar), findsNothing);
+
+      // Simulate WebSocket emitting a presence update
+      presenceController.add([
+        MenuPresence(
+          id: 1,
+          userId: 'user-2',
+          menuId: testMenuId,
+          lastSeen: DateTime.now(),
+          userName: 'Bob Smith',
+        ),
+      ]);
+
+      await tester.pump();
+      await tester.pump();
+
+      // Now should show the other user's avatar
+      expect(find.text('BS'), findsOneWidget);
+
+      presenceController.close();
+    });
+
+    testWidgets('should call unsubscribePresence on dispose', (tester) async {
+      stubSuccessfulLoad();
+      stubSubscription();
+      stubPresence();
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // Dispose by navigating away
+      await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: Text('Replaced'))),
+      );
+      await tester.pumpAndSettle();
+
+      verify(
+        () => mockPresenceRepository.unsubscribePresence(testMenuId),
+      ).called(1);
+    });
+
+    testWidgets('should show editing user initials on locked widget', (
+      tester,
+    ) async {
+      stubSuccessfulLoad();
+      stubSubscription();
+      stubPresence();
+
+      // Override getAllForColumn AFTER stubSuccessfulLoad to return a widget
+      // being edited by user-2
+      when(() => mockWidgetRepository.getAllForColumn(1)).thenAnswer(
+        (_) async => Success([
+          WidgetInstance(
+            id: 10,
+            columnId: 1,
+            type: 'dish',
+            version: '1.0.0',
+            index: 0,
+            props: const {'name': 'Pasta', 'price': 12.50},
+            editingBy: 'user-2',
+            editingSince: DateTime.now(),
+          ),
+        ]),
+      );
+
+      // Override getActiveUsers to return presence for user-2
+      when(() => mockPresenceRepository.getActiveUsers(testMenuId)).thenAnswer(
+        (_) async => Success([
+          MenuPresence(
+            id: 1,
+            userId: 'user-2',
+            menuId: testMenuId,
+            lastSeen: DateTime.now(),
+            userName: 'Alice Baker',
+          ),
+        ]),
+      );
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      // Should show the editing user's initials within the lock overlay badge
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('editing_lock_overlay_10')),
+          matching: find.text('AB'),
+        ),
+        findsOneWidget,
+      );
     });
   });
 }

@@ -65,6 +65,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   List<MenuPresence> _presences = [];
 
   StreamSubscription<dynamic>? _changeSubscription;
+  StreamSubscription<List<MenuPresence>>? _presenceSubscription;
   Timer? _debounceTimer;
   Timer? _heartbeatTimer;
   Timer? _pollingTimer;
@@ -80,6 +81,13 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   bool get _isApple {
     final platform = Theme.of(context).platform;
     return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  }
+
+  /// Look up the presence entry for the user currently editing a widget.
+  MenuPresence? _findEditingPresence(WidgetInstance widget) {
+    final editingBy = widget.editingBy;
+    if (editingBy == null) return null;
+    return _presences.where((p) => p.userId == editingBy).firstOrNull;
   }
 
   @override
@@ -118,7 +126,9 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     _heartbeatTimer?.cancel();
     _pollingTimer?.cancel();
     _changeSubscription?.cancel();
+    _presenceSubscription?.cancel();
     _menuSubscriptionRepository?.unsubscribe(widget.menuId);
+    _presenceRepository?.unsubscribePresence(widget.menuId);
     if (_currentUserId != null) {
       _presenceRepository?.leaveMenu(widget.menuId, _currentUserId!);
     }
@@ -238,16 +248,35 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     );
   }
 
-  void _startPresenceTracking() {
+  Future<void> _startPresenceTracking() async {
     _presenceRepository = ref.read(presenceRepositoryProvider);
-    _currentUserId = ref.read(currentUserProvider)?.id;
+    final currentUser = ref.read(currentUserProvider);
+    _currentUserId = currentUser?.id;
 
     if (_currentUserId != null) {
-      _presenceRepository!.joinMenu(widget.menuId, _currentUserId!);
+      final nameParts = [?currentUser?.firstName, ?currentUser?.lastName];
+      final displayName = nameParts.isEmpty ? null : nameParts.join(' ');
+      await _presenceRepository!.joinMenu(
+        widget.menuId,
+        _currentUserId!,
+        userName: displayName,
+        userAvatar: currentUser?.avatar,
+      );
+      if (!mounted) return;
       _refreshPresences();
+
+      _presenceSubscription = _presenceRepository!
+          .watchActiveUsers(widget.menuId)
+          .listen((presences) {
+            if (mounted) {
+              setState(() {
+                _presences = presences;
+              });
+            }
+          });
+
       _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (_) {
         _presenceRepository?.heartbeat(widget.menuId, _currentUserId!);
-        _refreshPresences();
       });
     }
   }
@@ -590,6 +619,10 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
                   isEditable: !widgets[i].isTemplate,
                   isLocked: widgets[i].isTemplate,
                   currentUserId: ref.read(currentUserProvider)?.id,
+                  editingUserName: _findEditingPresence(widgets[i])?.userName,
+                  editingUserAvatar: _findEditingPresence(
+                    widgets[i],
+                  )?.userAvatar,
                   onUpdate: (props) =>
                       _handleWidgetUpdate(widgets[i].id, props),
                   onDelete: () => _handleWidgetDelete(widgets[i].id),
@@ -624,6 +657,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
                 isEditable: !widget.isTemplate,
                 isLocked: widget.isTemplate,
                 currentUserId: ref.read(currentUserProvider)?.id,
+                editingUserName: _findEditingPresence(widget)?.userName,
+                editingUserAvatar: _findEditingPresence(widget)?.userAvatar,
                 onUpdate: (props) => _handleWidgetUpdate(widget.id, props),
                 onDelete: () => _handleWidgetDelete(widget.id),
                 onEditStarted: () => _crudHelper.lockWidget(widget.id),

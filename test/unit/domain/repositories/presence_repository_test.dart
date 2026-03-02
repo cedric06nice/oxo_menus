@@ -10,13 +10,22 @@ class FakePresenceRepository implements PresenceRepository {
   int _nextId = 1;
 
   @override
-  Future<Result<void, DomainError>> joinMenu(int menuId, String userId) async {
+  Future<Result<void, DomainError>> joinMenu(
+    int menuId,
+    String userId, {
+    String? userName,
+    String? userAvatar,
+  }) async {
+    // Remove all existing entries for this user (user can only be on one menu)
+    _store.removeWhere((p) => p.userId == userId);
     _store.add(
       MenuPresence(
         id: _nextId++,
         userId: userId,
         menuId: menuId,
         lastSeen: DateTime.now(),
+        userName: userName,
+        userAvatar: userAvatar,
       ),
     );
     return const Success(null);
@@ -45,6 +54,14 @@ class FakePresenceRepository implements PresenceRepository {
   ) async {
     return Success(_store.where((p) => p.menuId == menuId).toList());
   }
+
+  @override
+  Stream<List<MenuPresence>> watchActiveUsers(int menuId) {
+    return const Stream.empty();
+  }
+
+  @override
+  Future<void> unsubscribePresence(int menuId) async {}
 }
 
 void main() {
@@ -95,6 +112,29 @@ void main() {
       final users42 = await repository.getActiveUsers(42);
       expect(users42.valueOrNull, hasLength(1));
       expect(users42.valueOrNull?.first.userId, 'user-1');
+    });
+
+    test(
+      'joinMenu removes existing entries for the user on all menus',
+      () async {
+        await repository.joinMenu(42, 'user-1');
+        await repository.joinMenu(99, 'user-1');
+
+        final users42 = await repository.getActiveUsers(42);
+        expect(users42.valueOrNull, isEmpty);
+
+        final users99 = await repository.getActiveUsers(99);
+        expect(users99.valueOrNull, hasLength(1));
+        expect(users99.valueOrNull?.first.userId, 'user-1');
+      },
+    );
+
+    test('joinMenu does not create duplicate entries on same menu', () async {
+      await repository.joinMenu(42, 'user-1');
+      await repository.joinMenu(42, 'user-1');
+
+      final users = await repository.getActiveUsers(42);
+      expect(users.valueOrNull, hasLength(1));
     });
   });
 }

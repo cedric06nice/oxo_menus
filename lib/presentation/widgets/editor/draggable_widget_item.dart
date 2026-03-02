@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editing_user_badge.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
 import 'package:oxo_menus/presentation/widgets/canvas/widget_renderer.dart';
 
@@ -15,6 +16,8 @@ class DraggableWidgetItem extends StatelessWidget {
   final bool isEditable;
   final bool isLocked;
   final String? currentUserId;
+  final String? editingUserName;
+  final String? editingUserAvatar;
   final ValueChanged<Map<String, dynamic>>? onUpdate;
   final VoidCallback? onDelete;
   final VoidCallback? onEditStarted;
@@ -29,6 +32,8 @@ class DraggableWidgetItem extends StatelessWidget {
     this.isEditable = true,
     this.isLocked = false,
     this.currentUserId,
+    this.editingUserName,
+    this.editingUserAvatar,
     this.onUpdate,
     this.onDelete,
     this.onEditStarted,
@@ -83,31 +88,9 @@ class DraggableWidgetItem extends StatelessWidget {
             Positioned(
               top: 4,
               right: 4,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.tertiary,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isApple ? CupertinoIcons.pencil : Icons.edit,
-                      size: 12,
-                      color: theme.colorScheme.onTertiary,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Editing...',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: theme.colorScheme.onTertiary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
+              child: EditingUserBadge(
+                userName: editingUserName,
+                userAvatar: editingUserAvatar,
               ),
             ),
           ],

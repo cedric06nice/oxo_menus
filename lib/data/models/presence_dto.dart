@@ -13,7 +13,7 @@ class PresenceDto extends DirectusItem {
   String? get userAvatar {
     final raw = getValue(forKey: "user");
     if (raw is Map<String, dynamic>) return raw['avatar'] as String?;
-    return null;
+    return getValue(forKey: "user_avatar");
   }
 
   DateTime? get lastSeen => getOptionalDateTime(forKey: "last_seen");
@@ -25,16 +25,29 @@ class PresenceDto extends DirectusItem {
     return null;
   }
 
-  String? get userName => getValue(forKey: "user_name");
+  String? get userName {
+    final raw = getValue(forKey: "user");
+    if (raw is Map<String, dynamic>) {
+      final first = raw['first_name'] as String?;
+      final last = raw['last_name'] as String?;
+      final parts = [?first, ?last];
+      return parts.isEmpty ? null : parts.join(' ');
+    }
+    return getValue(forKey: "user_name");
+  }
 
   PresenceDto.newItem({
     required String? userId,
     required int? menuId,
     required String? lastSeen,
+    String? userName,
+    String? userAvatar,
   }) : super.newItem() {
     setValue(userId, forKey: "user");
     setValue(menuId, forKey: "menu");
     setValue(lastSeen, forKey: "last_seen");
+    if (userName != null) setValue(userName, forKey: "user_name");
+    if (userAvatar != null) setValue(userAvatar, forKey: "user_avatar");
   }
 
   PresenceDto(super.rawReceivedData);

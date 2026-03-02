@@ -82,7 +82,12 @@ void main() {
 
     // Stub presence repository
     when(
-      () => mockPresenceRepository.joinMenu(any(), any()),
+      () => mockPresenceRepository.joinMenu(
+        any(),
+        any(),
+        userName: any(named: 'userName'),
+        userAvatar: any(named: 'userAvatar'),
+      ),
     ).thenAnswer((_) async => const Success(null));
     when(
       () => mockPresenceRepository.leaveMenu(any(), any()),
@@ -93,6 +98,12 @@ void main() {
     when(
       () => mockPresenceRepository.getActiveUsers(any()),
     ).thenAnswer((_) async => const Success(<MenuPresence>[]));
+    when(
+      () => mockPresenceRepository.watchActiveUsers(any()),
+    ).thenAnswer((_) => const Stream<List<MenuPresence>>.empty());
+    when(
+      () => mockPresenceRepository.unsubscribePresence(any()),
+    ).thenAnswer((_) async {});
 
     // Set up widget registry with test widgets
     mockWidgetRegistry = WidgetRegistry();
