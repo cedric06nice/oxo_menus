@@ -15,8 +15,8 @@ final sectionWidgetDefinition = WidgetDefinition<SectionProps>(
   render: (props, context) => SectionWidget(props: props, context: context),
   defaultProps: const SectionProps(
     title: 'New Section',
-    uppercase: false,
-    showDivider: true,
+    uppercase: true,
+    showDivider: false,
   ),
   displayName: 'Section',
   materialIcon: Icons.title,
