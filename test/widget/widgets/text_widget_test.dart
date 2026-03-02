@@ -177,7 +177,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(Container));
+      await tester.tap(find.byType(SizedBox));
       await tester.pumpAndSettle();
 
       // Edit dialog should appear
@@ -202,7 +202,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(Container));
+      await tester.tap(find.byType(SizedBox));
       await tester.pumpAndSettle();
 
       // Edit dialog should NOT appear
@@ -231,7 +231,7 @@ void main() {
       );
 
       // Tap to open edit dialog
-      await tester.tap(find.byType(Container));
+      await tester.tap(find.byType(SizedBox));
       await tester.pumpAndSettle();
 
       // Modify the text
@@ -271,7 +271,7 @@ void main() {
           ),
         );
 
-        await tester.tap(find.byType(Container));
+        await tester.tap(find.byType(SizedBox));
         await tester.pumpAndSettle();
 
         expect(editStartedCount, 1);
@@ -299,7 +299,7 @@ void main() {
       );
 
       // Verify the widget renders a Container
-      expect(find.byType(Container), findsWidgets);
+      expect(find.byType(SizedBox), findsWidgets);
       expect(find.text('Test text'), findsOneWidget);
     });
 

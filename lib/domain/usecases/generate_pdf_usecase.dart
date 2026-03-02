@@ -205,7 +205,7 @@ class GeneratePdfUseCase {
             minHeight: 0.1,
           ),
           child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
             mainAxisSize: pw.MainAxisSize.min,
             children: contentChildren,
           ),
@@ -220,7 +220,7 @@ class GeneratePdfUseCase {
     if (footerChildren.isNotEmpty) {
       // Footer anchored at bottom, content scales above
       innerLayout = pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         mainAxisSize: pw.MainAxisSize.max,
         children: [
           pw.Expanded(child: scalableContent),
@@ -261,7 +261,7 @@ class GeneratePdfUseCase {
       content = pw.Container(
         padding: padding,
         child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
           children: [
             if (containerData.columns.isNotEmpty)
               _buildColumn(
@@ -376,7 +376,7 @@ class GeneratePdfUseCase {
     pw.Widget content = pw.Padding(
       padding: padding,
       child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         children: columnData.widgets.map((widget) {
           return _buildWidget(widget, styleConfig, displayOptions, imageCache);
         }).toList(),
