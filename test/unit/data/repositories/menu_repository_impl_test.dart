@@ -255,7 +255,7 @@ void main() {
         });
       });
 
-      test('should combine published and area filters with _and', () async {
+      test('should combine published and area filters as flat map', () async {
         // Arrange
         when(
           () => mockDataSource.getItems<MenuDto>(
@@ -278,16 +278,10 @@ void main() {
         ).captured;
 
         expect(captured[0], {
-          '_and': [
-            {
-              'status': {'_eq': 'published'},
-            },
-            {
-              'area': {
-                '_in': [1],
-              },
-            },
-          ],
+          'status': {'_eq': 'published'},
+          'area': {
+            '_in': [1],
+          },
         });
       });
 
@@ -319,33 +313,49 @@ void main() {
         });
       });
 
-      test('should not add area filter when areaIds is empty', () async {
-        // Arrange
-        when(
-          () => mockDataSource.getItems<MenuDto>(
-            filter: any(named: 'filter'),
-            fields: any(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).thenAnswer((_) async => menusJson);
+      test(
+        'should return empty list without calling getItems when areaIds is empty',
+        () async {
+          // Act
+          final result = await repository.listAll(
+            onlyPublished: true,
+            areaIds: [],
+          );
 
-        // Act
-        await repository.listAll(onlyPublished: true, areaIds: []);
+          // Assert
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull, isEmpty);
+          verifyNever(
+            () => mockDataSource.getItems<MenuDto>(
+              filter: any(named: 'filter'),
+              fields: any(named: 'fields'),
+              sort: any(named: 'sort'),
+            ),
+          );
+        },
+      );
 
-        // Assert
-        final captured = verify(
-          () => mockDataSource.getItems<MenuDto>(
-            filter: captureAny(named: 'filter'),
-            fields: any(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).captured;
+      test(
+        'should return empty list when areaIds is empty and onlyPublished is false',
+        () async {
+          // Act
+          final result = await repository.listAll(
+            onlyPublished: false,
+            areaIds: [],
+          );
 
-        // Should only have published filter, no area filter
-        expect(captured[0], {
-          'status': {'_eq': 'published'},
-        });
-      });
+          // Assert
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull, isEmpty);
+          verifyNever(
+            () => mockDataSource.getItems<MenuDto>(
+              filter: any(named: 'filter'),
+              fields: any(named: 'fields'),
+              sort: any(named: 'sort'),
+            ),
+          );
+        },
+      );
 
       test('should return all menus when onlyPublished is false', () async {
         // Arrange

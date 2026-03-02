@@ -36,30 +36,41 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadMenus();
+      if (!_tryLoadMenus()) {
+        // User not available yet — listen for auth changes
+        ref.listenManual(currentUserProvider, (_, user) {
+          if (user != null) {
+            _tryLoadMenus();
+          }
+        });
+      }
     });
   }
 
-  void _loadMenus() {
+  List<int>? _getAreaIdsForCurrentUser() {
     final isAdmin = ref.read(isAdminProvider);
+    if (isAdmin) return null;
     final user = ref.read(currentUserProvider);
+    if (user == null) return null;
+    return user.areas.map((a) => a.id).toList();
+  }
+
+  /// Attempts to load menus. Returns false if user is not yet available.
+  bool _tryLoadMenus() {
+    final isAdmin = ref.read(isAdminProvider);
+    final areaIds = _getAreaIdsForCurrentUser();
+    if (!isAdmin && areaIds == null) return false;
     ref
         .read(menuListProvider.notifier)
-        .loadMenus(
-          onlyPublished: !isAdmin,
-          areaIds: isAdmin ? null : user?.areas.map((a) => a.id).toList(),
-        );
+        .loadMenus(onlyPublished: !isAdmin, areaIds: areaIds);
+    return true;
   }
 
   Future<void> _handleRefresh() async {
     final isAdmin = ref.read(isAdminProvider);
-    final user = ref.read(currentUserProvider);
     await ref
         .read(menuListProvider.notifier)
-        .refresh(
-          onlyPublished: !isAdmin,
-          areaIds: isAdmin ? null : user?.areas.map((a) => a.id).toList(),
-        );
+        .refresh(onlyPublished: !isAdmin, areaIds: _getAreaIdsForCurrentUser());
   }
 
   Future<void> _confirmDelete(Menu menu) async {
@@ -282,12 +293,12 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
                 const SizedBox(height: 16),
                 if (_isApple)
                   CupertinoButton.filled(
-                    onPressed: _loadMenus,
+                    onPressed: () => _tryLoadMenus(),
                     child: const Text('Retry'),
                   )
                 else
                   FilledButton(
-                    onPressed: _loadMenus,
+                    onPressed: () => _tryLoadMenus(),
                     child: const Text('Retry'),
                   ),
               ],

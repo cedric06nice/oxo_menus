@@ -406,6 +406,19 @@ void main() {
       },
     );
 
+    test('should forward empty areaIds to repository', () async {
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: []),
+      ).thenAnswer((_) async => const Success([]));
+
+      await menuListNotifier.loadMenus(onlyPublished: true, areaIds: []);
+
+      expect(menuListNotifier.state.menus, isEmpty);
+      verify(
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: []),
+      ).called(1);
+    });
+
     test('should pass areaIds through refresh', () async {
       when(
         () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1, 2]),

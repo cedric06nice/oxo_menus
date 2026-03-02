@@ -100,6 +100,10 @@ class MenuRepositoryImpl implements MenuRepository {
     bool onlyPublished = true,
     List<int>? areaIds,
   }) async {
+    if (areaIds != null && areaIds.isEmpty) {
+      return const Success([]);
+    }
+
     try {
       final publishedFilter = onlyPublished
           ? {
@@ -115,9 +119,7 @@ class MenuRepositoryImpl implements MenuRepository {
 
       final Map<String, dynamic>? filter;
       if (publishedFilter != null && areaFilter != null) {
-        filter = {
-          '_and': [publishedFilter, areaFilter],
-        };
+        filter = {...publishedFilter, ...areaFilter};
       } else {
         filter = publishedFilter ?? areaFilter;
       }

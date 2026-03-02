@@ -902,6 +902,40 @@ void main() {
       expect(find.text('Dining Menu'), findsOneWidget);
     });
 
+    testWidgets('should not load menus when user is null and not admin', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+            areaRepositoryProvider.overrideWithValue(mockAreaRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(
+              mockDuplicateMenuUseCase,
+            ),
+            isAdminProvider.overrideWithValue(false),
+            currentUserProvider.overrideWithValue(null),
+          ],
+          child: MaterialApp(
+            home: InheritedGoRouter(
+              goRouter: mockRouter,
+              child: const MenuListPage(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      verifyNever(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
+        ),
+      );
+    });
+
     testWidgets('should show area name in menu list item', (tester) async {
       final menus = [
         const Menu(
