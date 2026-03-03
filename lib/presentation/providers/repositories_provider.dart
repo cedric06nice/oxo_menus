@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/core/utils/directus_url_resolver.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/repositories/area_repository_impl.dart';
@@ -126,6 +129,23 @@ final sizeRepositoryProvider = Provider<SizeRepository>((ref) {
 final fileRepositoryProvider = Provider<FileRepository>((ref) {
   final dataSource = ref.watch(directusDataSourceProvider);
   return FileRepositoryImpl(dataSource);
+});
+
+/// Image data provider
+///
+/// Downloads image bytes via [FileRepository.downloadFile] so that
+/// authentication headers are preserved across HTTP redirects.
+/// Used by ImageWidget and ImageEditDialog instead of Image.network.
+final imageDataProvider = FutureProvider.family<Uint8List, String>((
+  ref,
+  fileId,
+) async {
+  final repo = ref.watch(fileRepositoryProvider);
+  final result = await repo.downloadFile(fileId);
+  return switch (result) {
+    Success(:final value) => value,
+    Failure(:final error) => throw error,
+  };
 });
 
 /// Menu subscription repository provider

@@ -88,15 +88,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     );
   }
 
-  Map<String, String>? get _authHeaders {
-    final token = ref.watch(directusAccessTokenProvider);
-    return token != null
-        ? <String, String>{'Authorization': 'Bearer $token'}
-        : null;
-  }
-
   List<Widget> _buildAppleFormChildren(BuildContext context) {
-    final baseUrl = ref.watch(directusBaseUrlProvider);
     final alignLabels = {'left': 'Left', 'center': 'Center', 'right': 'Right'};
     final fitLabels = {
       'contain': 'Contain',
@@ -107,7 +99,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     };
 
     return [
-      _buildImageGrid(baseUrl, headers: _authHeaders),
+      _buildImageGrid(),
       CupertinoFormSection.insetGrouped(
         header: const Text('LAYOUT'),
         children: [
@@ -159,11 +151,9 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
   }
 
   List<Widget> _buildMaterialFormChildren(BuildContext context) {
-    final baseUrl = ref.watch(directusBaseUrlProvider);
-
     return [
       // Thumbnail grid section
-      _buildImageGrid(baseUrl, headers: _authHeaders),
+      _buildImageGrid(),
       const SizedBox(height: 12),
       DropdownButtonFormField<String>(
         initialValue: _align,
@@ -217,7 +207,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     ];
   }
 
-  Widget _buildImageGrid(String baseUrl, {Map<String, String>? headers}) {
+  Widget _buildImageGrid() {
     if (_isLoading) {
       return SizedBox(
         height: 100,
@@ -252,7 +242,6 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
         itemBuilder: (context, index) {
           final file = _imageFiles[index];
           final isSelected = file.id == _selectedFileId;
-          final thumbnailUrl = '$baseUrl/assets/${file.id}';
 
           return GestureDetector(
             onTap: () => setState(() => _selectedFileId = file.id),
@@ -271,14 +260,27 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
                 child: Column(
                   children: [
                     Expanded(
-                      child: Image.network(
-                        thumbnailUrl,
-                        headers: headers,
-                        fit: BoxFit.contain,
-                        width: double.infinity,
-                        errorBuilder: (_, _, _) => Icon(
-                          _isApple ? CupertinoIcons.photo : Icons.broken_image,
-                        ),
+                      child: Consumer(
+                        builder: (context, ref, _) {
+                          final asyncBytes = ref.watch(
+                            imageDataProvider(file.id),
+                          );
+                          return asyncBytes.when(
+                            data: (bytes) => Image.memory(
+                              bytes,
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                            ),
+                            loading: () => _isApple
+                                ? const CupertinoActivityIndicator()
+                                : const CircularProgressIndicator(),
+                            error: (_, _) => Icon(
+                              _isApple
+                                  ? CupertinoIcons.photo
+                                  : Icons.broken_image,
+                            ),
+                          );
+                        },
                       ),
                     ),
                     if (file.title != null)

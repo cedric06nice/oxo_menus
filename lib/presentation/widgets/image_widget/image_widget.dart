@@ -16,20 +16,13 @@ class ImageWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext buildContext, WidgetRef ref) {
-    final baseUrl = ref.watch(directusBaseUrlProvider);
-    final token = ref.watch(directusAccessTokenProvider);
-    final imageUrl = '$baseUrl/assets/${props.fileId}';
-    final headers = token != null
-        ? <String, String>{'Authorization': 'Bearer $token'}
-        : null;
+    final asyncBytes = ref.watch(imageDataProvider(props.fileId));
 
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
       child: Align(
         alignment: _getAlignment(),
         child: SizedBox(
-          // margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-          // padding: const EdgeInsets.all(8.0),
           width: double.infinity,
           child: Builder(
             builder: (ctx) {
@@ -38,23 +31,31 @@ class ImageWidget extends ConsumerWidget {
               final isApple =
                   platform == TargetPlatform.iOS ||
                   platform == TargetPlatform.macOS;
-              return Image.network(
-                imageUrl,
-                headers: headers,
-                width: props.width,
-                height: props.height,
-                fit: _getBoxFit(),
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: props.width ?? 100,
-                    height: props.height ?? 100,
-                    color: colorScheme.surfaceContainerHigh,
-                    child: Icon(
-                      isApple ? CupertinoIcons.photo : Icons.broken_image,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  );
-                },
+              return asyncBytes.when(
+                data: (bytes) => Image.memory(
+                  bytes,
+                  width: props.width,
+                  height: props.height,
+                  fit: _getBoxFit(),
+                ),
+                loading: () => SizedBox(
+                  width: props.width ?? 100,
+                  height: props.height ?? 100,
+                  child: Center(
+                    child: isApple
+                        ? const CupertinoActivityIndicator()
+                        : const CircularProgressIndicator(),
+                  ),
+                ),
+                error: (_, _) => Container(
+                  width: props.width ?? 100,
+                  height: props.height ?? 100,
+                  color: colorScheme.surfaceContainerHigh,
+                  child: Icon(
+                    isApple ? CupertinoIcons.photo : Icons.broken_image,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
               );
             },
           ),

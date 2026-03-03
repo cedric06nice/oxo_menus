@@ -13,6 +13,8 @@ import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/widgets/image_widget/image_edit_dialog.dart';
 
+import '../../../../helpers/test_image_data.dart';
+
 class MockFileRepository extends Mock implements FileRepository {}
 
 void main() {
@@ -20,32 +22,57 @@ void main() {
 
   setUp(() {
     mockFileRepository = MockFileRepository();
+    // Default stub for downloadFile — individual tests can override
+    when(
+      () => mockFileRepository.downloadFile(any()),
+    ).thenAnswer((_) async => Success(kTestPngBytes));
   });
+
+  Widget buildDialog({
+    ImageProps props = const ImageProps(fileId: 'test-file-id'),
+    void Function(ImageProps)? onSave,
+    TargetPlatform? platform,
+    bool useRoute = false,
+  }) {
+    final widget = ProviderScope(
+      overrides: [fileRepositoryProvider.overrideWithValue(mockFileRepository)],
+      child: MaterialApp(
+        theme: platform != null ? ThemeData(platform: platform) : null,
+        home: useRoute
+            ? Scaffold(
+                body: Builder(
+                  builder: (context) => ElevatedButton(
+                    onPressed: () => Navigator.of(context).push(
+                      CupertinoPageRoute<void>(
+                        fullscreenDialog: true,
+                        builder: (_) => ImageEditDialog(
+                          props: props,
+                          onSave: onSave ?? (_) {},
+                        ),
+                      ),
+                    ),
+                    child: const Text('Open'),
+                  ),
+                ),
+              )
+            : Scaffold(
+                body: ImageEditDialog(props: props, onSave: onSave ?? (_) {}),
+              ),
+      ),
+    );
+    return widget;
+  }
 
   group('ImageEditDialog', () {
     testWidgets('should show loading indicator while files are loading', (
       tester,
     ) async {
-      const props = ImageProps(fileId: 'test-file-id');
       final completer = Completer<Result<List<ImageFileInfo>, DomainError>>();
       when(
         () => mockFileRepository.listImageFiles(),
       ).thenAnswer((_) => completer.future);
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            fileRepositoryProvider.overrideWithValue(mockFileRepository),
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue('test-token'),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: ImageEditDialog(props: props, onSave: (_) {}),
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildDialog());
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
@@ -53,25 +80,11 @@ void main() {
     testWidgets('should show error message when file loading fails', (
       tester,
     ) async {
-      const props = ImageProps(fileId: 'test-file-id');
       when(() => mockFileRepository.listImageFiles()).thenAnswer(
         (_) async => const Failure(ServerError('Failed to load files')),
       );
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            fileRepositoryProvider.overrideWithValue(mockFileRepository),
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue('test-token'),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: ImageEditDialog(props: props, onSave: (_) {}),
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildDialog());
       await tester.pumpAndSettle();
 
       expect(find.textContaining('Error loading images'), findsOneWidget);
@@ -80,7 +93,6 @@ void main() {
     testWidgets('should show thumbnail grid when files load successfully', (
       tester,
     ) async {
-      const props = ImageProps(fileId: 'test-file-id');
       final files = [
         const ImageFileInfo(id: 'file-1', title: 'logo.png', type: 'image/png'),
         const ImageFileInfo(id: 'file-2', title: 'bg.jpg', type: 'image/jpeg'),
@@ -89,24 +101,33 @@ void main() {
         () => mockFileRepository.listImageFiles(),
       ).thenAnswer((_) async => Success(files));
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            fileRepositoryProvider.overrideWithValue(mockFileRepository),
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue('test-token'),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: ImageEditDialog(props: props, onSave: (_) {}),
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildDialog());
       await tester.pumpAndSettle();
 
       expect(find.byType(GridView), findsOneWidget);
-      // Images are network images, so we just check the grid exists
+    });
+
+    testWidgets('thumbnail grid uses Image.memory for each image file', (
+      tester,
+    ) async {
+      final files = [
+        const ImageFileInfo(id: 'file-1', title: 'logo.png', type: 'image/png'),
+        const ImageFileInfo(id: 'file-2', title: 'bg.jpg', type: 'image/jpeg'),
+      ];
+      when(
+        () => mockFileRepository.listImageFiles(),
+      ).thenAnswer((_) async => Success(files));
+
+      await tester.pumpWidget(buildDialog());
+      await tester.pumpAndSettle();
+
+      // All thumbnail images should be Image.memory (MemoryImage), not NetworkImage
+      final images = tester.widgetList<Image>(find.byType(Image));
+      for (final image in images) {
+        expect(image.image, isA<MemoryImage>());
+      }
+      verify(() => mockFileRepository.downloadFile('file-1')).called(1);
+      verify(() => mockFileRepository.downloadFile('file-2')).called(1);
     });
 
     testWidgets('should update fileId when an image is selected', (
@@ -124,21 +145,7 @@ void main() {
       ImageProps? savedProps;
 
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            fileRepositoryProvider.overrideWithValue(mockFileRepository),
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue('test-token'),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: ImageEditDialog(
-                props: props,
-                onSave: (updated) => savedProps = updated,
-              ),
-            ),
-          ),
-        ),
+        buildDialog(props: props, onSave: (updated) => savedProps = updated),
       );
       await tester.pumpAndSettle();
 
@@ -166,26 +173,10 @@ void main() {
         () => mockFileRepository.listImageFiles(),
       ).thenAnswer((_) async => Success(files));
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            fileRepositoryProvider.overrideWithValue(mockFileRepository),
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue('test-token'),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: ImageEditDialog(props: props, onSave: (_) {}),
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildDialog(props: props));
       await tester.pumpAndSettle();
 
-      // Find the container for file-1 (currently selected)
       final containers = tester.widgetList<Container>(find.byType(Container));
-      // The selected item should have a different border
-      // This is a basic check - the actual border styling will be verified visually
       expect(containers.length, greaterThan(0));
     });
 
@@ -197,32 +188,14 @@ void main() {
           () => mockFileRepository.listImageFiles(),
         ).thenAnswer((_) async => const Success([]));
 
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              fileRepositoryProvider.overrideWithValue(mockFileRepository),
-              directusBaseUrlProvider.overrideWithValue(
-                'http://localhost:8055',
-              ),
-              directusAccessTokenProvider.overrideWithValue('test-token'),
-            ],
-            child: MaterialApp(
-              home: Scaffold(
-                body: ImageEditDialog(props: props, onSave: (_) {}),
-              ),
-            ),
-          ),
-        );
+        await tester.pumpWidget(buildDialog(props: props));
         await tester.pumpAndSettle();
 
-        // Find the dropdown
         expect(find.byType(DropdownButtonFormField<String>), findsWidgets);
 
-        // Tap the alignment dropdown to open it
         await tester.tap(find.text('Center').first);
         await tester.pumpAndSettle();
 
-        // Check that all alignment options are available
         expect(find.text('Left').hitTestable(), findsOneWidget);
         expect(find.text('Center').hitTestable(), findsWidgets);
         expect(find.text('Right').hitTestable(), findsOneWidget);
@@ -239,21 +212,7 @@ void main() {
       ).thenAnswer((_) async => const Success([]));
 
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            fileRepositoryProvider.overrideWithValue(mockFileRepository),
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue('test-token'),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: ImageEditDialog(
-                props: props,
-                onSave: (updated) => savedProps = updated,
-              ),
-            ),
-          ),
-        ),
+        buildDialog(props: props, onSave: (updated) => savedProps = updated),
       );
       await tester.pumpAndSettle();
 
@@ -267,7 +226,6 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      // Verify onSave was called with updated props
       expect(savedProps, isNotNull);
       expect(savedProps?.align, 'left');
     });
@@ -280,29 +238,13 @@ void main() {
       ).thenAnswer((_) async => const Success([]));
 
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            fileRepositoryProvider.overrideWithValue(mockFileRepository),
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue('test-token'),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: ImageEditDialog(
-                props: props,
-                onSave: (updated) => savedProps = updated,
-              ),
-            ),
-          ),
-        ),
+        buildDialog(props: props, onSave: (updated) => savedProps = updated),
       );
       await tester.pumpAndSettle();
 
-      // Tap cancel
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
 
-      // Verify onSave was not called
       expect(savedProps, isNull);
     });
 
@@ -314,76 +256,34 @@ void main() {
       ).thenAnswer((_) async => const Success([]));
 
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            fileRepositoryProvider.overrideWithValue(mockFileRepository),
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue('test-token'),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: ImageEditDialog(
-                props: props,
-                onSave: (updated) => savedProps = updated,
-              ),
-            ),
-          ),
-        ),
+        buildDialog(props: props, onSave: (updated) => savedProps = updated),
       );
       await tester.pumpAndSettle();
 
-      // Enter width
       await tester.enterText(
         find.widgetWithText(TextField, 'Width').first,
         '200',
       );
 
-      // Enter height
       await tester.enterText(
         find.widgetWithText(TextField, 'Height').first,
         '150',
       );
 
-      // Save
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      // Verify dimensions were saved
       expect(savedProps?.width, 200.0);
       expect(savedProps?.height, 150.0);
     });
 
     testWidgets('renders CupertinoPageScaffold on iOS', (tester) async {
-      const props = ImageProps(fileId: 'test-file');
       when(
         () => mockFileRepository.listImageFiles(),
       ).thenAnswer((_) async => const Success([]));
 
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            fileRepositoryProvider.overrideWithValue(mockFileRepository),
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue('test-token'),
-          ],
-          child: MaterialApp(
-            theme: ThemeData(platform: TargetPlatform.iOS),
-            home: Scaffold(
-              body: Builder(
-                builder: (context) => ElevatedButton(
-                  onPressed: () => Navigator.of(context).push(
-                    CupertinoPageRoute<void>(
-                      fullscreenDialog: true,
-                      builder: (_) =>
-                          ImageEditDialog(props: props, onSave: (_) {}),
-                    ),
-                  ),
-                  child: const Text('Open'),
-                ),
-              ),
-            ),
-          ),
-        ),
+        buildDialog(platform: TargetPlatform.iOS, useRoute: true),
       );
 
       await tester.tap(find.text('Open'));
@@ -397,103 +297,28 @@ void main() {
     testWidgets('shows CupertinoActivityIndicator while loading on iOS', (
       tester,
     ) async {
-      const props = ImageProps(fileId: 'test-file');
       final completer = Completer<Result<List<ImageFileInfo>, DomainError>>();
       when(
         () => mockFileRepository.listImageFiles(),
       ).thenAnswer((_) => completer.future);
 
       await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            fileRepositoryProvider.overrideWithValue(mockFileRepository),
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue('test-token'),
-          ],
-          child: MaterialApp(
-            theme: ThemeData(platform: TargetPlatform.iOS),
-            home: Scaffold(
-              body: Builder(
-                builder: (context) => ElevatedButton(
-                  onPressed: () => Navigator.of(context).push(
-                    CupertinoPageRoute<void>(
-                      fullscreenDialog: true,
-                      builder: (_) =>
-                          ImageEditDialog(props: props, onSave: (_) {}),
-                    ),
-                  ),
-                  child: const Text('Open'),
-                ),
-              ),
-            ),
-          ),
-        ),
+        buildDialog(platform: TargetPlatform.iOS, useRoute: true),
       );
 
       await tester.tap(find.text('Open'));
-      // Pump enough for the route transition to complete and widget to build
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
 
       expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
     });
 
-    testWidgets('should pass auth headers to thumbnail Image.network', (
-      tester,
-    ) async {
-      const props = ImageProps(fileId: 'file-1');
-      final files = [
-        const ImageFileInfo(id: 'file-1', title: 'logo.png', type: 'image/png'),
-      ];
-      when(
-        () => mockFileRepository.listImageFiles(),
-      ).thenAnswer((_) async => Success(files));
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            fileRepositoryProvider.overrideWithValue(mockFileRepository),
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue('edit-dialog-token'),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: ImageEditDialog(props: props, onSave: (_) {}),
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      final image = tester.widget<Image>(find.byType(Image).first);
-      final networkImage = image.image as NetworkImage;
-      expect(
-        networkImage.headers,
-        containsPair('Authorization', 'Bearer edit-dialog-token'),
-      );
-    });
-
     testWidgets('renders AlertDialog on Android', (tester) async {
-      const props = ImageProps(fileId: 'test-file');
       when(
         () => mockFileRepository.listImageFiles(),
       ).thenAnswer((_) async => const Success([]));
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            fileRepositoryProvider.overrideWithValue(mockFileRepository),
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue('test-token'),
-          ],
-          child: MaterialApp(
-            theme: ThemeData(platform: TargetPlatform.android),
-            home: Scaffold(
-              body: ImageEditDialog(props: props, onSave: (_) {}),
-            ),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildDialog(platform: TargetPlatform.android));
       await tester.pumpAndSettle();
 
       expect(find.byType(AlertDialog), findsOneWidget);
