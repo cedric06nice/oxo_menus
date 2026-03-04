@@ -555,5 +555,36 @@ void main() {
       verify(() => mockPageRepo.getAllForMenu(menuId)).called(1);
       verifyNever(() => mockContainerRepo.getAllForPage(any()));
     });
+
+    test('should attempt all page fetches even when one fails', () async {
+      // Arrange: two pages, first one's container fetch fails
+      final pages = [
+        const Page(id: 1, menuId: menuId, name: 'Page 1', index: 1),
+        const Page(id: 2, menuId: menuId, name: 'Page 2', index: 2),
+      ];
+
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepo.getAllForPage(1),
+      ).thenAnswer((_) async => const Failure(ServerError('Server error')));
+      when(
+        () => mockContainerRepo.getAllForPage(2),
+      ).thenAnswer((_) async => const Success([]));
+
+      // Act
+      final result = await useCase.execute(menuId);
+
+      // Assert: result is failure (from page 1)
+      expect(result.isFailure, true);
+
+      // Both pages should have been attempted (parallel behavior)
+      verify(() => mockContainerRepo.getAllForPage(1)).called(1);
+      verify(() => mockContainerRepo.getAllForPage(2)).called(1);
+    });
   });
 }

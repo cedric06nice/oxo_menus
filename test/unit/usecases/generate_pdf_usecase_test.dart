@@ -23,7 +23,7 @@ void main() {
   late GeneratePdfUseCase useCase;
 
   setUp(() {
-    useCase = const GeneratePdfUseCase();
+    useCase = GeneratePdfUseCase();
   });
 
   group('GeneratePdfUseCase', () {
