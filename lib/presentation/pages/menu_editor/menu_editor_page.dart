@@ -15,7 +15,10 @@ import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
 import 'package:oxo_menus/domain/repositories/presence_repository.dart';
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/presentation/providers/app_lifecycle_provider.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
@@ -75,6 +78,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   bool _isReconnecting = false;
   int _wsErrorCount = 0;
   static const _maxWsErrors = 3;
+  bool _isPaused = false;
 
   late EditorWidgetCrudHelper _crudHelper;
 
@@ -117,7 +121,57 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMenu(isInitialLoad: true);
+      _listenToConnectivityAndLifecycle();
     });
+  }
+
+  void _listenToConnectivityAndLifecycle() {
+    ref.listenManual(connectivityProvider, (prev, next) {
+      final wasOffline = prev?.value == ConnectivityStatus.offline;
+      final isOffline = next.value == ConnectivityStatus.offline;
+      final isForeground = ref.read(isAppInForegroundProvider);
+
+      if (isOffline && !_isPaused) {
+        _pauseSubscriptions();
+      } else if (wasOffline && !isOffline && isForeground && _isPaused) {
+        _resumeSubscriptions();
+      }
+    });
+
+    ref.listenManual(isAppInForegroundProvider, (prev, next) {
+      final connectivity = ref.read(connectivityProvider);
+      final isOnline = connectivity.value != ConnectivityStatus.offline;
+
+      if (!next && !_isPaused) {
+        _pauseSubscriptions();
+      } else if (next && prev == false && isOnline && _isPaused) {
+        _resumeSubscriptions();
+      }
+    });
+  }
+
+  void _pauseSubscriptions() {
+    _isPaused = true;
+    _debounceTimer?.cancel();
+    _heartbeatTimer?.cancel();
+    _pollingTimer?.cancel();
+    _changeSubscription?.cancel();
+    _changeSubscription = null;
+    _presenceSubscription?.cancel();
+    _presenceSubscription = null;
+    _menuSubscriptionRepository?.unsubscribe(widget.menuId);
+    _presenceRepository?.unsubscribePresence(widget.menuId);
+  }
+
+  void _resumeSubscriptions() {
+    _isPaused = false;
+    _wsErrorCount = 0;
+    if (mounted) {
+      setState(() => _isReconnecting = false);
+      _subscribeToChanges();
+      _startPresenceTracking();
+      _loadMenu();
+    }
   }
 
   @override
@@ -308,7 +362,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   }
 
   void _onStreamError(Object error) {
-    if (!mounted) return;
+    if (!mounted || _isPaused) return;
     _wsErrorCount++;
 
     setState(() {
@@ -391,7 +445,33 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     if (_errorMessage != null) {
       return AuthenticatedScaffold(
         title: 'Error',
-        body: Center(child: Text('Error: $_errorMessage')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                _isApple
+                    ? CupertinoIcons.exclamationmark_triangle
+                    : Icons.error_outline,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 16),
+              Text('Error: $_errorMessage'),
+              const SizedBox(height: 16),
+              if (_isApple)
+                CupertinoButton.filled(
+                  onPressed: () => _loadMenu(isInitialLoad: true),
+                  child: const Text('Retry'),
+                )
+              else
+                FilledButton(
+                  onPressed: () => _loadMenu(isInitialLoad: true),
+                  child: const Text('Retry'),
+                ),
+            ],
+          ),
+        ),
       );
     }
 

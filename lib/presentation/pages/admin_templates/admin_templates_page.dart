@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_provider.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/widgets/template_card.dart';
 import 'package:oxo_menus/presentation/helpers/grid_helpers.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
@@ -27,6 +29,17 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
     super.initState();
     Future.microtask(() {
       ref.read(adminTemplatesProvider.notifier).loadTemplates();
+      _listenForConnectivityRestore();
+    });
+  }
+
+  void _listenForConnectivityRestore() {
+    ref.listenManual(connectivityProvider, (prev, next) {
+      final wasOffline = prev?.value == ConnectivityStatus.offline;
+      final isOnline = next.value == ConnectivityStatus.online;
+      if (wasOffline && isOnline) {
+        ref.read(adminTemplatesProvider.notifier).loadTemplates();
+      }
     });
   }
 

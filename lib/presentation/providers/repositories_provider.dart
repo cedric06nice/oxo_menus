@@ -6,7 +6,9 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/core/utils/directus_url_resolver.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/repositories/area_repository_impl.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:oxo_menus/data/repositories/auth_repository_impl.dart';
+import 'package:oxo_menus/data/repositories/connectivity_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/column_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/container_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/file_repository_impl.dart';
@@ -18,6 +20,7 @@ import 'package:oxo_menus/data/repositories/presence_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/widget_repository_impl.dart';
 import 'package:oxo_menus/domain/repositories/area_repository.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
+import 'package:oxo_menus/domain/repositories/connectivity_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
 import 'package:oxo_menus/domain/repositories/presence_repository.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
@@ -164,4 +167,11 @@ final menuSubscriptionRepositoryProvider = Provider<MenuSubscriptionRepository>(
 final presenceRepositoryProvider = Provider<PresenceRepository>((ref) {
   final dataSource = ref.watch(directusDataSourceProvider);
   return PresenceRepositoryImpl(dataSource: dataSource);
+});
+
+/// Connectivity repository provider
+///
+/// Provides real-time connectivity monitoring
+final connectivityRepositoryProvider = Provider<ConnectivityRepository>((ref) {
+  return ConnectivityRepositoryImpl(connectivity: Connectivity());
 });

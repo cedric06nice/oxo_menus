@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/presentation/helpers/status_helpers.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
@@ -29,6 +31,17 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
     super.initState();
     Future.microtask(() {
       ref.read(adminSizesProvider.notifier).loadSizes();
+      _listenForConnectivityRestore();
+    });
+  }
+
+  void _listenForConnectivityRestore() {
+    ref.listenManual(connectivityProvider, (prev, next) {
+      final wasOffline = prev?.value == ConnectivityStatus.offline;
+      final isOnline = next.value == ConnectivityStatus.online;
+      if (wasOffline && isOnline) {
+        ref.read(adminSizesProvider.notifier).loadSizes();
+      }
     });
   }
 

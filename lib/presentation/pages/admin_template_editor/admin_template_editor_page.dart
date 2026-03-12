@@ -19,6 +19,8 @@ import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/state/editor_selection_notifier.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/side_panel_style_editor.dart';
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
@@ -114,6 +116,17 @@ class _AdminTemplateEditorPageState
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTemplate(isInitialLoad: true);
+      _listenForConnectivityRestore();
+    });
+  }
+
+  void _listenForConnectivityRestore() {
+    ref.listenManual(connectivityProvider, (prev, next) {
+      final wasOffline = prev?.value == ConnectivityStatus.offline;
+      final isOnline = next.value == ConnectivityStatus.online;
+      if (wasOffline && isOnline && _errorMessage != null) {
+        _loadTemplate(isInitialLoad: true);
+      }
     });
   }
 

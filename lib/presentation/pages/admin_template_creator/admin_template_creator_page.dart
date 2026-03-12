@@ -6,6 +6,8 @@ import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 
@@ -43,6 +45,18 @@ class _AdminTemplateCreatorPageState
     _versionController = TextEditingController(text: '1.0.0');
     _loadSizes();
     _loadAreas();
+    _listenForConnectivityRestore();
+  }
+
+  void _listenForConnectivityRestore() {
+    ref.listenManual(connectivityProvider, (prev, next) {
+      final wasOffline = prev?.value == ConnectivityStatus.offline;
+      final isOnline = next.value == ConnectivityStatus.online;
+      if (wasOffline && isOnline && _sizeError != null) {
+        _loadSizes();
+        _loadAreas();
+      }
+    });
   }
 
   Future<void> _loadSizes() async {
