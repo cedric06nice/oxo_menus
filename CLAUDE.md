@@ -13,7 +13,7 @@ Clean Architecture: `core/` → `domain/` → `data/` → `presentation/`
 - **core/errors/domain_errors.dart** — sealed `DomainError` hierarchy (InvalidCredentials, TokenExpired, Unauthorized, Network, NetworkUnavailable, NotFound, Validation, Server, Unknown, RateLimit)
 - Repositories return `Result<T, DomainError>`, never throw
 
-Detailed references: [domain](.claude/docs/domain.md) | [data](.claude/docs/data.md) | [presentation](.claude/docs/presentation.md) | [testing](.claude/docs/testing.md)
+Detailed references: [domain](.claude/docs/domain.md) | [data](.claude/docs/data.md) | [presentation](.claude/docs/presentation.md) | [testing](.claude/docs/testing.md) | [new widget](.claude/docs/new_widget_checklist.md)
 
 ## Domain Model (hierarchy, each level sorted by `index`)
 
@@ -22,7 +22,7 @@ Menu → Page → Container → Column → WidgetInstance
 ```
 
 - `FetchMenuTreeUseCase` builds `MenuTree` with nested freezed value objects: `PageWithContainers`, `ContainerWithColumns`, `ColumnWithWidgets`
-- `GeneratePdfUseCase` renders `MenuTree` to PDF client-side (`pdf` package)
+- `GeneratePdfUseCase` renders `MenuTree` to PDF client-side (`pdf` package), runs in background isolate
 - `DuplicateMenuUseCase` deep-copies menu with all children, rollback on failure
 
 ## Widget System
@@ -40,6 +40,13 @@ Widget types: `dish`, `section`, `text`, `wine`, `image`
 - Props in `domain/widgets/{type}/{type}_props.dart`
 - Definitions in `presentation/widgets/{type}_widget/{type}_widget_definition.dart`
 - Each has `*_edit_dialog.dart` for editing
+
+## Real-Time Collaboration
+
+- `MenuSubscriptionRepository` — WebSocket stream of `MenuChangeEvent` (widget create/update/delete)
+- `PresenceRepository` — user presence tracking (join, leave, heartbeat, watchActiveUsers)
+- `WidgetInstance` editing locks — `editingBy`, `editingSince` fields
+- `PresenceBar` widget shows active users; `EditingUserBadge` shows who's editing a widget
 
 ## Allergens
 
