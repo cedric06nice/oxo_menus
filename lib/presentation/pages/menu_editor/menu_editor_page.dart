@@ -31,6 +31,7 @@ import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialo
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_mixin.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/menu_display_options_dialog.dart';
 
@@ -51,7 +52,8 @@ class MenuEditorPage extends ConsumerStatefulWidget {
   ConsumerState<MenuEditorPage> createState() => _MenuEditorPageState();
 }
 
-class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
+class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
+    with EditorWidgetCrudMixin {
   static const narrowBreakpoint = 600.0;
 
   Menu? _menu;
@@ -83,7 +85,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   bool _isPaused = false;
   bool _isLoadingMenu = false;
 
-  late EditorWidgetCrudHelper _crudHelper;
+  @override
+  late EditorWidgetCrudHelper crudHelper;
 
   bool get _isApple {
     final platform = Theme.of(context).platform;
@@ -100,7 +103,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _crudHelper = EditorWidgetCrudHelper(
+    crudHelper = EditorWidgetCrudHelper(
       widgetRepository: ref.read(widgetRepositoryProvider),
       widgetRegistry: ref.read(widgetRegistryProvider),
       onReload: _loadMenu,
@@ -641,7 +644,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
         });
       },
       onWidgetDrop: _handleWidgetDropAtIndex,
-      onWidgetMove: _handleWidgetMoveToIndex,
+      onWidgetMove: handleWidgetMoveToIndex,
       widgetItemBuilder: (widgetInstance, columnId) => DraggableWidgetItem(
         widgetInstance: widgetInstance,
         columnId: columnId,
@@ -650,13 +653,13 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
         currentUserId: ref.read(currentUserProvider)?.id,
         editingUserName: _findEditingPresence(widgetInstance)?.userName,
         editingUserAvatar: _findEditingPresence(widgetInstance)?.userAvatar,
-        onUpdate: (props) => _handleWidgetUpdate(widgetInstance.id, props),
+        onUpdate: (props) => handleWidgetUpdate(widgetInstance.id, props),
         onDelete: () => _handleWidgetDelete(widgetInstance.id),
-        onEditStarted: () => _crudHelper.lockWidget(widgetInstance.id),
-        onEditEnded: () => _crudHelper.unlockWidget(widgetInstance.id),
+        onEditStarted: () => crudHelper.lockWidget(widgetInstance.id),
+        onEditEnded: () => crudHelper.unlockWidget(widgetInstance.id),
         onConfirmDismiss: () =>
             showDeleteConfirmation(context, itemType: 'widget'),
-        onDismissed: (id) => _performWidgetDelete(id),
+        onDismissed: (id) => performWidgetDelete(id),
       ),
     );
   }
@@ -672,38 +675,13 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
         !allowed.contains(widgetType)) {
       return;
     }
-    await _crudHelper.handleWidgetDropAtIndex(widgetType, columnId, index);
-  }
-
-  Future<void> _handleWidgetUpdate(
-    int widgetId,
-    Map<String, dynamic> updatedProps,
-  ) async {
-    await _crudHelper.handleWidgetUpdate(widgetId, updatedProps);
-  }
-
-  Future<void> _handleWidgetMoveToIndex(
-    WidgetInstance widget,
-    int sourceColumnId,
-    int targetColumnId,
-    int targetIndex,
-  ) async {
-    await _crudHelper.handleWidgetMoveToIndex(
-      widget,
-      sourceColumnId,
-      targetColumnId,
-      targetIndex,
-    );
+    await crudHelper.handleWidgetDropAtIndex(widgetType, columnId, index);
   }
 
   Future<void> _handleWidgetDelete(int widgetId) async {
     final confirmed = await showDeleteConfirmation(context, itemType: 'widget');
     if (confirmed != true) return;
 
-    await _performWidgetDelete(widgetId);
-  }
-
-  Future<void> _performWidgetDelete(int widgetId) async {
-    await _crudHelper.performWidgetDelete(widgetId);
+    await performWidgetDelete(widgetId);
   }
 }

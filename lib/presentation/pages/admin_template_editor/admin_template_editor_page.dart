@@ -31,6 +31,7 @@ import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialo
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_mixin.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/menu_display_options_dialog.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/page_size_picker_dialog.dart';
@@ -50,7 +51,8 @@ class AdminTemplateEditorPage extends ConsumerStatefulWidget {
 }
 
 class _AdminTemplateEditorPageState
-    extends ConsumerState<AdminTemplateEditorPage> {
+    extends ConsumerState<AdminTemplateEditorPage>
+    with EditorWidgetCrudMixin {
   static const narrowBreakpoint = 600.0;
 
   Menu? _menu;
@@ -67,7 +69,8 @@ class _AdminTemplateEditorPageState
   final Map<int, int> _hoverIndex = {};
   Timer? _styleDebounceTimer;
 
-  late EditorWidgetCrudHelper _crudHelper;
+  @override
+  late EditorWidgetCrudHelper crudHelper;
   late EditorSelectionNotifier _selectionNotifier;
   EditorSelection? _currentSelection;
 
@@ -81,7 +84,7 @@ class _AdminTemplateEditorPageState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _crudHelper = EditorWidgetCrudHelper(
+    crudHelper = EditorWidgetCrudHelper(
       widgetRepository: ref.read(widgetRepositoryProvider),
       widgetRegistry: ref.read(widgetRegistryProvider),
       onReload: _loadTemplate,
@@ -759,39 +762,14 @@ class _AdminTemplateEditorPageState
     int columnId,
     int index,
   ) async {
-    await _crudHelper.handleWidgetDropAtIndex(widgetType, columnId, index);
-  }
-
-  Future<void> _handleWidgetUpdate(
-    int widgetId,
-    Map<String, dynamic> updatedProps,
-  ) async {
-    await _crudHelper.handleWidgetUpdate(widgetId, updatedProps);
+    await crudHelper.handleWidgetDropAtIndex(widgetType, columnId, index);
   }
 
   Future<void> _handleWidgetDelete(int widgetId) async {
     final confirmed = await showDeleteConfirmation(context);
     if (confirmed != true) return;
 
-    await _performWidgetDelete(widgetId);
-  }
-
-  Future<void> _performWidgetDelete(int widgetId) async {
-    await _crudHelper.performWidgetDelete(widgetId);
-  }
-
-  Future<void> _handleWidgetMoveToIndex(
-    WidgetInstance movedWidget,
-    int sourceColumnId,
-    int targetColumnId,
-    int targetIndex,
-  ) async {
-    await _crudHelper.handleWidgetMoveToIndex(
-      movedWidget,
-      sourceColumnId,
-      targetColumnId,
-      targetIndex,
-    );
+    await performWidgetDelete(widgetId);
   }
 
   // ===== Build Methods =====
@@ -1287,16 +1265,16 @@ class _AdminTemplateEditorPageState
         });
       },
       onWidgetDrop: _handleWidgetDropAtIndex,
-      onWidgetMove: _handleWidgetMoveToIndex,
+      onWidgetMove: handleWidgetMoveToIndex,
       widgetItemBuilder: (widgetInstance, columnId) => DraggableWidgetItem(
         widgetInstance: widgetInstance,
         columnId: columnId,
         isEditable: true,
         isLocked: false,
-        onUpdate: (props) => _handleWidgetUpdate(widgetInstance.id, props),
+        onUpdate: (props) => handleWidgetUpdate(widgetInstance.id, props),
         onDelete: () => _handleWidgetDelete(widgetInstance.id),
         onConfirmDismiss: () => showDeleteConfirmation(context),
-        onDismissed: (id) => _performWidgetDelete(id),
+        onDismissed: (id) => performWidgetDelete(id),
       ),
     );
   }
