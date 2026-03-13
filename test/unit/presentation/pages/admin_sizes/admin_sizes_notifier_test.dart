@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
@@ -6,18 +7,26 @@ import 'package:oxo_menus/domain/entities/size.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_notifier.dart';
+import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_state.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 class MockSizeRepository extends Mock implements SizeRepository {}
 
 void main() {
-  late AdminSizesNotifier notifier;
+  late ProviderContainer container;
   late MockSizeRepository mockRepository;
 
   setUp(() {
     mockRepository = MockSizeRepository();
-    notifier = AdminSizesNotifier(mockRepository);
+    container = ProviderContainer(
+      overrides: [
+        sizeRepositoryProvider.overrideWithValue(mockRepository),
+      ],
+    );
   });
+
+  tearDown(() => container.dispose());
 
   setUpAll(() {
     registerFallbackValue(
@@ -50,9 +59,13 @@ void main() {
     direction: 'landscape',
   );
 
+  AdminSizesNotifier readNotifier() =>
+      container.read(adminSizesProvider.notifier);
+  AdminSizesState readState() => container.read(adminSizesProvider);
+
   group('AdminSizesNotifier', () {
     test('should have correct initial state', () {
-      expect(notifier.state, const AdminSizesState());
+      expect(readState(), const AdminSizesState());
     });
 
     group('loadSizes', () {
@@ -61,11 +74,11 @@ void main() {
           () => mockRepository.getAll(),
         ).thenAnswer((_) async => const Success([testSize, testSize2]));
 
-        await notifier.loadSizes();
+        await readNotifier().loadSizes();
 
-        expect(notifier.state.sizes, hasLength(2));
-        expect(notifier.state.isLoading, false);
-        expect(notifier.state.errorMessage, isNull);
+        expect(readState().sizes, hasLength(2));
+        expect(readState().isLoading, false);
+        expect(readState().errorMessage, isNull);
       });
 
       test('should filter sizes by status', () async {
@@ -73,11 +86,11 @@ void main() {
           () => mockRepository.getAll(),
         ).thenAnswer((_) async => const Success([testSize, testSize2]));
 
-        await notifier.loadSizes(statusFilter: 'published');
+        await readNotifier().loadSizes(statusFilter: 'published');
 
-        expect(notifier.state.sizes, hasLength(1));
-        expect(notifier.state.sizes.first.name, 'A4');
-        expect(notifier.state.statusFilter, 'published');
+        expect(readState().sizes, hasLength(1));
+        expect(readState().sizes.first.name, 'A4');
+        expect(readState().statusFilter, 'published');
       });
 
       test('should show all sizes when filter is all', () async {
@@ -85,9 +98,9 @@ void main() {
           () => mockRepository.getAll(),
         ).thenAnswer((_) async => const Success([testSize, testSize2]));
 
-        await notifier.loadSizes(statusFilter: 'all');
+        await readNotifier().loadSizes(statusFilter: 'all');
 
-        expect(notifier.state.sizes, hasLength(2));
+        expect(readState().sizes, hasLength(2));
       });
 
       test('should set error message on failure', () async {
@@ -95,10 +108,10 @@ void main() {
           () => mockRepository.getAll(),
         ).thenAnswer((_) async => const Failure(ServerError('Server error')));
 
-        await notifier.loadSizes();
+        await readNotifier().loadSizes();
 
-        expect(notifier.state.isLoading, false);
-        expect(notifier.state.errorMessage, 'Server error');
+        expect(readState().isLoading, false);
+        expect(readState().errorMessage, 'Server error');
       });
     });
 
@@ -108,7 +121,7 @@ void main() {
         when(
           () => mockRepository.getAll(),
         ).thenAnswer((_) async => const Success([testSize]));
-        await notifier.loadSizes();
+        await readNotifier().loadSizes();
 
         const input = CreateSizeInput(
           name: 'A5',
@@ -130,10 +143,10 @@ void main() {
           () => mockRepository.create(any()),
         ).thenAnswer((_) async => const Success(newSize));
 
-        await notifier.createSize(input);
+        await readNotifier().createSize(input);
 
-        expect(notifier.state.sizes, hasLength(2));
-        expect(notifier.state.sizes.last.name, 'A5');
+        expect(readState().sizes, hasLength(2));
+        expect(readState().sizes.last.name, 'A5');
       });
 
       test('should set error message on create failure', () async {
@@ -149,9 +162,9 @@ void main() {
           () => mockRepository.create(any()),
         ).thenAnswer((_) async => const Failure(ServerError('Create failed')));
 
-        await notifier.createSize(input);
+        await readNotifier().createSize(input);
 
-        expect(notifier.state.errorMessage, 'Create failed');
+        expect(readState().errorMessage, 'Create failed');
       });
     });
 
@@ -160,7 +173,7 @@ void main() {
         when(
           () => mockRepository.getAll(),
         ).thenAnswer((_) async => const Success([testSize]));
-        await notifier.loadSizes();
+        await readNotifier().loadSizes();
 
         const updatedSize = Size(
           id: 1,
@@ -176,9 +189,9 @@ void main() {
         ).thenAnswer((_) async => const Success(updatedSize));
 
         const input = UpdateSizeInput(id: 1, name: 'A4 Updated');
-        await notifier.updateSize(input);
+        await readNotifier().updateSize(input);
 
-        expect(notifier.state.sizes.first.name, 'A4 Updated');
+        expect(readState().sizes.first.name, 'A4 Updated');
       });
 
       test('should set error message on update failure', () async {
@@ -187,9 +200,9 @@ void main() {
         ).thenAnswer((_) async => const Failure(ServerError('Update failed')));
 
         const input = UpdateSizeInput(id: 1, name: 'Updated');
-        await notifier.updateSize(input);
+        await readNotifier().updateSize(input);
 
-        expect(notifier.state.errorMessage, 'Update failed');
+        expect(readState().errorMessage, 'Update failed');
       });
     });
 
@@ -198,17 +211,17 @@ void main() {
         when(
           () => mockRepository.getAll(),
         ).thenAnswer((_) async => const Success([testSize, testSize2]));
-        await notifier.loadSizes();
-        expect(notifier.state.sizes, hasLength(2));
+        await readNotifier().loadSizes();
+        expect(readState().sizes, hasLength(2));
 
         when(
           () => mockRepository.delete(1),
         ).thenAnswer((_) async => const Success(null));
 
-        await notifier.deleteSize(1);
+        await readNotifier().deleteSize(1);
 
-        expect(notifier.state.sizes, hasLength(1));
-        expect(notifier.state.sizes.first.id, 2);
+        expect(readState().sizes, hasLength(1));
+        expect(readState().sizes.first.id, 2);
       });
 
       test('should set error message on delete failure', () async {
@@ -216,9 +229,9 @@ void main() {
           () => mockRepository.delete(99),
         ).thenAnswer((_) async => const Failure(ServerError('Delete failed')));
 
-        await notifier.deleteSize(99);
+        await readNotifier().deleteSize(99);
 
-        expect(notifier.state.errorMessage, 'Delete failed');
+        expect(readState().errorMessage, 'Delete failed');
       });
     });
 
@@ -227,12 +240,12 @@ void main() {
         when(
           () => mockRepository.getAll(),
         ).thenAnswer((_) async => const Failure(ServerError('Error')));
-        await notifier.loadSizes();
-        expect(notifier.state.errorMessage, isNotNull);
+        await readNotifier().loadSizes();
+        expect(readState().errorMessage, isNotNull);
 
-        notifier.clearError();
+        readNotifier().clearError();
 
-        expect(notifier.state.errorMessage, isNull);
+        expect(readState().errorMessage, isNull);
       });
     });
   });

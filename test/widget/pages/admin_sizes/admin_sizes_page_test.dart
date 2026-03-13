@@ -12,10 +12,9 @@ import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
-import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_notifier.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_page.dart';
-import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_provider.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 class MockSizeRepository extends Mock implements SizeRepository {}
 
@@ -63,9 +62,7 @@ Widget _buildApp({
   return ProviderScope(
     overrides: [
       currentUserProvider.overrideWithValue(_testUser),
-      adminSizesProvider.overrideWith(
-        (ref) => AdminSizesNotifier(mockSizeRepository),
-      ),
+      sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
     ],
     child: MaterialApp.router(
       routerConfig: router,
