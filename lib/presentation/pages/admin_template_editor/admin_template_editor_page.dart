@@ -24,6 +24,7 @@ import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/editor/area_dialog_helper.dart';
+import 'package:oxo_menus/presentation/widgets/editor/page_size_dialog_helper.dart';
 import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
@@ -34,7 +35,6 @@ import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_mixin.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/editor/display_options_dialog_helper.dart';
-import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/page_size_picker_dialog.dart';
 
 /// Admin Template Editor Page
 ///
@@ -264,47 +264,17 @@ class _AdminTemplateEditorPageState
     );
   }
 
-  Future<void> _showPageSizeDialog() async {
-    final result = await ref.read(sizeRepositoryProvider).getAll();
-    if (result.isFailure) {
-      if (mounted) {
-        showThemedSnackBar(
-          context,
-          'Failed to load sizes: ${result.errorOrNull?.message ?? 'Unknown error'}',
-          isError: true,
-        );
-      }
-      return;
-    }
-
-    if (!mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => PageSizePickerDialog(
-        sizes: result.valueOrNull!,
-        currentPageSize: _menu?.pageSize,
-        onSelect: (size) async {
-          final pageSize = PageSize(
-            name: size.name,
-            width: size.width,
-            height: size.height,
-          );
-          final updateResult = await ref
-              .read(menuRepositoryProvider)
-              .update(UpdateMenuInput(id: widget.menuId, sizeId: size.id));
-          if (updateResult.isSuccess) {
-            setState(() {
-              _menu = _menu?.copyWith(pageSize: pageSize);
-            });
-            if (mounted) {
-              showThemedSnackBar(context, 'Page size updated');
-            }
-          }
-        },
-      ),
-    );
-  }
+  Future<void> _showPageSizeDialog() => showPageSizeDialog(
+    context: context,
+    ref: ref,
+    menuId: widget.menuId,
+    currentPageSize: _menu?.pageSize,
+    onPageSizeUpdated: (pageSize) {
+      setState(() {
+        _menu = _menu?.copyWith(pageSize: pageSize);
+      });
+    },
+  );
 
   Future<void> _showAreaDialog() => showAreaDialog(
     context: context,
