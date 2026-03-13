@@ -29,7 +29,7 @@ import 'package:oxo_menus/presentation/widgets/common/presence_bar.dart';
 import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
-import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/menu_display_options_dialog.dart';
@@ -629,122 +629,34 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   Widget _buildColumnCard(entity.Column column) {
     final widgets = _widgets[column.id] ?? [];
     final registry = ref.watch(widgetRegistryProvider);
-    final currentHoverIndex = _hoverIndex[column.id] ?? -1;
-    final theme = Theme.of(context);
 
-    return Container(
-      key: Key('column_${column.id}'),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(8),
-        color: theme.colorScheme.surface,
-      ),
-      constraints: const BoxConstraints(minHeight: 100),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (column.isDroppable) ...[
-            // Build interleaved list of drop zones and widgets
-            for (int i = 0; i <= widgets.length; i++) ...[
-              // Drop zone at position i
-              EditorDropZone(
-                columnId: column.id,
-                index: i,
-                isHovering: currentHoverIndex == i,
-                registry: registry,
-                onHoverIndexChanged: (index) {
-                  setState(() {
-                    _hoverIndex[column.id] = index;
-                  });
-                },
-                onAccept: (dragData) {
-                  if (dragData.isNewWidget) {
-                    _handleWidgetDropAtIndex(
-                      dragData.newWidgetType!,
-                      column.id,
-                      i,
-                    );
-                  } else if (dragData.isExistingWidget) {
-                    _handleWidgetMoveToIndex(
-                      dragData.existingWidget!,
-                      dragData.sourceColumnId!,
-                      column.id,
-                      i,
-                    );
-                  }
-                },
-              ),
-
-              // Widget at position i (if exists)
-              if (i < widgets.length)
-                DraggableWidgetItem(
-                  widgetInstance: widgets[i],
-                  columnId: column.id,
-                  isEditable: !widgets[i].isTemplate,
-                  isLocked: widgets[i].isTemplate,
-                  currentUserId: ref.read(currentUserProvider)?.id,
-                  editingUserName: _findEditingPresence(widgets[i])?.userName,
-                  editingUserAvatar: _findEditingPresence(
-                    widgets[i],
-                  )?.userAvatar,
-                  onUpdate: (props) =>
-                      _handleWidgetUpdate(widgets[i].id, props),
-                  onDelete: () => _handleWidgetDelete(widgets[i].id),
-                  onEditStarted: () => _crudHelper.lockWidget(widgets[i].id),
-                  onEditEnded: () => _crudHelper.unlockWidget(widgets[i].id),
-                  onConfirmDismiss: () =>
-                      showDeleteConfirmation(context, itemType: 'widget'),
-                  onDismissed: (id) => _performWidgetDelete(id),
-                ),
-            ],
-
-            // Empty state (only show when no widgets and not hovering)
-            if (widgets.isEmpty && currentHoverIndex == -1)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Text(
-                    'Drop widgets here',
-                    style: TextStyle(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-          ] else ...[
-            // Non-droppable column: widgets only, no drop zones
-            for (final widget in widgets)
-              DraggableWidgetItem(
-                widgetInstance: widget,
-                columnId: column.id,
-                isEditable: !widget.isTemplate,
-                isLocked: widget.isTemplate,
-                currentUserId: ref.read(currentUserProvider)?.id,
-                editingUserName: _findEditingPresence(widget)?.userName,
-                editingUserAvatar: _findEditingPresence(widget)?.userAvatar,
-                onUpdate: (props) => _handleWidgetUpdate(widget.id, props),
-                onDelete: () => _handleWidgetDelete(widget.id),
-                onEditStarted: () => _crudHelper.lockWidget(widget.id),
-                onEditEnded: () => _crudHelper.unlockWidget(widget.id),
-                onConfirmDismiss: () =>
-                    showDeleteConfirmation(context, itemType: 'widget'),
-                onDismissed: (id) => _performWidgetDelete(id),
-              ),
-
-            // Empty state for locked column
-            if (widgets.isEmpty)
-              Center(
-                child: Icon(
-                  Icons.lock,
-                  color: theme.colorScheme.onSurfaceVariant,
-                  size: 16,
-                ),
-              ),
-          ],
-        ],
+    return EditorColumnCard(
+      column: column,
+      widgets: widgets,
+      hoverIndex: _hoverIndex[column.id] ?? -1,
+      registry: registry,
+      onHoverIndexChanged: (index) {
+        setState(() {
+          _hoverIndex[column.id] = index;
+        });
+      },
+      onWidgetDrop: _handleWidgetDropAtIndex,
+      onWidgetMove: _handleWidgetMoveToIndex,
+      widgetItemBuilder: (widgetInstance, columnId) => DraggableWidgetItem(
+        widgetInstance: widgetInstance,
+        columnId: columnId,
+        isEditable: !widgetInstance.isTemplate,
+        isLocked: widgetInstance.isTemplate,
+        currentUserId: ref.read(currentUserProvider)?.id,
+        editingUserName: _findEditingPresence(widgetInstance)?.userName,
+        editingUserAvatar: _findEditingPresence(widgetInstance)?.userAvatar,
+        onUpdate: (props) => _handleWidgetUpdate(widgetInstance.id, props),
+        onDelete: () => _handleWidgetDelete(widgetInstance.id),
+        onEditStarted: () => _crudHelper.lockWidget(widgetInstance.id),
+        onEditEnded: () => _crudHelper.unlockWidget(widgetInstance.id),
+        onConfirmDismiss: () =>
+            showDeleteConfirmation(context, itemType: 'widget'),
+        onDismissed: (id) => _performWidgetDelete(id),
       ),
     );
   }

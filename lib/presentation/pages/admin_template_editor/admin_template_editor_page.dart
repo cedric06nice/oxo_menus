@@ -29,7 +29,7 @@ import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dar
 import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
-import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/menu_display_options_dialog.dart';
@@ -1240,113 +1240,63 @@ class _AdminTemplateEditorPageState
   Widget _buildColumnCard(entity.Column column) {
     final widgets = _widgets[column.id] ?? [];
     final registry = ref.watch(widgetRegistryProvider);
-    final theme = Theme.of(context);
-    final currentHoverIndex = _hoverIndex[column.id] ?? -1;
     final isSelected =
         _currentSelection?.type == EditorElementType.column &&
         _currentSelection?.id == column.id;
 
-    return GestureDetector(
+    // Admin template editor always allows dropping (overrides isDroppable)
+    final droppableColumn = column.isDroppable
+        ? column
+        : column.copyWith(isDroppable: true);
+
+    return EditorColumnCard(
       key: Key('selectable_column_${column.id}'),
+      column: droppableColumn,
+      widgets: widgets,
+      hoverIndex: _hoverIndex[column.id] ?? -1,
+      registry: registry,
+      isSelected: isSelected,
       onTap: () => _selectElement(
         EditorSelection(type: EditorElementType.column, id: column.id),
       ),
-      child: Container(
-        key: Key('column_${column.id}'),
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected
-                ? theme.colorScheme.primary
-                : theme.colorScheme.outlineVariant,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(8),
-          color: theme.colorScheme.surface,
-        ),
-        constraints: const BoxConstraints(minHeight: 100),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Flex: ${column.flex ?? 1}',
-                  style: const TextStyle(fontSize: 11),
-                ),
-                IconButton(
-                  key: Key('delete_column_${column.id}'),
-                  icon: const Icon(Icons.delete, size: 16),
-                  onPressed: () => _deleteColumn(column.id),
-                  constraints: const BoxConstraints(),
-                  padding: EdgeInsets.zero,
-                  tooltip: 'Delete Column',
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Widget drop zones and widgets
-            for (int i = 0; i <= widgets.length; i++) ...[
-              EditorDropZone(
-                columnId: column.id,
-                index: i,
-                isHovering: currentHoverIndex == i,
-                registry: registry,
-                onHoverIndexChanged: (index) {
-                  setState(() {
-                    _hoverIndex[column.id] = index;
-                  });
-                },
-                onAccept: (dragData) {
-                  if (dragData.isNewWidget) {
-                    _handleWidgetDropAtIndex(
-                      dragData.newWidgetType!,
-                      column.id,
-                      i,
-                    );
-                  } else if (dragData.isExistingWidget) {
-                    _handleWidgetMoveToIndex(
-                      dragData.existingWidget!,
-                      dragData.sourceColumnId!,
-                      column.id,
-                      i,
-                    );
-                  }
-                },
+      header: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Flex: ${column.flex ?? 1}',
+                style: const TextStyle(fontSize: 11),
               ),
-              if (i < widgets.length)
-                DraggableWidgetItem(
-                  widgetInstance: widgets[i],
-                  columnId: column.id,
-                  isEditable: true,
-                  isLocked: false,
-                  onUpdate: (props) =>
-                      _handleWidgetUpdate(widgets[i].id, props),
-                  onDelete: () => _handleWidgetDelete(widgets[i].id),
-                  onConfirmDismiss: () => showDeleteConfirmation(context),
-                  onDismissed: (id) => _performWidgetDelete(id),
-                ),
+              IconButton(
+                key: Key('delete_column_${column.id}'),
+                icon: const Icon(Icons.delete, size: 16),
+                onPressed: () => _deleteColumn(column.id),
+                constraints: const BoxConstraints(),
+                padding: EdgeInsets.zero,
+                tooltip: 'Delete Column',
+              ),
             ],
-
-            // Empty state
-            if (widgets.isEmpty && currentHoverIndex == -1)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Text(
-                    'Drop widgets here',
-                    style: TextStyle(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+      onHoverIndexChanged: (index) {
+        setState(() {
+          _hoverIndex[column.id] = index;
+        });
+      },
+      onWidgetDrop: _handleWidgetDropAtIndex,
+      onWidgetMove: _handleWidgetMoveToIndex,
+      widgetItemBuilder: (widgetInstance, columnId) => DraggableWidgetItem(
+        widgetInstance: widgetInstance,
+        columnId: columnId,
+        isEditable: true,
+        isLocked: false,
+        onUpdate: (props) => _handleWidgetUpdate(widgetInstance.id, props),
+        onDelete: () => _handleWidgetDelete(widgetInstance.id),
+        onConfirmDismiss: () => showDeleteConfirmation(context),
+        onDismissed: (id) => _performWidgetDelete(id),
       ),
     );
   }
