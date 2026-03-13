@@ -20,7 +20,8 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
   EditorTreeState build() => const EditorTreeState();
 
   Future<void> loadTree({bool separateHeaderFooter = false}) async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    final isInitialLoad = state.menu == null;
+    state = state.copyWith(isLoading: isInitialLoad, errorMessage: null);
 
     final loader = EditorTreeLoader(
       menuRepository: ref.read(menuRepositoryProvider),

@@ -1,22 +1,17 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
-import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
-import 'package:oxo_menus/domain/entities/menu_change_event.dart';
-import 'package:oxo_menus/domain/entities/menu_presence.dart';
-import 'package:oxo_menus/domain/entities/widget_instance.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
-import 'package:oxo_menus/domain/repositories/presence_repository.dart';
-import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
-import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
+import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_provider.dart';
+import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_state.dart';
+import 'package:oxo_menus/presentation/pages/menu_editor/state/menu_collaboration_provider.dart';
+import 'package:oxo_menus/presentation/pages/menu_editor/state/menu_collaboration_state.dart';
 import 'package:oxo_menus/presentation/providers/app_lifecycle_provider.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
@@ -37,14 +32,6 @@ import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_mixin.d
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/editor/display_options_dialog_helper.dart';
 
-/// Menu Editor Page
-///
-/// Allows users to create and edit menus by:
-/// - Selecting a template
-/// - Dragging widgets from palette into columns
-/// - Editing widget content
-/// - Reordering widgets
-/// - Saving the menu
 class MenuEditorPage extends ConsumerStatefulWidget {
   final int menuId;
 
@@ -58,44 +45,11 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
     with EditorWidgetCrudMixin {
   static const narrowBreakpoint = 600.0;
 
-  Menu? _menu;
-  List<entity.Page> _pages = [];
-  final Map<int, List<entity.Container>> _containers = {};
-  final Map<int, List<entity.Column>> _columns = {};
-  final Map<int, List<WidgetInstance>> _widgets = {};
-  bool _isLoading = true;
-  String? _errorMessage;
-
-  // Track hover position for drag-and-drop: columnId -> hoverIndex (-1 = not hovering)
   final Map<int, int> _hoverIndex = {};
-
   final ScrollController _scrollController = ScrollController();
-
-  List<MenuPresence> _presences = [];
-
-  StreamSubscription<dynamic>? _changeSubscription;
-  StreamSubscription<List<MenuPresence>>? _presenceSubscription;
-  Timer? _debounceTimer;
-  Timer? _heartbeatTimer;
-  Timer? _pollingTimer;
-  MenuSubscriptionRepository? _menuSubscriptionRepository;
-  PresenceRepository? _presenceRepository;
-  String? _currentUserId;
-  bool _isReconnecting = false;
-  int _wsErrorCount = 0;
-  static const _maxWsErrors = 3;
-  bool _isPaused = false;
-  bool _isLoadingMenu = false;
 
   @override
   late EditorWidgetCrudHelper crudHelper;
-
-  /// Look up the presence entry for the user currently editing a widget.
-  MenuPresence? _findEditingPresence(WidgetInstance widget) {
-    final editingBy = widget.editingBy;
-    if (editingBy == null) return null;
-    return _presences.where((p) => p.userId == editingBy).firstOrNull;
-  }
 
   @override
   void didChangeDependencies() {
@@ -103,7 +57,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
     crudHelper = EditorWidgetCrudHelper(
       widgetRepository: ref.read(widgetRepositoryProvider),
       widgetRegistry: ref.read(widgetRegistryProvider),
-      onReload: _loadMenu,
+      onReload: () =>
+          ref.read(editorTreeProvider(widget.menuId).notifier).loadTree(),
       isTemplate: false,
       currentUserId: ref.read(currentUserProvider)?.id,
       onMessage: (message, {bool isError = false}) {
@@ -118,231 +73,42 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadMenu(isInitialLoad: true);
+      ref.read(editorTreeProvider(widget.menuId).notifier).loadTree();
+      ref
+          .read(menuCollaborationProvider(widget.menuId).notifier)
+          .startTracking();
+      _listenForDisplayOptions();
       _listenToConnectivityAndLifecycle();
+    });
+  }
+
+  void _listenForDisplayOptions() {
+    ref.listenManual(editorTreeProvider(widget.menuId), (prev, next) {
+      if (next.menu != null && next.menu != prev?.menu) {
+        ref.read(menuDisplayOptionsProvider.notifier).state =
+            next.menu?.displayOptions;
+      }
     });
   }
 
   void _listenToConnectivityAndLifecycle() {
     ref.listenManual(connectivityProvider, (prev, next) {
-      final wasOffline = prev?.value == ConnectivityStatus.offline;
-      final isOffline = next.value == ConnectivityStatus.offline;
-      final isForeground = ref.read(isAppInForegroundProvider);
-
-      if (isOffline && !_isPaused) {
-        _pauseSubscriptions();
-      } else if (wasOffline && !isOffline && isForeground && _isPaused) {
-        _resumeSubscriptions();
-      }
+      ref
+          .read(menuCollaborationProvider(widget.menuId).notifier)
+          .onConnectivityChanged(prev?.value, next.value);
     });
 
     ref.listenManual(isAppInForegroundProvider, (prev, next) {
-      final connectivity = ref.read(connectivityProvider);
-      final isOnline = connectivity.value != ConnectivityStatus.offline;
-
-      if (!next && !_isPaused) {
-        _pauseSubscriptions();
-      } else if (next && prev == false && isOnline && _isPaused) {
-        _resumeSubscriptions();
-      }
+      ref
+          .read(menuCollaborationProvider(widget.menuId).notifier)
+          .onLifecycleChanged(prev, next);
     });
-  }
-
-  void _pauseSubscriptions() {
-    _isPaused = true;
-    _debounceTimer?.cancel();
-    _heartbeatTimer?.cancel();
-    _pollingTimer?.cancel();
-    _changeSubscription?.cancel();
-    _changeSubscription = null;
-    _presenceSubscription?.cancel();
-    _presenceSubscription = null;
-    _menuSubscriptionRepository?.unsubscribe(widget.menuId);
-    _presenceRepository?.unsubscribePresence(widget.menuId);
-  }
-
-  void _resumeSubscriptions() {
-    _isPaused = false;
-    _wsErrorCount = 0;
-    if (mounted) {
-      setState(() => _isReconnecting = false);
-      _subscribeToChanges();
-      _startPresenceTracking();
-      _loadMenu();
-    }
   }
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
-    _heartbeatTimer?.cancel();
-    _pollingTimer?.cancel();
-    _changeSubscription?.cancel();
-    _presenceSubscription?.cancel();
-    _menuSubscriptionRepository?.unsubscribe(widget.menuId);
-    _presenceRepository?.unsubscribePresence(widget.menuId);
-    if (_currentUserId != null) {
-      _presenceRepository?.leaveMenu(widget.menuId, _currentUserId!);
-    }
     _scrollController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadMenu({bool isInitialLoad = false}) async {
-    if (_isLoadingMenu && !isInitialLoad) return;
-    _isLoadingMenu = true;
-    try {
-      await _loadMenuImpl(isInitialLoad: isInitialLoad);
-    } finally {
-      _isLoadingMenu = false;
-    }
-  }
-
-  Future<void> _loadMenuImpl({bool isInitialLoad = false}) async {
-    if (isInitialLoad) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-    }
-
-    final loader = EditorTreeLoader(
-      menuRepository: ref.read(menuRepositoryProvider),
-      pageRepository: ref.read(pageRepositoryProvider),
-      containerRepository: ref.read(containerRepositoryProvider),
-      columnRepository: ref.read(columnRepositoryProvider),
-      widgetRepository: ref.read(widgetRepositoryProvider),
-    );
-
-    final result = await loader.loadTree(widget.menuId);
-    if (!mounted) return;
-
-    if (result.isFailure) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = result.errorOrNull?.message ?? 'Failed to load menu';
-      });
-      return;
-    }
-
-    final tree = result.valueOrNull!;
-    _menu = tree.menu;
-    _pages = tree.pages
-        .where((page) => page.type == entity.PageType.content)
-        .toList();
-    _containers
-      ..clear()
-      ..addAll(tree.containers);
-    _columns
-      ..clear()
-      ..addAll(tree.columns);
-    _widgets
-      ..clear()
-      ..addAll(tree.widgets);
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    // Set display options in provider
-    ref.read(menuDisplayOptionsProvider.notifier).state = _menu?.displayOptions;
-
-    // Start WebSocket subscription and presence after first successful load
-    if (isInitialLoad) {
-      _subscribeToChanges();
-      _startPresenceTracking();
-    }
-  }
-
-  void _subscribeToChanges() {
-    _menuSubscriptionRepository = ref.read(menuSubscriptionRepositoryProvider);
-    final stream = _menuSubscriptionRepository!.subscribeToMenuChanges(
-      widget.menuId,
-    );
-
-    _changeSubscription = stream.listen(
-      _onChangeEvent,
-      onError: _onStreamError,
-    );
-  }
-
-  Future<void> _startPresenceTracking() async {
-    _presenceRepository = ref.read(presenceRepositoryProvider);
-    final currentUser = ref.read(currentUserProvider);
-    _currentUserId = currentUser?.id;
-
-    if (_currentUserId != null) {
-      final nameParts = [?currentUser?.firstName, ?currentUser?.lastName];
-      final displayName = nameParts.isEmpty ? null : nameParts.join(' ');
-      await _presenceRepository!.joinMenu(
-        widget.menuId,
-        _currentUserId!,
-        userName: displayName,
-        userAvatar: currentUser?.avatar,
-      );
-      if (!mounted) return;
-      _refreshPresences();
-
-      _presenceSubscription = _presenceRepository!
-          .watchActiveUsers(widget.menuId)
-          .listen((presences) {
-            if (mounted) {
-              setState(() {
-                _presences = presences;
-              });
-            }
-          });
-
-      _heartbeatTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-        _presenceRepository?.heartbeat(widget.menuId, _currentUserId!);
-      });
-    }
-  }
-
-  Future<void> _refreshPresences() async {
-    final result = await _presenceRepository?.getActiveUsers(widget.menuId);
-    if (result != null && result.isSuccess && mounted) {
-      setState(() {
-        _presences = result.valueOrNull ?? [];
-      });
-    }
-  }
-
-  void _onChangeEvent(MenuChangeEvent event) {
-    // Clear reconnecting state on successful event
-    if (_isReconnecting) {
-      setState(() {
-        _isReconnecting = false;
-        _wsErrorCount = 0;
-      });
-    }
-
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        _loadMenu();
-      }
-    });
-  }
-
-  void _onStreamError(Object error) {
-    if (!mounted || _isPaused) return;
-    _wsErrorCount++;
-
-    setState(() {
-      _isReconnecting = true;
-    });
-
-    if (_wsErrorCount >= _maxWsErrors) {
-      _startPollingFallback();
-    }
-  }
-
-  void _startPollingFallback() {
-    _pollingTimer?.cancel();
-    _pollingTimer = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) _loadMenu();
-    });
   }
 
   Future<void> _showPdf() async {
@@ -350,15 +116,18 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
   }
 
   void _showDisplayOptionsDialog() {
+    final treeState = ref.read(editorTreeProvider(widget.menuId));
     showDisplayOptionsDialog(
       context: context,
       ref: ref,
       menuId: widget.menuId,
-      menu: _menu,
+      menu: treeState.menu,
       onMenuUpdated: (updatedMenu) {
-        setState(() {
-          _menu = updatedMenu;
-        });
+        if (updatedMenu != null) {
+          ref
+              .read(editorTreeProvider(widget.menuId).notifier)
+              .updateMenuLocally(updatedMenu);
+        }
       },
     );
   }
@@ -366,12 +135,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
   Future<void> _saveMenu() async {
     final result = await ref
         .read(menuRepositoryProvider)
-        .update(
-          UpdateMenuInput(
-            id: widget.menuId,
-            // Keep existing data for now
-          ),
-        );
+        .update(UpdateMenuInput(id: widget.menuId));
 
     if (result.isSuccess && mounted) {
       showThemedSnackBar(context, 'Menu saved');
@@ -380,7 +144,10 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    final treeState = ref.watch(editorTreeProvider(widget.menuId));
+    final collabState = ref.watch(menuCollaborationProvider(widget.menuId));
+
+    if (treeState.isLoading) {
       return const AuthenticatedScaffold(
         title: 'Loading...',
         body: Center(child: AdaptiveLoadingIndicator()),
@@ -390,33 +157,41 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
     final isOffline =
         ref.watch(connectivityProvider).value == ConnectivityStatus.offline;
 
-    if (isOffline && !_isLoading) {
+    if (isOffline) {
       return AuthenticatedScaffold(
-        title: _menu?.name ?? 'Menu Editor',
+        title: treeState.menu?.name ?? 'Menu Editor',
         body: OfflineErrorPage(
           onRetry: () => ref.invalidate(connectivityProvider),
         ),
       );
     }
 
-    if (_errorMessage != null) {
+    if (treeState.errorMessage != null) {
       return AuthenticatedScaffold(
         title: 'Error',
         body: AdaptiveErrorState(
-          message: _errorMessage!,
-          onRetry: () => _loadMenu(isInitialLoad: true),
+          message: treeState.errorMessage!,
+          onRetry: () =>
+              ref.read(editorTreeProvider(widget.menuId).notifier).loadTree(),
         ),
       );
     }
 
     final registry = ref.watch(widgetRegistryProvider);
     final theme = Theme.of(context);
+    final menu = treeState.menu;
+    final pages = treeState.pages
+        .where((page) => page.type == entity.PageType.content)
+        .toList();
 
     return AuthenticatedScaffold(
-      title: _menu?.name ?? 'Menu Editor',
+      title: menu?.name ?? 'Menu Editor',
       actions: [
-        if (_currentUserId != null)
-          PresenceBar(presences: _presences, currentUserId: _currentUserId!),
+        if (collabState.currentUserId != null)
+          PresenceBar(
+            presences: collabState.presences,
+            currentUserId: collabState.currentUserId!,
+          ),
         IconButton(
           key: const Key('display_options_button'),
           onPressed: _showDisplayOptionsDialog,
@@ -438,7 +213,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
       ],
       body: Column(
         children: [
-          if (_isReconnecting)
+          if (collabState.isReconnecting)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 4),
@@ -476,9 +251,11 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
                       WidgetPalette(
                         axis: Axis.horizontal,
                         registry: registry,
-                        allowedWidgetTypes: _menu?.allowedWidgetTypes,
+                        allowedWidgetTypes: menu?.allowedWidgetTypes,
                       ),
-                      Expanded(child: _buildCanvas()),
+                      Expanded(
+                        child: _buildCanvas(pages, treeState, collabState),
+                      ),
                     ],
                   );
                 }
@@ -497,10 +274,12 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
                       ),
                       child: WidgetPalette(
                         registry: registry,
-                        allowedWidgetTypes: _menu?.allowedWidgetTypes,
+                        allowedWidgetTypes: menu?.allowedWidgetTypes,
                       ),
                     ),
-                    Expanded(child: _buildCanvas()),
+                    Expanded(
+                      child: _buildCanvas(pages, treeState, collabState),
+                    ),
                   ],
                 );
               },
@@ -511,7 +290,11 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
     );
   }
 
-  Widget _buildCanvas() {
+  Widget _buildCanvas(
+    List<entity.Page> pages,
+    EditorTreeState treeState,
+    MenuCollaborationState collabState,
+  ) {
     return AutoScrollListener(
       scrollController: _scrollController,
       child: SingleChildScrollView(
@@ -523,7 +306,9 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: _pages.map((page) => _buildPageCard(page)).toList(),
+                children: pages
+                    .map((page) => _buildPageCard(page, treeState, collabState))
+                    .toList(),
               ),
             ),
           ),
@@ -532,8 +317,12 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
     );
   }
 
-  Widget _buildPageCard(entity.Page page) {
-    final containers = _containers[page.id] ?? [];
+  Widget _buildPageCard(
+    entity.Page page,
+    EditorTreeState treeState,
+    MenuCollaborationState collabState,
+  ) {
+    final containers = treeState.containers[page.id] ?? [];
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -543,21 +332,26 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Containers
-            ...containers.map((container) => _buildContainerCard(container)),
+            ...containers.map(
+              (container) =>
+                  _buildContainerCard(container, treeState, collabState),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildContainerCard(entity.Container container) {
-    final columns = _columns[container.id] ?? [];
+  Widget _buildContainerCard(
+    entity.Container container,
+    EditorTreeState treeState,
+    MenuCollaborationState collabState,
+  ) {
+    final columns = treeState.columns[container.id] ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Columns
         if (columns.isNotEmpty)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,7 +359,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
                 .map(
                   (column) => Expanded(
                     flex: column.flex ?? 1,
-                    child: _buildColumnCard(column),
+                    child: _buildColumnCard(column, treeState, collabState),
                   ),
                 )
                 .toList(),
@@ -574,9 +368,16 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
     );
   }
 
-  Widget _buildColumnCard(entity.Column column) {
-    final widgets = _widgets[column.id] ?? [];
+  Widget _buildColumnCard(
+    entity.Column column,
+    EditorTreeState treeState,
+    MenuCollaborationState collabState,
+  ) {
+    final widgets = treeState.widgets[column.id] ?? [];
     final registry = ref.watch(widgetRegistryProvider);
+    final collabNotifier = ref.read(
+      menuCollaborationProvider(widget.menuId).notifier,
+    );
 
     return EditorColumnCard(
       column: column,
@@ -596,8 +397,12 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
         isEditable: !widgetInstance.isTemplate,
         isLocked: widgetInstance.isTemplate,
         currentUserId: ref.read(currentUserProvider)?.id,
-        editingUserName: _findEditingPresence(widgetInstance)?.userName,
-        editingUserAvatar: _findEditingPresence(widgetInstance)?.userAvatar,
+        editingUserName: collabNotifier
+            .findEditingPresence(widgetInstance)
+            ?.userName,
+        editingUserAvatar: collabNotifier
+            .findEditingPresence(widgetInstance)
+            ?.userAvatar,
         onUpdate: (props) => handleWidgetUpdate(widgetInstance.id, props),
         onDelete: () => _handleWidgetDelete(widgetInstance.id),
         onEditStarted: () => crudHelper.lockWidget(widgetInstance.id),
@@ -614,7 +419,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
     int columnId,
     int index,
   ) async {
-    final allowed = _menu?.allowedWidgetTypes;
+    final treeState = ref.read(editorTreeProvider(widget.menuId));
+    final allowed = treeState.menu?.allowedWidgetTypes;
     if (allowed != null &&
         allowed.isNotEmpty &&
         !allowed.contains(widgetType)) {
