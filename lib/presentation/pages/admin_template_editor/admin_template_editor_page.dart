@@ -14,7 +14,7 @@ import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
-import 'package:oxo_menus/presentation/pages/admin_template_editor/state/editor_selection_notifier.dart';
+import 'package:oxo_menus/presentation/pages/admin_template_editor/state/editor_selection_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/side_panel_style_editor.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
@@ -72,8 +72,6 @@ class _AdminTemplateEditorPageState
   late EditorWidgetCrudHelper crudHelper;
   late EditorStructureCrudHelper _structureHelper;
   late EditorStyleHelper _styleHelper;
-  late EditorSelectionNotifier _selectionNotifier;
-  EditorSelection? _currentSelection;
 
   final ScrollController _scrollController = ScrollController();
 
@@ -115,22 +113,30 @@ class _AdminTemplateEditorPageState
   @override
   void initState() {
     super.initState();
-    _selectionNotifier = EditorSelectionNotifier(
-      saveMenuStyle: _saveMenuStyle,
-      saveContainerStyle: _onContainerStyleChanged,
-      saveColumnStyle: _onColumnStyleChanged,
-      resolveStyle: _resolveStyle,
-    );
-    _selectionNotifier.addListener((state) {
-      if (mounted) {
-        setState(() {
-          _currentSelection = state.selection;
-        });
-      }
-    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadTemplate(isInitialLoad: true);
       _listenForConnectivityRestore();
+      _listenForSelectionAutoSave();
+    });
+  }
+
+  void _listenForSelectionAutoSave() {
+    ref.listenManual(editorSelectionProvider, (prev, next) {
+      if (prev == null) return;
+      if (prev.selection == next.selection) return;
+      if (prev.selection == null) return;
+      if (prev.currentStyle == prev.originalStyle) return;
+      if (prev.currentStyle == null) return;
+
+      final style = prev.currentStyle!;
+      switch (prev.selection!.type) {
+        case EditorElementType.menu:
+          _saveMenuStyle(style);
+        case EditorElementType.container:
+          _onContainerStyleChanged(prev.selection!.id, style);
+        case EditorElementType.column:
+          _onColumnStyleChanged(prev.selection!.id, style);
+      }
     });
   }
 
@@ -148,7 +154,6 @@ class _AdminTemplateEditorPageState
   void dispose() {
     _styleHelper.dispose();
     _scrollController.dispose();
-    _selectionNotifier.dispose();
     super.dispose();
   }
 
@@ -326,7 +331,7 @@ class _AdminTemplateEditorPageState
     setState(() {
       _menu = _menu?.copyWith(styleConfig: newStyle);
     });
-    _selectionNotifier.updateStyle(newStyle);
+    ref.read(editorSelectionProvider.notifier).updateStyle(newStyle);
   }
 
   Future<void> _onContainerStyleChanged(
@@ -396,7 +401,7 @@ class _AdminTemplateEditorPageState
   void _selectElement(EditorSelection selection) {
     _styleHelper.flushStyleDebounce();
     final style = _resolveStyle(selection);
-    _selectionNotifier.select(selection, style);
+    ref.read(editorSelectionProvider.notifier).select(selection, style);
 
     if (_isNarrow) {
       _showStyleEditorBottomSheet();
@@ -424,11 +429,11 @@ class _AdminTemplateEditorPageState
 
   void _deselectElement() {
     _styleHelper.flushStyleDebounce();
-    _selectionNotifier.deselect();
+    ref.read(editorSelectionProvider.notifier).deselect();
   }
 
   void _onSidePanelStyleChanged(StyleConfig newStyle) {
-    final sel = _currentSelection;
+    final sel = ref.read(editorSelectionProvider).selection;
     if (sel == null) return;
 
     switch (sel.type) {
@@ -436,13 +441,13 @@ class _AdminTemplateEditorPageState
         _onStyleChanged(newStyle);
       case EditorElementType.container:
         _styleHelper.updateContainerStyleLocally(sel.id, newStyle);
-        _selectionNotifier.updateStyle(newStyle);
+        ref.read(editorSelectionProvider.notifier).updateStyle(newStyle);
         _styleHelper.debounceStyleSave(
           () => _styleHelper.saveContainerStyleToApi(sel.id, newStyle),
         );
       case EditorElementType.column:
         _styleHelper.updateColumnStyleLocally(sel.id, newStyle);
-        _selectionNotifier.updateStyle(newStyle);
+        ref.read(editorSelectionProvider.notifier).updateStyle(newStyle);
         _styleHelper.debounceStyleSave(
           () => _styleHelper.saveColumnStyleToApi(sel.id, newStyle),
         );
@@ -471,6 +476,8 @@ class _AdminTemplateEditorPageState
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final selectionState = ref.watch(editorSelectionProvider);
+    final currentSelection = selectionState.selection;
 
     if (_isLoading) {
       return const AuthenticatedScaffold(
@@ -576,7 +583,7 @@ class _AdminTemplateEditorPageState
                           onAllowedTypesChanged: _onAllowedWidgetTypesChanged,
                         ),
                       ),
-                      if (_currentSelection != null) ...[
+                      if (currentSelection != null) ...[
                         const Divider(height: 1),
                         Expanded(
                           child: SingleChildScrollView(
@@ -599,7 +606,8 @@ class _AdminTemplateEditorPageState
   }
 
   Widget _buildSidePanel() {
-    final sel = _currentSelection;
+    final selState = ref.watch(editorSelectionProvider);
+    final sel = selState.selection;
     if (sel == null) return const SizedBox.shrink();
 
     final style = _resolveStyle(sel);
@@ -620,13 +628,15 @@ class _AdminTemplateEditorPageState
       }
     }
 
+    final selectionNotifier = ref.read(editorSelectionProvider.notifier);
+
     return SidePanelStyleEditor(
       type: sel.type,
       styleConfig: style,
-      clipboardStyle: _selectionNotifier.clipboardStyle,
-      onCopy: () => _selectionNotifier.copyStyle(),
+      clipboardStyle: selState.clipboardStyle,
+      onCopy: () => selectionNotifier.copyStyle(),
       onPaste: () {
-        final pasted = _selectionNotifier.pasteStyle();
+        final pasted = selectionNotifier.pasteStyle();
         if (pasted != null) {
           _onSidePanelStyleChanged(pasted);
         }
@@ -672,7 +682,11 @@ class _AdminTemplateEditorPageState
                       decoration: BoxDecoration(
                         border: Border.all(
                           color:
-                              _currentSelection?.type == EditorElementType.menu
+                              ref
+                                      .watch(editorSelectionProvider)
+                                      .selection
+                                      ?.type ==
+                                  EditorElementType.menu
                               ? theme.colorScheme.primary
                               : Colors.transparent,
                           width: 2,
@@ -834,9 +848,10 @@ class _AdminTemplateEditorPageState
   Widget _buildContainerCard(entity.Container container) {
     final columns = _columns[container.id] ?? [];
     final theme = Theme.of(context);
+    final currentSel = ref.watch(editorSelectionProvider).selection;
     final isSelected =
-        _currentSelection?.type == EditorElementType.container &&
-        _currentSelection?.id == container.id;
+        currentSel?.type == EditorElementType.container &&
+        currentSel?.id == container.id;
 
     return GestureDetector(
       key: Key('selectable_container_${container.id}'),
@@ -908,9 +923,10 @@ class _AdminTemplateEditorPageState
   Widget _buildColumnCard(entity.Column column) {
     final widgets = _widgets[column.id] ?? [];
     final registry = ref.watch(widgetRegistryProvider);
+    final currentSel = ref.watch(editorSelectionProvider).selection;
     final isSelected =
-        _currentSelection?.type == EditorElementType.column &&
-        _currentSelection?.id == column.id;
+        currentSel?.type == EditorElementType.column &&
+        currentSel?.id == column.id;
 
     // Admin template editor always allows dropping (overrides isDroppable)
     final droppableColumn = column.isDroppable
