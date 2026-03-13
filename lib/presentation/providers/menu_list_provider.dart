@@ -1,9 +1,8 @@
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
@@ -24,15 +23,9 @@ abstract class MenuListState with _$MenuListState {
 /// Menu list state notifier
 ///
 /// Manages the menu list state and provides methods for loading and deleting menus
-class MenuListNotifier extends StateNotifier<MenuListState> {
-  final MenuRepository _menuRepository;
-  final DuplicateMenuUseCase? _duplicateMenuUseCase;
-
-  MenuListNotifier(
-    this._menuRepository, {
-    DuplicateMenuUseCase? duplicateMenuUseCase,
-  }) : _duplicateMenuUseCase = duplicateMenuUseCase,
-       super(const MenuListState());
+class MenuListNotifier extends Notifier<MenuListState> {
+  @override
+  MenuListState build() => const MenuListState();
 
   /// Load all menus
   ///
@@ -46,10 +39,9 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
-    final result = await _menuRepository.listAll(
-      onlyPublished: onlyPublished,
-      areaIds: areaIds,
-    );
+    final result = await ref
+        .read(menuRepositoryProvider)
+        .listAll(onlyPublished: onlyPublished, areaIds: areaIds);
 
     result.fold(
       onSuccess: (menus) {
@@ -65,7 +57,7 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
   ///
   /// Removes the menu from both the backend and the local state
   Future<void> deleteMenu(int menuId) async {
-    final result = await _menuRepository.delete(menuId);
+    final result = await ref.read(menuRepositoryProvider).delete(menuId);
 
     result.fold(
       onSuccess: (_) {
@@ -99,7 +91,7 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
   Future<Menu?> createMenu(CreateMenuInput input) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
-    final result = await _menuRepository.create(input);
+    final result = await ref.read(menuRepositoryProvider).create(input);
 
     return result.fold(
       onSuccess: (menu) {
@@ -118,13 +110,9 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
   /// Duplicates a menu with all its pages, containers, columns, and widgets.
   /// Returns the duplicated menu on success, or null on failure.
   Future<Menu?> duplicateMenu(int menuId) async {
-    if (_duplicateMenuUseCase == null) {
-      return null;
-    }
-
     state = state.copyWith(isLoading: true, errorMessage: null);
 
-    final result = await _duplicateMenuUseCase.execute(menuId);
+    final result = await ref.read(duplicateMenuUseCaseProvider).execute(menuId);
 
     return result.fold(
       onSuccess: (menu) {
@@ -163,13 +151,6 @@ class MenuListNotifier extends StateNotifier<MenuListState> {
 ///   },
 /// );
 /// ```
-final menuListProvider = StateNotifierProvider<MenuListNotifier, MenuListState>(
-  (ref) {
-    final menuRepository = ref.watch(menuRepositoryProvider);
-    final duplicateMenuUseCase = ref.watch(duplicateMenuUseCaseProvider);
-    return MenuListNotifier(
-      menuRepository,
-      duplicateMenuUseCase: duplicateMenuUseCase,
-    );
-  },
+final menuListProvider = NotifierProvider<MenuListNotifier, MenuListState>(
+  MenuListNotifier.new,
 );

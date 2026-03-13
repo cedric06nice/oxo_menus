@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
@@ -6,13 +7,19 @@ import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/presentation/providers/menu_list_provider.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
 class MockMenuRepository extends Mock implements MenuRepository {}
 
+class MockDuplicateMenuUseCase extends Mock implements DuplicateMenuUseCase {}
+
 void main() {
   late MockMenuRepository mockMenuRepository;
-  late MenuListNotifier menuListNotifier;
+  late MockDuplicateMenuUseCase mockDuplicateMenuUseCase;
+  late ProviderContainer container;
 
   setUpAll(() {
     registerFallbackValue(
@@ -22,8 +29,21 @@ void main() {
 
   setUp(() {
     mockMenuRepository = MockMenuRepository();
-    menuListNotifier = MenuListNotifier(mockMenuRepository);
+    mockDuplicateMenuUseCase = MockDuplicateMenuUseCase();
+    container = ProviderContainer(
+      overrides: [
+        menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+        duplicateMenuUseCaseProvider.overrideWithValue(
+          mockDuplicateMenuUseCase,
+        ),
+      ],
+    );
   });
+
+  tearDown(() => container.dispose());
+
+  MenuListNotifier readNotifier() => container.read(menuListProvider.notifier);
+  MenuListState readState() => container.read(menuListProvider);
 
   group('MenuListNotifier', () {
     final testMenus = [
@@ -48,9 +68,9 @@ void main() {
     ];
 
     test('should start with empty state', () {
-      expect(menuListNotifier.state.menus, isEmpty);
-      expect(menuListNotifier.state.isLoading, false);
-      expect(menuListNotifier.state.errorMessage, null);
+      expect(readState().menus, isEmpty);
+      expect(readState().isLoading, false);
+      expect(readState().errorMessage, null);
     });
 
     group('loadMenus', () {
@@ -59,11 +79,11 @@ void main() {
           () => mockMenuRepository.listAll(onlyPublished: true),
         ).thenAnswer((_) async => Success(testMenus));
 
-        await menuListNotifier.loadMenus(onlyPublished: true);
+        await readNotifier().loadMenus(onlyPublished: true);
 
-        expect(menuListNotifier.state.menus, testMenus);
-        expect(menuListNotifier.state.isLoading, false);
-        expect(menuListNotifier.state.errorMessage, null);
+        expect(readState().menus, testMenus);
+        expect(readState().isLoading, false);
+        expect(readState().errorMessage, null);
         verify(() => mockMenuRepository.listAll(onlyPublished: true)).called(1);
       });
 
@@ -72,10 +92,10 @@ void main() {
           () => mockMenuRepository.listAll(onlyPublished: false),
         ).thenAnswer((_) async => Success(testMenus));
 
-        await menuListNotifier.loadMenus(onlyPublished: false);
+        await readNotifier().loadMenus(onlyPublished: false);
 
-        expect(menuListNotifier.state.menus, testMenus);
-        expect(menuListNotifier.state.isLoading, false);
+        expect(readState().menus, testMenus);
+        expect(readState().isLoading, false);
         verify(
           () => mockMenuRepository.listAll(onlyPublished: false),
         ).called(1);
@@ -90,18 +110,21 @@ void main() {
         });
 
         final states = <MenuListState>[];
-        menuListNotifier.addListener((state) => states.add(state));
+        container.listen<MenuListState>(
+          menuListProvider,
+          (_, next) => states.add(next),
+        );
 
-        final future = menuListNotifier.loadMenus(onlyPublished: true);
+        final future = readNotifier().loadMenus(onlyPublished: true);
 
         // Check that loading state was set
         await Future.delayed(const Duration(milliseconds: 50));
-        expect(menuListNotifier.state.isLoading, true);
+        expect(readState().isLoading, true);
 
         await future;
 
         expect(states.any((s) => s.isLoading), true);
-        expect(menuListNotifier.state.isLoading, false);
+        expect(readState().isLoading, false);
       });
 
       test('should handle errors when loading fails', () async {
@@ -110,11 +133,11 @@ void main() {
           () => mockMenuRepository.listAll(onlyPublished: true),
         ).thenAnswer((_) async => const Failure(error));
 
-        await menuListNotifier.loadMenus(onlyPublished: true);
+        await readNotifier().loadMenus(onlyPublished: true);
 
-        expect(menuListNotifier.state.menus, isEmpty);
-        expect(menuListNotifier.state.isLoading, false);
-        expect(menuListNotifier.state.errorMessage, 'Failed to fetch menus');
+        expect(readState().menus, isEmpty);
+        expect(readState().isLoading, false);
+        expect(readState().errorMessage, 'Failed to fetch menus');
         verify(() => mockMenuRepository.listAll(onlyPublished: true)).called(1);
       });
 
@@ -123,17 +146,17 @@ void main() {
         when(
           () => mockMenuRepository.listAll(onlyPublished: true),
         ).thenAnswer((_) async => const Failure(NetworkError('Error')));
-        await menuListNotifier.loadMenus(onlyPublished: true);
-        expect(menuListNotifier.state.errorMessage, 'Error');
+        await readNotifier().loadMenus(onlyPublished: true);
+        expect(readState().errorMessage, 'Error');
 
         // Then succeed
         when(
           () => mockMenuRepository.listAll(onlyPublished: true),
         ).thenAnswer((_) async => Success(testMenus));
-        await menuListNotifier.loadMenus(onlyPublished: true);
+        await readNotifier().loadMenus(onlyPublished: true);
 
-        expect(menuListNotifier.state.errorMessage, null);
-        expect(menuListNotifier.state.menus, testMenus);
+        expect(readState().errorMessage, null);
+        expect(readState().menus, testMenus);
       });
     });
 
@@ -143,20 +166,20 @@ void main() {
         when(
           () => mockMenuRepository.listAll(onlyPublished: true),
         ).thenAnswer((_) async => Success(testMenus));
-        await menuListNotifier.loadMenus(onlyPublished: true);
+        await readNotifier().loadMenus(onlyPublished: true);
 
-        expect(menuListNotifier.state.menus.length, 3);
+        expect(readState().menus.length, 3);
 
         // Then delete one
         when(
           () => mockMenuRepository.delete(1),
         ).thenAnswer((_) async => const Success(null));
 
-        await menuListNotifier.deleteMenu(1);
+        await readNotifier().deleteMenu(1);
 
-        expect(menuListNotifier.state.menus.length, 2);
-        expect(menuListNotifier.state.menus.any((m) => m.id == 1), false);
-        expect(menuListNotifier.state.errorMessage, null);
+        expect(readState().menus.length, 2);
+        expect(readState().menus.any((m) => m.id == 1), false);
+        expect(readState().errorMessage, null);
         verify(() => mockMenuRepository.delete(1)).called(1);
       });
 
@@ -165,7 +188,7 @@ void main() {
         when(
           () => mockMenuRepository.listAll(onlyPublished: true),
         ).thenAnswer((_) async => Success(testMenus));
-        await menuListNotifier.loadMenus(onlyPublished: true);
+        await readNotifier().loadMenus(onlyPublished: true);
 
         // Then fail to delete
         const error = ServerError('Failed to delete menu');
@@ -173,12 +196,12 @@ void main() {
           () => mockMenuRepository.delete(1),
         ).thenAnswer((_) async => const Failure(error));
 
-        await menuListNotifier.deleteMenu(1);
+        await readNotifier().deleteMenu(1);
 
         // Menu should still be in the list
-        expect(menuListNotifier.state.menus.length, 3);
-        expect(menuListNotifier.state.menus.any((m) => m.id == 1), true);
-        expect(menuListNotifier.state.errorMessage, 'Failed to delete menu');
+        expect(readState().menus.length, 3);
+        expect(readState().menus.any((m) => m.id == 1), true);
+        expect(readState().errorMessage, 'Failed to delete menu');
         verify(() => mockMenuRepository.delete(1)).called(1);
       });
 
@@ -187,18 +210,18 @@ void main() {
         when(
           () => mockMenuRepository.listAll(onlyPublished: true),
         ).thenAnswer((_) async => Success(testMenus));
-        await menuListNotifier.loadMenus(onlyPublished: true);
+        await readNotifier().loadMenus(onlyPublished: true);
 
         // Delete a menu that doesn't exist in local state
         when(
           () => mockMenuRepository.delete(999),
         ).thenAnswer((_) async => const Success(null));
 
-        await menuListNotifier.deleteMenu(999);
+        await readNotifier().deleteMenu(999);
 
         // State should be unchanged
-        expect(menuListNotifier.state.menus.length, 3);
-        expect(menuListNotifier.state.errorMessage, null);
+        expect(readState().menus.length, 3);
+        expect(readState().errorMessage, null);
       });
     });
 
@@ -208,10 +231,10 @@ void main() {
           () => mockMenuRepository.listAll(onlyPublished: true),
         ).thenAnswer((_) async => Success(testMenus));
 
-        await menuListNotifier.refresh(onlyPublished: true);
+        await readNotifier().refresh(onlyPublished: true);
 
-        expect(menuListNotifier.state.menus, testMenus);
-        expect(menuListNotifier.state.isLoading, false);
+        expect(readState().menus, testMenus);
+        expect(readState().isLoading, false);
         verify(() => mockMenuRepository.listAll(onlyPublished: true)).called(1);
       });
 
@@ -220,7 +243,7 @@ void main() {
           () => mockMenuRepository.listAll(onlyPublished: false),
         ).thenAnswer((_) async => Success(testMenus));
 
-        await menuListNotifier.refresh(onlyPublished: false);
+        await readNotifier().refresh(onlyPublished: false);
 
         verify(
           () => mockMenuRepository.listAll(onlyPublished: false),
@@ -234,14 +257,14 @@ void main() {
         when(
           () => mockMenuRepository.listAll(onlyPublished: true),
         ).thenAnswer((_) async => const Failure(NetworkError('Error')));
-        await menuListNotifier.loadMenus(onlyPublished: true);
+        await readNotifier().loadMenus(onlyPublished: true);
 
-        expect(menuListNotifier.state.errorMessage, 'Error');
+        expect(readState().errorMessage, 'Error');
 
         // Clear the error
-        menuListNotifier.clearError();
+        readNotifier().clearError();
 
-        expect(menuListNotifier.state.errorMessage, null);
+        expect(readState().errorMessage, null);
       });
 
       test('should not affect other state properties', () async {
@@ -249,23 +272,23 @@ void main() {
         when(
           () => mockMenuRepository.listAll(onlyPublished: true),
         ).thenAnswer((_) async => Success(testMenus));
-        await menuListNotifier.loadMenus(onlyPublished: true);
+        await readNotifier().loadMenus(onlyPublished: true);
 
         // Set an error
         when(
           () => mockMenuRepository.delete(1),
         ).thenAnswer((_) async => const Failure(ServerError('Error')));
-        await menuListNotifier.deleteMenu(1);
+        await readNotifier().deleteMenu(1);
 
-        expect(menuListNotifier.state.errorMessage, 'Error');
-        final menusBefore = menuListNotifier.state.menus;
+        expect(readState().errorMessage, 'Error');
+        final menusBefore = readState().menus;
 
         // Clear error
-        menuListNotifier.clearError();
+        readNotifier().clearError();
 
-        expect(menuListNotifier.state.errorMessage, null);
-        expect(menuListNotifier.state.menus, menusBefore);
-        expect(menuListNotifier.state.isLoading, false);
+        expect(readState().errorMessage, null);
+        expect(readState().menus, menusBefore);
+        expect(readState().isLoading, false);
       });
     });
   });
@@ -294,19 +317,19 @@ void main() {
       when(
         () => mockMenuRepository.listAll(onlyPublished: true),
       ).thenAnswer((_) async => Success(existingMenus));
-      await menuListNotifier.loadMenus(onlyPublished: true);
+      await readNotifier().loadMenus(onlyPublished: true);
 
       when(
         () => mockMenuRepository.create(any()),
       ).thenAnswer((_) async => const Success(createdMenu));
 
-      final result = await menuListNotifier.createMenu(createInput);
+      final result = await readNotifier().createMenu(createInput);
 
       expect(result, createdMenu);
-      expect(menuListNotifier.state.menus.length, 2);
-      expect(menuListNotifier.state.menus.first, createdMenu);
-      expect(menuListNotifier.state.isLoading, false);
-      expect(menuListNotifier.state.errorMessage, isNull);
+      expect(readState().menus.length, 2);
+      expect(readState().menus.first, createdMenu);
+      expect(readState().isLoading, false);
+      expect(readState().errorMessage, isNull);
     });
 
     test('should return null and set error on failure', () async {
@@ -315,11 +338,11 @@ void main() {
         () => mockMenuRepository.create(any()),
       ).thenAnswer((_) async => const Failure(error));
 
-      final result = await menuListNotifier.createMenu(createInput);
+      final result = await readNotifier().createMenu(createInput);
 
       expect(result, isNull);
-      expect(menuListNotifier.state.isLoading, false);
-      expect(menuListNotifier.state.errorMessage, 'Name is required');
+      expect(readState().isLoading, false);
+      expect(readState().errorMessage, 'Name is required');
     });
 
     test('should set loading state during creation', () async {
@@ -329,15 +352,15 @@ void main() {
       });
 
       final states = <MenuListState>[];
-      menuListNotifier.addListener((state) => states.add(state));
+      container.listen(menuListProvider, (_, next) => states.add(next));
 
-      final future = menuListNotifier.createMenu(createInput);
+      final future = readNotifier().createMenu(createInput);
       await Future.delayed(const Duration(milliseconds: 50));
-      expect(menuListNotifier.state.isLoading, true);
+      expect(readState().isLoading, true);
 
       await future;
       expect(states.any((s) => s.isLoading), true);
-      expect(menuListNotifier.state.isLoading, false);
+      expect(readState().isLoading, false);
     });
 
     test('should prepend new menu at first position', () async {
@@ -345,16 +368,16 @@ void main() {
       when(
         () => mockMenuRepository.listAll(onlyPublished: true),
       ).thenAnswer((_) async => Success(existingMenus));
-      await menuListNotifier.loadMenus(onlyPublished: true);
+      await readNotifier().loadMenus(onlyPublished: true);
 
       when(
         () => mockMenuRepository.create(any()),
       ).thenAnswer((_) async => const Success(createdMenu));
 
-      await menuListNotifier.createMenu(createInput);
+      await readNotifier().createMenu(createInput);
 
-      expect(menuListNotifier.state.menus[0].id, 10);
-      expect(menuListNotifier.state.menus[1].id, 1);
+      expect(readState().menus[0].id, 10);
+      expect(readState().menus[1].id, 1);
     });
   });
 
@@ -381,9 +404,9 @@ void main() {
         () => mockMenuRepository.listAll(onlyPublished: false, areaIds: null),
       ).thenAnswer((_) async => Success(menusWithAreas));
 
-      await menuListNotifier.loadMenus(onlyPublished: false, areaIds: null);
+      await readNotifier().loadMenus(onlyPublished: false, areaIds: null);
 
-      expect(menuListNotifier.state.menus.length, 2);
+      expect(readState().menus.length, 2);
       verify(
         () => mockMenuRepository.listAll(onlyPublished: false, areaIds: null),
       ).called(1);
@@ -396,10 +419,10 @@ void main() {
           () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
         ).thenAnswer((_) async => Success([menusWithAreas[0]]));
 
-        await menuListNotifier.loadMenus(onlyPublished: true, areaIds: [1]);
+        await readNotifier().loadMenus(onlyPublished: true, areaIds: [1]);
 
-        expect(menuListNotifier.state.menus.length, 1);
-        expect(menuListNotifier.state.menus.first.name, 'Dining Menu');
+        expect(readState().menus.length, 1);
+        expect(readState().menus.first.name, 'Dining Menu');
         verify(
           () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
         ).called(1);
@@ -411,9 +434,9 @@ void main() {
         () => mockMenuRepository.listAll(onlyPublished: true, areaIds: []),
       ).thenAnswer((_) async => const Success([]));
 
-      await menuListNotifier.loadMenus(onlyPublished: true, areaIds: []);
+      await readNotifier().loadMenus(onlyPublished: true, areaIds: []);
 
-      expect(menuListNotifier.state.menus, isEmpty);
+      expect(readState().menus, isEmpty);
       verify(
         () => mockMenuRepository.listAll(onlyPublished: true, areaIds: []),
       ).called(1);
@@ -424,7 +447,7 @@ void main() {
         () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1, 2]),
       ).thenAnswer((_) async => Success(menusWithAreas));
 
-      await menuListNotifier.refresh(onlyPublished: true, areaIds: [1, 2]);
+      await readNotifier().refresh(onlyPublished: true, areaIds: [1, 2]);
 
       verify(
         () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1, 2]),
