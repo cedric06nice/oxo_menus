@@ -12,11 +12,10 @@ import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_notifier.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_page.dart';
-import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/widgets/template_card.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 class MockMenuRepository extends Mock implements MenuRepository {}
 
@@ -72,9 +71,7 @@ Widget _buildApp({
   return ProviderScope(
     overrides: [
       currentUserProvider.overrideWithValue(_testUser),
-      adminTemplatesProvider.overrideWith(
-        (ref) => AdminTemplatesNotifier(mockMenuRepository),
-      ),
+      menuRepositoryProvider.overrideWithValue(mockMenuRepository),
     ],
     child: MaterialApp.router(
       routerConfig: router,

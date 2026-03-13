@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
@@ -7,12 +8,14 @@ import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_notifier.dart';
+import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_state.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 class MockMenuRepository extends Mock implements MenuRepository {}
 
 void main() {
-  late AdminTemplatesNotifier notifier;
+  late ProviderContainer container;
   late MockMenuRepository mockMenuRepository;
 
   final allMenus = [
@@ -45,16 +48,24 @@ void main() {
 
   setUp(() {
     mockMenuRepository = MockMenuRepository();
-    notifier = AdminTemplatesNotifier(mockMenuRepository);
+    container = ProviderContainer(
+      overrides: [menuRepositoryProvider.overrideWithValue(mockMenuRepository)],
+    );
   });
+
+  tearDown(() => container.dispose());
+
+  AdminTemplatesNotifier readNotifier() =>
+      container.read(adminTemplatesProvider.notifier);
+  AdminTemplatesState readState() => container.read(adminTemplatesProvider);
 
   group('AdminTemplatesNotifier', () {
     test('initial state should be default', () {
-      expect(notifier.state, const AdminTemplatesState());
-      expect(notifier.state.templates, isEmpty);
-      expect(notifier.state.isLoading, false);
-      expect(notifier.state.errorMessage, isNull);
-      expect(notifier.state.statusFilter, 'all');
+      expect(readState(), const AdminTemplatesState());
+      expect(readState().templates, isEmpty);
+      expect(readState().isLoading, false);
+      expect(readState().errorMessage, isNull);
+      expect(readState().statusFilter, 'all');
     });
 
     group('loadTemplates', () {
@@ -63,11 +74,11 @@ void main() {
           () => mockMenuRepository.listAll(onlyPublished: false),
         ).thenAnswer((_) async => Success(allMenus));
 
-        await notifier.loadTemplates();
+        await readNotifier().loadTemplates();
 
-        expect(notifier.state.isLoading, false);
-        expect(notifier.state.templates, hasLength(4));
-        expect(notifier.state.errorMessage, isNull);
+        expect(readState().isLoading, false);
+        expect(readState().templates, hasLength(4));
+        expect(readState().errorMessage, isNull);
       });
 
       test('should apply status filter when loading', () async {
@@ -75,11 +86,11 @@ void main() {
           () => mockMenuRepository.listAll(onlyPublished: false),
         ).thenAnswer((_) async => Success(allMenus));
 
-        await notifier.loadTemplates(statusFilter: 'draft');
+        await readNotifier().loadTemplates(statusFilter: 'draft');
 
-        expect(notifier.state.templates, hasLength(1));
-        expect(notifier.state.templates.first.status, Status.draft);
-        expect(notifier.state.statusFilter, 'draft');
+        expect(readState().templates, hasLength(1));
+        expect(readState().templates.first.status, Status.draft);
+        expect(readState().statusFilter, 'draft');
       });
 
       test('should return all menus when filter is "all"', () async {
@@ -87,9 +98,9 @@ void main() {
           () => mockMenuRepository.listAll(onlyPublished: false),
         ).thenAnswer((_) async => Success(allMenus));
 
-        await notifier.loadTemplates(statusFilter: 'all');
+        await readNotifier().loadTemplates(statusFilter: 'all');
 
-        expect(notifier.state.templates, hasLength(4));
+        expect(readState().templates, hasLength(4));
       });
 
       test('should set error message on failure', () async {
@@ -97,11 +108,11 @@ void main() {
           (_) async => const Failure(ServerError('Failed to fetch templates')),
         );
 
-        await notifier.loadTemplates();
+        await readNotifier().loadTemplates();
 
-        expect(notifier.state.isLoading, false);
-        expect(notifier.state.errorMessage, 'Failed to fetch templates');
-        expect(notifier.state.templates, isEmpty);
+        expect(readState().isLoading, false);
+        expect(readState().errorMessage, 'Failed to fetch templates');
+        expect(readState().templates, isEmpty);
       });
 
       test(
@@ -112,12 +123,12 @@ void main() {
           ).thenAnswer((_) async => Success(allMenus));
 
           // Set a filter first
-          await notifier.loadTemplates(statusFilter: 'published');
-          expect(notifier.state.statusFilter, 'published');
+          await readNotifier().loadTemplates(statusFilter: 'published');
+          expect(readState().statusFilter, 'published');
 
           // Reload without specifying filter
-          await notifier.loadTemplates();
-          expect(notifier.state.statusFilter, 'published');
+          await readNotifier().loadTemplates();
+          expect(readState().statusFilter, 'published');
         },
       );
     });
@@ -128,18 +139,18 @@ void main() {
         when(
           () => mockMenuRepository.listAll(onlyPublished: false),
         ).thenAnswer((_) async => Success(allMenus));
-        await notifier.loadTemplates();
-        expect(notifier.state.templates, hasLength(4));
+        await readNotifier().loadTemplates();
+        expect(readState().templates, hasLength(4));
 
         // Delete template
         when(
           () => mockMenuRepository.delete(1),
         ).thenAnswer((_) async => const Success(null));
 
-        await notifier.deleteTemplate(1);
+        await readNotifier().deleteTemplate(1);
 
-        expect(notifier.state.templates, hasLength(3));
-        expect(notifier.state.templates.any((t) => t.id == 1), false);
+        expect(readState().templates, hasLength(3));
+        expect(readState().templates.any((t) => t.id == 1), false);
       });
 
       test('should set error message on delete failure', () async {
@@ -147,9 +158,9 @@ void main() {
           () => mockMenuRepository.delete(1),
         ).thenAnswer((_) async => const Failure(ServerError('Delete failed')));
 
-        await notifier.deleteTemplate(1);
+        await readNotifier().deleteTemplate(1);
 
-        expect(notifier.state.errorMessage, 'Delete failed');
+        expect(readState().errorMessage, 'Delete failed');
       });
     });
 
@@ -159,13 +170,13 @@ void main() {
         when(
           () => mockMenuRepository.listAll(onlyPublished: false),
         ).thenAnswer((_) async => const Failure(ServerError('Some error')));
-        await notifier.loadTemplates();
-        expect(notifier.state.errorMessage, isNotNull);
+        await readNotifier().loadTemplates();
+        expect(readState().errorMessage, isNotNull);
 
         // Clear it
-        notifier.clearError();
+        readNotifier().clearError();
 
-        expect(notifier.state.errorMessage, isNull);
+        expect(readState().errorMessage, isNull);
       });
     });
   });
