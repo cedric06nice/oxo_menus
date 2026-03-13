@@ -8,8 +8,8 @@ import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/presentation/pages/login/login_page.dart';
-import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/offline_banner.dart';
 
 class MockAuthRepository extends Mock implements AuthRepository {}
@@ -29,7 +29,7 @@ void main() {
   }) {
     return ProviderScope(
       overrides: [
-        authProvider.overrideWith((_) => AuthNotifier(mockAuthRepo)),
+        authRepositoryProvider.overrideWithValue(mockAuthRepo),
         connectivityProvider.overrideWith((_) => connectivityStream),
       ],
       child: const MaterialApp(home: LoginPage()),

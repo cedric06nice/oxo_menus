@@ -141,7 +141,7 @@ class SettingsPage extends ConsumerWidget {
             subtitle: const Text('Preview the app as a regular user'),
             value: viewAsUser,
             onChanged: (value) {
-              ref.read(adminViewAsUserProvider.notifier).state = value;
+              ref.read(adminViewAsUserProvider.notifier).set(value);
             },
           ),
         ),
