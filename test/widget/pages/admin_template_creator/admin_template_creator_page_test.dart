@@ -311,6 +311,56 @@ void main() {
       expect(find.text('Templates'), findsOneWidget);
     });
 
+    testWidgets(
+      'should auto-select first size when sizes load asynchronously',
+      (WidgetTester tester) async {
+        final completer = Completer<Result<List<domain.Size>, DomainError>>();
+        when(
+          () => mockSizeRepository.getAll(),
+        ).thenAnswer((_) => completer.future);
+
+        await tester.pumpWidget(
+          _buildApp(
+            mockSizeRepository: mockSizeRepository,
+            mockMenuRepository: mockMenuRepository,
+            mockAreaRepository: mockAreaRepository,
+          ),
+        );
+
+        // Trigger the addPostFrameCallback that calls loadSizes
+        await tester.pump();
+        await tester.pump();
+
+        // Sizes haven't loaded yet — no dropdown visible
+        expect(find.text('Loading sizes...'), findsOneWidget);
+
+        // Complete the sizes future
+        completer.complete(const Success(_testSizes));
+        await tester.pumpAndSettle();
+
+        // First size should be auto-selected in the dropdown
+        expect(find.text('A4 (210x297 mm)'), findsOneWidget);
+
+        // Create button should still be disabled (name is empty)
+        final createButton = tester.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, 'Create'),
+        );
+        expect(createButton.onPressed, isNull);
+
+        // Fill in name and verify create is now enabled
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Template Name'),
+          'My Template',
+        );
+        await tester.pump();
+
+        final enabledButton = tester.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, 'Create'),
+        );
+        expect(enabledButton.onPressed, isNotNull);
+      },
+    );
+
     testWidgets('should display area dropdown with loaded areas', (
       WidgetTester tester,
     ) async {

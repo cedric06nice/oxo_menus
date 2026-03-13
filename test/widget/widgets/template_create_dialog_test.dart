@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
@@ -140,6 +143,69 @@ void main() {
       expect(find.text('Manage Page Sizes'), findsNothing);
       expect(find.text('Page Size'), findsOneWidget);
     });
+
+    testWidgets(
+      'should auto-select first size when sizes load asynchronously',
+      (tester) async {
+        final completer = Completer<Result<List<domain.Size>, DomainError>>();
+        when(
+          () => mockSizeRepository.getAll(),
+        ).thenAnswer((_) => completer.future);
+
+        await tester.pumpWidget(buildApp(sizeRepo: mockSizeRepository));
+
+        await tester.tap(find.text('Open Dialog'));
+        await tester.pump();
+        await tester.pump();
+
+        // Sizes haven't loaded yet
+        expect(find.text('Loading sizes...'), findsOneWidget);
+
+        // Complete the sizes future
+        completer.complete(
+          const Success([
+            domain.Size(
+              id: 1,
+              name: 'A4',
+              width: 210,
+              height: 297,
+              status: Status.published,
+              direction: 'portrait',
+            ),
+            domain.Size(
+              id: 2,
+              name: 'A5',
+              width: 148,
+              height: 210,
+              status: Status.published,
+              direction: 'portrait',
+            ),
+          ]),
+        );
+        await tester.pumpAndSettle();
+
+        // First size should be auto-selected
+        expect(find.text('A4 (210x297 mm)'), findsOneWidget);
+
+        // Create button should be disabled (name is empty)
+        final createButton = tester.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, 'Create'),
+        );
+        expect(createButton.onPressed, isNull);
+
+        // Fill in name and verify create is now enabled
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Template Name'),
+          'My Template',
+        );
+        await tester.pump();
+
+        final enabledButton = tester.widget<ElevatedButton>(
+          find.widgetWithText(ElevatedButton, 'Create'),
+        );
+        expect(enabledButton.onPressed, isNotNull);
+      },
+    );
 
     testWidgets('should show area dropdown with loaded areas', (tester) async {
       when(() => mockSizeRepository.getAll()).thenAnswer(

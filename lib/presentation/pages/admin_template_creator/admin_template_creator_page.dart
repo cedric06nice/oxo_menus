@@ -32,7 +32,6 @@ class _AdminTemplateCreatorPageState
   domain.Size? _selectedSize;
   Area? _selectedArea;
   bool _isSaving = false;
-  bool _initialSizeSelected = false;
 
   @override
   void initState() {
@@ -45,6 +44,16 @@ class _AdminTemplateCreatorPageState
       notifier.loadAreas();
     });
     _listenForConnectivityRestore();
+    _listenForSizesLoaded();
+  }
+
+  void _listenForSizesLoaded() {
+    ref.listenManual(menuSettingsProvider, (prev, next) {
+      final hadNoSizes = prev?.sizes.isEmpty ?? true;
+      if (hadNoSizes && next.sizes.isNotEmpty && _selectedSize == null) {
+        setState(() => _selectedSize = next.sizes.first);
+      }
+    });
   }
 
   void _listenForConnectivityRestore() {
@@ -109,16 +118,6 @@ class _AdminTemplateCreatorPageState
   @override
   Widget build(BuildContext context) {
     final settingsState = ref.watch(menuSettingsProvider);
-
-    // Auto-select first size once loaded
-    if (!_initialSizeSelected &&
-        settingsState.sizes.isNotEmpty &&
-        _selectedSize == null) {
-      _initialSizeSelected = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() => _selectedSize = settingsState.sizes.first);
-      });
-    }
 
     return AuthenticatedScaffold(
       title: 'Create Template',
