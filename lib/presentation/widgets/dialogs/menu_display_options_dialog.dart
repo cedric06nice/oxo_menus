@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Dialog for editing menu-level display options
 class MenuDisplayOptionsDialog extends StatefulWidget {
@@ -22,11 +23,6 @@ class _MenuDisplayOptionsDialogState extends State<MenuDisplayOptionsDialog> {
   late bool _showPrices;
   late bool _showAllergens;
 
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -36,7 +32,7 @@ class _MenuDisplayOptionsDialogState extends State<MenuDisplayOptionsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return _isApple
+    return isApplePlatform(context)
         ? _buildCupertinoDialog(context)
         : _buildMaterialDialog(context);
   }

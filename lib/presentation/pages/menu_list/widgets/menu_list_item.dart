@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/presentation/helpers/status_helpers.dart';
 import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Menu list item widget with left accent strip and status badge pill.
 class MenuListItem extends StatelessWidget {
@@ -24,16 +25,11 @@ class MenuListItem extends StatelessWidget {
     this.onDuplicate,
   });
 
-  bool _isApple(BuildContext context) {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isApple = _isApple(context);
+    final isApple = isApplePlatform(context);
     final accentColor = statusColor(menu.status, colorScheme);
 
     final cardContent = Card(

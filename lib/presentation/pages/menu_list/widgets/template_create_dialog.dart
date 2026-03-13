@@ -8,6 +8,7 @@ import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Result from the template create dialog
 class TemplateCreateResult {
@@ -48,11 +49,6 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
   List<Area> _areas = [];
   Area? _selectedArea;
   bool _isLoadingAreas = true;
-
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
 
   @override
   void initState() {
@@ -112,7 +108,9 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
+    return isApplePlatform(context)
+        ? _buildAppleForm(context)
+        : _buildMaterialDialog(context);
   }
 
   Widget _buildAppleForm(BuildContext context) {

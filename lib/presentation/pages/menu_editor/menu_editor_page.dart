@@ -34,6 +34,7 @@ import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_mixin.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/menu_display_options_dialog.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Menu Editor Page
 ///
@@ -87,11 +88,6 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
 
   @override
   late EditorWidgetCrudHelper crudHelper;
-
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
 
   /// Look up the presence entry for the user currently editing a widget.
   MenuPresence? _findEditingPresence(WidgetInstance widget) {
@@ -407,7 +403,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
       return AuthenticatedScaffold(
         title: 'Loading...',
         body: Center(
-          child: _isApple
+          child: isApplePlatform(context)
               ? const CupertinoActivityIndicator()
               : const CircularProgressIndicator(),
         ),
@@ -434,7 +430,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                _isApple
+                isApplePlatform(context)
                     ? CupertinoIcons.exclamationmark_triangle
                     : Icons.error_outline,
                 size: 48,
@@ -448,7 +444,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
                 ),
               ),
               const SizedBox(height: 16),
-              if (_isApple)
+              if (isApplePlatform(context))
                 CupertinoButton.filled(
                   onPressed: () => _loadMenu(isInitialLoad: true),
                   child: const Text('Retry'),

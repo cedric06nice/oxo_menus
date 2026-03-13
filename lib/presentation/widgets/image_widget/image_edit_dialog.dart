@@ -7,6 +7,7 @@ import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_edit_scaffold.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Dialog for editing image properties
 class ImageEditDialog extends ConsumerStatefulWidget {
@@ -30,11 +31,6 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
   List<ImageFileInfo> _imageFiles = [];
   bool _isLoading = true;
   String? _loadError;
-
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
 
   @override
   void initState() {
@@ -212,7 +208,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
       return SizedBox(
         height: 100,
         child: Center(
-          child: _isApple
+          child: isApplePlatform(context)
               ? const CupertinoActivityIndicator()
               : const CircularProgressIndicator(),
         ),
@@ -271,11 +267,11 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
                               fit: BoxFit.contain,
                               width: double.infinity,
                             ),
-                            loading: () => _isApple
+                            loading: () => isApplePlatform(context)
                                 ? const CupertinoActivityIndicator()
                                 : const CircularProgressIndicator(),
                             error: (_, _) => Icon(
-                              _isApple
+                              isApplePlatform(context)
                                   ? CupertinoIcons.photo
                                   : Icons.broken_image,
                             ),

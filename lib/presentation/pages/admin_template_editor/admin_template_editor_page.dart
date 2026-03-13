@@ -35,6 +35,7 @@ import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_mixin.d
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/menu_display_options_dialog.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/page_size_picker_dialog.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Admin Template Editor Page
 ///
@@ -75,11 +76,6 @@ class _AdminTemplateEditorPageState
   EditorSelection? _currentSelection;
 
   final ScrollController _scrollController = ScrollController();
-
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
 
   @override
   void didChangeDependencies() {
@@ -782,7 +778,7 @@ class _AdminTemplateEditorPageState
       return AuthenticatedScaffold(
         title: 'Loading...',
         body: Center(
-          child: _isApple
+          child: isApplePlatform(context)
               ? const CupertinoActivityIndicator()
               : const CircularProgressIndicator(),
         ),

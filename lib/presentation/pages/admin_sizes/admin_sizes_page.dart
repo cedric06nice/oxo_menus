@@ -11,6 +11,7 @@ import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dar
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
 import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/widgets/size_create_edit_dialog.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Admin page for managing page sizes
 class AdminSizesPage extends ConsumerStatefulWidget {
@@ -21,11 +22,6 @@ class AdminSizesPage extends ConsumerStatefulWidget {
 }
 
 class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -53,7 +49,7 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
       title: 'Page Sizes',
       actions: [
         IconButton(
-          icon: Icon(_isApple ? CupertinoIcons.add : Icons.add),
+          icon: Icon(isApplePlatform(context) ? CupertinoIcons.add : Icons.add),
           onPressed: _showCreateDialog,
           tooltip: 'Create Page Size',
         ),
@@ -112,7 +108,7 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
   Widget _buildSizesList(dynamic state) {
     if (state.isLoading) {
       return Center(
-        child: _isApple
+        child: isApplePlatform(context)
             ? const CupertinoActivityIndicator()
             : const CircularProgressIndicator(),
       );
@@ -124,7 +120,7 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              _isApple
+              isApplePlatform(context)
                   ? CupertinoIcons.exclamationmark_circle
                   : Icons.error_outline,
               size: 48,
@@ -133,7 +129,7 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
             const SizedBox(height: 16),
             Text('Error: ${state.errorMessage}'),
             const SizedBox(height: 16),
-            if (_isApple)
+            if (isApplePlatform(context))
               CupertinoButton.filled(
                 onPressed: () {
                   ref.read(adminSizesProvider.notifier).loadSizes();
@@ -193,7 +189,7 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
       },
     );
 
-    if (_isApple) {
+    if (isApplePlatform(context)) {
       Navigator.of(context).push(
         CupertinoPageRoute<void>(
           fullscreenDialog: true,
@@ -224,7 +220,7 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
       },
     );
 
-    if (_isApple) {
+    if (isApplePlatform(context)) {
       Navigator.of(context).push(
         CupertinoPageRoute<void>(
           fullscreenDialog: true,
@@ -238,7 +234,7 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
 
   Future<void> _confirmDelete(domain.Size size) async {
     final bool? confirmed;
-    if (_isApple) {
+    if (isApplePlatform(context)) {
       confirmed = await showCupertinoDialog<bool>(
         context: context,
         builder: (dialogContext) => CupertinoAlertDialog(

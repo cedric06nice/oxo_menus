@@ -6,6 +6,7 @@ import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/theme/app_spacing.dart';
 import 'package:oxo_menus/presentation/widgets/common/offline_banner.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -19,11 +20,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _passwordController = TextEditingController();
   String? _emailError;
   String? _passwordError;
-
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
 
   @override
   void dispose() {
@@ -60,7 +56,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildEmailField() {
-    if (_isApple) {
+    if (isApplePlatform(context)) {
       return Column(
         key: const Key('email_field'),
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,7 +96,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildPasswordField() {
-    if (_isApple) {
+    if (isApplePlatform(context)) {
       return Column(
         key: const Key('password_field'),
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +144,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       orElse: () => false,
     );
 
-    if (_isApple) {
+    if (isApplePlatform(context)) {
       return SizedBox(
         key: const Key('login_button'),
         width: double.infinity,

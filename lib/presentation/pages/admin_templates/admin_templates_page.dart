@@ -10,6 +10,7 @@ import 'package:oxo_menus/presentation/pages/admin_templates/widgets/template_ca
 import 'package:oxo_menus/presentation/helpers/grid_helpers.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 class AdminTemplatesPage extends ConsumerStatefulWidget {
   const AdminTemplatesPage({super.key});
@@ -19,11 +20,6 @@ class AdminTemplatesPage extends ConsumerStatefulWidget {
 }
 
 class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -46,7 +42,7 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(adminTemplatesProvider);
-    final isApple = _isApple;
+    final isApple = isApplePlatform(context);
 
     return AuthenticatedScaffold(
       title: 'Templates',
@@ -107,7 +103,7 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
   Widget _buildBody(dynamic state) {
     if (state.isLoading) {
       return Center(
-        child: _isApple
+        child: isApplePlatform(context)
             ? const CupertinoActivityIndicator()
             : const CircularProgressIndicator(),
       );
@@ -132,7 +128,7 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            _isApple
+            isApplePlatform(context)
                 ? CupertinoIcons.exclamationmark_triangle
                 : Icons.error_outline,
             size: 48,
@@ -141,7 +137,7 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
           const SizedBox(height: 16),
           Text('Error: $message'),
           const SizedBox(height: 16),
-          if (_isApple)
+          if (isApplePlatform(context))
             CupertinoButton.filled(
               onPressed: () {
                 ref.read(adminTemplatesProvider.notifier).loadTemplates();
@@ -162,7 +158,9 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
 
   Widget _buildEmptyState() {
     return EmptyState(
-      icon: _isApple ? CupertinoIcons.doc_text : Icons.restaurant_menu,
+      icon: isApplePlatform(context)
+          ? CupertinoIcons.doc_text
+          : Icons.restaurant_menu,
       title: 'No templates found',
       subtitle: 'Create your first template to get started',
       actionLabel: 'Create Template',
@@ -207,7 +205,7 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
   Future<void> _confirmDelete(Menu template) async {
     final bool? confirmed;
 
-    if (_isApple) {
+    if (isApplePlatform(context)) {
       confirmed = await showCupertinoDialog<bool>(
         context: context,
         builder: (dialogContext) => CupertinoAlertDialog(

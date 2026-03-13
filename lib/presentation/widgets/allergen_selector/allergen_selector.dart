@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/allergens/allergen_info.dart';
 import 'package:oxo_menus/domain/allergens/uk_allergen.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Widget for selecting UK allergens with details and may-contain options
 ///
@@ -25,11 +26,6 @@ class AllergenSelector extends StatefulWidget {
 class _AllergenSelectorState extends State<AllergenSelector> {
   late Map<UkAllergen, AllergenInfo?> _selections;
   late Map<UkAllergen, TextEditingController> _detailsControllers;
-
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
 
   @override
   void initState() {
@@ -70,7 +66,7 @@ class _AllergenSelectorState extends State<AllergenSelector> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isApple) {
+    if (isApplePlatform(context)) {
       return _buildAppleLayout();
     }
     return _buildMaterialLayout();
@@ -248,14 +244,14 @@ class _AllergenSelectorState extends State<AllergenSelector> {
     required bool value,
     required ValueChanged<bool?> onChanged,
   }) {
-    if (_isApple) {
+    if (isApplePlatform(context)) {
       return CupertinoCheckbox(value: value, onChanged: onChanged);
     }
     return Checkbox(value: value, onChanged: onChanged);
   }
 
   Widget _buildDetailsField(UkAllergen allergen, AllergenInfo? info) {
-    if (_isApple) {
+    if (isApplePlatform(context)) {
       return CupertinoTextField(
         controller: _detailsControllers[allergen],
         placeholder: allergen.detailsHint,

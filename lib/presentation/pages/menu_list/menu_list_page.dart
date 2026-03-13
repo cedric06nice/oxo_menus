@@ -13,6 +13,7 @@ import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dar
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/widgets/menu_list_item.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/widgets/template_create_dialog.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Menu list page
 ///
@@ -28,11 +29,6 @@ class MenuListPage extends ConsumerStatefulWidget {
 
 class _MenuListPageState extends ConsumerState<MenuListPage> {
   String _statusFilter = 'all';
-
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
 
   @override
   void initState() {
@@ -89,7 +85,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   Future<void> _confirmDelete(Menu menu) async {
     final bool? confirmed;
 
-    if (_isApple) {
+    if (isApplePlatform(context)) {
       confirmed = await showCupertinoDialog<bool>(
         context: context,
         builder: (dialogContext) => CupertinoAlertDialog(
@@ -188,7 +184,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(menuListProvider);
     final isAdmin = ref.watch(isAdminProvider);
-    final isApple = _isApple;
+    final isApple = isApplePlatform(context);
 
     return AuthenticatedScaffold(
       title: 'Menus',
@@ -253,7 +249,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   Widget _buildBody(MenuListState state, bool isAdmin) {
     if (state.isLoading) {
       return Center(
-        child: _isApple
+        child: isApplePlatform(context)
             ? const CupertinoActivityIndicator()
             : const CircularProgressIndicator(),
       );
@@ -295,7 +291,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  _isApple
+                  isApplePlatform(context)
                       ? CupertinoIcons.exclamationmark_triangle
                       : Icons.error_outline,
                   size: 48,
@@ -309,7 +305,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                if (_isApple)
+                if (isApplePlatform(context))
                   CupertinoButton.filled(
                     onPressed: () => _tryLoadMenus(),
                     child: const Text('Retry'),
@@ -333,7 +329,9 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
       slivers: [
         SliverFillRemaining(
           child: EmptyState(
-            icon: _isApple ? CupertinoIcons.doc_text : Icons.restaurant_menu,
+            icon: isApplePlatform(context)
+                ? CupertinoIcons.doc_text
+                : Icons.restaurant_menu,
             title: 'No menus found',
             subtitle: 'Browse available menus or check back later',
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Adaptive scaffold for edit dialogs.
 ///
@@ -20,14 +21,9 @@ class AdaptiveEditScaffold extends StatelessWidget {
     required this.materialFormChildren,
   });
 
-  bool _isApple(BuildContext context) {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return _isApple(context)
+    return isApplePlatform(context)
         ? _buildAppleForm(context)
         : _buildMaterialDialog(context);
   }
