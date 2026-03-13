@@ -56,12 +56,15 @@ class ConnectivityRepositoryImpl implements ConnectivityRepository {
     Timer? periodicProbe;
     Timer? recoveryProbe;
     bool isProbing = false;
+    int probeEpoch = 0;
 
     void stopAllProbes() {
       periodicProbe?.cancel();
       periodicProbe = null;
       recoveryProbe?.cancel();
       recoveryProbe = null;
+      probeEpoch++;
+      isProbing = false;
     }
 
     late void Function() startPeriodicProbe;
@@ -72,14 +75,16 @@ class ConnectivityRepositoryImpl implements ConnectivityRepository {
       recoveryProbe = Timer.periodic(_recoveryProbeInterval, (_) async {
         if (isProbing) return;
         isProbing = true;
+        final epoch = probeEpoch;
         try {
           final reachable = await _hasInternetAccess();
+          if (epoch != probeEpoch) return;
           if (reachable && !controller.isClosed) {
             controller.add(ConnectivityStatus.online);
             startPeriodicProbe();
           }
         } finally {
-          isProbing = false;
+          if (epoch == probeEpoch) isProbing = false;
         }
       });
     };
@@ -89,15 +94,17 @@ class ConnectivityRepositoryImpl implements ConnectivityRepository {
       periodicProbe = Timer.periodic(_periodicProbeInterval, (_) async {
         if (isProbing) return;
         isProbing = true;
+        final epoch = probeEpoch;
         try {
           final reachable = await _hasInternetAccess();
+          if (epoch != probeEpoch) return;
           final status = reachable
               ? ConnectivityStatus.online
               : ConnectivityStatus.offline;
           if (!controller.isClosed) controller.add(status);
           if (!reachable) startRecoveryProbe();
         } finally {
-          isProbing = false;
+          if (epoch == probeEpoch) isProbing = false;
         }
       });
     };
@@ -106,7 +113,11 @@ class ConnectivityRepositoryImpl implements ConnectivityRepository {
       onListen: () {
         checkConnectivity().then((status) {
           controller.add(status);
-          if (status == ConnectivityStatus.online) startPeriodicProbe();
+          if (status == ConnectivityStatus.online) {
+            startPeriodicProbe();
+          } else {
+            startRecoveryProbe();
+          }
         }, onError: (_) => controller.add(ConnectivityStatus.online));
 
         subscription = connectivity.onConnectivityChanged.listen((
@@ -115,16 +126,25 @@ class ConnectivityRepositoryImpl implements ConnectivityRepository {
           if (!_hasNetworkInterface(results)) {
             stopAllProbes();
             controller.add(ConnectivityStatus.offline);
+            startRecoveryProbe();
           } else {
-            final reachable = await _hasInternetAccess();
-            final status = reachable
-                ? ConnectivityStatus.online
-                : ConnectivityStatus.offline;
-            if (!controller.isClosed) controller.add(status);
-            if (reachable) {
-              startPeriodicProbe();
-            } else {
-              startRecoveryProbe();
+            stopAllProbes();
+            isProbing = true;
+            final epoch = probeEpoch;
+            try {
+              final reachable = await _hasInternetAccess();
+              if (epoch != probeEpoch) return;
+              final status = reachable
+                  ? ConnectivityStatus.online
+                  : ConnectivityStatus.offline;
+              if (!controller.isClosed) controller.add(status);
+              if (reachable) {
+                startPeriodicProbe();
+              } else {
+                startRecoveryProbe();
+              }
+            } finally {
+              if (epoch == probeEpoch) isProbing = false;
             }
           }
         }, onError: controller.addError);

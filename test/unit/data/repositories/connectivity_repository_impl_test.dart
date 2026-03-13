@@ -526,45 +526,50 @@ void main() {
           },
         );
 
-        test('stops recovery probe when network interface is lost', () {
-          fakeAsync((async) {
-            var dnsCallCount = 0;
-            final repo = ConnectivityRepositoryImpl(
-              connectivity: mockConnectivity,
-              dnsProbe: () async {
-                dnsCallCount++;
-                return false;
-              },
-            );
-            when(
-              () => mockConnectivity.checkConnectivity(),
-            ).thenAnswer((_) async => [ConnectivityResult.none]);
-            final controller = StreamController<List<ConnectivityResult>>();
-            when(
-              () => mockConnectivity.onConnectivityChanged,
-            ).thenAnswer((_) => controller.stream);
+        test(
+          'replaces previous recovery probes with new ones when interface is lost',
+          () {
+            fakeAsync((async) {
+              var dnsSucceeds = false;
+              final repo = ConnectivityRepositoryImpl(
+                connectivity: mockConnectivity,
+                dnsProbe: () async => dnsSucceeds,
+              );
+              when(
+                () => mockConnectivity.checkConnectivity(),
+              ).thenAnswer((_) async => [ConnectivityResult.none]);
+              final controller = StreamController<List<ConnectivityResult>>();
+              when(
+                () => mockConnectivity.onConnectivityChanged,
+              ).thenAnswer((_) => controller.stream);
 
-            final results = <ConnectivityStatus>[];
-            final sub = repo.watchConnectivity().listen(results.add);
-            async.flushMicrotasks();
+              final results = <ConnectivityStatus>[];
+              final sub = repo.watchConnectivity().listen(results.add);
+              async.flushMicrotasks();
 
-            // WiFi connects but DNS fails → recovery starts
-            controller.add([ConnectivityResult.wifi]);
-            async.flushMicrotasks();
-            // Interface lost → recovery should stop
-            controller.add([ConnectivityResult.none]);
-            async.flushMicrotasks();
+              // WiFi connects but DNS fails → recovery starts
+              controller.add([ConnectivityResult.wifi]);
+              async.flushMicrotasks();
+              // Interface lost → previous recovery replaced by new recovery
+              controller.add([ConnectivityResult.none]);
+              async.flushMicrotasks();
 
-            final dnsCountAfterNone = dnsCallCount;
+              // DNS starts succeeding — new recovery probes should detect it
+              dnsSucceeds = true;
+              async.elapse(const Duration(seconds: 5));
 
-            // Advance time — no more DNS probes should happen
-            async.elapse(const Duration(seconds: 15));
-            expect(dnsCallCount, dnsCountAfterNone);
+              expect(
+                results.last,
+                ConnectivityStatus.online,
+                reason:
+                    'new recovery probes should fire after no-interface offline and detect recovery',
+              );
 
-            sub.cancel();
-            controller.close();
-          });
-        });
+              sub.cancel();
+              controller.close();
+            });
+          },
+        );
 
         test('recovery probe switches to periodic probe on success', () {
           fakeAsync((async) {
@@ -615,6 +620,50 @@ void main() {
         });
       });
 
+      group('initial offline with network interface', () {
+        test(
+          'starts recovery probe when initial state is offline with network interface',
+          () {
+            fakeAsync((async) {
+              var dnsSucceeds = false;
+              final repo = ConnectivityRepositoryImpl(
+                connectivity: mockConnectivity,
+                dnsProbe: () async => dnsSucceeds,
+              );
+              // WiFi present but DNS fails (captive portal scenario)
+              when(
+                () => mockConnectivity.checkConnectivity(),
+              ).thenAnswer((_) async => [ConnectivityResult.wifi]);
+              final controller = StreamController<List<ConnectivityResult>>();
+              when(
+                () => mockConnectivity.onConnectivityChanged,
+              ).thenAnswer((_) => controller.stream);
+
+              final results = <ConnectivityStatus>[];
+              final sub = repo.watchConnectivity().listen(results.add);
+              async.flushMicrotasks();
+
+              // Initial: offline (WiFi present but DNS fails)
+              expect(results, [ConnectivityStatus.offline]);
+
+              // DNS recovers, advance 5s for recovery probe to fire
+              dnsSucceeds = true;
+              async.elapse(const Duration(seconds: 5));
+
+              expect(
+                results.last,
+                ConnectivityStatus.online,
+                reason:
+                    'recovery probe should detect DNS recovery and emit online',
+              );
+
+              sub.cancel();
+              controller.close();
+            });
+          },
+        );
+      });
+
       group('periodic probe failure recovery', () {
         test('periodic probe switches to recovery mode when DNS fails', () {
           fakeAsync((async) {
@@ -659,6 +708,230 @@ void main() {
               reason: 'recovery probe should fire at 5s',
             );
             expect(results.last, ConnectivityStatus.online);
+
+            sub.cancel();
+            controller.close();
+          });
+        });
+      });
+
+      group('connectivity change probe guard', () {
+        test(
+          'stops existing probes and starts fresh DNS check on connectivity change',
+          () {
+            fakeAsync((async) {
+              var dnsCallCount = 0;
+              var dnsCompleter = Completer<bool>();
+              final repo = ConnectivityRepositoryImpl(
+                connectivity: mockConnectivity,
+                dnsProbe: () {
+                  dnsCallCount++;
+                  return dnsCompleter.future;
+                },
+              );
+              when(
+                () => mockConnectivity.checkConnectivity(),
+              ).thenAnswer((_) async => [ConnectivityResult.wifi]);
+              final controller = StreamController<List<ConnectivityResult>>();
+              when(
+                () => mockConnectivity.onConnectivityChanged,
+              ).thenAnswer((_) => controller.stream);
+
+              final results = <ConnectivityStatus>[];
+              final sub = repo.watchConnectivity().listen(results.add);
+
+              // Complete initial checkConnectivity DNS probes
+              dnsCompleter.complete(true);
+              async.flushMicrotasks();
+              expect(results, [ConnectivityStatus.online]);
+
+              // Now a periodic probe is running at 30s intervals.
+              // Trigger periodic probe at 30s with a slow completer
+              dnsCompleter = Completer<bool>();
+              async.elapse(const Duration(seconds: 30));
+              final dnsCountAfterPeriodicStart = dnsCallCount;
+              expect(
+                dnsCountAfterPeriodicStart,
+                greaterThan(1),
+                reason: 'periodic probe should have started a DNS check',
+              );
+
+              // While periodic probe is in-flight, trigger a connectivity change
+              // This should stop probes, invalidate in-flight probe, and start fresh DNS
+              dnsCompleter = Completer<bool>();
+              controller.add([ConnectivityResult.mobile]);
+              async.flushMicrotasks();
+
+              expect(
+                dnsCallCount,
+                greaterThan(dnsCountAfterPeriodicStart),
+                reason:
+                    'connectivity change should start fresh DNS check, not be blocked by stale probe',
+              );
+
+              // Complete the fresh probe
+              dnsCompleter.complete(true);
+              async.flushMicrotasks();
+
+              expect(results.last, ConnectivityStatus.online);
+
+              sub.cancel();
+              controller.close();
+            });
+          },
+        );
+      });
+
+      group('stale probe invalidation', () {
+        test('connectivity change proceeds even when stale probe is in-flight', () {
+          fakeAsync((async) {
+            var dnsCompleter = Completer<bool>();
+            final repo = ConnectivityRepositoryImpl(
+              connectivity: mockConnectivity,
+              dnsProbe: () => dnsCompleter.future,
+            );
+            when(
+              () => mockConnectivity.checkConnectivity(),
+            ).thenAnswer((_) async => [ConnectivityResult.wifi]);
+            final controller = StreamController<List<ConnectivityResult>>();
+            when(
+              () => mockConnectivity.onConnectivityChanged,
+            ).thenAnswer((_) => controller.stream);
+
+            final results = <ConnectivityStatus>[];
+            final sub = repo.watchConnectivity().listen(results.add);
+
+            // Complete initial check → online
+            dnsCompleter.complete(true);
+            async.flushMicrotasks();
+            expect(results, [ConnectivityStatus.online]);
+
+            // Periodic probe fires at 30s with a slow completer (stays in-flight)
+            dnsCompleter = Completer<bool>();
+            async.elapse(const Duration(seconds: 30));
+
+            // WiFi OFF while probe is in-flight
+            controller.add([ConnectivityResult.none]);
+            async.flushMicrotasks();
+            expect(results.last, ConnectivityStatus.offline);
+
+            // WiFi ON — should start fresh DNS check despite stale probe
+            dnsCompleter = Completer<bool>();
+            controller.add([ConnectivityResult.wifi]);
+            async.flushMicrotasks();
+
+            // Complete the fresh DNS check
+            dnsCompleter.complete(true);
+            async.flushMicrotasks();
+
+            expect(
+              results.last,
+              ConnectivityStatus.online,
+              reason:
+                  'handler should proceed with fresh DNS check, not be blocked by stale isProbing flag',
+            );
+
+            sub.cancel();
+            controller.close();
+          });
+        });
+
+        test('stale in-flight probe result is discarded after epoch change', () {
+          fakeAsync((async) {
+            var dnsCompleter = Completer<bool>();
+            final repo = ConnectivityRepositoryImpl(
+              connectivity: mockConnectivity,
+              dnsProbe: () => dnsCompleter.future,
+            );
+            when(
+              () => mockConnectivity.checkConnectivity(),
+            ).thenAnswer((_) async => [ConnectivityResult.wifi]);
+            final controller = StreamController<List<ConnectivityResult>>();
+            when(
+              () => mockConnectivity.onConnectivityChanged,
+            ).thenAnswer((_) => controller.stream);
+
+            final results = <ConnectivityStatus>[];
+            final sub = repo.watchConnectivity().listen(results.add);
+
+            // Complete initial check → online
+            dnsCompleter.complete(true);
+            async.flushMicrotasks();
+            expect(results, [ConnectivityStatus.online]);
+
+            // Periodic probe fires at 30s with a slow completer
+            final staleCompleter = Completer<bool>();
+            dnsCompleter = staleCompleter;
+            async.elapse(const Duration(seconds: 30));
+
+            // WiFi OFF while periodic probe in-flight
+            controller.add([ConnectivityResult.none]);
+            async.flushMicrotasks();
+            expect(results.last, ConnectivityStatus.offline);
+
+            // WiFi ON → fresh DNS check → online
+            dnsCompleter = Completer<bool>();
+            controller.add([ConnectivityResult.wifi]);
+            async.flushMicrotasks();
+            dnsCompleter.complete(true);
+            async.flushMicrotasks();
+            expect(results.last, ConnectivityStatus.online);
+
+            // Now complete the STALE probe with false
+            staleCompleter.complete(false);
+            async.flushMicrotasks();
+
+            // Should NOT emit offline from stale result
+            expect(
+              results.last,
+              ConnectivityStatus.online,
+              reason:
+                  'stale probe result should be discarded, not emit outdated offline status',
+            );
+
+            sub.cancel();
+            controller.close();
+          });
+        });
+      });
+
+      group('recovery probe on no-interface offline', () {
+        test('starts recovery probes when connectivity changes to none', () {
+          fakeAsync((async) {
+            var dnsSucceeds = false;
+            final repo = ConnectivityRepositoryImpl(
+              connectivity: mockConnectivity,
+              dnsProbe: () async => dnsSucceeds,
+            );
+            when(
+              () => mockConnectivity.checkConnectivity(),
+            ).thenAnswer((_) async => [ConnectivityResult.wifi]);
+            final controller = StreamController<List<ConnectivityResult>>();
+            when(
+              () => mockConnectivity.onConnectivityChanged,
+            ).thenAnswer((_) => controller.stream);
+
+            final results = <ConnectivityStatus>[];
+            final sub = repo.watchConnectivity().listen(results.add);
+            async.flushMicrotasks();
+
+            // Initial: offline (WiFi but DNS fails)
+            expect(results, [ConnectivityStatus.offline]);
+
+            // WiFi OFF → no interface → offline (deduped by distinct)
+            controller.add([ConnectivityResult.none]);
+            async.flushMicrotasks();
+
+            // DNS starts succeeding, advance 5s for recovery probe
+            dnsSucceeds = true;
+            async.elapse(const Duration(seconds: 5));
+
+            expect(
+              results.last,
+              ConnectivityStatus.online,
+              reason:
+                  'recovery probe should fire after no-interface offline and detect DNS recovery',
+            );
 
             sub.cancel();
             controller.close();
