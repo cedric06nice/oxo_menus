@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,9 +11,7 @@ import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
-import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/state/editor_selection_notifier.dart';
@@ -30,10 +26,12 @@ import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart'
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_structure_crud_helper.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_style_helper.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_mixin.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
-import 'package:oxo_menus/presentation/widgets/dialogs/menu_display_options_dialog.dart';
+import 'package:oxo_menus/presentation/widgets/editor/display_options_dialog_helper.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/page_size_picker_dialog.dart';
 import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
@@ -68,10 +66,11 @@ class _AdminTemplateEditorPageState
   String? _errorMessage;
 
   final Map<int, int> _hoverIndex = {};
-  Timer? _styleDebounceTimer;
 
   @override
   late EditorWidgetCrudHelper crudHelper;
+  late EditorStructureCrudHelper _structureHelper;
+  late EditorStyleHelper _styleHelper;
   late EditorSelectionNotifier _selectionNotifier;
   EditorSelection? _currentSelection;
 
@@ -80,21 +79,40 @@ class _AdminTemplateEditorPageState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    void showMessage(String message, {bool isError = false}) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: isError ? Colors.red : null,
+          ),
+        );
+      }
+    }
+
     crudHelper = EditorWidgetCrudHelper(
       widgetRepository: ref.read(widgetRepositoryProvider),
       widgetRegistry: ref.read(widgetRegistryProvider),
       onReload: _loadTemplate,
       isTemplate: true,
-      onMessage: (message, {bool isError = false}) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: isError ? Colors.red : null,
-            ),
-          );
-        }
-      },
+      onMessage: showMessage,
+    );
+    _structureHelper = EditorStructureCrudHelper(
+      pageRepository: ref.read(pageRepositoryProvider),
+      containerRepository: ref.read(containerRepositoryProvider),
+      columnRepository: ref.read(columnRepositoryProvider),
+      onReload: _loadTemplate,
+      onMessage: showMessage,
+      showDeleteConfirmation: () async =>
+          await showDeleteConfirmation(context) == true,
+    );
+    _styleHelper = EditorStyleHelper(
+      containerRepository: ref.read(containerRepositoryProvider),
+      columnRepository: ref.read(columnRepositoryProvider),
+      containers: _containers,
+      columns: _columns,
+      onLocalStateChanged: () => setState(() {}),
+      isMounted: () => mounted,
     );
   }
 
@@ -132,7 +150,7 @@ class _AdminTemplateEditorPageState
 
   @override
   void dispose() {
-    _styleDebounceTimer?.cancel();
+    _styleHelper.dispose();
     _scrollController.dispose();
     _selectionNotifier.dispose();
     super.dispose();
@@ -236,30 +254,17 @@ class _AdminTemplateEditorPageState
     context.push('/menus/pdf/${widget.menuId}');
   }
 
-  Future<void> _showDisplayOptionsDialog() async {
-    showDialog(
+  void _showDisplayOptionsDialog() {
+    showDisplayOptionsDialog(
       context: context,
-      builder: (ctx) => MenuDisplayOptionsDialog(
-        displayOptions: _menu?.displayOptions,
-        onSave: (options) async {
-          final result = await ref
-              .read(menuRepositoryProvider)
-              .update(
-                UpdateMenuInput(id: widget.menuId, displayOptions: options),
-              );
-          if (result.isSuccess) {
-            setState(() {
-              _menu = _menu?.copyWith(displayOptions: options);
-            });
-            ref.read(menuDisplayOptionsProvider.notifier).state = options;
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Display options saved')),
-              );
-            }
-          }
-        },
-      ),
+      ref: ref,
+      menuId: widget.menuId,
+      menu: _menu,
+      onMenuUpdated: (updatedMenu) {
+        setState(() {
+          _menu = updatedMenu;
+        });
+      },
     );
   }
 
@@ -372,199 +377,40 @@ class _AdminTemplateEditorPageState
     );
   }
 
-  Future<void> _addPage() async {
-    final result = await ref
-        .read(pageRepositoryProvider)
-        .create(
-          CreatePageInput(
-            menuId: widget.menuId,
-            name: 'Page ${_pages.length + 1}',
-            index: _pages.length,
-          ),
-        );
+  Future<void> _addPage() =>
+      _structureHelper.addPage(menuId: widget.menuId, pageCount: _pages.length);
 
-    if (result.isSuccess) {
-      await _loadTemplate();
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to add page: ${result.errorOrNull?.message ?? 'Unknown error'}',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+  Future<void> _deletePage(int pageId) => _structureHelper.deletePage(pageId);
 
-  Future<void> _deletePage(int pageId) async {
-    final confirmed = await showDeleteConfirmation(context);
-    if (confirmed != true) return;
-
-    final result = await ref.read(pageRepositoryProvider).delete(pageId);
-
-    if (result.isSuccess) {
-      await _loadTemplate();
-    }
-  }
-
-  Future<void> _addHeader() async {
-    final result = await ref
-        .read(pageRepositoryProvider)
-        .create(
-          CreatePageInput(
-            menuId: widget.menuId,
-            name: 'Header',
-            index: 0,
-            type: entity.PageType.header,
-          ),
-        );
-
-    if (result.isSuccess) {
-      await _loadTemplate();
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to add header: ${result.errorOrNull?.message ?? 'Unknown error'}',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+  Future<void> _addHeader() => _structureHelper.addHeader(widget.menuId);
 
   Future<void> _deleteHeader() async {
     if (_headerPage == null) return;
-
-    final confirmed = await showDeleteConfirmation(context);
-    if (confirmed != true) return;
-
-    final result = await ref
-        .read(pageRepositoryProvider)
-        .delete(_headerPage!.id);
-
-    if (result.isSuccess) {
-      await _loadTemplate();
-    }
+    await _structureHelper.deleteHeader(_headerPage!.id);
   }
 
-  Future<void> _addFooter() async {
-    final result = await ref
-        .read(pageRepositoryProvider)
-        .create(
-          CreatePageInput(
-            menuId: widget.menuId,
-            name: 'Footer',
-            index: 0,
-            type: entity.PageType.footer,
-          ),
-        );
-
-    if (result.isSuccess) {
-      await _loadTemplate();
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to add footer: ${result.errorOrNull?.message ?? 'Unknown error'}',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+  Future<void> _addFooter() => _structureHelper.addFooter(widget.menuId);
 
   Future<void> _deleteFooter() async {
     if (_footerPage == null) return;
-
-    final confirmed = await showDeleteConfirmation(context);
-    if (confirmed != true) return;
-
-    final result = await ref
-        .read(pageRepositoryProvider)
-        .delete(_footerPage!.id);
-
-    if (result.isSuccess) {
-      await _loadTemplate();
-    }
+    await _structureHelper.deleteFooter(_footerPage!.id);
   }
 
-  Future<void> _addContainer(int pageId) async {
-    final containers = _containers[pageId] ?? [];
-    final result = await ref
-        .read(containerRepositoryProvider)
-        .create(
-          CreateContainerInput(
-            pageId: pageId,
-            index: containers.length,
-            direction: 'portrait',
-          ),
-        );
+  Future<void> _addContainer(int pageId) => _structureHelper.addContainer(
+    pageId: pageId,
+    containerCount: (_containers[pageId] ?? []).length,
+  );
 
-    if (result.isSuccess) {
-      await _loadTemplate();
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to add container: ${result.errorOrNull?.message ?? 'Unknown error'}',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
+  Future<void> _deleteContainer(int containerId) =>
+      _structureHelper.deleteContainer(containerId);
 
-  Future<void> _deleteContainer(int containerId) async {
-    final confirmed = await showDeleteConfirmation(context);
-    if (confirmed != true) return;
+  Future<void> _addColumn(int containerId) => _structureHelper.addColumn(
+    containerId: containerId,
+    columnCount: (_columns[containerId] ?? []).length,
+  );
 
-    final result = await ref
-        .read(containerRepositoryProvider)
-        .delete(containerId);
-
-    if (result.isSuccess) {
-      await _loadTemplate();
-    }
-  }
-
-  Future<void> _addColumn(int containerId) async {
-    final columns = _columns[containerId] ?? [];
-    final result = await ref
-        .read(columnRepositoryProvider)
-        .create(
-          CreateColumnInput(
-            containerId: containerId,
-            index: columns.length,
-            flex: 1,
-          ),
-        );
-
-    if (result.isSuccess) {
-      await _loadTemplate();
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to add column: ${result.errorOrNull?.message ?? 'Unknown error'}',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _deleteColumn(int columnId) async {
-    final confirmed = await showDeleteConfirmation(context);
-    if (confirmed != true) return;
-
-    final result = await ref.read(columnRepositoryProvider).delete(columnId);
-
-    if (result.isSuccess) {
-      await _loadTemplate();
-    }
-  }
+  Future<void> _deleteColumn(int columnId) =>
+      _structureHelper.deleteColumn(columnId);
 
   void _onStyleChanged(StyleConfig newStyle) {
     setState(() {
@@ -573,71 +419,13 @@ class _AdminTemplateEditorPageState
     _selectionNotifier.updateStyle(newStyle);
   }
 
-  void _updateContainerStyleLocally(int containerId, StyleConfig newStyle) {
-    for (final entry in _containers.entries) {
-      final idx = entry.value.indexWhere((c) => c.id == containerId);
-      if (idx != -1) {
-        setState(() {
-          entry.value[idx] = entry.value[idx].copyWith(styleConfig: newStyle);
-        });
-        break;
-      }
-    }
-  }
-
-  Future<void> _saveContainerStyleToApi(
-    int containerId,
-    StyleConfig newStyle,
-  ) async {
-    await ref
-        .read(containerRepositoryProvider)
-        .update(UpdateContainerInput(id: containerId, styleConfig: newStyle));
-  }
-
   Future<void> _onContainerStyleChanged(
     int containerId,
     StyleConfig newStyle,
-  ) async {
-    await _saveContainerStyleToApi(containerId, newStyle);
-    _updateContainerStyleLocally(containerId, newStyle);
-  }
+  ) => _styleHelper.onContainerStyleChanged(containerId, newStyle);
 
-  void _updateColumnStyleLocally(int columnId, StyleConfig newStyle) {
-    for (final entry in _columns.entries) {
-      final idx = entry.value.indexWhere((c) => c.id == columnId);
-      if (idx != -1) {
-        setState(() {
-          entry.value[idx] = entry.value[idx].copyWith(styleConfig: newStyle);
-        });
-        break;
-      }
-    }
-  }
-
-  Future<void> _saveColumnStyleToApi(int columnId, StyleConfig newStyle) async {
-    await ref
-        .read(columnRepositoryProvider)
-        .update(UpdateColumnInput(id: columnId, styleConfig: newStyle));
-  }
-
-  Future<void> _onColumnStyleChanged(int columnId, StyleConfig newStyle) async {
-    await _saveColumnStyleToApi(columnId, newStyle);
-    _updateColumnStyleLocally(columnId, newStyle);
-  }
-
-  void _debounceStyleSave(Future<void> Function() apiCall) {
-    _styleDebounceTimer?.cancel();
-    _styleDebounceTimer = Timer(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        apiCall();
-      }
-    });
-  }
-
-  void _flushStyleDebounce() {
-    _styleDebounceTimer?.cancel();
-    _styleDebounceTimer = null;
-  }
+  Future<void> _onColumnStyleChanged(int columnId, StyleConfig newStyle) =>
+      _styleHelper.onColumnStyleChanged(columnId, newStyle);
 
   Future<void> _onColumnDroppableChanged(int columnId, bool isDroppable) async {
     await ref
@@ -700,7 +488,7 @@ class _AdminTemplateEditorPageState
   // ===== Selection =====
 
   void _selectElement(EditorSelection selection) {
-    _flushStyleDebounce();
+    _styleHelper.flushStyleDebounce();
     final style = _resolveStyle(selection);
     _selectionNotifier.select(selection, style);
 
@@ -729,7 +517,7 @@ class _AdminTemplateEditorPageState
   }
 
   void _deselectElement() {
-    _flushStyleDebounce();
+    _styleHelper.flushStyleDebounce();
     _selectionNotifier.deselect();
   }
 
@@ -741,13 +529,17 @@ class _AdminTemplateEditorPageState
       case EditorElementType.menu:
         _onStyleChanged(newStyle);
       case EditorElementType.container:
-        _updateContainerStyleLocally(sel.id, newStyle);
+        _styleHelper.updateContainerStyleLocally(sel.id, newStyle);
         _selectionNotifier.updateStyle(newStyle);
-        _debounceStyleSave(() => _saveContainerStyleToApi(sel.id, newStyle));
+        _styleHelper.debounceStyleSave(
+          () => _styleHelper.saveContainerStyleToApi(sel.id, newStyle),
+        );
       case EditorElementType.column:
-        _updateColumnStyleLocally(sel.id, newStyle);
+        _styleHelper.updateColumnStyleLocally(sel.id, newStyle);
         _selectionNotifier.updateStyle(newStyle);
-        _debounceStyleSave(() => _saveColumnStyleToApi(sel.id, newStyle));
+        _styleHelper.debounceStyleSave(
+          () => _styleHelper.saveColumnStyleToApi(sel.id, newStyle),
+        );
     }
   }
 

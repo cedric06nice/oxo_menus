@@ -33,7 +33,7 @@ import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_mixin.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
-import 'package:oxo_menus/presentation/widgets/dialogs/menu_display_options_dialog.dart';
+import 'package:oxo_menus/presentation/widgets/editor/display_options_dialog_helper.dart';
 import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Menu Editor Page
@@ -353,30 +353,17 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
     context.push('/menus/pdf/${widget.menuId}');
   }
 
-  Future<void> _showDisplayOptionsDialog() async {
-    showDialog(
+  void _showDisplayOptionsDialog() {
+    showDisplayOptionsDialog(
       context: context,
-      builder: (ctx) => MenuDisplayOptionsDialog(
-        displayOptions: _menu?.displayOptions,
-        onSave: (options) async {
-          final result = await ref
-              .read(menuRepositoryProvider)
-              .update(
-                UpdateMenuInput(id: widget.menuId, displayOptions: options),
-              );
-          if (result.isSuccess) {
-            setState(() {
-              _menu = _menu?.copyWith(displayOptions: options);
-            });
-            ref.read(menuDisplayOptionsProvider.notifier).state = options;
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Display options saved')),
-              );
-            }
-          }
-        },
-      ),
+      ref: ref,
+      menuId: widget.menuId,
+      menu: _menu,
+      onMenuUpdated: (updatedMenu) {
+        setState(() {
+          _menu = updatedMenu;
+        });
+      },
     );
   }
 
