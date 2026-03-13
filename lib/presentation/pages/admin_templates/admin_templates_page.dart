@@ -9,6 +9,8 @@ import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_pro
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/widgets/template_card.dart';
 import 'package:oxo_menus/presentation/helpers/grid_helpers.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
@@ -104,15 +106,15 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
 
   Widget _buildBody(dynamic state) {
     if (state.isLoading) {
-      return Center(
-        child: isApplePlatform(context)
-            ? const CupertinoActivityIndicator()
-            : const CircularProgressIndicator(),
-      );
+      return const Center(child: AdaptiveLoadingIndicator());
     }
 
     if (state.errorMessage != null) {
-      return _buildErrorState(state.errorMessage!);
+      return AdaptiveErrorState(
+        message: state.errorMessage!,
+        onRetry: () =>
+            ref.read(adminTemplatesProvider.notifier).loadTemplates(),
+      );
     }
 
     if (state.templates.isEmpty) {
@@ -120,42 +122,6 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
     }
 
     return _buildTemplatesGrid(state.templates);
-  }
-
-  Widget _buildErrorState(String message) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            isApplePlatform(context)
-                ? CupertinoIcons.exclamationmark_triangle
-                : Icons.error_outline,
-            size: 48,
-            color: theme.colorScheme.error,
-          ),
-          const SizedBox(height: 16),
-          Text('Error: $message'),
-          const SizedBox(height: 16),
-          if (isApplePlatform(context))
-            CupertinoButton.filled(
-              onPressed: () {
-                ref.read(adminTemplatesProvider.notifier).loadTemplates();
-              },
-              child: const Text('Retry'),
-            )
-          else
-            FilledButton(
-              onPressed: () {
-                ref.read(adminTemplatesProvider.notifier).loadTemplates();
-              },
-              child: const Text('Retry'),
-            ),
-        ],
-      ),
-    );
   }
 
   Widget _buildEmptyState() {

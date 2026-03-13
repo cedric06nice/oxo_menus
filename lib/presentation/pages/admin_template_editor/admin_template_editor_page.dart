@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +21,7 @@ import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
@@ -34,7 +34,6 @@ import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_mixin.d
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/editor/display_options_dialog_helper.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/page_size_picker_dialog.dart';
-import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Admin Template Editor Page
 ///
@@ -559,13 +558,9 @@ class _AdminTemplateEditorPageState
     final theme = Theme.of(context);
 
     if (_isLoading) {
-      return AuthenticatedScaffold(
+      return const AuthenticatedScaffold(
         title: 'Loading...',
-        body: Center(
-          child: isApplePlatform(context)
-              ? const CupertinoActivityIndicator()
-              : const CircularProgressIndicator(),
-        ),
+        body: Center(child: AdaptiveLoadingIndicator()),
       );
     }
 

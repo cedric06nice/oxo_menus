@@ -8,6 +8,8 @@ import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/helpers/status_helpers.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
 import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
@@ -109,44 +111,13 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
 
   Widget _buildSizesList(dynamic state) {
     if (state.isLoading) {
-      return Center(
-        child: isApplePlatform(context)
-            ? const CupertinoActivityIndicator()
-            : const CircularProgressIndicator(),
-      );
+      return const Center(child: AdaptiveLoadingIndicator());
     }
 
     if (state.errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isApplePlatform(context)
-                  ? CupertinoIcons.exclamationmark_circle
-                  : Icons.error_outline,
-              size: 48,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text('Error: ${state.errorMessage}'),
-            const SizedBox(height: 16),
-            if (isApplePlatform(context))
-              CupertinoButton.filled(
-                onPressed: () {
-                  ref.read(adminSizesProvider.notifier).loadSizes();
-                },
-                child: const Text('Retry'),
-              )
-            else
-              FilledButton(
-                onPressed: () {
-                  ref.read(adminSizesProvider.notifier).loadSizes();
-                },
-                child: const Text('Retry'),
-              ),
-          ],
-        ),
+      return AdaptiveErrorState(
+        message: state.errorMessage!,
+        onRetry: () => ref.read(adminSizesProvider.notifier).loadSizes(),
       );
     }
 
@@ -288,9 +259,7 @@ class _SizeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isApple =
-        theme.platform == TargetPlatform.iOS ||
-        theme.platform == TargetPlatform.macOS;
+    final isApple = isApplePlatform(context);
     final accentColor = statusColor(size.status, colorScheme);
 
     return Card(

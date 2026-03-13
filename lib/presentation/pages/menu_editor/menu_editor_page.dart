@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -24,6 +23,8 @@ import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/offline_error_page.dart';
 import 'package:oxo_menus/presentation/widgets/common/presence_bar.dart';
@@ -35,7 +36,6 @@ import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.
 import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_mixin.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/editor/display_options_dialog_helper.dart';
-import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Menu Editor Page
 ///
@@ -386,13 +386,9 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return AuthenticatedScaffold(
+      return const AuthenticatedScaffold(
         title: 'Loading...',
-        body: Center(
-          child: isApplePlatform(context)
-              ? const CupertinoActivityIndicator()
-              : const CircularProgressIndicator(),
-        ),
+        body: Center(child: AdaptiveLoadingIndicator()),
       );
     }
 
@@ -411,37 +407,9 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
     if (_errorMessage != null) {
       return AuthenticatedScaffold(
         title: 'Error',
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isApplePlatform(context)
-                    ? CupertinoIcons.exclamationmark_triangle
-                    : Icons.error_outline,
-                size: 48,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Error: $_errorMessage'.substring(
-                  0,
-                  'Error: $_errorMessage'.length.clamp(0, 200),
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (isApplePlatform(context))
-                CupertinoButton.filled(
-                  onPressed: () => _loadMenu(isInitialLoad: true),
-                  child: const Text('Retry'),
-                )
-              else
-                FilledButton(
-                  onPressed: () => _loadMenu(isInitialLoad: true),
-                  child: const Text('Retry'),
-                ),
-            ],
-          ),
+        body: AdaptiveErrorState(
+          message: _errorMessage!,
+          onRetry: () => _loadMenu(isInitialLoad: true),
         ),
       );
     }

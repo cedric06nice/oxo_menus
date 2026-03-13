@@ -10,6 +10,8 @@ import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_list_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
@@ -211,11 +213,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
 
   Widget _buildBody(MenuListState state, bool isAdmin) {
     if (state.isLoading) {
-      return Center(
-        child: isApplePlatform(context)
-            ? const CupertinoActivityIndicator()
-            : const CircularProgressIndicator(),
-      );
+      return const Center(child: AdaptiveLoadingIndicator());
     }
 
     if (state.errorMessage != null) {
@@ -243,43 +241,13 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   }
 
   Widget _buildErrorState(String message) {
-    final theme = Theme.of(context);
-
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverFillRemaining(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  isApplePlatform(context)
-                      ? CupertinoIcons.exclamationmark_triangle
-                      : Icons.error_outline,
-                  size: 48,
-                  color: theme.colorScheme.error,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Error: $message'.substring(
-                    0,
-                    'Error: $message'.length.clamp(0, 200),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (isApplePlatform(context))
-                  CupertinoButton.filled(
-                    onPressed: () => _tryLoadMenus(),
-                    child: const Text('Retry'),
-                  )
-                else
-                  FilledButton(
-                    onPressed: () => _tryLoadMenus(),
-                    child: const Text('Retry'),
-                  ),
-              ],
-            ),
+          child: AdaptiveErrorState(
+            message: message,
+            onRetry: () => _tryLoadMenus(),
           ),
         ),
       ],
