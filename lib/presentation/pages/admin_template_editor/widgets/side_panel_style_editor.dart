@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
-import 'package:oxo_menus/presentation/widgets/common/compact_edge_insets_editor.dart';
+import 'package:oxo_menus/presentation/widgets/common/edge_insets_editor.dart';
 
 class SidePanelStyleEditor extends StatefulWidget {
   final EditorElementType type;
@@ -136,7 +136,8 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
             ),
 
           // Margins
-          CompactEdgeInsetsEditor(
+          EdgeInsetsEditor(
+            isCompact: true,
             label: 'Margins',
             keyPrefix: 'side_margin',
             top: _style.marginTop,
@@ -175,7 +176,8 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
           const SizedBox(height: 12),
 
           // Paddings
-          CompactEdgeInsetsEditor(
+          EdgeInsetsEditor(
+            isCompact: true,
             label: 'Paddings',
             keyPrefix: 'side_padding',
             top: _style.paddingTop,

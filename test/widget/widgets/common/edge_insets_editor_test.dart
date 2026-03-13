@@ -463,6 +463,148 @@ void main() {
       });
     });
 
+    group('compact mode', () {
+      Widget buildCompact({
+        String label = 'Margins',
+        String keyPrefix = 'margin',
+        double? top,
+        double? bottom,
+        double? left,
+        double? right,
+        void Function({
+          double? top,
+          double? bottom,
+          double? left,
+          double? right,
+        })?
+        onChanged,
+      }) {
+        return MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 240,
+              child: EdgeInsetsEditor(
+                isCompact: true,
+                label: label,
+                keyPrefix: keyPrefix,
+                top: top,
+                bottom: bottom,
+                left: left,
+                right: right,
+                onChanged: onChanged ?? ({top, bottom, left, right}) {},
+              ),
+            ),
+          ),
+        );
+      }
+
+      testWidgets('uses DropdownButton instead of SegmentedButton', (
+        tester,
+      ) async {
+        await tester.pumpWidget(buildCompact());
+        expect(find.byType(DropdownButton<EdgeInsetsEditMode>), findsOneWidget);
+        expect(find.byType(SegmentedButton<EdgeInsetsEditMode>), findsNothing);
+      });
+
+      testWidgets('uses short labels in symmetric mode', (tester) async {
+        await tester.pumpWidget(
+          buildCompact(top: 10, bottom: 10, left: 5, right: 5),
+        );
+        // Should use 'V' and 'H' not 'Vertical' and 'Horizontal'
+        final vField = tester.widget<TextField>(
+          find.byKey(const Key('margin_vertical')),
+        );
+        expect(vField.decoration?.labelText, 'V');
+        final hField = tester.widget<TextField>(
+          find.byKey(const Key('margin_horizontal')),
+        );
+        expect(hField.decoration?.labelText, 'H');
+      });
+
+      testWidgets('uses short labels in individual mode', (tester) async {
+        await tester.pumpWidget(
+          buildCompact(top: 1, bottom: 2, left: 3, right: 4),
+        );
+        final topField = tester.widget<TextField>(
+          find.byKey(const Key('margin_top')),
+        );
+        expect(topField.decoration?.labelText, 'T');
+        final bottomField = tester.widget<TextField>(
+          find.byKey(const Key('margin_bottom')),
+        );
+        expect(bottomField.decoration?.labelText, 'B');
+        final leftField = tester.widget<TextField>(
+          find.byKey(const Key('margin_left')),
+        );
+        expect(leftField.decoration?.labelText, 'L');
+        final rightField = tester.widget<TextField>(
+          find.byKey(const Key('margin_right')),
+        );
+        expect(rightField.decoration?.labelText, 'R');
+      });
+
+      testWidgets('updates controllers when parent props change', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildCompact(top: 5, bottom: 5, left: 5, right: 5),
+        );
+        final field = tester.widget<TextField>(find.byType(TextField));
+        expect(field.controller!.text, '5');
+
+        await tester.pumpWidget(
+          buildCompact(top: 20, bottom: 20, left: 20, right: 20),
+        );
+        final updatedField = tester.widget<TextField>(find.byType(TextField));
+        expect(updatedField.controller!.text, '20');
+      });
+
+      testWidgets('re-detects mode when prop symmetry changes', (tester) async {
+        await tester.pumpWidget(
+          buildCompact(top: 5, bottom: 5, left: 5, right: 5),
+        );
+        expect(find.byType(TextField), findsOneWidget);
+
+        await tester.pumpWidget(
+          buildCompact(top: 1, bottom: 2, left: 3, right: 4),
+        );
+        expect(find.byType(TextField), findsNWidgets(4));
+      });
+
+      testWidgets('mode dropdown switches layout', (tester) async {
+        await tester.pumpWidget(
+          buildCompact(top: 5, bottom: 5, left: 5, right: 5),
+        );
+        expect(find.byType(TextField), findsOneWidget);
+
+        await tester.tap(find.byKey(const Key('margin_mode_dropdown')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Individual').last);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(TextField), findsNWidgets(4));
+      });
+
+      testWidgets('fields use isDense decoration', (tester) async {
+        await tester.pumpWidget(buildCompact());
+        final field = tester.widget<TextField>(
+          find.byKey(const Key('margin_all')),
+        );
+        expect(field.decoration?.isDense, isTrue);
+      });
+
+      testWidgets('individual fields use Column layout not Row', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildCompact(top: 1, bottom: 2, left: 3, right: 4),
+        );
+        // In compact mode, individual fields should be in a Column with two Rows
+        // (T,B in one Row and L,R in another) — not all in one Row
+        expect(find.byType(TextField), findsNWidgets(4));
+      });
+    });
+
     group('detectMode', () {
       test('returns all when all values are null', () {
         expect(

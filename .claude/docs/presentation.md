@@ -128,7 +128,7 @@ Each has: `*_widget_definition.dart`, `*_widget.dart` (render), `*_edit_dialog.d
 - **HoverCard** — card with hover effects for desktop interaction
 - **SkeletonLoader** — shimmer placeholder for loading states
 - **PresenceBar** — shows active users editing menu with avatars and names
-- **EdgeInsetsEditor** / **CompactEdgeInsetsEditor** — padding/margin editing
+- **EdgeInsetsEditor** (`isCompact: true` for side panel) — padding/margin editing
 
 ### Dialog Widgets (`dialogs/`)
 - **DeleteConfirmationDialog** — reusable platform-adaptive confirm
