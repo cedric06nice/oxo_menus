@@ -4,12 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/helpers/status_helpers.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
 import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
+import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/widgets/size_create_edit_dialog.dart';
 import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
@@ -233,60 +235,18 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
   }
 
   Future<void> _confirmDelete(domain.Size size) async {
-    final bool? confirmed;
-    if (isApplePlatform(context)) {
-      confirmed = await showCupertinoDialog<bool>(
-        context: context,
-        builder: (dialogContext) => CupertinoAlertDialog(
-          title: const Text('Delete Page Size'),
-          content: Text(
-            'Are you sure you want to delete "${size.name}"? This action cannot be undone.',
-          ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            CupertinoDialogAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Delete'),
-            ),
-          ],
-        ),
-      );
-    } else {
-      confirmed = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Delete Page Size'),
-          content: Text(
-            'Are you sure you want to delete "${size.name}"? This action cannot be undone.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-              child: const Text('Delete'),
-            ),
-          ],
-        ),
-      );
-    }
+    final confirmed = await showDeleteConfirmation(
+      context,
+      title: 'Delete Page Size',
+      message:
+          'Are you sure you want to delete "${size.name}"? This action cannot be undone.',
+    );
 
     if (confirmed == true && mounted) {
       await ref.read(adminSizesProvider.notifier).deleteSize(size.id);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Page size "${size.name}" deleted')),
-        );
+        showThemedSnackBar(context, 'Page size "${size.name}" deleted');
       }
     }
   }

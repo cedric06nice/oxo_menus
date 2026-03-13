@@ -6,11 +6,13 @@ import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_list_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
+import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/widgets/menu_list_item.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/widgets/template_create_dialog.dart';
 import 'package:oxo_menus/presentation/utils/platform_detection.dart';
@@ -83,46 +85,11 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   }
 
   Future<void> _confirmDelete(Menu menu) async {
-    final bool? confirmed;
-
-    if (isApplePlatform(context)) {
-      confirmed = await showCupertinoDialog<bool>(
-        context: context,
-        builder: (dialogContext) => CupertinoAlertDialog(
-          title: const Text('Delete Menu'),
-          content: Text('Are you sure you want to delete "${menu.name}"?'),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            CupertinoDialogAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Delete'),
-            ),
-          ],
-        ),
-      );
-    } else {
-      confirmed = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Delete Menu'),
-          content: Text('Are you sure you want to delete "${menu.name}"?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Delete'),
-            ),
-          ],
-        ),
-      );
-    }
+    final confirmed = await showDeleteConfirmation(
+      context,
+      title: 'Delete Menu',
+      message: 'Are you sure you want to delete "${menu.name}"?',
+    );
 
     if (confirmed == true && mounted) {
       await ref.read(menuListProvider.notifier).deleteMenu(menu.id);
@@ -169,13 +136,9 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
 
     if (mounted) {
       if (duplicatedMenu != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Menu duplicated successfully')),
-        );
+        showThemedSnackBar(context, 'Menu duplicated successfully');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to duplicate menu')),
-        );
+        showThemedSnackBar(context, 'Failed to duplicate menu', isError: true);
       }
     }
   }

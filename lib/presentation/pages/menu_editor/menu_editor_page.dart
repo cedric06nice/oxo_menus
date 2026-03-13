@@ -15,6 +15,7 @@ import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
 import 'package:oxo_menus/domain/repositories/presence_repository.dart';
+import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/presentation/providers/app_lifecycle_provider.dart';
@@ -378,9 +379,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
         );
 
     if (result.isSuccess && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Menu saved')));
+      showThemedSnackBar(context, 'Menu saved');
     }
   }
 

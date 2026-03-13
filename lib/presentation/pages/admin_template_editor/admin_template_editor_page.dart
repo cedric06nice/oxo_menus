@@ -12,6 +12,7 @@ import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/state/editor_selection_notifier.dart';
@@ -272,13 +273,10 @@ class _AdminTemplateEditorPageState
     final result = await ref.read(sizeRepositoryProvider).getAll();
     if (result.isFailure) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to load sizes: ${result.errorOrNull?.message ?? 'Unknown error'}',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        showThemedSnackBar(
+          context,
+          'Failed to load sizes: ${result.errorOrNull?.message ?? 'Unknown error'}',
+          isError: true,
         );
       }
       return;
@@ -305,9 +303,7 @@ class _AdminTemplateEditorPageState
               _menu = _menu?.copyWith(pageSize: pageSize);
             });
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Page size updated')),
-              );
+              showThemedSnackBar(context, 'Page size updated');
             }
           }
         },
@@ -466,9 +462,7 @@ class _AdminTemplateEditorPageState
         );
 
     if (result.isSuccess && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Template saved')));
+      showThemedSnackBar(context, 'Template saved');
     }
   }
 
@@ -478,9 +472,7 @@ class _AdminTemplateEditorPageState
         .update(UpdateMenuInput(id: widget.menuId, status: Status.published));
 
     if (result.isSuccess && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Template published')));
+      showThemedSnackBar(context, 'Template published');
       await _loadTemplate();
     }
   }
