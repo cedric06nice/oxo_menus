@@ -1145,6 +1145,9 @@ void main() {
       when(
         () => mockPageRepository.getAllForMenu(menuId),
       ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success(<entity.Container>[]));
       when(() => mockContainerRepository.getAllForPage(1)).thenAnswer(
         (_) async => const Success([
           entity.Container(
@@ -1200,6 +1203,9 @@ void main() {
       when(
         () => mockPageRepository.getAllForMenu(menuId),
       ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(any()),
+      ).thenAnswer((_) async => const Success(<entity.Container>[]));
       when(() => mockContainerRepository.getAllForPage(1)).thenAnswer(
         (_) async => const Success([
           entity.Container(

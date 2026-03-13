@@ -15,6 +15,7 @@ import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
 import 'package:oxo_menus/domain/repositories/presence_repository.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/presentation/providers/app_lifecycle_provider.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
@@ -210,88 +211,39 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       });
     }
 
-    // Load menu
-    final menuResult = await ref
-        .read(menuRepositoryProvider)
-        .getById(widget.menuId);
+    final loader = EditorTreeLoader(
+      menuRepository: ref.read(menuRepositoryProvider),
+      pageRepository: ref.read(pageRepositoryProvider),
+      containerRepository: ref.read(containerRepositoryProvider),
+      columnRepository: ref.read(columnRepositoryProvider),
+      widgetRepository: ref.read(widgetRepositoryProvider),
+    );
+
+    final result = await loader.loadTree(widget.menuId);
     if (!mounted) return;
 
-    if (menuResult.isFailure) {
+    if (result.isFailure) {
       setState(() {
         _isLoading = false;
-        _errorMessage =
-            menuResult.errorOrNull?.message ?? 'Failed to load menu';
+        _errorMessage = result.errorOrNull?.message ?? 'Failed to load menu';
       });
       return;
     }
 
-    _menu = menuResult.valueOrNull!;
-
-    // Load pages
-    final pagesResult = await ref
-        .read(pageRepositoryProvider)
-        .getAllForMenu(widget.menuId);
-    if (!mounted) return;
-
-    if (pagesResult.isFailure) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage =
-            pagesResult.errorOrNull?.message ?? 'Failed to load pages';
-      });
-      return;
-    }
-
-    _pages = List<entity.Page>.from(pagesResult.valueOrNull!)
-      ..sort((a, b) => a.index.compareTo(b.index))
-      ..removeWhere((page) => page.type != entity.PageType.content);
-
-    // Load containers for each page
-    _containers.clear();
-    _columns.clear();
-    _widgets.clear();
-
-    for (final page in _pages) {
-      final containersResult = await ref
-          .read(containerRepositoryProvider)
-          .getAllForPage(page.id);
-      if (!mounted) return;
-
-      if (containersResult.isSuccess) {
-        final containers = List<entity.Container>.from(
-          containersResult.valueOrNull!,
-        )..sort((a, b) => a.index.compareTo(b.index));
-        _containers[page.id] = containers;
-
-        // Load columns for each container
-        for (final container in containers) {
-          final columnsResult = await ref
-              .read(columnRepositoryProvider)
-              .getAllForContainer(container.id);
-          if (!mounted) return;
-
-          if (columnsResult.isSuccess) {
-            _columns[container.id] = List<entity.Column>.from(
-              columnsResult.valueOrNull!,
-            )..sort((a, b) => a.index.compareTo(b.index));
-
-            // Load widgets for each column
-            for (final column in _columns[container.id] ?? <entity.Column>[]) {
-              final widgetsResult = await ref
-                  .read(widgetRepositoryProvider)
-                  .getAllForColumn(column.id);
-              if (!mounted) return;
-
-              if (widgetsResult.isSuccess) {
-                _widgets[column.id] = List<WidgetInstance>.from(
-                  widgetsResult.valueOrNull!,
-                )..sort((a, b) => a.index.compareTo(b.index));
-              }
-            }
-          }
-        }
-      }
-    }
+    final tree = result.valueOrNull!;
+    _menu = tree.menu;
+    _pages = tree.pages
+        .where((page) => page.type == entity.PageType.content)
+        .toList();
+    _containers
+      ..clear()
+      ..addAll(tree.containers);
+    _columns
+      ..clear()
+      ..addAll(tree.columns);
+    _widgets
+      ..clear()
+      ..addAll(tree.widgets);
 
     setState(() {
       _isLoading = false;

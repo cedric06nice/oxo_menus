@@ -16,6 +16,7 @@ import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/state/editor_selection_notifier.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/side_panel_style_editor.dart';
@@ -173,45 +174,34 @@ class _AdminTemplateEditorPageState
       });
     }
 
-    // Load menu
-    final menuResult = await ref
-        .read(menuRepositoryProvider)
-        .getById(widget.menuId);
+    final loader = EditorTreeLoader(
+      menuRepository: ref.read(menuRepositoryProvider),
+      pageRepository: ref.read(pageRepositoryProvider),
+      containerRepository: ref.read(containerRepositoryProvider),
+      columnRepository: ref.read(columnRepositoryProvider),
+      widgetRepository: ref.read(widgetRepositoryProvider),
+    );
 
-    if (menuResult.isFailure) {
+    final result = await loader.loadTree(widget.menuId);
+
+    if (result.isFailure) {
       setState(() {
         _isLoading = false;
         _errorMessage =
-            menuResult.errorOrNull?.message ?? 'Failed to load menu';
+            result.errorOrNull?.message ?? 'Failed to load template';
       });
       return;
     }
 
-    _menu = menuResult.valueOrNull!;
-
-    // Load pages
-    final pagesResult = await ref
-        .read(pageRepositoryProvider)
-        .getAllForMenu(widget.menuId);
-
-    if (pagesResult.isFailure) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage =
-            pagesResult.errorOrNull?.message ?? 'Failed to load pages';
-      });
-      return;
-    }
-
-    final allPages = List<entity.Page>.from(pagesResult.valueOrNull!)
-      ..sort((a, b) => a.index.compareTo(b.index));
+    final tree = result.valueOrNull!;
+    _menu = tree.menu;
 
     // Separate pages by type
     _headerPage = null;
     _footerPage = null;
     _pages = [];
 
-    for (final page in allPages) {
+    for (final page in tree.pages) {
       switch (page.type) {
         case entity.PageType.header:
           _headerPage = page;
@@ -225,49 +215,15 @@ class _AdminTemplateEditorPageState
       }
     }
 
-    // Load containers for each page
-    _containers.clear();
-    _columns.clear();
-    _widgets.clear();
-
-    for (final page in allPages) {
-      final containersResult = await ref
-          .read(containerRepositoryProvider)
-          .getAllForPage(page.id);
-
-      if (containersResult.isSuccess) {
-        final containers = List<entity.Container>.from(
-          containersResult.valueOrNull!,
-        )..sort((a, b) => a.index.compareTo(b.index));
-        _containers[page.id] = containers;
-
-        // Load columns for each container
-        for (final container in containers) {
-          final columnsResult = await ref
-              .read(columnRepositoryProvider)
-              .getAllForContainer(container.id);
-
-          if (columnsResult.isSuccess) {
-            _columns[container.id] = List<entity.Column>.from(
-              columnsResult.valueOrNull!,
-            )..sort((a, b) => a.index.compareTo(b.index));
-
-            // Load widgets for each column
-            for (final column in _columns[container.id] ?? <entity.Column>[]) {
-              final widgetsResult = await ref
-                  .read(widgetRepositoryProvider)
-                  .getAllForColumn(column.id);
-
-              if (widgetsResult.isSuccess) {
-                _widgets[column.id] = List<WidgetInstance>.from(
-                  widgetsResult.valueOrNull!,
-                )..sort((a, b) => a.index.compareTo(b.index));
-              }
-            }
-          }
-        }
-      }
-    }
+    _containers
+      ..clear()
+      ..addAll(tree.containers);
+    _columns
+      ..clear()
+      ..addAll(tree.columns);
+    _widgets
+      ..clear()
+      ..addAll(tree.widgets);
 
     setState(() {
       _isLoading = false;
