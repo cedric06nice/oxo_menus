@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/presentation/providers/app_version_provider.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/user_avatar_widget.dart';
 
@@ -22,7 +23,7 @@ class SettingsPage extends ConsumerWidget {
     return AuthenticatedScaffold(
       title: 'Settings',
       body: user == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: AdaptiveLoadingIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(

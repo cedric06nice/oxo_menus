@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:printing/printing.dart';
 
@@ -33,10 +34,7 @@ class PdfPreviewPage extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (isApple)
-                    const CupertinoActivityIndicator()
-                  else
-                    const CircularProgressIndicator(),
+                  const AdaptiveLoadingIndicator(),
                   const SizedBox(height: 16),
                   const Text('Generating PDF...'),
                 ],

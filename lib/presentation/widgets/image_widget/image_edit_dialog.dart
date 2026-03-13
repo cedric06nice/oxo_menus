@@ -7,6 +7,7 @@ import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_edit_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Dialog for editing image properties
@@ -207,11 +208,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     if (_isLoading) {
       return SizedBox(
         height: 100,
-        child: Center(
-          child: isApplePlatform(context)
-              ? const CupertinoActivityIndicator()
-              : const CircularProgressIndicator(),
-        ),
+        child: const Center(child: AdaptiveLoadingIndicator()),
       );
     }
 
@@ -267,9 +264,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
                               fit: BoxFit.contain,
                               width: double.infinity,
                             ),
-                            loading: () => isApplePlatform(context)
-                                ? const CupertinoActivityIndicator()
-                                : const CircularProgressIndicator(),
+                            loading: () => const AdaptiveLoadingIndicator(),
                             error: (_, _) => Icon(
                               isApplePlatform(context)
                                   ? CupertinoIcons.photo

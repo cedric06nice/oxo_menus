@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/presentation/helpers/edit_dialog_helper.dart';
 import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/helpers/status_helpers.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
@@ -114,63 +115,47 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
   }
 
   void _showCreateDialog() {
-    final dialog = SizeCreateEditDialog(
-      onSave: (result) {
-        ref
-            .read(adminSizesProvider.notifier)
-            .createSize(
-              CreateSizeInput(
-                name: result.name,
-                width: result.width,
-                height: result.height,
-                status: result.status,
-                direction: result.direction,
-              ),
-            );
-      },
+    showEditDialog(
+      context,
+      SizeCreateEditDialog(
+        onSave: (result) {
+          ref
+              .read(adminSizesProvider.notifier)
+              .createSize(
+                CreateSizeInput(
+                  name: result.name,
+                  width: result.width,
+                  height: result.height,
+                  status: result.status,
+                  direction: result.direction,
+                ),
+              );
+        },
+      ),
     );
-
-    if (isApplePlatform(context)) {
-      Navigator.of(context).push(
-        CupertinoPageRoute<void>(
-          fullscreenDialog: true,
-          builder: (_) => dialog,
-        ),
-      );
-    } else {
-      showDialog(context: context, builder: (_) => dialog);
-    }
   }
 
   void _showEditDialog(domain.Size size) {
-    final dialog = SizeCreateEditDialog(
-      existingSize: size,
-      onSave: (result) {
-        ref
-            .read(adminSizesProvider.notifier)
-            .updateSize(
-              UpdateSizeInput(
-                id: size.id,
-                name: result.name,
-                width: result.width,
-                height: result.height,
-                status: result.status,
-                direction: result.direction,
-              ),
-            );
-      },
+    showEditDialog(
+      context,
+      SizeCreateEditDialog(
+        existingSize: size,
+        onSave: (result) {
+          ref
+              .read(adminSizesProvider.notifier)
+              .updateSize(
+                UpdateSizeInput(
+                  id: size.id,
+                  name: result.name,
+                  width: result.width,
+                  height: result.height,
+                  status: result.status,
+                  direction: result.direction,
+                ),
+              );
+        },
+      ),
     );
-
-    if (isApplePlatform(context)) {
-      Navigator.of(context).push(
-        CupertinoPageRoute<void>(
-          fullscreenDialog: true,
-          builder: (_) => dialog,
-        ),
-      );
-    } else {
-      showDialog(context: context, builder: (_) => dialog);
-    }
   }
 
   Future<void> _confirmDelete(domain.Size size) async {

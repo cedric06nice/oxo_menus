@@ -15,6 +15,7 @@ import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
 import 'package:oxo_menus/presentation/pages/settings/settings_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/app_shell.dart';
 import 'package:oxo_menus/presentation/widgets/common/offline_banner.dart';
 
@@ -47,7 +48,7 @@ class _SplashScreen extends ConsumerWidget {
       body: Column(
         children: [
           if (isOffline) const OfflineBanner(),
-          const Expanded(child: Center(child: CircularProgressIndicator())),
+          const Expanded(child: Center(child: AdaptiveLoadingIndicator())),
         ],
       ),
     );
