@@ -73,8 +73,14 @@ void main() {
       ).thenAnswer((_) => completer.future);
 
       await tester.pumpWidget(buildDialog());
+      // Pump to trigger addPostFrameCallback (starts loading)
+      await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // Complete to avoid pending futures
+      completer.complete(const Success([]));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('should show error message when file loading fails', (

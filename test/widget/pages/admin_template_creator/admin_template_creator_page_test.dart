@@ -158,6 +158,9 @@ void main() {
         ),
       );
 
+      // Pump to trigger addPostFrameCallback (starts loadSizes, sets isLoading)
+      await tester.pump();
+      // Pump again to rebuild widget after provider state change
       await tester.pump();
 
       expect(find.text('Loading sizes...'), findsOneWidget);

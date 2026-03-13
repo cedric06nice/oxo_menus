@@ -10,5 +10,7 @@ abstract class MenuCollaborationState with _$MenuCollaborationState {
     @Default(false) bool isReconnecting,
     @Default(false) bool isPaused,
     String? currentUserId,
+    @Default(0) int wsErrorCount,
+    @Default(false) bool isLoadingMenu,
   }) = _MenuCollaborationState;
 }

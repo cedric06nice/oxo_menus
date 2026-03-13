@@ -26,8 +26,7 @@ class MenuCollaborationNotifier extends Notifier<MenuCollaborationState> {
   Timer? _debounceTimer;
   Timer? _heartbeatTimer;
   Timer? _pollingTimer;
-  int _wsErrorCount = 0;
-  bool _isLoadingMenu = false;
+  // Cached for cleanup — state is inaccessible during onDispose
   String? _cachedUserId;
 
   late MenuSubscriptionRepository _subRepo;
@@ -98,8 +97,7 @@ class MenuCollaborationNotifier extends Notifier<MenuCollaborationState> {
 
   void _onChangeEvent(MenuChangeEvent event) {
     if (state.isReconnecting) {
-      state = state.copyWith(isReconnecting: false);
-      _wsErrorCount = 0;
+      state = state.copyWith(isReconnecting: false, wsErrorCount: 0);
     }
 
     _debounceTimer?.cancel();
@@ -110,11 +108,11 @@ class MenuCollaborationNotifier extends Notifier<MenuCollaborationState> {
 
   void _onStreamError(Object error) {
     if (state.isPaused) return;
-    _wsErrorCount++;
+    final newCount = state.wsErrorCount + 1;
 
-    state = state.copyWith(isReconnecting: true);
+    state = state.copyWith(isReconnecting: true, wsErrorCount: newCount);
 
-    if (_wsErrorCount >= _maxWsErrors) {
+    if (newCount >= _maxWsErrors) {
       _startPollingFallback();
     }
   }
@@ -166,20 +164,23 @@ class MenuCollaborationNotifier extends Notifier<MenuCollaborationState> {
   }
 
   void _resumeSubscriptions() {
-    state = state.copyWith(isPaused: false, isReconnecting: false);
-    _wsErrorCount = 0;
+    state = state.copyWith(
+      isPaused: false,
+      isReconnecting: false,
+      wsErrorCount: 0,
+    );
     _subscribeToChanges();
     _startPresenceTracking();
     _reloadTree();
   }
 
   Future<void> _reloadTree() async {
-    if (_isLoadingMenu) return;
-    _isLoadingMenu = true;
+    if (state.isLoadingMenu) return;
+    state = state.copyWith(isLoadingMenu: true);
     try {
       await ref.read(editorTreeProvider(menuId).notifier).loadTree();
     } finally {
-      _isLoadingMenu = false;
+      state = state.copyWith(isLoadingMenu: false);
     }
   }
 

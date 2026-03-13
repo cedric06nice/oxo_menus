@@ -393,7 +393,7 @@ void main() {
   });
 
   group('EditorTreeNotifier - widget CRUD', () {
-    test('createWidget calls repository and reloads', () async {
+    test('createWidget calls repository and reloads on success', () async {
       stubSuccessfulTreeLoad();
       final container = createContainer();
       addTearDown(container.dispose);
@@ -418,21 +418,44 @@ void main() {
         ),
       );
 
-      await notifier.createWidget('text', 30, 1);
+      final result = await notifier.createWidget('text', 30, 1);
 
       verify(() => mockWidgetRepo.create(any())).called(1);
+      expect(result?.isSuccess, isTrue);
     });
 
-    test('createWidget does nothing if widget type unknown', () async {
+    test('createWidget returns null if widget type unknown', () async {
       final container = createContainer();
       addTearDown(container.dispose);
 
       when(() => mockWidgetRegistry.getDefinition('unknown')).thenReturn(null);
 
       final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.createWidget('unknown', 30, 0);
+      final result = await notifier.createWidget('unknown', 30, 0);
 
       verifyNever(() => mockWidgetRepo.create(any()));
+      expect(result, isNull);
+    });
+
+    test('createWidget returns failure on error', () async {
+      stubSuccessfulTreeLoad();
+      final container = createContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(editorTreeProvider(menuId).notifier);
+      await notifier.loadTree();
+
+      final mockDef = MockWidgetDefinition();
+      when(() => mockWidgetRegistry.getDefinition('text')).thenReturn(mockDef);
+      when(() => mockDef.defaultProps).thenReturn(_FakeProps());
+      when(() => mockDef.version).thenReturn('1.0');
+      when(
+        () => mockWidgetRepo.create(any()),
+      ).thenAnswer((_) async => const Failure(ServerError('Create failed')));
+
+      final result = await notifier.createWidget('text', 30, 1);
+
+      expect(result?.isFailure, isTrue);
     });
 
     test('deleteWidget calls repository and reloads', () async {
@@ -447,9 +470,24 @@ void main() {
         () => mockWidgetRepo.delete(40),
       ).thenAnswer((_) async => const Success(null));
 
-      await notifier.deleteWidget(40);
+      final result = await notifier.deleteWidget(40);
 
       verify(() => mockWidgetRepo.delete(40)).called(1);
+      expect(result.isSuccess, isTrue);
+    });
+
+    test('deleteWidget returns failure on error', () async {
+      final container = createContainer();
+      addTearDown(container.dispose);
+
+      when(
+        () => mockWidgetRepo.delete(40),
+      ).thenAnswer((_) async => const Failure(ServerError('Delete failed')));
+
+      final notifier = container.read(editorTreeProvider(menuId).notifier);
+      final result = await notifier.deleteWidget(40);
+
+      expect(result.isFailure, isTrue);
     });
 
     test('moveWidget within same column adjusts index', () async {
@@ -473,10 +511,11 @@ void main() {
         () => mockWidgetRepo.reorder(40, any()),
       ).thenAnswer((_) async => const Success(null));
 
-      await notifier.moveWidget(widget, 30, 30, 2);
+      final result = await notifier.moveWidget(widget, 30, 30, 2);
 
       // index > widget.index => adjustedIndex = 2 - 1 = 1
       verify(() => mockWidgetRepo.reorder(40, 1)).called(1);
+      expect(result.isSuccess, isTrue);
     });
 
     test('moveWidget to different column calls moveTo', () async {
@@ -500,9 +539,33 @@ void main() {
         () => mockWidgetRepo.moveTo(40, 31, 0),
       ).thenAnswer((_) async => const Success(null));
 
-      await notifier.moveWidget(widget, 30, 31, 0);
+      final result = await notifier.moveWidget(widget, 30, 31, 0);
 
       verify(() => mockWidgetRepo.moveTo(40, 31, 0)).called(1);
+      expect(result.isSuccess, isTrue);
+    });
+
+    test('moveWidget returns failure on error', () async {
+      final container = createContainer();
+      addTearDown(container.dispose);
+
+      const widget = WidgetInstance(
+        id: 40,
+        columnId: 30,
+        type: 'text',
+        version: '1.0',
+        index: 0,
+        props: {},
+      );
+
+      when(
+        () => mockWidgetRepo.reorder(40, any()),
+      ).thenAnswer((_) async => const Failure(ServerError('Reorder failed')));
+
+      final notifier = container.read(editorTreeProvider(menuId).notifier);
+      final result = await notifier.moveWidget(widget, 30, 30, 2);
+
+      expect(result.isFailure, isTrue);
     });
 
     test('updateWidgetProps calls repository and reloads', () async {
@@ -526,9 +589,54 @@ void main() {
         ),
       );
 
-      await notifier.updateWidgetProps(40, {'text': 'Updated'});
+      final result = await notifier.updateWidgetProps(40, {'text': 'Updated'});
 
       verify(() => mockWidgetRepo.update(any())).called(1);
+      expect(result.isSuccess, isTrue);
+    });
+
+    test('updateWidgetProps returns failure on error', () async {
+      final container = createContainer();
+      addTearDown(container.dispose);
+
+      when(
+        () => mockWidgetRepo.update(any()),
+      ).thenAnswer((_) async => const Failure(ServerError('Update failed')));
+
+      final notifier = container.read(editorTreeProvider(menuId).notifier);
+      final result = await notifier.updateWidgetProps(40, {'text': 'x'});
+
+      expect(result.isFailure, isTrue);
+    });
+  });
+
+  group('EditorTreeNotifier - widget locking', () {
+    test('lockWidget calls widgetRepository.lockForEditing', () async {
+      final container = createContainer();
+      addTearDown(container.dispose);
+
+      when(
+        () => mockWidgetRepo.lockForEditing(40, 'user-1'),
+      ).thenAnswer((_) async => const Success(null));
+
+      final notifier = container.read(editorTreeProvider(menuId).notifier);
+      await notifier.lockWidget(40, 'user-1');
+
+      verify(() => mockWidgetRepo.lockForEditing(40, 'user-1')).called(1);
+    });
+
+    test('unlockWidget calls widgetRepository.unlockEditing', () async {
+      final container = createContainer();
+      addTearDown(container.dispose);
+
+      when(
+        () => mockWidgetRepo.unlockEditing(40),
+      ).thenAnswer((_) async => const Success(null));
+
+      final notifier = container.read(editorTreeProvider(menuId).notifier);
+      await notifier.unlockWidget(40);
+
+      verify(() => mockWidgetRepo.unlockEditing(40)).called(1);
     });
   });
 }

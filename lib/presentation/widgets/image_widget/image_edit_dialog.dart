@@ -1,10 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/image_file_info.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
+import 'package:oxo_menus/presentation/providers/image_files/image_files_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_edit_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
@@ -28,11 +27,6 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
   late String _align;
   late String _fit;
 
-  // File loading state
-  List<ImageFileInfo> _imageFiles = [];
-  bool _isLoading = true;
-  String? _loadError;
-
   @override
   void initState() {
     super.initState();
@@ -45,27 +39,9 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     );
     _align = widget.props.align;
     _fit = widget.props.fit;
-    _loadImageFiles();
-  }
-
-  Future<void> _loadImageFiles() async {
-    final fileRepository = ref.read(fileRepositoryProvider);
-    final result = await fileRepository.listImageFiles();
-
-    if (!mounted) return;
-
-    switch (result) {
-      case Success(:final value):
-        setState(() {
-          _imageFiles = value;
-          _isLoading = false;
-        });
-      case Failure(:final error):
-        setState(() {
-          _loadError = error.message;
-          _isLoading = false;
-        });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(imageFilesProvider.notifier).loadImageFiles();
+    });
   }
 
   @override
@@ -205,21 +181,25 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
   }
 
   Widget _buildImageGrid() {
-    if (_isLoading) {
+    final imageFilesState = ref.watch(imageFilesProvider);
+
+    if (imageFilesState.isLoading) {
       return SizedBox(
         height: 100,
         child: const Center(child: AdaptiveLoadingIndicator()),
       );
     }
 
-    if (_loadError != null) {
+    if (imageFilesState.errorMessage != null) {
       return Text(
-        'Error loading images: $_loadError',
+        'Error loading images: ${imageFilesState.errorMessage}',
         style: TextStyle(color: Theme.of(context).colorScheme.error),
       );
     }
 
-    if (_imageFiles.isEmpty) {
+    final imageFiles = imageFilesState.files;
+
+    if (imageFiles.isEmpty) {
       return const Text('No images available');
     }
 
@@ -231,9 +211,9 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
         ),
-        itemCount: _imageFiles.length,
+        itemCount: imageFiles.length,
         itemBuilder: (context, index) {
-          final file = _imageFiles[index];
+          final file = imageFiles[index];
           final isSelected = file.id == _selectedFileId;
 
           return GestureDetector(

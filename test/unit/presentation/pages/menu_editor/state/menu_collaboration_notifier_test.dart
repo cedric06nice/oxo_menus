@@ -121,6 +121,49 @@ void main() {
   });
 
   group('MenuCollaborationNotifier - WS error fallback', () {
+    test('increments wsErrorCount in state on stream error', () async {
+      final changeController = StreamController<MenuChangeEvent>.broadcast();
+      when(
+        () => mockSubRepo.subscribeToMenuChanges(menuId),
+      ).thenAnswer((_) => changeController.stream);
+      when(
+        () => mockPresenceRepo.joinMenu(
+          menuId,
+          'user-1',
+          userName: any(named: 'userName'),
+          userAvatar: any(named: 'userAvatar'),
+        ),
+      ).thenAnswer((_) async => const Success(null));
+      when(
+        () => mockPresenceRepo.getActiveUsers(menuId),
+      ).thenAnswer((_) async => const Success(<MenuPresence>[]));
+      when(
+        () => mockPresenceRepo.watchActiveUsers(menuId),
+      ).thenAnswer((_) => const Stream.empty());
+
+      final container = createContainer();
+      addTearDown(() {
+        container.dispose();
+        changeController.close();
+      });
+
+      await container
+          .read(menuCollaborationProvider(menuId).notifier)
+          .startTracking();
+
+      expect(container.read(menuCollaborationProvider(menuId)).wsErrorCount, 0);
+
+      changeController.addError('WS error 1');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(menuCollaborationProvider(menuId)).wsErrorCount, 1);
+
+      changeController.addError('WS error 2');
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(menuCollaborationProvider(menuId)).wsErrorCount, 2);
+    });
+
     test('sets isReconnecting on stream error', () async {
       final changeController = StreamController<MenuChangeEvent>.broadcast();
       when(

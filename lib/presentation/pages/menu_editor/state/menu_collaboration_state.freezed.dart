@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MenuCollaborationState {
 
- List<MenuPresence> get presences; bool get isReconnecting; bool get isPaused; String? get currentUserId;
+ List<MenuPresence> get presences; bool get isReconnecting; bool get isPaused; String? get currentUserId; int get wsErrorCount; bool get isLoadingMenu;
 /// Create a copy of MenuCollaborationState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $MenuCollaborationStateCopyWith<MenuCollaborationState> get copyWith => _$MenuCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MenuCollaborationState&&const DeepCollectionEquality().equals(other.presences, presences)&&(identical(other.isReconnecting, isReconnecting) || other.isReconnecting == isReconnecting)&&(identical(other.isPaused, isPaused) || other.isPaused == isPaused)&&(identical(other.currentUserId, currentUserId) || other.currentUserId == currentUserId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MenuCollaborationState&&const DeepCollectionEquality().equals(other.presences, presences)&&(identical(other.isReconnecting, isReconnecting) || other.isReconnecting == isReconnecting)&&(identical(other.isPaused, isPaused) || other.isPaused == isPaused)&&(identical(other.currentUserId, currentUserId) || other.currentUserId == currentUserId)&&(identical(other.wsErrorCount, wsErrorCount) || other.wsErrorCount == wsErrorCount)&&(identical(other.isLoadingMenu, isLoadingMenu) || other.isLoadingMenu == isLoadingMenu));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(presences),isReconnecting,isPaused,currentUserId);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(presences),isReconnecting,isPaused,currentUserId,wsErrorCount,isLoadingMenu);
 
 @override
 String toString() {
-  return 'MenuCollaborationState(presences: $presences, isReconnecting: $isReconnecting, isPaused: $isPaused, currentUserId: $currentUserId)';
+  return 'MenuCollaborationState(presences: $presences, isReconnecting: $isReconnecting, isPaused: $isPaused, currentUserId: $currentUserId, wsErrorCount: $wsErrorCount, isLoadingMenu: $isLoadingMenu)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $MenuCollaborationStateCopyWith<$Res>  {
   factory $MenuCollaborationStateCopyWith(MenuCollaborationState value, $Res Function(MenuCollaborationState) _then) = _$MenuCollaborationStateCopyWithImpl;
 @useResult
 $Res call({
- List<MenuPresence> presences, bool isReconnecting, bool isPaused, String? currentUserId
+ List<MenuPresence> presences, bool isReconnecting, bool isPaused, String? currentUserId, int wsErrorCount, bool isLoadingMenu
 });
 
 
@@ -62,13 +62,15 @@ class _$MenuCollaborationStateCopyWithImpl<$Res>
 
 /// Create a copy of MenuCollaborationState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? presences = null,Object? isReconnecting = null,Object? isPaused = null,Object? currentUserId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? presences = null,Object? isReconnecting = null,Object? isPaused = null,Object? currentUserId = freezed,Object? wsErrorCount = null,Object? isLoadingMenu = null,}) {
   return _then(_self.copyWith(
 presences: null == presences ? _self.presences : presences // ignore: cast_nullable_to_non_nullable
 as List<MenuPresence>,isReconnecting: null == isReconnecting ? _self.isReconnecting : isReconnecting // ignore: cast_nullable_to_non_nullable
 as bool,isPaused: null == isPaused ? _self.isPaused : isPaused // ignore: cast_nullable_to_non_nullable
 as bool,currentUserId: freezed == currentUserId ? _self.currentUserId : currentUserId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,wsErrorCount: null == wsErrorCount ? _self.wsErrorCount : wsErrorCount // ignore: cast_nullable_to_non_nullable
+as int,isLoadingMenu: null == isLoadingMenu ? _self.isLoadingMenu : isLoadingMenu // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -153,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<MenuPresence> presences,  bool isReconnecting,  bool isPaused,  String? currentUserId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<MenuPresence> presences,  bool isReconnecting,  bool isPaused,  String? currentUserId,  int wsErrorCount,  bool isLoadingMenu)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MenuCollaborationState() when $default != null:
-return $default(_that.presences,_that.isReconnecting,_that.isPaused,_that.currentUserId);case _:
+return $default(_that.presences,_that.isReconnecting,_that.isPaused,_that.currentUserId,_that.wsErrorCount,_that.isLoadingMenu);case _:
   return orElse();
 
 }
@@ -174,10 +176,10 @@ return $default(_that.presences,_that.isReconnecting,_that.isPaused,_that.curren
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<MenuPresence> presences,  bool isReconnecting,  bool isPaused,  String? currentUserId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<MenuPresence> presences,  bool isReconnecting,  bool isPaused,  String? currentUserId,  int wsErrorCount,  bool isLoadingMenu)  $default,) {final _that = this;
 switch (_that) {
 case _MenuCollaborationState():
-return $default(_that.presences,_that.isReconnecting,_that.isPaused,_that.currentUserId);case _:
+return $default(_that.presences,_that.isReconnecting,_that.isPaused,_that.currentUserId,_that.wsErrorCount,_that.isLoadingMenu);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -194,10 +196,10 @@ return $default(_that.presences,_that.isReconnecting,_that.isPaused,_that.curren
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<MenuPresence> presences,  bool isReconnecting,  bool isPaused,  String? currentUserId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<MenuPresence> presences,  bool isReconnecting,  bool isPaused,  String? currentUserId,  int wsErrorCount,  bool isLoadingMenu)?  $default,) {final _that = this;
 switch (_that) {
 case _MenuCollaborationState() when $default != null:
-return $default(_that.presences,_that.isReconnecting,_that.isPaused,_that.currentUserId);case _:
+return $default(_that.presences,_that.isReconnecting,_that.isPaused,_that.currentUserId,_that.wsErrorCount,_that.isLoadingMenu);case _:
   return null;
 
 }
@@ -209,7 +211,7 @@ return $default(_that.presences,_that.isReconnecting,_that.isPaused,_that.curren
 
 
 class _MenuCollaborationState implements MenuCollaborationState {
-  const _MenuCollaborationState({final  List<MenuPresence> presences = const [], this.isReconnecting = false, this.isPaused = false, this.currentUserId}): _presences = presences;
+  const _MenuCollaborationState({final  List<MenuPresence> presences = const [], this.isReconnecting = false, this.isPaused = false, this.currentUserId, this.wsErrorCount = 0, this.isLoadingMenu = false}): _presences = presences;
   
 
  final  List<MenuPresence> _presences;
@@ -222,6 +224,8 @@ class _MenuCollaborationState implements MenuCollaborationState {
 @override@JsonKey() final  bool isReconnecting;
 @override@JsonKey() final  bool isPaused;
 @override final  String? currentUserId;
+@override@JsonKey() final  int wsErrorCount;
+@override@JsonKey() final  bool isLoadingMenu;
 
 /// Create a copy of MenuCollaborationState
 /// with the given fields replaced by the non-null parameter values.
@@ -233,16 +237,16 @@ _$MenuCollaborationStateCopyWith<_MenuCollaborationState> get copyWith => __$Men
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MenuCollaborationState&&const DeepCollectionEquality().equals(other._presences, _presences)&&(identical(other.isReconnecting, isReconnecting) || other.isReconnecting == isReconnecting)&&(identical(other.isPaused, isPaused) || other.isPaused == isPaused)&&(identical(other.currentUserId, currentUserId) || other.currentUserId == currentUserId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MenuCollaborationState&&const DeepCollectionEquality().equals(other._presences, _presences)&&(identical(other.isReconnecting, isReconnecting) || other.isReconnecting == isReconnecting)&&(identical(other.isPaused, isPaused) || other.isPaused == isPaused)&&(identical(other.currentUserId, currentUserId) || other.currentUserId == currentUserId)&&(identical(other.wsErrorCount, wsErrorCount) || other.wsErrorCount == wsErrorCount)&&(identical(other.isLoadingMenu, isLoadingMenu) || other.isLoadingMenu == isLoadingMenu));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_presences),isReconnecting,isPaused,currentUserId);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_presences),isReconnecting,isPaused,currentUserId,wsErrorCount,isLoadingMenu);
 
 @override
 String toString() {
-  return 'MenuCollaborationState(presences: $presences, isReconnecting: $isReconnecting, isPaused: $isPaused, currentUserId: $currentUserId)';
+  return 'MenuCollaborationState(presences: $presences, isReconnecting: $isReconnecting, isPaused: $isPaused, currentUserId: $currentUserId, wsErrorCount: $wsErrorCount, isLoadingMenu: $isLoadingMenu)';
 }
 
 
@@ -253,7 +257,7 @@ abstract mixin class _$MenuCollaborationStateCopyWith<$Res> implements $MenuColl
   factory _$MenuCollaborationStateCopyWith(_MenuCollaborationState value, $Res Function(_MenuCollaborationState) _then) = __$MenuCollaborationStateCopyWithImpl;
 @override @useResult
 $Res call({
- List<MenuPresence> presences, bool isReconnecting, bool isPaused, String? currentUserId
+ List<MenuPresence> presences, bool isReconnecting, bool isPaused, String? currentUserId, int wsErrorCount, bool isLoadingMenu
 });
 
 
@@ -270,13 +274,15 @@ class __$MenuCollaborationStateCopyWithImpl<$Res>
 
 /// Create a copy of MenuCollaborationState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? presences = null,Object? isReconnecting = null,Object? isPaused = null,Object? currentUserId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? presences = null,Object? isReconnecting = null,Object? isPaused = null,Object? currentUserId = freezed,Object? wsErrorCount = null,Object? isLoadingMenu = null,}) {
   return _then(_MenuCollaborationState(
 presences: null == presences ? _self._presences : presences // ignore: cast_nullable_to_non_nullable
 as List<MenuPresence>,isReconnecting: null == isReconnecting ? _self.isReconnecting : isReconnecting // ignore: cast_nullable_to_non_nullable
 as bool,isPaused: null == isPaused ? _self.isPaused : isPaused // ignore: cast_nullable_to_non_nullable
 as bool,currentUserId: freezed == currentUserId ? _self.currentUserId : currentUserId // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,wsErrorCount: null == wsErrorCount ? _self.wsErrorCount : wsErrorCount // ignore: cast_nullable_to_non_nullable
+as int,isLoadingMenu: null == isLoadingMenu ? _self.isLoadingMenu : isLoadingMenu // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

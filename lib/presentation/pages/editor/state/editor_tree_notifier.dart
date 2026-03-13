@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
@@ -9,7 +10,7 @@ import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
-import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader_provider.dart';
 
 class EditorTreeNotifier extends Notifier<EditorTreeState> {
   EditorTreeNotifier(this.menuId);
@@ -23,13 +24,7 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
     final isInitialLoad = state.menu == null;
     state = state.copyWith(isLoading: isInitialLoad, errorMessage: null);
 
-    final loader = EditorTreeLoader(
-      menuRepository: ref.read(menuRepositoryProvider),
-      pageRepository: ref.read(pageRepositoryProvider),
-      containerRepository: ref.read(containerRepositoryProvider),
-      columnRepository: ref.read(columnRepositoryProvider),
-      widgetRepository: ref.read(widgetRepositoryProvider),
-    );
+    final loader = ref.read(editorTreeLoaderProvider);
 
     final result = await loader.loadTree(menuId);
 
@@ -128,7 +123,7 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
 
   // Widget CRUD
 
-  Future<void> createWidget(
+  Future<Result<WidgetInstance, DomainError>?> createWidget(
     String type,
     int columnId,
     int index, {
@@ -136,7 +131,7 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
   }) async {
     final registry = ref.read(widgetRegistryProvider);
     final definition = registry.getDefinition(type);
-    if (definition == null) return;
+    if (definition == null) return null;
 
     final propsJson =
         (definition.defaultProps as dynamic).toJson() as Map<String, dynamic>;
@@ -157,9 +152,10 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
     if (result.isSuccess) {
       await loadTree(separateHeaderFooter: _hasSeparateHeaderFooter);
     }
+    return result;
   }
 
-  Future<void> updateWidgetProps(
+  Future<Result<WidgetInstance, DomainError>> updateWidgetProps(
     int widgetId,
     Map<String, dynamic> props,
   ) async {
@@ -170,17 +166,19 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
     if (result.isSuccess) {
       await loadTree(separateHeaderFooter: _hasSeparateHeaderFooter);
     }
+    return result;
   }
 
-  Future<void> deleteWidget(int widgetId) async {
+  Future<Result<void, DomainError>> deleteWidget(int widgetId) async {
     final result = await ref.read(widgetRepositoryProvider).delete(widgetId);
 
     if (result.isSuccess) {
       await loadTree(separateHeaderFooter: _hasSeparateHeaderFooter);
     }
+    return result;
   }
 
-  Future<void> moveWidget(
+  Future<Result<void, DomainError>> moveWidget(
     WidgetInstance widget,
     int sourceCol,
     int targetCol,
@@ -194,14 +192,26 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
       if (result.isSuccess) {
         await loadTree(separateHeaderFooter: _hasSeparateHeaderFooter);
       }
+      return result;
     } else {
       final result = await widgetRepo.moveTo(widget.id, targetCol, index);
       if (result.isSuccess) {
         await loadTree(separateHeaderFooter: _hasSeparateHeaderFooter);
       }
+      return result;
     }
   }
 
   bool get _hasSeparateHeaderFooter =>
       state.headerPage != null || state.footerPage != null;
+
+  // Widget locking
+
+  Future<void> lockWidget(int widgetId, String userId) async {
+    await ref.read(widgetRepositoryProvider).lockForEditing(widgetId, userId);
+  }
+
+  Future<void> unlockWidget(int widgetId) async {
+    await ref.read(widgetRepositoryProvider).unlockEditing(widgetId);
+  }
 }

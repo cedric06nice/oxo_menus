@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
@@ -14,9 +15,9 @@ import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/side_
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_provider.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_state.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
-import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
@@ -26,8 +27,6 @@ import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart'
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
-import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.dart';
-import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_mixin.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/editor/display_options_dialog_helper.dart';
 
@@ -42,35 +41,13 @@ class AdminTemplateEditorPage extends ConsumerStatefulWidget {
 }
 
 class _AdminTemplateEditorPageState
-    extends ConsumerState<AdminTemplateEditorPage>
-    with EditorWidgetCrudMixin {
+    extends ConsumerState<AdminTemplateEditorPage> {
   static const narrowBreakpoint = 600.0;
 
   final Map<int, int> _hoverIndex = {};
   bool _isNarrow = false;
 
-  @override
-  late EditorWidgetCrudHelper crudHelper;
-
   final ScrollController _scrollController = ScrollController();
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    crudHelper = EditorWidgetCrudHelper(
-      widgetRepository: ref.read(widgetRepositoryProvider),
-      widgetRegistry: ref.read(widgetRegistryProvider),
-      onReload: () => ref
-          .read(editorTreeProvider(widget.menuId).notifier)
-          .loadTree(separateHeaderFooter: true),
-      isTemplate: true,
-      onMessage: (message, {bool isError = false}) {
-        if (mounted) {
-          showThemedSnackBar(context, message, isError: isError);
-        }
-      },
-    );
-  }
 
   @override
   void initState() {
@@ -284,14 +261,69 @@ class _AdminTemplateEditorPageState
     int columnId,
     int index,
   ) async {
-    await crudHelper.handleWidgetDropAtIndex(widgetType, columnId, index);
+    final notifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    final result = await notifier.createWidget(
+      widgetType,
+      columnId,
+      index,
+      isTemplate: true,
+    );
+    if (result != null && result.isFailure && mounted) {
+      showThemedSnackBar(
+        context,
+        'Failed to create widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> _handleWidgetUpdate(
+    int widgetId,
+    Map<String, dynamic> props,
+  ) async {
+    final notifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    await notifier.updateWidgetProps(widgetId, props);
+  }
+
+  Future<void> _performWidgetDelete(int widgetId) async {
+    final notifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    final result = await notifier.deleteWidget(widgetId);
+    if (result.isFailure && mounted) {
+      showThemedSnackBar(
+        context,
+        'Failed to delete widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> _handleWidgetMoveToIndex(
+    WidgetInstance widgetInstance,
+    int sourceColumnId,
+    int targetColumnId,
+    int targetIndex,
+  ) async {
+    final notifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    final result = await notifier.moveWidget(
+      widgetInstance,
+      sourceColumnId,
+      targetColumnId,
+      targetIndex,
+    );
+    if (result.isFailure && mounted) {
+      showThemedSnackBar(
+        context,
+        'Failed to move widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+        isError: true,
+      );
+    }
   }
 
   Future<void> _handleWidgetDelete(int widgetId) async {
     final confirmed = await showDeleteConfirmation(context);
     if (confirmed != true) return;
 
-    await performWidgetDelete(widgetId);
+    await _performWidgetDelete(widgetId);
   }
 
   // ===== Build Methods =====
@@ -842,16 +874,16 @@ class _AdminTemplateEditorPageState
         });
       },
       onWidgetDrop: _handleWidgetDropAtIndex,
-      onWidgetMove: handleWidgetMoveToIndex,
+      onWidgetMove: _handleWidgetMoveToIndex,
       widgetItemBuilder: (widgetInstance, columnId) => DraggableWidgetItem(
         widgetInstance: widgetInstance,
         columnId: columnId,
         isEditable: true,
         isLocked: false,
-        onUpdate: (props) => handleWidgetUpdate(widgetInstance.id, props),
+        onUpdate: (props) => _handleWidgetUpdate(widgetInstance.id, props),
         onDelete: () => _handleWidgetDelete(widgetInstance.id),
         onConfirmDismiss: () => showDeleteConfirmation(context),
-        onDismissed: (id) => performWidgetDelete(id),
+        onDismissed: (id) => _performWidgetDelete(id),
       ),
     );
   }

@@ -6,7 +6,7 @@ import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_provider.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_state.dart';
@@ -16,7 +16,7 @@ import 'package:oxo_menus/presentation/providers/app_lifecycle_provider.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
-import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/menu_settings/menu_settings_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
@@ -27,8 +27,6 @@ import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart'
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
-import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.dart';
-import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_mixin.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/editor/display_options_dialog_helper.dart';
 
@@ -41,33 +39,11 @@ class MenuEditorPage extends ConsumerStatefulWidget {
   ConsumerState<MenuEditorPage> createState() => _MenuEditorPageState();
 }
 
-class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
-    with EditorWidgetCrudMixin {
+class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   static const narrowBreakpoint = 600.0;
 
   final Map<int, int> _hoverIndex = {};
   final ScrollController _scrollController = ScrollController();
-
-  @override
-  late EditorWidgetCrudHelper crudHelper;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    crudHelper = EditorWidgetCrudHelper(
-      widgetRepository: ref.read(widgetRepositoryProvider),
-      widgetRegistry: ref.read(widgetRegistryProvider),
-      onReload: () =>
-          ref.read(editorTreeProvider(widget.menuId).notifier).loadTree(),
-      isTemplate: false,
-      currentUserId: ref.read(currentUserProvider)?.id,
-      onMessage: (message, {bool isError = false}) {
-        if (mounted) {
-          showThemedSnackBar(context, message, isError: isError);
-        }
-      },
-    );
-  }
 
   @override
   void initState() {
@@ -135,8 +111,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
 
   Future<void> _saveMenu() async {
     final result = await ref
-        .read(menuRepositoryProvider)
-        .update(UpdateMenuInput(id: widget.menuId));
+        .read(menuSettingsProvider.notifier)
+        .saveMenu(widget.menuId);
 
     if (result.isSuccess && mounted) {
       showThemedSnackBar(context, 'Menu saved');
@@ -391,7 +367,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
         });
       },
       onWidgetDrop: _handleWidgetDropAtIndex,
-      onWidgetMove: handleWidgetMoveToIndex,
+      onWidgetMove: _handleWidgetMoveToIndex,
       widgetItemBuilder: (widgetInstance, columnId) => DraggableWidgetItem(
         widgetInstance: widgetInstance,
         columnId: columnId,
@@ -404,13 +380,22 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
         editingUserAvatar: collabNotifier
             .findEditingPresence(widgetInstance)
             ?.userAvatar,
-        onUpdate: (props) => handleWidgetUpdate(widgetInstance.id, props),
+        onUpdate: (props) => _handleWidgetUpdate(widgetInstance.id, props),
         onDelete: () => _handleWidgetDelete(widgetInstance.id),
-        onEditStarted: () => crudHelper.lockWidget(widgetInstance.id),
-        onEditEnded: () => crudHelper.unlockWidget(widgetInstance.id),
+        onEditStarted: () {
+          final userId = ref.read(currentUserProvider)?.id;
+          if (userId != null) {
+            ref
+                .read(editorTreeProvider(widget.menuId).notifier)
+                .lockWidget(widgetInstance.id, userId);
+          }
+        },
+        onEditEnded: () => ref
+            .read(editorTreeProvider(widget.menuId).notifier)
+            .unlockWidget(widgetInstance.id),
         onConfirmDismiss: () =>
             showDeleteConfirmation(context, itemType: 'widget'),
-        onDismissed: (id) => performWidgetDelete(id),
+        onDismissed: (id) => _performWidgetDelete(id),
       ),
     );
   }
@@ -427,13 +412,63 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
         !allowed.contains(widgetType)) {
       return;
     }
-    await crudHelper.handleWidgetDropAtIndex(widgetType, columnId, index);
+    final notifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    final result = await notifier.createWidget(widgetType, columnId, index);
+    if (result != null && result.isFailure && mounted) {
+      showThemedSnackBar(
+        context,
+        'Failed to create widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> _handleWidgetUpdate(
+    int widgetId,
+    Map<String, dynamic> props,
+  ) async {
+    final notifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    await notifier.updateWidgetProps(widgetId, props);
+  }
+
+  Future<void> _performWidgetDelete(int widgetId) async {
+    final notifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    final result = await notifier.deleteWidget(widgetId);
+    if (result.isFailure && mounted) {
+      showThemedSnackBar(
+        context,
+        'Failed to delete widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+        isError: true,
+      );
+    }
+  }
+
+  Future<void> _handleWidgetMoveToIndex(
+    WidgetInstance widgetInstance,
+    int sourceColumnId,
+    int targetColumnId,
+    int targetIndex,
+  ) async {
+    final notifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    final result = await notifier.moveWidget(
+      widgetInstance,
+      sourceColumnId,
+      targetColumnId,
+      targetIndex,
+    );
+    if (result.isFailure && mounted) {
+      showThemedSnackBar(
+        context,
+        'Failed to move widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+        isError: true,
+      );
+    }
   }
 
   Future<void> _handleWidgetDelete(int widgetId) async {
     final confirmed = await showDeleteConfirmation(context, itemType: 'widget');
     if (confirmed != true) return;
 
-    await performWidgetDelete(widgetId);
+    await _performWidgetDelete(widgetId);
   }
 }
