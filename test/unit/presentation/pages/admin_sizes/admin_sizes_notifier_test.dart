@@ -20,9 +20,7 @@ void main() {
   setUp(() {
     mockRepository = MockSizeRepository();
     container = ProviderContainer(
-      overrides: [
-        sizeRepositoryProvider.overrideWithValue(mockRepository),
-      ],
+      overrides: [sizeRepositoryProvider.overrideWithValue(mockRepository)],
     );
   });
 

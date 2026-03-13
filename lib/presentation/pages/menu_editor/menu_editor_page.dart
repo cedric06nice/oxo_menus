@@ -85,8 +85,9 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
   void _listenForDisplayOptions() {
     ref.listenManual(editorTreeProvider(widget.menuId), (prev, next) {
       if (next.menu != null && next.menu != prev?.menu) {
-        ref.read(menuDisplayOptionsProvider.notifier).state =
-            next.menu?.displayOptions;
+        ref
+            .read(menuDisplayOptionsProvider.notifier)
+            .set(next.menu?.displayOptions);
       }
     });
   }

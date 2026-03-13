@@ -25,7 +25,7 @@ void showDisplayOptionsDialog({
             .update(UpdateMenuInput(id: menuId, displayOptions: options));
         if (result.isSuccess) {
           onMenuUpdated(menu?.copyWith(displayOptions: options));
-          ref.read(menuDisplayOptionsProvider.notifier).state = options;
+          ref.read(menuDisplayOptionsProvider.notifier).set(options);
           if (context.mounted) {
             showThemedSnackBar(context, 'Display options saved');
           }

@@ -23,8 +23,7 @@ void main() {
         showPrices: false,
       );
 
-      container.read(menuDisplayOptionsProvider.notifier).state =
-          displayOptions;
+      container.read(menuDisplayOptionsProvider.notifier).set(displayOptions);
 
       final options = container.read(menuDisplayOptionsProvider);
       expect(options, isNotNull);
@@ -36,10 +35,11 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      container.read(menuDisplayOptionsProvider.notifier).state =
-          const MenuDisplayOptions(showAllergens: true, showPrices: true);
+      container
+          .read(menuDisplayOptionsProvider.notifier)
+          .set(const MenuDisplayOptions(showAllergens: true, showPrices: true));
 
-      container.read(menuDisplayOptionsProvider.notifier).state = null;
+      container.read(menuDisplayOptionsProvider.notifier).set(null);
 
       expect(container.read(menuDisplayOptionsProvider), isNull);
     });
