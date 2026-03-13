@@ -18,7 +18,9 @@ import 'package:oxo_menus/data/repositories/size_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/menu_subscription_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/presence_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/widget_repository_impl.dart';
+import 'package:oxo_menus/data/repositories/asset_loader_repository_impl.dart';
 import 'package:oxo_menus/domain/repositories/area_repository.dart';
+import 'package:oxo_menus/domain/repositories/asset_loader_repository.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/domain/repositories/connectivity_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
@@ -167,6 +169,13 @@ final menuSubscriptionRepositoryProvider = Provider<MenuSubscriptionRepository>(
 final presenceRepositoryProvider = Provider<PresenceRepository>((ref) {
   final dataSource = ref.watch(directusDataSourceProvider);
   return PresenceRepositoryImpl(dataSource: dataSource);
+});
+
+/// Asset loader repository provider
+///
+/// Provides the AssetLoaderRepository implementation for loading platform assets
+final assetLoaderRepositoryProvider = Provider<AssetLoaderRepository>((ref) {
+  return AssetLoaderRepositoryImpl();
 });
 
 /// Connectivity repository provider

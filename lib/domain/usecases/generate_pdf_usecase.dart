@@ -1,8 +1,9 @@
 import 'dart:isolate';
+import 'dart:typed_data';
 
-import 'package:flutter/services.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/repositories/asset_loader_repository.dart';
 import 'package:oxo_menus/domain/repositories/file_repository.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/pdf_document_builder.dart';
@@ -16,21 +17,24 @@ import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 class GeneratePdfUseCase {
   final PdfDocumentBuilder _builder;
   final FileRepository? _fileRepository;
+  final AssetLoaderRepository _assetLoader;
 
   GeneratePdfUseCase({
     PdfStyleResolver resolver = const PdfStyleResolver(),
     FileRepository? fileRepository,
+    required AssetLoaderRepository assetLoader,
   }) : _builder = PdfDocumentBuilder(resolver: resolver),
-       _fileRepository = fileRepository;
+       _fileRepository = fileRepository,
+       _assetLoader = assetLoader;
 
   /// Execute PDF generation for a menu tree
   Future<Result<Uint8List, DomainError>> execute(MenuTree menuTree) async {
     try {
-      // 1. Load fonts (platform channels — must be main thread)
-      final baseFontData = await rootBundle.load(
+      // 1. Load fonts via injected asset loader (no Flutter dependency)
+      final baseFontData = await _assetLoader.loadAsset(
         'assets/fonts/FuturaStd-Light.ttf',
       );
-      final boldFontData = await rootBundle.load(
+      final boldFontData = await _assetLoader.loadAsset(
         'assets/fonts/FuturaStd-Book.ttf',
       );
 
