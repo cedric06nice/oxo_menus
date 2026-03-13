@@ -81,12 +81,7 @@ class _AdminTemplateEditorPageState
     super.didChangeDependencies();
     void showMessage(String message, {bool isError = false}) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: isError ? Colors.red : null,
-          ),
-        );
+        showThemedSnackBar(context, message, isError: isError);
       }
     }
 
@@ -314,13 +309,10 @@ class _AdminTemplateEditorPageState
     final result = await ref.read(areaRepositoryProvider).getAll();
     if (result.isFailure) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to load areas: ${result.errorOrNull?.message ?? 'Unknown error'}',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        showThemedSnackBar(
+          context,
+          'Failed to load areas: ${result.errorOrNull?.message ?? 'Unknown error'}',
+          isError: true,
         );
       }
       return;

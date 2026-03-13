@@ -108,12 +108,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage>
       currentUserId: ref.read(currentUserProvider)?.id,
       onMessage: (message, {bool isError = false}) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: isError ? Colors.red : null,
-            ),
-          );
+          showThemedSnackBar(context, message, isError: isError);
         }
       },
     );

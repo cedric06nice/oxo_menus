@@ -7,6 +7,7 @@ import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
+import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
@@ -416,9 +417,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
     final version = _versionController.text.trim();
 
     if (name.isEmpty || version.isEmpty || _selectedSize == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all required fields')),
-      );
+      showThemedSnackBar(context, 'Please fill in all required fields');
       return;
     }
 
