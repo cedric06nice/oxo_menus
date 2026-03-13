@@ -302,7 +302,12 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
                   color: theme.colorScheme.error,
                 ),
                 const SizedBox(height: 16),
-                Text('Error: $message'),
+                Text(
+                  'Error: $message'.substring(
+                    0,
+                    'Error: $message'.length.clamp(0, 200),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 if (_isApple)
                   CupertinoButton.filled(

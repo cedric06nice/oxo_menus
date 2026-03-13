@@ -11,9 +11,16 @@ class OfflineBanner extends StatelessWidget {
         theme.platform == TargetPlatform.iOS ||
         theme.platform == TargetPlatform.macOS;
 
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+      padding: EdgeInsets.only(
+        top: topPadding + 6,
+        bottom: 6,
+        left: 16,
+        right: 16,
+      ),
       decoration: BoxDecoration(color: theme.colorScheme.errorContainer),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

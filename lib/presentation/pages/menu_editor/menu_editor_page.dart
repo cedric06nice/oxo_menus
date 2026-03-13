@@ -23,6 +23,7 @@ import 'package:oxo_menus/presentation/providers/menu_display_options_provider.d
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/common/offline_error_page.dart';
 import 'package:oxo_menus/presentation/widgets/common/presence_bar.dart';
 import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
@@ -79,6 +80,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   int _wsErrorCount = 0;
   static const _maxWsErrors = 3;
   bool _isPaused = false;
+  bool _isLoadingMenu = false;
 
   late EditorWidgetCrudHelper _crudHelper;
 
@@ -191,6 +193,16 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   }
 
   Future<void> _loadMenu({bool isInitialLoad = false}) async {
+    if (_isLoadingMenu && !isInitialLoad) return;
+    _isLoadingMenu = true;
+    try {
+      await _loadMenuImpl(isInitialLoad: isInitialLoad);
+    } finally {
+      _isLoadingMenu = false;
+    }
+  }
+
+  Future<void> _loadMenuImpl({bool isInitialLoad = false}) async {
     if (isInitialLoad) {
       setState(() {
         _isLoading = true;
@@ -202,6 +214,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     final menuResult = await ref
         .read(menuRepositoryProvider)
         .getById(widget.menuId);
+    if (!mounted) return;
 
     if (menuResult.isFailure) {
       setState(() {
@@ -218,6 +231,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     final pagesResult = await ref
         .read(pageRepositoryProvider)
         .getAllForMenu(widget.menuId);
+    if (!mounted) return;
 
     if (pagesResult.isFailure) {
       setState(() {
@@ -241,6 +255,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       final containersResult = await ref
           .read(containerRepositoryProvider)
           .getAllForPage(page.id);
+      if (!mounted) return;
 
       if (containersResult.isSuccess) {
         final containers = List<entity.Container>.from(
@@ -253,6 +268,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
           final columnsResult = await ref
               .read(columnRepositoryProvider)
               .getAllForContainer(container.id);
+          if (!mounted) return;
 
           if (columnsResult.isSuccess) {
             _columns[container.id] = List<entity.Column>.from(
@@ -264,6 +280,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
               final widgetsResult = await ref
                   .read(widgetRepositoryProvider)
                   .getAllForColumn(column.id);
+              if (!mounted) return;
 
               if (widgetsResult.isSuccess) {
                 _widgets[column.id] = List<WidgetInstance>.from(
@@ -442,6 +459,18 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       );
     }
 
+    final isOffline =
+        ref.watch(connectivityProvider).value == ConnectivityStatus.offline;
+
+    if (isOffline && !_isLoading) {
+      return AuthenticatedScaffold(
+        title: _menu?.name ?? 'Menu Editor',
+        body: OfflineErrorPage(
+          onRetry: () => ref.invalidate(connectivityProvider),
+        ),
+      );
+    }
+
     if (_errorMessage != null) {
       return AuthenticatedScaffold(
         title: 'Error',
@@ -457,7 +486,12 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
                 color: Theme.of(context).colorScheme.error,
               ),
               const SizedBox(height: 16),
-              Text('Error: $_errorMessage'),
+              Text(
+                'Error: $_errorMessage'.substring(
+                  0,
+                  'Error: $_errorMessage'.length.clamp(0, 200),
+                ),
+              ),
               const SizedBox(height: 16),
               if (_isApple)
                 CupertinoButton.filled(

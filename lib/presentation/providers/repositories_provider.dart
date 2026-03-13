@@ -171,7 +171,11 @@ final presenceRepositoryProvider = Provider<PresenceRepository>((ref) {
 
 /// Connectivity repository provider
 ///
-/// Provides real-time connectivity monitoring
+/// Provides real-time connectivity monitoring.
+/// On web, DNS probe is skipped (dart:io unavailable).
 final connectivityRepositoryProvider = Provider<ConnectivityRepository>((ref) {
-  return ConnectivityRepositoryImpl(connectivity: Connectivity());
+  return ConnectivityRepositoryImpl(
+    connectivity: Connectivity(),
+    dnsProbe: kIsWeb ? () async => true : null,
+  );
 });

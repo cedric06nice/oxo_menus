@@ -9,10 +9,10 @@ jobs:
     name: Analyze & Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.0'
+          flutter-version: '3.41.4'
           channel: 'stable'
           cache: true
       - run: flutter pub get
@@ -25,10 +25,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: analyze
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.0'
+          flutter-version: '3.41.4'
           channel: 'stable'
           cache: true
       - run: flutter pub get
@@ -51,7 +51,7 @@ jobs:
     needs: test
     environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -63,7 +63,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.0'
+          flutter-version: '3.41.4'
           channel: 'stable'
           cache: true
 
@@ -84,13 +84,13 @@ jobs:
         run: flutter build web --release --build-name=${{ env.APP_VERSION }} --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
 
       - name: Set up QEMU (for ARM64 cross-build)
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build Docker image (linux/arm64)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/arm64
@@ -103,7 +103,7 @@ jobs:
         run: gzip image.tar -c > image.tar.gz
 
       - name: Copy image to VPS
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: directus
@@ -112,7 +112,7 @@ jobs:
           target: /tmp/
 
       - name: Deploy on VPS
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.VPS_HOST }}
           username: directus
@@ -131,7 +131,7 @@ jobs:
     if: github.ref_name == 'main'
     steps:
       - name: Export dev schema and apply to prod
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.VPS_HOST }}
           username: directus
@@ -159,7 +159,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: Get version from git tag
@@ -169,7 +169,7 @@ jobs:
           echo "App version: $VERSION"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.0'
+          flutter-version: '3.41.4'
           channel: 'stable'
           cache: true
       - uses: actions/setup-java@v4
@@ -189,7 +189,7 @@ jobs:
       - run: flutter pub run build_runner build --delete-conflicting-outputs
       - run: flutter build apk --release --build-name=${{ env.APP_VERSION }} --build-number=${{ github.run_number }} --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: android-apk-${{ github.ref_name }}
           path: build/app/outputs/flutter-apk/app-release.apk
@@ -208,7 +208,7 @@ jobs:
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
       ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -220,7 +220,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.0'
+          flutter-version: '3.41.4'
           channel: 'stable'
           cache: true
 
@@ -269,7 +269,7 @@ jobs:
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
       ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -281,7 +281,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.41.0'
+          flutter-version: '3.41.4'
           channel: 'stable'
           cache: true
 

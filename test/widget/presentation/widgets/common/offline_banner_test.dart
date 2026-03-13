@@ -31,6 +31,23 @@ void main() {
       expect(find.text('You are offline'), findsOneWidget);
     });
 
+    testWidgets('includes top safe area padding', (tester) async {
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(padding: EdgeInsets.only(top: 44)),
+          child: MaterialApp(
+            theme: ThemeData(platform: TargetPlatform.iOS),
+            home: const Scaffold(body: OfflineBanner()),
+          ),
+        ),
+      );
+
+      // The banner's top padding should include the safe area inset
+      final container = tester.widget<Container>(find.byType(Container).first);
+      final padding = container.padding as EdgeInsets;
+      expect(padding.top, greaterThanOrEqualTo(44));
+    });
+
     testWidgets('uses errorContainer background color', (tester) async {
       final colorScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
       await tester.pumpWidget(

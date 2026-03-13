@@ -1,8 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/theme/app_spacing.dart';
+import 'package:oxo_menus/presentation/widgets/common/offline_banner.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -184,85 +187,95 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    final isOffline =
+        ref.watch(connectivityProvider).value == ConnectivityStatus.offline;
+
     return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [colorScheme.primaryContainer, colorScheme.surface],
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text.rich(
-                    TextSpan(
+      body: Column(
+        children: [
+          if (isOffline) const OfflineBanner(),
+          Expanded(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [colorScheme.primaryContainer, colorScheme.surface],
+                ),
+              ),
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        TextSpan(
-                          text: 'OXO',
-                          style: theme.textTheme.headlineLarge?.copyWith(
-                            color: colorScheme.tertiary,
-                            fontWeight: FontWeight.w700,
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'OXO',
+                                style: theme.textTheme.headlineLarge?.copyWith(
+                                  color: colorScheme.tertiary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              TextSpan(
+                                text: ' Menus',
+                                style: theme.textTheme.headlineLarge?.copyWith(
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        TextSpan(
-                          text: ' Menus',
-                          style: theme.textTheme.headlineLarge?.copyWith(
-                            color: colorScheme.primary,
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          'Menu Template Builder',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
                           ),
+                        ),
+                        const SizedBox(height: AppSpacing.xxxl),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.xl),
+                            child: Column(
+                              children: [
+                                AutofillGroup(
+                                  child: Column(
+                                    children: [
+                                      _buildEmailField(),
+                                      const SizedBox(height: AppSpacing.lg),
+                                      _buildPasswordField(),
+                                      const SizedBox(height: AppSpacing.xl),
+                                    ],
+                                  ),
+                                ),
+                                _buildLoginButton(authState, theme),
+                              ],
+                            ),
+                          ),
+                        ),
+                        authState.maybeWhen(
+                          error: (message) => Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.lg),
+                            child: Text(
+                              message,
+                              style: TextStyle(color: colorScheme.error),
+                            ),
+                          ),
+                          orElse: () => const SizedBox.shrink(),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'Menu Template Builder',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxxl),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
-                      child: Column(
-                        children: [
-                          AutofillGroup(
-                            child: Column(
-                              children: [
-                                _buildEmailField(),
-                                const SizedBox(height: AppSpacing.lg),
-                                _buildPasswordField(),
-                                const SizedBox(height: AppSpacing.xl),
-                              ],
-                            ),
-                          ),
-                          _buildLoginButton(authState, theme),
-                        ],
-                      ),
-                    ),
-                  ),
-                  authState.maybeWhen(
-                    error: (message) => Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.lg),
-                      child: Text(
-                        message,
-                        style: TextStyle(color: colorScheme.error),
-                      ),
-                    ),
-                    orElse: () => const SizedBox.shrink(),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
