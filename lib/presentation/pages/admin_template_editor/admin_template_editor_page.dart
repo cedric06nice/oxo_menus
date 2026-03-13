@@ -23,6 +23,7 @@ import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/editor/area_dialog_helper.dart';
 import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
@@ -305,64 +306,16 @@ class _AdminTemplateEditorPageState
     );
   }
 
-  Future<void> _showAreaDialog() async {
-    final result = await ref.read(areaRepositoryProvider).getAll();
-    if (result.isFailure) {
-      if (mounted) {
-        showThemedSnackBar(
-          context,
-          'Failed to load areas: ${result.errorOrNull?.message ?? 'Unknown error'}',
-          isError: true,
-        );
-      }
-      return;
-    }
-
-    if (!mounted) return;
-
-    final areas = result.valueOrNull!;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => SimpleDialog(
-        title: const Text('Select Area'),
-        children: [
-          SimpleDialogOption(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              final updateResult = await ref
-                  .read(menuRepositoryProvider)
-                  .update(UpdateMenuInput(id: widget.menuId, areaId: null));
-              if (updateResult.isSuccess) {
-                setState(() {
-                  _menu = _menu?.copyWith(area: null);
-                });
-              }
-            },
-            child: const Text('None'),
-          ),
-          ...areas.map(
-            (area) => SimpleDialogOption(
-              onPressed: () async {
-                Navigator.of(ctx).pop();
-                final updateResult = await ref
-                    .read(menuRepositoryProvider)
-                    .update(
-                      UpdateMenuInput(id: widget.menuId, areaId: area.id),
-                    );
-                if (updateResult.isSuccess) {
-                  setState(() {
-                    _menu = _menu?.copyWith(area: area);
-                  });
-                }
-              },
-              child: Text(area.name),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Future<void> _showAreaDialog() => showAreaDialog(
+    context: context,
+    ref: ref,
+    menuId: widget.menuId,
+    onAreaUpdated: (area) {
+      setState(() {
+        _menu = _menu?.copyWith(area: area);
+      });
+    },
+  );
 
   Future<void> _addPage() =>
       _structureHelper.addPage(menuId: widget.menuId, pageCount: _pages.length);

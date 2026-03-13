@@ -14,6 +14,7 @@ import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart'
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/status_filter_bar.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/widgets/menu_list_item.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/widgets/template_create_dialog.dart';
@@ -184,30 +185,9 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   }
 
   Widget _buildStatusFilters() {
-    final filters = ['all', 'draft', 'published', 'archived'];
-    final labels = ['All', 'Draft', 'Published', 'Archived'];
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: List.generate(filters.length, (i) {
-            return Padding(
-              padding: EdgeInsets.only(left: i > 0 ? 8 : 0),
-              child: ChoiceChip(
-                label: Text(labels[i]),
-                selected: _statusFilter == filters[i],
-                onSelected: (_) {
-                  setState(() {
-                    _statusFilter = filters[i];
-                  });
-                },
-              ),
-            );
-          }),
-        ),
-      ),
+    return StatusFilterBar(
+      selectedFilter: _statusFilter,
+      onFilterChanged: (filter) => setState(() => _statusFilter = filter),
     );
   }
 

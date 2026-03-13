@@ -12,6 +12,7 @@ import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart'
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/status_filter_bar.dart';
 import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/widgets/size_create_edit_dialog.dart';
@@ -69,44 +70,11 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
 
   Widget _buildStatusFilters() {
     final state = ref.watch(adminSizesProvider);
-
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _FilterChip(
-              label: 'All',
-              isSelected: state.statusFilter == 'all',
-              onSelected: () => _filterByStatus('all'),
-            ),
-            const SizedBox(width: 8),
-            _FilterChip(
-              label: 'Draft',
-              isSelected: state.statusFilter == 'draft',
-              onSelected: () => _filterByStatus('draft'),
-            ),
-            const SizedBox(width: 8),
-            _FilterChip(
-              label: 'Published',
-              isSelected: state.statusFilter == 'published',
-              onSelected: () => _filterByStatus('published'),
-            ),
-            const SizedBox(width: 8),
-            _FilterChip(
-              label: 'Archived',
-              isSelected: state.statusFilter == 'archived',
-              onSelected: () => _filterByStatus('archived'),
-            ),
-          ],
-        ),
-      ),
+    return StatusFilterBar(
+      selectedFilter: state.statusFilter,
+      onFilterChanged: (status) =>
+          ref.read(adminSizesProvider.notifier).loadSizes(statusFilter: status),
     );
-  }
-
-  void _filterByStatus(String status) {
-    ref.read(adminSizesProvider.notifier).loadSizes(statusFilter: status);
   }
 
   Widget _buildSizesList(dynamic state) {
@@ -220,27 +188,6 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
         showThemedSnackBar(context, 'Page size "${size.name}" deleted');
       }
     }
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onSelected;
-
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => onSelected(),
-    );
   }
 }
 

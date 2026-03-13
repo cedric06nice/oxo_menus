@@ -13,6 +13,7 @@ import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart'
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/status_filter_bar.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
@@ -75,33 +76,12 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
 
   Widget _buildStatusFilters() {
     final state = ref.watch(adminTemplatesProvider);
-    final filters = ['all', 'draft', 'published', 'archived'];
-    final labels = ['All', 'Draft', 'Published', 'Archived'];
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: List.generate(filters.length, (i) {
-            return Padding(
-              padding: EdgeInsets.only(left: i > 0 ? 8 : 0),
-              child: ChoiceChip(
-                label: Text(labels[i]),
-                selected: state.statusFilter == filters[i],
-                onSelected: (_) => _filterByStatus(filters[i]),
-              ),
-            );
-          }),
-        ),
-      ),
+    return StatusFilterBar(
+      selectedFilter: state.statusFilter,
+      onFilterChanged: (status) => ref
+          .read(adminTemplatesProvider.notifier)
+          .loadTemplates(statusFilter: status),
     );
-  }
-
-  void _filterByStatus(String status) {
-    ref
-        .read(adminTemplatesProvider.notifier)
-        .loadTemplates(statusFilter: status);
   }
 
   Widget _buildBody(dynamic state) {
