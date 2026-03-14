@@ -60,7 +60,9 @@ class WidgetPalette extends StatelessWidget {
             final definition = registry.getDefinition(type);
             return ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 200),
-              child: _PaletteItem(type: type, definition: definition),
+              child: IntrinsicWidth(
+                child: _PaletteItem(type: type, definition: definition),
+              ),
             );
           }).toList(),
         ),
