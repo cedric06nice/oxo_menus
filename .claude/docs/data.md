@@ -79,6 +79,8 @@ All follow the same pattern: inject `DirectusDataSource`, try-catch with `mapDir
 - **FileRepositoryImpl**: `listImageFiles()` filters by `type` starts with `image/`, limited to 100, sorted by `-uploaded_on`
 - **MenuSubscriptionRepositoryImpl**: WebSocket subscription for widget changes via nested relation filter
 - **PresenceRepositoryImpl**: WebSocket presence tracking with `joinMenu`/`leaveMenu`/`heartbeat` + `watchActiveUsers` stream
+- **ConnectivityRepositoryImpl**: DNS probe (dns.google) with 3 attempts; periodic 30s online, 5s recovery offline; distinct stream
+- **AssetLoaderRepositoryImpl**: Wrapper for Flutter's `rootBundle.load()` — keeps domain framework-agnostic
 
 ## Data Sources (`lib/data/datasources/`)
 

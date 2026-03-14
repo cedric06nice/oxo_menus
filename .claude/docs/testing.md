@@ -6,13 +6,13 @@
 test/
 ├── helpers/                    # Shared utilities (test_image_data.dart)
 ├── integration/                # Directus integration tests
-├── unit/                       # ~110 test files, mirrors lib/
+├── unit/                       # ~130 test files, mirrors lib/
 │   ├── core/                   # Result, DomainError, router, URL resolver
 │   ├── data/
-│   │   ├── datasources/        # DirectusDataSource, DirectusDataSource WebSocket, SecureTokenStorage
+│   │   ├── datasources/        # DirectusDataSource, WebSocket, SecureTokenStorage
 │   │   ├── models/             # DTO serialization (10 files)
 │   │   ├── mappers/            # Entity mapping (13 files incl. lock fields)
-│   │   └── repositories/       # Repo impl tests (12 files incl. lock + subscription + presence)
+│   │   └── repositories/       # Repo impl tests (12+ files incl. lock, subscription, presence, connectivity)
 │   ├── domain/
 │   │   ├── allergens/          # UkAllergen, AllergenInfo, formatter
 │   │   ├── entities/           # All entity tests (incl. lock fields)
@@ -22,12 +22,12 @@ test/
 │   │   └── widgets/            # Props tests (dish, image, section, text, wine)
 │   ├── presentation/
 │   │   ├── helpers/            # Status, grid, edit dialog helpers
-│   │   ├── pages/              # Notifier + state tests (admin_sizes, admin_templates, editor selection, home)
-│   │   ├── providers/          # Auth, menu_list, repositories, usecases, widget_registry, image_data, display_options, subscription, presence
+│   │   ├── pages/              # Notifier + state tests (admin_sizes, admin_templates, editor, home)
+│   │   ├── providers/          # Auth, menu_list, repos, usecases, widget_registry, image_data, display_options, subscription, presence, connectivity
 │   │   ├── theme/              # AppTheme
 │   │   └── widgets/            # Widget definition + editor tests (all 5 types + CRUD helper + drag data)
 │   └── usecases/               # GeneratePdf, PdfDocumentBuilder, PdfStyleResolver
-└── widget/                     # ~55 UI test files
+└── widget/                     # ~64 UI test files
     ├── pages/                  # Page widget tests (all 10 pages incl. live sync + presence)
     ├── presentation/widgets/   # AllergenSelector, editor components, dialogs, presence bar
     └── widgets/                # Common widgets + type-specific render tests

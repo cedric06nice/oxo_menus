@@ -2,44 +2,41 @@
 
 ## Entities (`lib/domain/entities/`)
 
-### Menu
-`id`, `name`, `status` (Status enum), `version`, `dateCreated`, `dateUpdated`, `userCreated`, `userUpdated`, `styleConfig` (StyleConfig?), `pageSize` (PageSize?), `area` (Area?), `displayOptions` (MenuDisplayOptions?), `allowedWidgetTypes` (List\<String\>)
+### Core Hierarchy
 
-### Page
-`id`, `menuId`, `name`, `index`, `type` (PageType: content|header|footer), `dateCreated`, `dateUpdated`
+**Menu** — `id`, `name`, `status` (Status enum), `version`, `dateCreated`, `dateUpdated`, `userCreated`, `userUpdated`, `styleConfig` (StyleConfig?), `pageSize` (PageSize?), `area` (Area?), `displayOptions` (MenuDisplayOptions?), `allowedWidgetTypes` (List\<String\>)
 
-### Container
-`id`, `pageId`, `index`, `name?`, `layout` (LayoutConfig?), `styleConfig?`, `dateCreated`, `dateUpdated`
+**Page** — `id`, `menuId`, `name`, `index`, `type` (PageType: content|header|footer), `dateCreated`, `dateUpdated`
 
-### Column
-`id`, `containerId`, `index`, `flex?`, `width?`, `styleConfig?`, `isDroppable` (default: true), `dateCreated`, `dateUpdated`
+**Container** — `id`, `pageId`, `index`, `name?`, `layout` (LayoutConfig?), `styleConfig?`, `dateCreated`, `dateUpdated`
 
-### WidgetInstance
-`id`, `columnId`, `type` (String), `version`, `index`, `props` (Map\<String, dynamic\>), `style` (WidgetStyle?), `isTemplate` (default: false), `dateCreated`, `dateUpdated`, `editingBy` (String?), `editingSince` (DateTime?)
+**Column** — `id`, `containerId`, `index`, `flex?`, `width?`, `styleConfig?`, `isDroppable` (default: true), `dateCreated`, `dateUpdated`
 
-### User
-`id`, `email`, `firstName?`, `lastName?`, `role` (UserRole: admin|user), `avatar?`, `areas` (List\<Area\>)
+**WidgetInstance** — `id`, `columnId`, `type` (String), `version`, `index`, `props` (Map\<String, dynamic\>), `style` (WidgetStyle?), `isTemplate` (default: false), `dateCreated`, `dateUpdated`, `editingBy` (String?), `editingSince` (DateTime?)
 
-### Area
-`id` (int), `name` (String)
+### Supporting Entities
 
-### Size
-`id`, `name`, `width`, `height`, `status`, `direction`
+- **User** — `id`, `email`, `firstName?`, `lastName?`, `role` (UserRole: admin|user), `avatar?`, `areas` (List\<Area\>)
+- **Area** — `id` (int), `name` (String)
+- **Size** — `id`, `name`, `width`, `height`, `status`, `direction`
+- **ImageFileInfo** — `id`, `title?`, `type?`
 
-### Supporting Types
+### Configuration Types
+
 - **Status**: `draft`, `published`, `archived`
-- **BorderType**: `none`, `plainThin`, `plainThick`, `doubleOffset`, `dropShadow`
+- **BorderType**: `none`, `plainThin`, `plainThick`, `doubleOffset`, `dropShadow` (with labels)
+- **PageType**: `content`, `header`, `footer`
+- **ConnectivityStatus**: `online`, `offline`
 - **StyleConfig**: fontFamily, fontSize, primaryColor, secondaryColor, backgroundColor, margin/padding (per-side), borderType
 - **LayoutConfig**: direction, alignment, spacing
 - **PageSize**: name, width, height
 - **MenuDisplayOptions**: showPrices (default: true), showAllergens (default: true)
 - **WidgetStyle**: fontFamily, fontSize, color, backgroundColor, border, padding
-- **ImageFileInfo**: id, title?, type?
 
 ### Real-Time Entities
-- **MenuPresence**: id, userId, menuId, lastSeen, userName?, userAvatar?
-- **MenuChangeEvent** (sealed): base for WebSocket events
-  - **WidgetChangedEvent**: eventType, data?, ids?
+
+- **MenuPresence** — `id`, `userId`, `menuId`, `lastSeen`, `userName?`, `userAvatar?`
+- **MenuChangeEvent** (sealed) → **WidgetChangedEvent**: `eventType`, `data?`, `ids?`
 
 ## Repositories (`lib/domain/repositories/`)
 
@@ -77,6 +74,12 @@ All return `Result<T, DomainError>`, never throw. Input DTOs are freezed classes
 
 ### PresenceRepository
 `joinMenu(menuId, userId, {userName?, userAvatar?})`, `leaveMenu(menuId, userId)`, `heartbeat(menuId, userId)`, `getActiveUsers(menuId)`, `watchActiveUsers(menuId)` → Stream, `unsubscribePresence(menuId)`
+
+### ConnectivityRepository
+`checkConnectivity()` → ConnectivityStatus, `watchConnectivity()` → Stream\<ConnectivityStatus\>
+
+### AssetLoaderRepository
+`loadAsset(assetPath)` → ByteData — pure, framework-agnostic font/asset loading
 
 ## Use Cases (`lib/domain/usecases/`)
 
