@@ -16,7 +16,6 @@ void main() {
   Widget buildTestWidget({
     entity.Column? column,
     List<WidgetInstance> widgets = const [],
-    int hoverIndex = -1,
     bool isSelected = false,
     Widget? header,
     VoidCallback? onTap,
@@ -29,12 +28,10 @@ void main() {
             column:
                 column ?? const entity.Column(id: 1, containerId: 1, index: 0),
             widgets: widgets,
-            hoverIndex: hoverIndex,
             registry: registry,
             isSelected: isSelected,
             header: header,
             onTap: onTap,
-            onHoverIndexChanged: (_) {},
             onWidgetDrop: (type, colId, idx) async {},
             onWidgetMove: (w, srcCol, tgtCol, idx) async {},
             widgetItemBuilder:
@@ -52,18 +49,38 @@ void main() {
       expect(find.byKey(const Key('column_1')), findsOneWidget);
     });
 
-    testWidgets('shows empty state when no widgets', (tester) async {
+    testWidgets('shows "Drop widgets here" when no widgets', (tester) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pump();
 
       expect(find.text('Drop widgets here'), findsOneWidget);
     });
 
-    testWidgets('hides empty state when hovering', (tester) async {
-      await tester.pumpWidget(buildTestWidget(hoverIndex: 0));
+    testWidgets('shows "Drop widgets here" at each drop position with widgets', (
+      tester,
+    ) async {
+      const widget1 = WidgetInstance(
+        id: 10,
+        columnId: 1,
+        type: 'text',
+        version: '1.0',
+        index: 0,
+        props: {},
+      );
+      const widget2 = WidgetInstance(
+        id: 11,
+        columnId: 1,
+        type: 'text',
+        version: '1.0',
+        index: 1,
+        props: {},
+      );
+
+      await tester.pumpWidget(buildTestWidget(widgets: [widget1, widget2]));
       await tester.pump();
 
-      expect(find.text('Drop widgets here'), findsNothing);
+      // 3 drop zones: before widget1, between widget1 and widget2, after widget2
+      expect(find.text('Drop widgets here'), findsNWidgets(3));
     });
 
     testWidgets('renders widget items via builder', (tester) async {

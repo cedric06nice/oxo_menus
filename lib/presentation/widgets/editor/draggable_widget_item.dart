@@ -120,7 +120,7 @@ class DraggableWidgetItem extends StatelessWidget {
     }
 
     final widgetContent = Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 0),
       child: WidgetRenderer(
         widgetInstance: widgetInstance,
         isEditable: isEditable,

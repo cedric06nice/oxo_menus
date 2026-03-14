@@ -403,8 +403,8 @@ void main() {
       final columnContainer = tester.widget<Container>(
         find.byKey(const Key('column_1')),
       );
-      expect(columnContainer.margin, const EdgeInsets.symmetric(horizontal: 4));
-      expect(columnContainer.padding, const EdgeInsets.all(8));
+      expect(columnContainer.margin, const EdgeInsets.symmetric(horizontal: 2));
+      expect(columnContainer.padding, isNull);
     });
 
     testWidgets('page cards have rounded border with radius 12', (
@@ -1105,10 +1105,12 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest(menuId));
       await tester.pumpAndSettle();
 
-      // Assert - "Drop widgets here" text uses onSurfaceVariant
-      final theme = Theme.of(tester.element(find.text('Drop widgets here')));
-      final text = tester.widget<Text>(find.text('Drop widgets here'));
-      expect(text.style?.color, theme.colorScheme.onSurfaceVariant);
+      // Assert - "Drop widgets here" text uses primary color
+      final theme = Theme.of(
+        tester.element(find.text('Drop widgets here').first),
+      );
+      final text = tester.widget<Text>(find.text('Drop widgets here').first);
+      expect(text.style?.color, theme.colorScheme.primary);
     });
   });
 

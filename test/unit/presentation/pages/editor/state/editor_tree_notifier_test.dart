@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -458,6 +460,35 @@ void main() {
       expect(result?.isFailure, isTrue);
     });
 
+    test('deleteWidget removes widget from state immediately', () async {
+      stubSuccessfulTreeLoad();
+      final container = createContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(editorTreeProvider(menuId).notifier);
+      await notifier.loadTree();
+
+      // Verify widget exists before delete
+      expect(
+        container.read(editorTreeProvider(menuId)).widgets[30],
+        hasLength(1),
+      );
+
+      // Use a Completer to control when the async delete resolves
+      final completer = Completer<Result<void, ServerError>>();
+      when(() => mockWidgetRepo.delete(40)).thenAnswer((_) => completer.future);
+
+      // Start delete but don't await it
+      final future = notifier.deleteWidget(40);
+
+      // Widget should be removed from state immediately (before async completes)
+      expect(container.read(editorTreeProvider(menuId)).widgets[30], isEmpty);
+
+      // Complete the async operation
+      completer.complete(const Success(null));
+      await future;
+    });
+
     test('deleteWidget calls repository and reloads', () async {
       stubSuccessfulTreeLoad();
       final container = createContainer();
@@ -476,18 +507,24 @@ void main() {
       expect(result.isSuccess, isTrue);
     });
 
-    test('deleteWidget returns failure on error', () async {
+    test('deleteWidget reloads tree on failure to rollback', () async {
+      stubSuccessfulTreeLoad();
       final container = createContainer();
       addTearDown(container.dispose);
+
+      final notifier = container.read(editorTreeProvider(menuId).notifier);
+      await notifier.loadTree();
 
       when(
         () => mockWidgetRepo.delete(40),
       ).thenAnswer((_) async => const Failure(ServerError('Delete failed')));
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
       final result = await notifier.deleteWidget(40);
 
       expect(result.isFailure, isTrue);
+      // Tree should be reloaded to rollback the optimistic removal
+      // loadTree is called: once in setUp + once for rollback = getById called twice
+      verify(() => mockMenuRepo.getById(menuId)).called(2);
     });
 
     test('moveWidget within same column adjusts index', () async {
