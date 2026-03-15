@@ -206,6 +206,29 @@ void main() {
       expect(tooltip.message, 'Alice Baker');
     });
 
+    testWidgets('editing-lock path fills full column width', (tester) async {
+      final widget = WidgetInstance(
+        id: 1,
+        columnId: 1,
+        type: 'dish',
+        version: '1.0.0',
+        index: 0,
+        props: const {'name': 'Pasta', 'price': 12.50},
+        editingBy: 'other-user-456',
+        editingSince: DateTime.now(),
+      );
+
+      await tester.pumpWidget(
+        createTestWidget(widget, currentUserId: 'user-123'),
+      );
+      await tester.pumpAndSettle();
+
+      final sizedBoxFinder = find.byWidgetPredicate(
+        (widget) => widget is SizedBox && widget.width == double.infinity,
+      );
+      expect(sizedBoxFinder, findsOneWidget);
+    });
+
     testWidgets('should display "?" when editingUserName is null', (
       tester,
     ) async {

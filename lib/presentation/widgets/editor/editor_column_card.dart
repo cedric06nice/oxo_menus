@@ -58,7 +58,7 @@ class EditorColumnCard extends StatelessWidget {
       ),
       constraints: const BoxConstraints(minHeight: 20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ?header,
           if (column.isDroppable) ...[
@@ -78,7 +78,7 @@ class EditorColumnCard extends StatelessWidget {
 
   Widget _buildDroppableContent() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (int i = 0; i <= widgets.length; i++) ...[
           EditorDropZone(
@@ -106,7 +106,7 @@ class EditorColumnCard extends StatelessWidget {
 
   Widget _buildNonDroppableContent(ThemeData theme) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final widget in widgets) widgetItemBuilder(widget, column.id),
         if (widgets.isEmpty)

@@ -168,6 +168,71 @@ void main() {
       expect(find.text('Drop widgets here'), findsNothing);
     });
 
+    testWidgets('uses CrossAxisAlignment.stretch for outer Column', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pump();
+
+      final container = tester.widget<Container>(
+        find.byKey(const Key('column_1')),
+      );
+      final outerColumn = container.child as Column;
+      expect(outerColumn.crossAxisAlignment, CrossAxisAlignment.stretch);
+    });
+
+    testWidgets('uses CrossAxisAlignment.stretch for droppable content Column', (
+      tester,
+    ) async {
+      const widget1 = WidgetInstance(
+        id: 10,
+        columnId: 1,
+        type: 'text',
+        version: '1.0',
+        index: 0,
+        props: {},
+      );
+
+      await tester.pumpWidget(buildTestWidget(widgets: [widget1]));
+      await tester.pump();
+
+      // The droppable content Column is a child of the outer Column
+      final container = tester.widget<Container>(
+        find.byKey(const Key('column_1')),
+      );
+      final outerColumn = container.child as Column;
+      // Find the inner Column (droppable content) among outer Column's children
+      final innerColumns = outerColumn.children.whereType<Column>().toList();
+      expect(innerColumns, isNotEmpty);
+      expect(innerColumns.first.crossAxisAlignment, CrossAxisAlignment.stretch);
+    });
+
+    testWidgets(
+      'uses CrossAxisAlignment.stretch for non-droppable content Column',
+      (tester) async {
+        const lockedColumn = entity.Column(
+          id: 2,
+          containerId: 1,
+          index: 0,
+          isDroppable: false,
+        );
+
+        await tester.pumpWidget(buildTestWidget(column: lockedColumn));
+        await tester.pump();
+
+        final container = tester.widget<Container>(
+          find.byKey(const Key('column_2')),
+        );
+        final outerColumn = container.child as Column;
+        final innerColumns = outerColumn.children.whereType<Column>().toList();
+        expect(innerColumns, isNotEmpty);
+        expect(
+          innerColumns.first.crossAxisAlignment,
+          CrossAxisAlignment.stretch,
+        );
+      },
+    );
+
     testWidgets('renders widgets in non-droppable column without drop zones', (
       tester,
     ) async {
