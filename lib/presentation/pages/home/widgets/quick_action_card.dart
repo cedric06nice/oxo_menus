@@ -28,7 +28,7 @@ class QuickActionCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             DecoratedBox(
               decoration: BoxDecoration(

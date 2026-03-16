@@ -6,14 +6,17 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
+import 'package:oxo_menus/domain/repositories/area_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
+import 'package:oxo_menus/presentation/pages/menu_list/widgets/menu_list_item.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
@@ -24,19 +27,28 @@ class MockGoRouter extends Mock implements GoRouter {}
 
 class MockSizeRepository extends Mock implements SizeRepository {}
 
+class MockAreaRepository extends Mock implements AreaRepository {}
+
 class MockDuplicateMenuUseCase extends Mock implements DuplicateMenuUseCase {}
 
 void main() {
   late MockMenuRepository mockMenuRepository;
   late MockGoRouter mockRouter;
   late MockSizeRepository mockSizeRepository;
+  late MockAreaRepository mockAreaRepository;
   late MockDuplicateMenuUseCase mockDuplicateMenuUseCase;
 
   setUp(() {
     mockMenuRepository = MockMenuRepository();
     mockRouter = MockGoRouter();
     mockSizeRepository = MockSizeRepository();
+    mockAreaRepository = MockAreaRepository();
     mockDuplicateMenuUseCase = MockDuplicateMenuUseCase();
+
+    // Default behavior for area repository
+    when(
+      () => mockAreaRepository.getAll(),
+    ).thenAnswer((_) async => const Success([Area(id: 1, name: 'Dining')]));
 
     // Default behavior for size repository
     when(() => mockSizeRepository.getAll()).thenAnswer(
@@ -67,12 +79,14 @@ void main() {
       firstName: 'Test',
       lastName: 'User',
       role: isAdmin ? UserRole.admin : UserRole.user,
+      areas: isAdmin ? const [] : const [Area(id: 1, name: 'Dining')],
     );
 
     return ProviderScope(
       overrides: [
         menuRepositoryProvider.overrideWithValue(mockMenuRepository),
         sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+        areaRepositoryProvider.overrideWithValue(mockAreaRepository),
         duplicateMenuUseCaseProvider.overrideWithValue(
           mockDuplicateMenuUseCase,
         ),
@@ -96,6 +110,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer(
         (_) async => Future.delayed(
@@ -120,6 +135,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer(
         (_) async => Future.delayed(
@@ -142,6 +158,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -157,6 +174,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -174,6 +192,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -189,6 +208,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -207,6 +227,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -229,6 +250,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -241,40 +263,44 @@ void main() {
       expect(find.text('No menus found'), findsOneWidget);
     });
 
-    testWidgets('should not show GridView when empty', (tester) async {
+    testWidgets('should not show menu list when empty', (tester) async {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      expect(find.byType(GridView), findsNothing);
+      expect(find.byType(MenuListItem), findsNothing);
     });
   });
 
   group('MenuListPage - Menu List Display', () {
-    testWidgets('should display menus in a GridView', (tester) async {
+    testWidgets('should display menus in a full-width list', (tester) async {
       final menus = [
         const Menu(
           id: 1,
           name: 'Summer Menu',
           status: Status.published,
           version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
         ),
         const Menu(
           id: 2,
           name: 'Winter Menu',
           status: Status.published,
           version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
         ),
       ];
 
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -283,20 +309,23 @@ void main() {
 
       expect(find.text('Summer Menu'), findsOneWidget);
       expect(find.text('Winter Menu'), findsOneWidget);
-      expect(find.byType(GridView), findsOneWidget);
+      expect(find.byType(MenuListItem), findsNWidgets(2));
+      expect(find.byType(GridView), findsNothing);
     });
 
     testWidgets('should load only published menus for regular users', (
       tester,
     ) async {
       when(
-        () => mockMenuRepository.listAll(onlyPublished: true),
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
       ).thenAnswer((_) async => const Success([]));
 
       await tester.pumpWidget(createWidgetUnderTest(isAdmin: false));
       await tester.pumpAndSettle();
 
-      verify(() => mockMenuRepository.listAll(onlyPublished: true)).called(1);
+      verify(
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
+      ).called(1);
     });
 
     testWidgets('should load all menus for admin users', (tester) async {
@@ -318,6 +347,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Failure(NetworkError('Network error')));
 
@@ -338,6 +368,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Failure(NetworkError('Network error')));
 
@@ -358,6 +389,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Failure(NetworkError('Network error')));
 
@@ -372,6 +404,7 @@ void main() {
       verify(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).called(2);
     });
@@ -387,12 +420,14 @@ void main() {
           name: 'Summer Menu',
           status: Status.published,
           version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
         ),
       ];
 
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
       when(() => mockRouter.push(any())).thenAnswer((_) async => null);
@@ -412,6 +447,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -440,6 +476,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -464,6 +501,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -555,6 +593,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
       when(
@@ -587,6 +626,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -612,12 +652,14 @@ void main() {
           name: 'Test Menu',
           status: Status.published,
           version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
         ),
       ];
 
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -633,7 +675,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // loadMenus called twice (initial + refresh)
-      verify(() => mockMenuRepository.listAll(onlyPublished: true)).called(2);
+      verify(
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
+      ).called(2);
     });
   });
 
@@ -642,6 +686,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -661,6 +706,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => const Success([]));
 
@@ -691,6 +737,7 @@ void main() {
       when(
         () => mockMenuRepository.listAll(
           onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
         ),
       ).thenAnswer((_) async => Success(menus));
 
@@ -750,5 +797,168 @@ void main() {
         expect(find.text('Draft Menu'), findsOneWidget);
       },
     );
+  });
+
+  group('MenuListPage - Area Grouping', () {
+    testWidgets('should group menus by area with section headers', (
+      tester,
+    ) async {
+      final menus = [
+        const Menu(
+          id: 1,
+          name: 'Dining Menu',
+          status: Status.published,
+          version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
+        ),
+        const Menu(
+          id: 2,
+          name: 'Bar Menu',
+          status: Status.published,
+          version: '1.0.0',
+          area: Area(id: 2, name: 'Bar'),
+        ),
+        const Menu(
+          id: 3,
+          name: 'Unassigned Menu',
+          status: Status.published,
+          version: '1.0.0',
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
+
+      await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
+      await tester.pumpAndSettle();
+
+      // Should show area section headers
+      expect(find.text('Dining'), findsOneWidget);
+      expect(find.text('Bar'), findsOneWidget);
+      expect(find.text('Unassigned'), findsOneWidget);
+    });
+
+    testWidgets('should pass area IDs to repository for non-admin users', (
+      tester,
+    ) async {
+      // Server-side filtering: mock returns only menus for user's areas
+      final filteredMenus = [
+        const Menu(
+          id: 1,
+          name: 'Dining Menu',
+          status: Status.published,
+          version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
+      ).thenAnswer((_) async => Success(filteredMenus));
+
+      // Non-admin user with only Dining area
+      final mockUser = User(
+        id: 'user-1',
+        email: 'test@example.com',
+        firstName: 'Test',
+        lastName: 'User',
+        role: UserRole.user,
+        areas: const [Area(id: 1, name: 'Dining')],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+            areaRepositoryProvider.overrideWithValue(mockAreaRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(
+              mockDuplicateMenuUseCase,
+            ),
+            isAdminProvider.overrideWithValue(false),
+            currentUserProvider.overrideWithValue(mockUser),
+          ],
+          child: MaterialApp(
+            home: InheritedGoRouter(
+              goRouter: mockRouter,
+              child: const MenuListPage(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Verify areaIds were passed to repository
+      verify(
+        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
+      ).called(1);
+
+      // Should only show Dining Menu (server returned only this one)
+      expect(find.text('Dining Menu'), findsOneWidget);
+    });
+
+    testWidgets('should not load menus when user is null and not admin', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+            sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+            areaRepositoryProvider.overrideWithValue(mockAreaRepository),
+            duplicateMenuUseCaseProvider.overrideWithValue(
+              mockDuplicateMenuUseCase,
+            ),
+            isAdminProvider.overrideWithValue(false),
+            currentUserProvider.overrideWithValue(null),
+          ],
+          child: MaterialApp(
+            home: InheritedGoRouter(
+              goRouter: mockRouter,
+              child: const MenuListPage(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      verifyNever(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
+        ),
+      );
+    });
+
+    testWidgets('should show area name in menu list item', (tester) async {
+      final menus = [
+        const Menu(
+          id: 1,
+          name: 'Dining Menu',
+          status: Status.published,
+          version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
+        ),
+      ];
+
+      when(
+        () => mockMenuRepository.listAll(
+          onlyPublished: any(named: 'onlyPublished'),
+          areaIds: any(named: 'areaIds'),
+        ),
+      ).thenAnswer((_) async => Success(menus));
+
+      await tester.pumpWidget(createWidgetUnderTest(isAdmin: true));
+      await tester.pumpAndSettle();
+
+      // Area name should be visible in the item
+      expect(find.text('Dining'), findsWidgets);
+    });
   });
 }

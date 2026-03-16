@@ -5,13 +5,20 @@ import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/presentation/helpers/grid_helpers.dart';
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_list_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/status_filter_bar.dart';
+import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/widgets/menu_list_item.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/widgets/template_create_dialog.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Menu list page
 ///
@@ -28,70 +35,64 @@ class MenuListPage extends ConsumerStatefulWidget {
 class _MenuListPageState extends ConsumerState<MenuListPage> {
   String _statusFilter = 'all';
 
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadMenus();
+      if (!_tryLoadMenus()) {
+        // User not available yet — listen for auth changes
+        ref.listenManual(currentUserProvider, (_, user) {
+          if (user != null) {
+            _tryLoadMenus();
+          }
+        });
+      }
+      _listenForConnectivityRestore();
     });
   }
 
-  void _loadMenus() {
+  void _listenForConnectivityRestore() {
+    ref.listenManual(connectivityProvider, (prev, next) {
+      final wasOffline = prev?.value == ConnectivityStatus.offline;
+      final isOnline = next.value == ConnectivityStatus.online;
+      if (wasOffline && isOnline) {
+        _tryLoadMenus();
+      }
+    });
+  }
+
+  List<int>? _getAreaIdsForCurrentUser() {
     final isAdmin = ref.read(isAdminProvider);
-    ref.read(menuListProvider.notifier).loadMenus(onlyPublished: !isAdmin);
+    if (isAdmin) return null;
+    final user = ref.read(currentUserProvider);
+    if (user == null) return null;
+    return user.areas.map((a) => a.id).toList();
+  }
+
+  /// Attempts to load menus. Returns false if user is not yet available.
+  bool _tryLoadMenus() {
+    final isAdmin = ref.read(isAdminProvider);
+    final areaIds = _getAreaIdsForCurrentUser();
+    if (!isAdmin && areaIds == null) return false;
+    ref
+        .read(menuListProvider.notifier)
+        .loadMenus(onlyPublished: !isAdmin, areaIds: areaIds);
+    return true;
   }
 
   Future<void> _handleRefresh() async {
     final isAdmin = ref.read(isAdminProvider);
-    await ref.read(menuListProvider.notifier).refresh(onlyPublished: !isAdmin);
+    await ref
+        .read(menuListProvider.notifier)
+        .refresh(onlyPublished: !isAdmin, areaIds: _getAreaIdsForCurrentUser());
   }
 
   Future<void> _confirmDelete(Menu menu) async {
-    final bool? confirmed;
-
-    if (_isApple) {
-      confirmed = await showCupertinoDialog<bool>(
-        context: context,
-        builder: (dialogContext) => CupertinoAlertDialog(
-          title: const Text('Delete Menu'),
-          content: Text('Are you sure you want to delete "${menu.name}"?'),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            CupertinoDialogAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Delete'),
-            ),
-          ],
-        ),
-      );
-    } else {
-      confirmed = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Delete Menu'),
-          content: Text('Are you sure you want to delete "${menu.name}"?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Delete'),
-            ),
-          ],
-        ),
-      );
-    }
+    final confirmed = await showDeleteConfirmation(
+      context,
+      title: 'Delete Menu',
+      message: 'Are you sure you want to delete "${menu.name}"?',
+    );
 
     if (confirmed == true && mounted) {
       await ref.read(menuListProvider.notifier).deleteMenu(menu.id);
@@ -116,6 +117,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
             version: result.version,
             status: result.status,
             sizeId: result.sizeId,
+            areaId: result.areaId,
           );
 
           final createdMenu = await ref
@@ -137,13 +139,9 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
 
     if (mounted) {
       if (duplicatedMenu != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Menu duplicated successfully')),
-        );
+        showThemedSnackBar(context, 'Menu duplicated successfully');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to duplicate menu')),
-        );
+        showThemedSnackBar(context, 'Failed to duplicate menu', isError: true);
       }
     }
   }
@@ -152,7 +150,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(menuListProvider);
     final isAdmin = ref.watch(isAdminProvider);
-    final isApple = _isApple;
+    final isApple = isApplePlatform(context);
 
     return AuthenticatedScaffold(
       title: 'Menus',
@@ -187,40 +185,15 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   }
 
   Widget _buildStatusFilters() {
-    final filters = ['all', 'draft', 'published', 'archived'];
-    final labels = ['All', 'Draft', 'Published', 'Archived'];
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: List.generate(filters.length, (i) {
-            return Padding(
-              padding: EdgeInsets.only(left: i > 0 ? 8 : 0),
-              child: ChoiceChip(
-                label: Text(labels[i]),
-                selected: _statusFilter == filters[i],
-                onSelected: (_) {
-                  setState(() {
-                    _statusFilter = filters[i];
-                  });
-                },
-              ),
-            );
-          }),
-        ),
-      ),
+    return StatusFilterBar(
+      selectedFilter: _statusFilter,
+      onFilterChanged: (filter) => setState(() => _statusFilter = filter),
     );
   }
 
   Widget _buildBody(MenuListState state, bool isAdmin) {
     if (state.isLoading) {
-      return Center(
-        child: _isApple
-            ? const CupertinoActivityIndicator()
-            : const CircularProgressIndicator(),
-      );
+      return const Center(child: AdaptiveLoadingIndicator());
     }
 
     if (state.errorMessage != null) {
@@ -248,38 +221,13 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   }
 
   Widget _buildErrorState(String message) {
-    final theme = Theme.of(context);
-
     return CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       slivers: [
         SliverFillRemaining(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  _isApple
-                      ? CupertinoIcons.exclamationmark_triangle
-                      : Icons.error_outline,
-                  size: 48,
-                  color: theme.colorScheme.error,
-                ),
-                const SizedBox(height: 16),
-                Text('Error: $message'),
-                const SizedBox(height: 16),
-                if (_isApple)
-                  CupertinoButton.filled(
-                    onPressed: _loadMenus,
-                    child: const Text('Retry'),
-                  )
-                else
-                  FilledButton(
-                    onPressed: _loadMenus,
-                    child: const Text('Retry'),
-                  ),
-              ],
-            ),
+          child: AdaptiveErrorState(
+            message: message,
+            onRetry: () => _tryLoadMenus(),
           ),
         ),
       ],
@@ -292,7 +240,9 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
       slivers: [
         SliverFillRemaining(
           child: EmptyState(
-            icon: _isApple ? CupertinoIcons.doc_text : Icons.restaurant_menu,
+            icon: isApplePlatform(context)
+                ? CupertinoIcons.doc_text
+                : Icons.restaurant_menu,
             title: 'No menus found',
             subtitle: 'Browse available menus or check back later',
           ),
@@ -302,36 +252,49 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   }
 
   Widget _buildMenuGrid(List<Menu> menus, bool isAdmin) {
+    // Group menus by area
+    final grouped = <String, List<Menu>>{};
+    for (final menu in menus) {
+      final key = menu.area?.name ?? 'Unassigned';
+      grouped.putIfAbsent(key, () => []).add(menu);
+    }
+
+    final sortedKeys = grouped.keys.toList()
+      ..sort((a, b) {
+        if (a == 'Unassigned') return 1;
+        if (b == 'Unassigned') return -1;
+        return a.compareTo(b);
+      });
+
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1000),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = computeGridColumns(constraints.maxWidth);
-              return GridView.count(
-                crossAxisCount: columns,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.6,
-                children: menus.map((menu) {
-                  return MenuListItem(
-                    menu: menu,
-                    isAdmin: isAdmin,
-                    onTap: () => _handleMenuTap(menu),
-                    onEdit: isAdmin ? () => _editTemplate(menu) : null,
-                    onDuplicate: isAdmin ? () => _handleDuplicate(menu) : null,
-                    onDelete: isAdmin ? () => _confirmDelete(menu) : null,
-                  );
-                }).toList(),
-              );
-            },
-          ),
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final key in sortedKeys) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8, top: 8),
+              child: Text(
+                key,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            for (final menu in grouped[key]!) ...[
+              MenuListItem(
+                menu: menu,
+                isAdmin: isAdmin,
+                onTap: () => _handleMenuTap(menu),
+                onEdit: isAdmin ? () => _editTemplate(menu) : null,
+                onDuplicate: isAdmin ? () => _handleDuplicate(menu) : null,
+                onDelete: isAdmin ? () => _confirmDelete(menu) : null,
+              ),
+              const SizedBox(height: 12),
+            ],
+          ],
+        ],
       ),
     );
   }

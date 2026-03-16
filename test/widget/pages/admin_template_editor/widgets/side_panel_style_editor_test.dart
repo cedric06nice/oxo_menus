@@ -4,7 +4,7 @@ import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/side_panel_style_editor.dart';
-import 'package:oxo_menus/presentation/widgets/common/compact_edge_insets_editor.dart';
+import 'package:oxo_menus/presentation/widgets/common/edge_insets_editor.dart';
 
 void main() {
   Widget buildSubject({
@@ -63,11 +63,11 @@ void main() {
       expect(find.text('Column Style'), findsOneWidget);
     });
 
-    testWidgets('shows margins CompactEdgeInsetsEditor', (tester) async {
+    testWidgets('shows margins EdgeInsetsEditor', (tester) async {
       await tester.pumpWidget(buildSubject());
 
       expect(find.text('Margins'), findsOneWidget);
-      expect(find.byType(CompactEdgeInsetsEditor), findsNWidgets(2));
+      expect(find.byType(EdgeInsetsEditor), findsNWidgets(2));
     });
 
     testWidgets('shows border dropdown', (tester) async {
@@ -77,7 +77,7 @@ void main() {
       expect(find.byType(DropdownButtonFormField<BorderType>), findsOneWidget);
     });
 
-    testWidgets('shows paddings CompactEdgeInsetsEditor', (tester) async {
+    testWidgets('shows paddings EdgeInsetsEditor', (tester) async {
       await tester.pumpWidget(buildSubject());
 
       expect(find.text('Paddings'), findsOneWidget);

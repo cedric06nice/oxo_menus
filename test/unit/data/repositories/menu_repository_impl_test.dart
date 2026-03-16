@@ -226,6 +226,137 @@ void main() {
         },
       );
 
+      test('should pass area filter when areaIds is provided', () async {
+        // Arrange
+        when(
+          () => mockDataSource.getItems<MenuDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => menusJson);
+
+        // Act
+        await repository.listAll(onlyPublished: false, areaIds: [1, 2]);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.getItems<MenuDto>(
+            filter: captureAny(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
+
+        expect(captured[0], {
+          'area': {
+            '_in': [1, 2],
+          },
+        });
+      });
+
+      test('should combine published and area filters as flat map', () async {
+        // Arrange
+        when(
+          () => mockDataSource.getItems<MenuDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => menusJson);
+
+        // Act
+        await repository.listAll(onlyPublished: true, areaIds: [1]);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.getItems<MenuDto>(
+            filter: captureAny(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
+
+        expect(captured[0], {
+          'status': {'_eq': 'published'},
+          'area': {
+            '_in': [1],
+          },
+        });
+      });
+
+      test('should not add area filter when areaIds is null', () async {
+        // Arrange
+        when(
+          () => mockDataSource.getItems<MenuDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => menusJson);
+
+        // Act
+        await repository.listAll(onlyPublished: true, areaIds: null);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.getItems<MenuDto>(
+            filter: captureAny(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
+
+        // Should only have published filter, no area filter
+        expect(captured[0], {
+          'status': {'_eq': 'published'},
+        });
+      });
+
+      test(
+        'should return empty list without calling getItems when areaIds is empty',
+        () async {
+          // Act
+          final result = await repository.listAll(
+            onlyPublished: true,
+            areaIds: [],
+          );
+
+          // Assert
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull, isEmpty);
+          verifyNever(
+            () => mockDataSource.getItems<MenuDto>(
+              filter: any(named: 'filter'),
+              fields: any(named: 'fields'),
+              sort: any(named: 'sort'),
+            ),
+          );
+        },
+      );
+
+      test(
+        'should return empty list when areaIds is empty and onlyPublished is false',
+        () async {
+          // Act
+          final result = await repository.listAll(
+            onlyPublished: false,
+            areaIds: [],
+          );
+
+          // Assert
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull, isEmpty);
+          verifyNever(
+            () => mockDataSource.getItems<MenuDto>(
+              filter: any(named: 'filter'),
+              fields: any(named: 'fields'),
+              sort: any(named: 'sort'),
+            ),
+          );
+        },
+      );
+
       test('should return all menus when onlyPublished is false', () async {
         // Arrange
         when(

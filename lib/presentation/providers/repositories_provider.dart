@@ -1,16 +1,30 @@
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/core/utils/directus_url_resolver.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
+import 'package:oxo_menus/data/repositories/area_repository_impl.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:oxo_menus/data/repositories/auth_repository_impl.dart';
+import 'package:oxo_menus/data/repositories/connectivity_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/column_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/container_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/file_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/menu_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/page_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/size_repository_impl.dart';
+import 'package:oxo_menus/data/repositories/menu_subscription_repository_impl.dart';
+import 'package:oxo_menus/data/repositories/presence_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/widget_repository_impl.dart';
+import 'package:oxo_menus/data/repositories/asset_loader_repository_impl.dart';
+import 'package:oxo_menus/domain/repositories/area_repository.dart';
+import 'package:oxo_menus/domain/repositories/asset_loader_repository.dart';
 import 'package:oxo_menus/domain/repositories/auth_repository.dart';
+import 'package:oxo_menus/domain/repositories/connectivity_repository.dart';
+import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
+import 'package:oxo_menus/domain/repositories/presence_repository.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/file_repository.dart';
@@ -33,12 +47,29 @@ final directusBaseUrlProvider = Provider<String>((ref) {
   );
 });
 
+/// Directus access token provider
+///
+/// Exposes the current access token from the DirectusDataSource for
+/// authenticated asset requests (e.g. Image.network with Bearer headers)
+final directusAccessTokenProvider = Provider<String?>((ref) {
+  final dataSource = ref.watch(directusDataSourceProvider);
+  return dataSource.currentAccessToken;
+});
+
 /// Directus data source provider
 ///
 /// Provides the DirectusDataSource instance for communicating with the Directus backend
 final directusDataSourceProvider = Provider<DirectusDataSource>((ref) {
   final baseUrl = ref.watch(directusBaseUrlProvider);
   return DirectusDataSource(baseUrl: baseUrl);
+});
+
+/// Area repository provider
+///
+/// Provides the AreaRepository implementation for fetching available areas
+final areaRepositoryProvider = Provider<AreaRepository>((ref) {
+  final dataSource = ref.watch(directusDataSourceProvider);
+  return AreaRepositoryImpl(dataSource: dataSource);
 });
 
 /// Menu repository provider
@@ -103,4 +134,57 @@ final sizeRepositoryProvider = Provider<SizeRepository>((ref) {
 final fileRepositoryProvider = Provider<FileRepository>((ref) {
   final dataSource = ref.watch(directusDataSourceProvider);
   return FileRepositoryImpl(dataSource);
+});
+
+/// Image data provider
+///
+/// Downloads image bytes via [FileRepository.downloadFile] so that
+/// authentication headers are preserved across HTTP redirects.
+/// Used by ImageWidget and ImageEditDialog instead of Image.network.
+final imageDataProvider = FutureProvider.family<Uint8List, String>((
+  ref,
+  fileId,
+) async {
+  final repo = ref.watch(fileRepositoryProvider);
+  final result = await repo.downloadFile(fileId);
+  return switch (result) {
+    Success(:final value) => value,
+    Failure(:final error) => throw error,
+  };
+});
+
+/// Menu subscription repository provider
+///
+/// Provides real-time WebSocket subscriptions for menu change events
+final menuSubscriptionRepositoryProvider = Provider<MenuSubscriptionRepository>(
+  (ref) {
+    final dataSource = ref.watch(directusDataSourceProvider);
+    return MenuSubscriptionRepositoryImpl(dataSource: dataSource);
+  },
+);
+
+/// Presence repository provider
+///
+/// Provides user presence tracking for collaborative menu editing
+final presenceRepositoryProvider = Provider<PresenceRepository>((ref) {
+  final dataSource = ref.watch(directusDataSourceProvider);
+  return PresenceRepositoryImpl(dataSource: dataSource);
+});
+
+/// Asset loader repository provider
+///
+/// Provides the AssetLoaderRepository implementation for loading platform assets
+final assetLoaderRepositoryProvider = Provider<AssetLoaderRepository>((ref) {
+  return AssetLoaderRepositoryImpl();
+});
+
+/// Connectivity repository provider
+///
+/// Provides real-time connectivity monitoring.
+/// On web, DNS probe is skipped (dart:io unavailable).
+final connectivityRepositoryProvider = Provider<ConnectivityRepository>((ref) {
+  return ConnectivityRepositoryImpl(
+    connectivity: Connectivity(),
+    dnsProbe: kIsWeb ? () async => true : null,
+  );
 });

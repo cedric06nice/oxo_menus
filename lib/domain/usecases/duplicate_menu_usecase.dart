@@ -54,7 +54,7 @@ class DuplicateMenuUseCase {
         status: Status.draft,
         styleConfig: sourceMenu.styleConfig,
         sizeId: sizeId,
-        area: sourceMenu.area,
+        areaId: sourceMenu.area?.id,
         displayOptions: sourceMenu.displayOptions,
       ),
     );

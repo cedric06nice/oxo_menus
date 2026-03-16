@@ -9,6 +9,7 @@ class EdgeInsetsEditor extends StatefulWidget {
   final double? bottom;
   final double? left;
   final double? right;
+  final bool isCompact;
   final void Function({
     double? top,
     double? bottom,
@@ -25,6 +26,7 @@ class EdgeInsetsEditor extends StatefulWidget {
     this.bottom,
     this.left,
     this.right,
+    this.isCompact = false,
     required this.onChanged,
   });
 
@@ -78,6 +80,35 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
   }
 
   @override
+  void didUpdateWidget(EdgeInsetsEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.top != widget.top ||
+        oldWidget.bottom != widget.bottom ||
+        oldWidget.left != widget.left ||
+        oldWidget.right != widget.right) {
+      final needsRecreation =
+          _top != widget.top ||
+          _bottom != widget.bottom ||
+          _left != widget.left ||
+          _right != widget.right;
+      _top = widget.top;
+      _bottom = widget.bottom;
+      _left = widget.left;
+      _right = widget.right;
+      final newMode = EdgeInsetsEditor.detectMode(
+        top: _top,
+        bottom: _bottom,
+        left: _left,
+        right: _right,
+      );
+      if (needsRecreation || newMode != _currentMode) {
+        _currentMode = newMode;
+        _createControllers();
+      }
+    }
+  }
+
+  @override
   void dispose() {
     for (final c in _controllers) {
       c.dispose();
@@ -113,63 +144,59 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
         : value.toString();
   }
 
+  void _fireChanged() {
+    widget.onChanged(top: _top, bottom: _bottom, left: _left, right: _right);
+  }
+
   void _onAllChanged(String value) {
     final parsed = double.tryParse(value);
     _top = parsed;
     _bottom = parsed;
     _left = parsed;
     _right = parsed;
-    widget.onChanged(top: _top, bottom: _bottom, left: _left, right: _right);
+    _fireChanged();
   }
 
   void _onSymmetricVerticalChanged(String value) {
     final parsed = double.tryParse(value);
     _top = parsed;
     _bottom = parsed;
-    widget.onChanged(top: _top, bottom: _bottom, left: _left, right: _right);
+    _fireChanged();
   }
 
   void _onSymmetricHorizontalChanged(String value) {
     final parsed = double.tryParse(value);
     _left = parsed;
     _right = parsed;
-    widget.onChanged(top: _top, bottom: _bottom, left: _left, right: _right);
+    _fireChanged();
   }
 
-  void _onIndividualTopChanged(String value) {
-    _top = double.tryParse(value);
-    widget.onChanged(top: _top, bottom: _bottom, left: _left, right: _right);
+  void _onIndividualChanged(int index, String value) {
+    final parsed = double.tryParse(value);
+    switch (index) {
+      case 0:
+        _top = parsed;
+      case 1:
+        _bottom = parsed;
+      case 2:
+        _left = parsed;
+      case 3:
+        _right = parsed;
+    }
+    _fireChanged();
   }
 
-  void _onIndividualBottomChanged(String value) {
-    _bottom = double.tryParse(value);
-    widget.onChanged(top: _top, bottom: _bottom, left: _left, right: _right);
-  }
+  void _switchToMode(EdgeInsetsEditMode? newMode) {
+    if (newMode == null || newMode == _currentMode) return;
 
-  void _onIndividualLeftChanged(String value) {
-    _left = double.tryParse(value);
-    widget.onChanged(top: _top, bottom: _bottom, left: _left, right: _right);
-  }
-
-  void _onIndividualRightChanged(String value) {
-    _right = double.tryParse(value);
-    widget.onChanged(top: _top, bottom: _bottom, left: _left, right: _right);
-  }
-
-  void _switchToMode(EdgeInsetsEditMode newMode) {
-    if (newMode == _currentMode) return;
-
-    // Compute new values based on mode transition
     switch (newMode) {
       case EdgeInsetsEditMode.all:
-        // Use top value as single value
         final singleValue = _top ?? 0.0;
         _top = singleValue;
         _bottom = singleValue;
         _left = singleValue;
         _right = singleValue;
       case EdgeInsetsEditMode.symmetric:
-        // Use top as vertical, left as horizontal
         final vertical = _top ?? 0.0;
         final horizontal = _left ?? 0.0;
         _top = vertical;
@@ -177,7 +204,6 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
         _left = horizontal;
         _right = horizontal;
       case EdgeInsetsEditMode.individual:
-        // Keep current values as-is
         break;
     }
 
@@ -186,8 +212,7 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
       _createControllers();
     });
 
-    // Fire onChanged with new values
-    widget.onChanged(top: _top, bottom: _bottom, left: _left, right: _right);
+    _fireChanged();
   }
 
   Widget _buildField(
@@ -196,15 +221,18 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
     String keyName,
     void Function(String) onChanged,
   ) {
-    return Expanded(
-      child: TextField(
-        key: Key(keyName),
-        controller: controller,
-        decoration: InputDecoration(labelText: label, suffixText: 'pt'),
-        keyboardType: TextInputType.number,
-        onChanged: onChanged,
+    final field = TextField(
+      key: Key(keyName),
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        suffixText: 'pt',
+        isDense: widget.isCompact ? true : null,
       ),
+      keyboardType: TextInputType.number,
+      onChanged: onChanged,
     );
+    return widget.isCompact ? field : Expanded(child: field);
   }
 
   @override
@@ -212,36 +240,77 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.label),
-        SegmentedButton<EdgeInsetsEditMode>(
-          key: Key('${widget.keyPrefix}_mode_selector'),
-          segments: const [
-            ButtonSegment(value: EdgeInsetsEditMode.all, label: Text('All')),
-            ButtonSegment(
-              value: EdgeInsetsEditMode.symmetric,
-              label: Text('Symmetric'),
-            ),
-            ButtonSegment(
-              value: EdgeInsetsEditMode.individual,
-              label: Text('Individual'),
-            ),
-          ],
-          selected: {_currentMode},
-          onSelectionChanged: (Set<EdgeInsetsEditMode> newSelection) {
-            if (newSelection.isNotEmpty) {
-              _switchToMode(newSelection.first);
-            }
-          },
-        ),
-        const SizedBox(height: 8),
+        if (widget.isCompact)
+          Row(
+            children: [
+              Flexible(
+                child: Text(widget.label, overflow: TextOverflow.ellipsis),
+              ),
+              const SizedBox(width: 4),
+              DropdownButton<EdgeInsetsEditMode>(
+                key: Key('${widget.keyPrefix}_mode_dropdown'),
+                value: _currentMode,
+                isDense: true,
+                underline: const SizedBox(),
+                items: const [
+                  DropdownMenuItem(
+                    value: EdgeInsetsEditMode.all,
+                    child: Text('All'),
+                  ),
+                  DropdownMenuItem(
+                    value: EdgeInsetsEditMode.symmetric,
+                    child: Text('Symmetric'),
+                  ),
+                  DropdownMenuItem(
+                    value: EdgeInsetsEditMode.individual,
+                    child: Text('Individual'),
+                  ),
+                ],
+                onChanged: _switchToMode,
+              ),
+            ],
+          )
+        else ...[
+          Text(widget.label),
+          SegmentedButton<EdgeInsetsEditMode>(
+            key: Key('${widget.keyPrefix}_mode_selector'),
+            segments: const [
+              ButtonSegment(value: EdgeInsetsEditMode.all, label: Text('All')),
+              ButtonSegment(
+                value: EdgeInsetsEditMode.symmetric,
+                label: Text('Symmetric'),
+              ),
+              ButtonSegment(
+                value: EdgeInsetsEditMode.individual,
+                label: Text('Individual'),
+              ),
+            ],
+            selected: {_currentMode},
+            onSelectionChanged: (Set<EdgeInsetsEditMode> newSelection) {
+              if (newSelection.isNotEmpty) {
+                _switchToMode(newSelection.first);
+              }
+            },
+          ),
+        ],
+        SizedBox(height: widget.isCompact ? 4 : 8),
         _buildModeFields(),
       ],
     );
   }
 
   Widget _buildModeFields() {
+    final compact = widget.isCompact;
     switch (_currentMode) {
       case EdgeInsetsEditMode.all:
+        if (compact) {
+          return _buildField(
+            'All',
+            _controllers[0],
+            '${widget.keyPrefix}_all',
+            _onAllChanged,
+          );
+        }
         return Row(
           children: [
             _buildField(
@@ -253,6 +322,25 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
           ],
         );
       case EdgeInsetsEditMode.symmetric:
+        if (compact) {
+          return Column(
+            children: [
+              _buildField(
+                'V',
+                _controllers[0],
+                '${widget.keyPrefix}_vertical',
+                _onSymmetricVerticalChanged,
+              ),
+              const SizedBox(height: 4),
+              _buildField(
+                'H',
+                _controllers[1],
+                '${widget.keyPrefix}_horizontal',
+                _onSymmetricHorizontalChanged,
+              ),
+            ],
+          );
+        }
         return Row(
           children: [
             _buildField(
@@ -271,34 +359,83 @@ class _EdgeInsetsEditorState extends State<EdgeInsetsEditor> {
           ],
         );
       case EdgeInsetsEditMode.individual:
+        if (compact) {
+          return Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildField(
+                      'T',
+                      _controllers[0],
+                      '${widget.keyPrefix}_top',
+                      (v) => _onIndividualChanged(0, v),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: _buildField(
+                      'B',
+                      _controllers[1],
+                      '${widget.keyPrefix}_bottom',
+                      (v) => _onIndividualChanged(1, v),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildField(
+                      'L',
+                      _controllers[2],
+                      '${widget.keyPrefix}_left',
+                      (v) => _onIndividualChanged(2, v),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: _buildField(
+                      'R',
+                      _controllers[3],
+                      '${widget.keyPrefix}_right',
+                      (v) => _onIndividualChanged(3, v),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        }
         return Row(
           children: [
             _buildField(
               'Top',
               _controllers[0],
               '${widget.keyPrefix}_top',
-              _onIndividualTopChanged,
+              (v) => _onIndividualChanged(0, v),
             ),
             const SizedBox(width: 8),
             _buildField(
               'Bottom',
               _controllers[1],
               '${widget.keyPrefix}_bottom',
-              _onIndividualBottomChanged,
+              (v) => _onIndividualChanged(1, v),
             ),
             const SizedBox(width: 8),
             _buildField(
               'Left',
               _controllers[2],
               '${widget.keyPrefix}_left',
-              _onIndividualLeftChanged,
+              (v) => _onIndividualChanged(2, v),
             ),
             const SizedBox(width: 8),
             _buildField(
               'Right',
               _controllers[3],
               '${widget.keyPrefix}_right',
-              _onIndividualRightChanged,
+              (v) => _onIndividualChanged(3, v),
             ),
           ],
         );

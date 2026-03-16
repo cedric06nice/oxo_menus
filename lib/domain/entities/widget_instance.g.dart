@@ -24,6 +24,10 @@ _WidgetInstance _$WidgetInstanceFromJson(Map<String, dynamic> json) =>
       dateUpdated: json['dateUpdated'] == null
           ? null
           : DateTime.parse(json['dateUpdated'] as String),
+      editingBy: json['editingBy'] as String?,
+      editingSince: json['editingSince'] == null
+          ? null
+          : DateTime.parse(json['editingSince'] as String),
     );
 
 Map<String, dynamic> _$WidgetInstanceToJson(_WidgetInstance instance) =>
@@ -38,6 +42,8 @@ Map<String, dynamic> _$WidgetInstanceToJson(_WidgetInstance instance) =>
       'isTemplate': instance.isTemplate,
       'dateCreated': instance.dateCreated?.toIso8601String(),
       'dateUpdated': instance.dateUpdated?.toIso8601String(),
+      'editingBy': instance.editingBy,
+      'editingSince': instance.editingSince?.toIso8601String(),
     };
 
 _WidgetStyle _$WidgetStyleFromJson(Map<String, dynamic> json) => _WidgetStyle(

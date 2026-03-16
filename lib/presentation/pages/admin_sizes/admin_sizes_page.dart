@@ -3,12 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/presentation/helpers/edit_dialog_helper.dart';
+import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/helpers/status_helpers.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/status_filter_bar.dart';
 import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
+import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/widgets/size_create_edit_dialog.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Admin page for managing page sizes
 class AdminSizesPage extends ConsumerStatefulWidget {
@@ -19,16 +28,22 @@ class AdminSizesPage extends ConsumerStatefulWidget {
 }
 
 class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
       ref.read(adminSizesProvider.notifier).loadSizes();
+      _listenForConnectivityRestore();
+    });
+  }
+
+  void _listenForConnectivityRestore() {
+    ref.listenManual(connectivityProvider, (prev, next) {
+      final wasOffline = prev?.value == ConnectivityStatus.offline;
+      final isOnline = next.value == ConnectivityStatus.online;
+      if (wasOffline && isOnline) {
+        ref.read(adminSizesProvider.notifier).loadSizes();
+      }
     });
   }
 
@@ -40,7 +55,7 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
       title: 'Page Sizes',
       actions: [
         IconButton(
-          icon: Icon(_isApple ? CupertinoIcons.add : Icons.add),
+          icon: Icon(isApplePlatform(context) ? CupertinoIcons.add : Icons.add),
           onPressed: _showCreateDialog,
           tooltip: 'Create Page Size',
         ),
@@ -56,86 +71,22 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
 
   Widget _buildStatusFilters() {
     final state = ref.watch(adminSizesProvider);
-
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _FilterChip(
-              label: 'All',
-              isSelected: state.statusFilter == 'all',
-              onSelected: () => _filterByStatus('all'),
-            ),
-            const SizedBox(width: 8),
-            _FilterChip(
-              label: 'Draft',
-              isSelected: state.statusFilter == 'draft',
-              onSelected: () => _filterByStatus('draft'),
-            ),
-            const SizedBox(width: 8),
-            _FilterChip(
-              label: 'Published',
-              isSelected: state.statusFilter == 'published',
-              onSelected: () => _filterByStatus('published'),
-            ),
-            const SizedBox(width: 8),
-            _FilterChip(
-              label: 'Archived',
-              isSelected: state.statusFilter == 'archived',
-              onSelected: () => _filterByStatus('archived'),
-            ),
-          ],
-        ),
-      ),
+    return StatusFilterBar(
+      selectedFilter: state.statusFilter,
+      onFilterChanged: (status) =>
+          ref.read(adminSizesProvider.notifier).loadSizes(statusFilter: status),
     );
-  }
-
-  void _filterByStatus(String status) {
-    ref.read(adminSizesProvider.notifier).loadSizes(statusFilter: status);
   }
 
   Widget _buildSizesList(dynamic state) {
     if (state.isLoading) {
-      return Center(
-        child: _isApple
-            ? const CupertinoActivityIndicator()
-            : const CircularProgressIndicator(),
-      );
+      return const Center(child: AdaptiveLoadingIndicator());
     }
 
     if (state.errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _isApple
-                  ? CupertinoIcons.exclamationmark_circle
-                  : Icons.error_outline,
-              size: 48,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text('Error: ${state.errorMessage}'),
-            const SizedBox(height: 16),
-            if (_isApple)
-              CupertinoButton.filled(
-                onPressed: () {
-                  ref.read(adminSizesProvider.notifier).loadSizes();
-                },
-                child: const Text('Retry'),
-              )
-            else
-              FilledButton(
-                onPressed: () {
-                  ref.read(adminSizesProvider.notifier).loadSizes();
-                },
-                child: const Text('Retry'),
-              ),
-          ],
-        ),
+      return AdaptiveErrorState(
+        message: state.errorMessage!,
+        onRetry: () => ref.read(adminSizesProvider.notifier).loadSizes(),
       );
     }
 
@@ -164,143 +115,64 @@ class _AdminSizesPageState extends ConsumerState<AdminSizesPage> {
   }
 
   void _showCreateDialog() {
-    final dialog = SizeCreateEditDialog(
-      onSave: (result) {
-        ref
-            .read(adminSizesProvider.notifier)
-            .createSize(
-              CreateSizeInput(
-                name: result.name,
-                width: result.width,
-                height: result.height,
-                status: result.status,
-                direction: result.direction,
-              ),
-            );
-      },
+    showEditDialog(
+      context,
+      SizeCreateEditDialog(
+        onSave: (result) {
+          ref
+              .read(adminSizesProvider.notifier)
+              .createSize(
+                CreateSizeInput(
+                  name: result.name,
+                  width: result.width,
+                  height: result.height,
+                  status: result.status,
+                  direction: result.direction,
+                ),
+              );
+        },
+      ),
     );
-
-    if (_isApple) {
-      Navigator.of(context).push(
-        CupertinoPageRoute<void>(
-          fullscreenDialog: true,
-          builder: (_) => dialog,
-        ),
-      );
-    } else {
-      showDialog(context: context, builder: (_) => dialog);
-    }
   }
 
   void _showEditDialog(domain.Size size) {
-    final dialog = SizeCreateEditDialog(
-      existingSize: size,
-      onSave: (result) {
-        ref
-            .read(adminSizesProvider.notifier)
-            .updateSize(
-              UpdateSizeInput(
-                id: size.id,
-                name: result.name,
-                width: result.width,
-                height: result.height,
-                status: result.status,
-                direction: result.direction,
-              ),
-            );
-      },
+    showEditDialog(
+      context,
+      SizeCreateEditDialog(
+        existingSize: size,
+        onSave: (result) {
+          ref
+              .read(adminSizesProvider.notifier)
+              .updateSize(
+                UpdateSizeInput(
+                  id: size.id,
+                  name: result.name,
+                  width: result.width,
+                  height: result.height,
+                  status: result.status,
+                  direction: result.direction,
+                ),
+              );
+        },
+      ),
     );
-
-    if (_isApple) {
-      Navigator.of(context).push(
-        CupertinoPageRoute<void>(
-          fullscreenDialog: true,
-          builder: (_) => dialog,
-        ),
-      );
-    } else {
-      showDialog(context: context, builder: (_) => dialog);
-    }
   }
 
   Future<void> _confirmDelete(domain.Size size) async {
-    final bool? confirmed;
-    if (_isApple) {
-      confirmed = await showCupertinoDialog<bool>(
-        context: context,
-        builder: (dialogContext) => CupertinoAlertDialog(
-          title: const Text('Delete Page Size'),
-          content: Text(
-            'Are you sure you want to delete "${size.name}"? This action cannot be undone.',
-          ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            CupertinoDialogAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Delete'),
-            ),
-          ],
-        ),
-      );
-    } else {
-      confirmed = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Delete Page Size'),
-          content: Text(
-            'Are you sure you want to delete "${size.name}"? This action cannot be undone.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-              child: const Text('Delete'),
-            ),
-          ],
-        ),
-      );
-    }
+    final confirmed = await showDeleteConfirmation(
+      context,
+      title: 'Delete Page Size',
+      message:
+          'Are you sure you want to delete "${size.name}"? This action cannot be undone.',
+    );
 
     if (confirmed == true && mounted) {
       await ref.read(adminSizesProvider.notifier).deleteSize(size.id);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Page size "${size.name}" deleted')),
-        );
+        showThemedSnackBar(context, 'Page size "${size.name}" deleted');
       }
     }
-  }
-}
-
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onSelected;
-
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FilterChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) => onSelected(),
-    );
   }
 }
 
@@ -319,9 +191,7 @@ class _SizeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isApple =
-        theme.platform == TargetPlatform.iOS ||
-        theme.platform == TargetPlatform.macOS;
+    final isApple = isApplePlatform(context);
     final accentColor = statusColor(size.status, colorScheme);
 
     return Card(

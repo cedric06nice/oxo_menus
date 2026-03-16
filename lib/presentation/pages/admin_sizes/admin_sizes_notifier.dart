@@ -1,13 +1,13 @@
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_state.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 /// Notifier for managing admin sizes list state
-class AdminSizesNotifier extends StateNotifier<AdminSizesState> {
-  final SizeRepository _sizeRepository;
-
-  AdminSizesNotifier(this._sizeRepository) : super(const AdminSizesState());
+class AdminSizesNotifier extends Notifier<AdminSizesState> {
+  @override
+  AdminSizesState build() => const AdminSizesState();
 
   /// Load sizes from repository with optional status filter
   Future<void> loadSizes({String? statusFilter}) async {
@@ -17,7 +17,7 @@ class AdminSizesNotifier extends StateNotifier<AdminSizesState> {
       statusFilter: statusFilter ?? state.statusFilter,
     );
 
-    final result = await _sizeRepository.getAll();
+    final result = await ref.read(sizeRepositoryProvider).getAll();
 
     result.fold(
       onSuccess: (sizes) {
@@ -39,7 +39,7 @@ class AdminSizesNotifier extends StateNotifier<AdminSizesState> {
 
   /// Create a new size
   Future<void> createSize(CreateSizeInput input) async {
-    final result = await _sizeRepository.create(input);
+    final result = await ref.read(sizeRepositoryProvider).create(input);
 
     result.fold(
       onSuccess: (size) {
@@ -53,7 +53,7 @@ class AdminSizesNotifier extends StateNotifier<AdminSizesState> {
 
   /// Update an existing size
   Future<void> updateSize(UpdateSizeInput input) async {
-    final result = await _sizeRepository.update(input);
+    final result = await ref.read(sizeRepositoryProvider).update(input);
 
     result.fold(
       onSuccess: (updatedSize) {
@@ -71,7 +71,7 @@ class AdminSizesNotifier extends StateNotifier<AdminSizesState> {
 
   /// Delete a size by ID
   Future<void> deleteSize(int id) async {
-    final result = await _sizeRepository.delete(id);
+    final result = await ref.read(sizeRepositoryProvider).delete(id);
 
     result.fold(
       onSuccess: (_) {

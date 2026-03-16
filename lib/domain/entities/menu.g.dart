@@ -25,7 +25,9 @@ _Menu _$MenuFromJson(Map<String, dynamic> json) => _Menu(
   pageSize: json['pageSize'] == null
       ? null
       : PageSize.fromJson(json['pageSize'] as Map<String, dynamic>),
-  area: json['area'] as String?,
+  area: json['area'] == null
+      ? null
+      : Area.fromJson(json['area'] as Map<String, dynamic>),
   displayOptions: json['displayOptions'] == null
       ? null
       : MenuDisplayOptions.fromJson(

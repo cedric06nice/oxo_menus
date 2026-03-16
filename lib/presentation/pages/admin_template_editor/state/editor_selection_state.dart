@@ -9,6 +9,8 @@ abstract class EditorSelectionState with _$EditorSelectionState {
   const factory EditorSelectionState({
     EditorSelection? selection,
     StyleConfig? clipboardStyle,
+    StyleConfig? currentStyle,
+    StyleConfig? originalStyle,
     @Default(false) bool isSaving,
   }) = _EditorSelectionState;
 }

@@ -177,7 +177,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(Container));
+      await tester.tap(find.byType(SizedBox));
       await tester.pumpAndSettle();
 
       // Edit dialog should appear
@@ -202,7 +202,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(Container));
+      await tester.tap(find.byType(SizedBox));
       await tester.pumpAndSettle();
 
       // Edit dialog should NOT appear
@@ -231,7 +231,7 @@ void main() {
       );
 
       // Tap to open edit dialog
-      await tester.tap(find.byType(Container));
+      await tester.tap(find.byType(SizedBox));
       await tester.pumpAndSettle();
 
       // Modify the text
@@ -249,6 +249,41 @@ void main() {
       expect(capturedUpdate!['text'], 'Updated text');
     });
 
+    testWidgets(
+      'should call onEditStarted before and onEditEnded after edit dialog',
+      (tester) async {
+        const props = TextProps(text: 'Editable text');
+        var editStartedCount = 0;
+        var editEndedCount = 0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: TextWidget(
+                props: props,
+                context: WidgetContext(
+                  isEditable: true,
+                  onEditStarted: () => editStartedCount++,
+                  onEditEnded: () => editEndedCount++,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.byType(SizedBox));
+        await tester.pumpAndSettle();
+
+        expect(editStartedCount, 1);
+        expect(editEndedCount, 0);
+
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+
+        expect(editEndedCount, 1);
+      },
+    );
+
     testWidgets('should render with proper styling', (tester) async {
       const props = TextProps(text: 'Test text');
 
@@ -264,7 +299,7 @@ void main() {
       );
 
       // Verify the widget renders a Container
-      expect(find.byType(Container), findsWidgets);
+      expect(find.byType(SizedBox), findsWidgets);
       expect(find.text('Test text'), findsOneWidget);
     });
 

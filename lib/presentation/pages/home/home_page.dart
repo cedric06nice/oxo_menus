@@ -1,8 +1,6 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oxo_menus/presentation/helpers/grid_helpers.dart';
 import 'package:oxo_menus/presentation/pages/home/home_helpers.dart';
 import 'package:oxo_menus/presentation/pages/home/widgets/quick_action_card.dart';
 import 'package:oxo_menus/presentation/pages/home/widgets/welcome_card.dart';
@@ -38,45 +36,40 @@ class HomePage extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.xl),
                   Text('Quick Actions', style: theme.textTheme.titleMedium),
                   const SizedBox(height: AppSpacing.lg),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final columns = computeGridColumns(constraints.maxWidth);
-                      return GridView.count(
-                        crossAxisCount: columns,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                        children: [
-                          QuickActionCard(
-                            icon: Icons.restaurant_menu,
-                            title: 'OXO Menus',
-                            subtitle: 'Browse and manage menus',
-                            onTap: () => kIsWeb
-                                ? context.go('/menus')
-                                : context.push('/menus'),
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: [
+                      SizedBox(
+                        width: 200,
+                        child: QuickActionCard(
+                          icon: Icons.restaurant_menu,
+                          title: 'OXO Menus',
+                          subtitle: 'Browse and manage menus',
+                          onTap: () => context.go('/menus'),
+                        ),
+                      ),
+                      if (isAdmin)
+                        SizedBox(
+                          width: 200,
+                          child: QuickActionCard(
+                            icon: Icons.dashboard,
+                            title: 'Manage Templates',
+                            subtitle: 'Edit and organise templates',
+                            onTap: () => context.go('/admin/templates'),
                           ),
-                          if (isAdmin)
-                            QuickActionCard(
-                              icon: Icons.dashboard,
-                              title: 'Manage Templates',
-                              subtitle: 'Edit and organise templates',
-                              onTap: () => kIsWeb
-                                  ? context.go('/admin/templates')
-                                  : context.push('/admin/templates'),
-                            ),
-                          if (isAdmin)
-                            QuickActionCard(
-                              icon: Icons.add_box,
-                              title: 'Create Template',
-                              subtitle: 'Start a new template',
-                              onTap: () => kIsWeb
-                                  ? context.go('/admin/templates/create')
-                                  : context.push('/admin/templates/create'),
-                            ),
-                        ],
-                      );
-                    },
+                        ),
+                      if (isAdmin)
+                        SizedBox(
+                          width: 200,
+                          child: QuickActionCard(
+                            icon: Icons.add_box,
+                            title: 'Create Template',
+                            subtitle: 'Start a new template',
+                            onTap: () => context.go('/admin/templates/create'),
+                          ),
+                        ),
+                    ],
                   ),
                 ],
               ),

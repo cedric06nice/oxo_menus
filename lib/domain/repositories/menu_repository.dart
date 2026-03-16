@@ -13,7 +13,10 @@ abstract class MenuRepository {
   Future<Result<Menu, DomainError>> create(CreateMenuInput input);
 
   /// List all menus
-  Future<Result<List<Menu>, DomainError>> listAll({bool onlyPublished = true});
+  Future<Result<List<Menu>, DomainError>> listAll({
+    bool onlyPublished = true,
+    List<int>? areaIds,
+  });
 
   /// Get menu by ID
   Future<Result<Menu, DomainError>> getById(int id);
@@ -36,7 +39,7 @@ abstract class CreateMenuInput with _$CreateMenuInput {
     Status? status,
     StyleConfig? styleConfig,
     int? sizeId,
-    String? area,
+    int? areaId,
     MenuDisplayOptions? displayOptions,
     List<String>? allowedWidgetTypes,
   }) = _CreateMenuInput;
@@ -54,7 +57,7 @@ abstract class UpdateMenuInput with _$UpdateMenuInput {
     Status? status,
     StyleConfig? styleConfig,
     int? sizeId,
-    String? area,
+    int? areaId,
     MenuDisplayOptions? displayOptions,
     List<String>? allowedWidgetTypes,
   }) = _UpdateMenuInput;

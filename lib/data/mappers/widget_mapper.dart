@@ -21,6 +21,8 @@ class WidgetMapper {
       isTemplate: dto.isTemplate,
       dateCreated: dto.dateCreated,
       dateUpdated: dto.dateUpdated,
+      editingBy: dto.editingBy,
+      editingSince: dto.editingSince,
     );
   }
 
@@ -39,6 +41,8 @@ class WidgetMapper {
       'is_template': entity.isTemplate,
       'date_created': entity.dateCreated,
       'date_updated': entity.dateUpdated,
+      'editing_by': entity.editingBy,
+      'editing_since': entity.editingSince?.toIso8601String(),
     });
   }
 

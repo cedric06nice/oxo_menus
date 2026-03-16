@@ -1,9 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
-import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 part 'auth_provider.freezed.dart';
@@ -32,17 +30,17 @@ sealed class AuthState with _$AuthState {
 /// Authentication state notifier
 ///
 /// Manages authentication state and provides methods for login/logout
-class AuthNotifier extends StateNotifier<AuthState> {
-  final AuthRepository _authRepository;
-
-  AuthNotifier(this._authRepository) : super(const AuthState.initial()) {
-    _tryRestoreSession();
+class AuthNotifier extends Notifier<AuthState> {
+  @override
+  AuthState build() {
+    Future.microtask(_tryRestoreSession);
+    return const AuthState.initial();
   }
 
   /// Try to restore session from stored tokens
   Future<void> _tryRestoreSession() async {
     state = const AuthState.loading();
-    final result = await _authRepository.tryRestoreSession();
+    final result = await ref.read(authRepositoryProvider).tryRestoreSession();
 
     result.fold(
       onSuccess: (user) => state = AuthState.authenticated(user),
@@ -53,7 +51,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Check current authentication status
   Future<void> _checkAuthStatus() async {
     state = const AuthState.loading();
-    final result = await _authRepository.getCurrentUser();
+    final result = await ref.read(authRepositoryProvider).getCurrentUser();
 
     result.fold(
       onSuccess: (user) => state = AuthState.authenticated(user),
@@ -64,7 +62,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Login with email and password
   Future<void> login(String email, String password) async {
     state = const AuthState.loading();
-    final result = await _authRepository.login(email, password);
+    final result = await ref
+        .read(authRepositoryProvider)
+        .login(email, password);
 
     result.fold(
       onSuccess: (user) => state = AuthState.authenticated(user),
@@ -74,7 +74,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Logout the current user
   Future<void> logout() async {
-    await _authRepository.logout();
+    await ref.read(authRepositoryProvider).logout();
     state = const AuthState.unauthenticated();
   }
 
@@ -87,56 +87,38 @@ class AuthNotifier extends StateNotifier<AuthState> {
 /// Auth state provider
 ///
 /// Provides the current authentication state and methods for authentication
-///
-/// Example usage:
-/// ```dart
-/// final authState = ref.watch(authProvider);
-/// authState.when(
-///   initial: () => CircularProgressIndicator(),
-///   loading: () => CircularProgressIndicator(),
-///   authenticated: (user) => Text('Welcome ${user.email}'),
-///   unauthenticated: () => LoginButton(),
-///   error: (message) => Text('Error: $message'),
-/// );
-/// ```
-final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  final authRepository = ref.watch(authRepositoryProvider);
-  return AuthNotifier(authRepository);
-});
+final authProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);
 
 /// Current user provider
 ///
 /// Convenience provider that returns the current user if authenticated, null otherwise
-///
-/// Example usage:
-/// ```dart
-/// final user = ref.watch(currentUserProvider);
-/// if (user != null) {
-///   print('Current user: ${user.email}');
-/// }
-/// ```
 final currentUserProvider = Provider<User?>((ref) {
   final authState = ref.watch(authProvider);
   return authState.maybeWhen(authenticated: (user) => user, orElse: () => null);
 });
 
-/// Admin "view as user" override provider
+/// Admin "view as user" override notifier
 ///
 /// Session-only toggle that lets an admin pretend to be a regular user.
 /// When `true`, [isAdminProvider] returns `false` even for admin users.
-final adminViewAsUserProvider = StateProvider<bool>((ref) => false);
+class AdminViewAsUserNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool value) => state = value;
+
+  void toggle() => state = !state;
+}
+
+final adminViewAsUserProvider = NotifierProvider<AdminViewAsUserNotifier, bool>(
+  AdminViewAsUserNotifier.new,
+);
 
 /// Is admin provider
 ///
 /// Convenience provider that returns true if the current user is an admin
-///
-/// Example usage:
-/// ```dart
-/// final isAdmin = ref.watch(isAdminProvider);
-/// if (isAdmin) {
-///   // Show admin-only features
-/// }
-/// ```
 final isAdminProvider = Provider<bool>((ref) {
   final user = ref.watch(currentUserProvider);
   final viewAsUser = ref.watch(adminViewAsUserProvider);

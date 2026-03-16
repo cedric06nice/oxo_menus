@@ -7,6 +7,7 @@
 ### Routes
 | Path | Page | Access |
 |------|------|--------|
+| `/splash` | SplashScreen | Loading |
 | `/login` | LoginPage | Public (redirects to /home if authed) |
 | `/home` | HomePage | Authenticated |
 | `/menus` | MenuListPage | Authenticated |
@@ -22,30 +23,58 @@ Web uses `context.go()`, native uses `context.push()`.
 
 ## Providers (`lib/presentation/providers/`)
 
-### AuthProvider (`auth_provider.dart`)
-**AuthState (freezed):** `initial()`, `loading()`, `authenticated(User)`, `unauthenticated()`, `error(String)`
+### Auth (`auth_provider.dart`)
+- **AuthState (freezed):** `initial()`, `loading()`, `authenticated(User)`, `unauthenticated()`, `error(String)`
+- **AuthNotifier:** `_tryRestoreSession()` (on init), `login()`, `logout()`, `refresh()`
+- **Derived:** `currentUserProvider` (User?), `isAdminProvider` (bool — respects `adminViewAsUserProvider` toggle), `adminViewAsUserProvider` (session toggle), `authListenableProvider` (for GoRouter)
 
-**AuthNotifier:** `_tryRestoreSession()` (on init), `login()`, `logout()`, `refresh()`
+### Repositories (`repositories_provider.dart`)
+All watch `directusDataSourceProvider`:
+- `menuRepositoryProvider`, `pageRepositoryProvider`, `containerRepositoryProvider`, `columnRepositoryProvider`, `widgetRepositoryProvider`
+- `authRepositoryProvider`, `sizeRepositoryProvider`, `areaRepositoryProvider`
+- `fileRepositoryProvider`, `menuSubscriptionRepositoryProvider`, `presenceRepositoryProvider`
+- `connectivityRepositoryProvider`, `assetLoaderRepositoryProvider`
+- `directusBaseUrlProvider` — resolves URL (env var or web hostname)
+- `directusAccessTokenProvider` — current auth token for asset requests
+- `directusDataSourceProvider` — singleton data source
+- `imageDataProvider` — FutureProvider.family for downloading image bytes with auth
 
-**Derived:** `currentUserProvider` (User?), `isAdminProvider` (bool — respects `adminViewAsUserProvider` toggle), `authListenableProvider` (for GoRouter)
-
-### RepositoriesProvider (`repositories_provider.dart`)
-All watch `directusDataSourceProvider`: `menuRepositoryProvider`, `pageRepositoryProvider`, `containerRepositoryProvider`, `columnRepositoryProvider`, `widgetRepositoryProvider`, `authRepositoryProvider`, `sizeRepositoryProvider`, `fileRepositoryProvider`
-
-`directusBaseUrlProvider` resolves URL (env var or web hostname). `directusDataSourceProvider` creates the data source.
-
-### UseCasesProvider (`usecases_provider.dart`)
+### Use Cases (`usecases_provider.dart`)
 `fetchMenuTreeUseCaseProvider`, `generatePdfUseCaseProvider`, `duplicateMenuUseCaseProvider`
 
-### WidgetRegistryProvider (`widget_registry_provider.dart`)
+### Widget Registry (`widget_registry_provider.dart`)
 Registers all 5 widget types: dish, image, section, text, wine.
 
-### MenuListProvider (`menu_list_provider.dart`)
-**MenuListState (freezed):** `menus`, `isLoading`, `errorMessage?`
-**MenuListNotifier:** `loadMenus(onlyPublished)`, `deleteMenu(id)`, `refresh()`, `createMenu(input)`, `duplicateMenu(id)`, `clearError()`
+### Page-Level State Providers
 
-### MenuDisplayOptionsProvider (`menu_display_options_provider.dart`)
-Session state for menu-level display settings (read by WidgetRenderer).
+**MenuListProvider** (`menu_list_provider.dart`)
+- **MenuListState:** `menus`, `isLoading`, `errorMessage?`
+- **MenuListNotifier:** `loadMenus(onlyPublished)`, `deleteMenu(id)`, `refresh()`, `createMenu(input)`, `duplicateMenu(id)`, `clearError()`
+
+**EditorTreeProvider** (`editor_tree_provider.dart`)
+- **NotifierProvider.family** keyed by menuId — manages full editor state tree
+- **EditorTreeState:** menu, pages, containers, columns, widgets (nested maps), loading/error
+
+**TemplateEditorProvider** — unsaved changes tracking, debounced saves
+
+**EditorSelectionProvider** — current selection (menu/container/column), original/current style, clipboard
+
+**MenuCollaborationProvider** — real-time collaboration state keyed by menuId: presences, reconnection state
+
+**AdminTemplatesProvider** — templates list, status filter, loading/error
+
+**AdminSizesProvider** — sizes list, status filter, loading/error
+
+**MenuSettingsProvider** — sizes, areas for creation pages
+
+**ImageFilesProvider** — image file management state
+
+### Other Providers
+- **connectivityProvider** (`StreamProvider<ConnectivityStatus>`) — real-time connectivity stream
+- **appLifecycleProvider** — tracks app lifecycle state (for reconnection logic)
+- **isAppInForegroundProvider** — derived from appLifecycleProvider
+- **menuDisplayOptionsProvider** — session state for menu-level display settings
+- **appVersionProvider** — from `package_info_plus`
 
 ## Pages (`lib/presentation/pages/`)
 
@@ -56,16 +85,19 @@ Platform-adaptive (Cupertino on Apple, Material elsewhere). Email/password form,
 Time-based greeting, user avatar, role badge. Responsive grid of quick action cards (1-3 columns). Admin-only actions: Manage Templates, Create Template.
 
 ### MenuListPage
-**Admin:** Status filter chips (All/Draft/Published/Archived), create button (opens TemplateCreateDialog), per-menu actions (edit, duplicate, delete). **User:** Published menus only, open editor. Responsive grid layout.
+**Admin:** Status filter chips (All/Draft/Published/Archived), create button (opens `TemplateCreateDialog`), per-menu actions (edit, duplicate, delete). **User:** Published menus only, open editor. Responsive grid layout. Menus grouped by area.
 
 ### MenuEditorPage
-Left sidebar: Widget palette (drag-drop). Main canvas: nested page/container/column layout with drop zones. Top actions: Display Options, PDF preview, Save. Narrow layout (<600px): horizontal palette above canvas. Disables drops in non-droppable columns (lock icon).
+Left sidebar: Widget palette (drag-drop). Main canvas: nested page/container/column layout with drop zones. Top actions: Display Options, PDF preview. Narrow layout (<600px): horizontal palette above canvas. Disables drops in non-droppable columns (lock icon). Real-time: WebSocket subscriptions for collaborative editing, presence tracking with `PresenceBar`, auto-reconnect with polling fallback.
+
+### PdfPreviewPage
+Generates and previews PDF menus client-side. Uses FutureBuilder for async generation. Share functionality.
 
 ### AdminTemplateEditorPage
 Like MenuEditorPage but for templates. Edits header/footer pages. Manages allowed widget types. Side panel with style editor. Tracks selection state for property editing.
 
 ### AdminTemplateCreatorPage
-Form: template name (required), version (default "1.0.0"), page size dropdown. Creates as draft. Navigates to editor on success.
+Form: template name (required), version (default "1.0.0"), page size dropdown, area dropdown. Creates as draft. Navigates to editor on success.
 
 ### AdminTemplatesPage
 Template management with status filters, responsive grid of cards. Each card: status header, name, version, edit/delete actions.
@@ -74,7 +106,7 @@ Template management with status filters, responsive grid of cards. Each card: st
 Page size CRUD. Cards show name, dimensions (mm), direction, status. Create/edit/delete dialogs.
 
 ### SettingsPage
-User profile (avatar, name, role badge). Logout with confirmation. Admin debug: "Show as non-admin user" toggle.
+User profile (avatar, name, role badge). Logout with confirmation. Admin debug: "Show as non-admin user" toggle. App version display.
 
 ## Widgets (`lib/presentation/widgets/`)
 
@@ -87,35 +119,55 @@ Each has: `*_widget_definition.dart`, `*_widget.dart` (render), `*_edit_dialog.d
 | Wine | Name (uppercase + dietary abbr), price (£), description, vintage, sulphites flag |
 | Section | Title (optional uppercase), optional divider line |
 | Text | Content with alignment, font size, bold/italic |
-| Image | Network image from Directus with alignment and fit options |
+| Image | Image from Directus via Image.memory with auth headers, alignment, fit |
 
 ### Editor Widgets (`editor/`)
 - **WidgetPalette** — draggable list of widget types, filters by `allowedWidgetTypes`
-- **DraggableWidgetItem** — wraps instance for drag/drop with edit/delete actions
+- **DraggableWidgetItem** — wraps instance for drag/drop with edit/delete actions, shows editing user
 - **EditorDropZone** — visual drop target with hover state
 - **EditorWidgetCrudHelper** — CRUD operations (create, update, move, delete via repos)
 - **WidgetDragData** — payload distinguishing new vs. existing widget drops
 - **AutoScrollListener** — auto-scrolls canvas when dragging near edges
-- **DeleteConfirmationDialog** — platform-adaptive confirm
+- **EditingUserBadge** — shows which user is currently editing a widget
+
+### Canvas Widgets (`canvas/`)
+- **TemplateCanvas** — main rendering canvas for menu templates
+- **WidgetRenderer** — dynamic dispatch: registry lookup → parseProps → render
 
 ### Common Widgets (`common/`)
+- **AppShell** — adaptive nav: Mobile (<600px) = NavigationBar, Tablet (600-1200px) = Rail, Desktop (>1200px) = Drawer
 - **AuthenticatedScaffold** — consistent AppBar + user avatar button → settings
 - **UserAvatarWidget** — network image, initials fallback, email-letter fallback
-- **EdgeInsetsEditor** / **CompactEdgeInsetsEditor** — padding/margin editing
+- **StatusBadge** — colored badge (Draft/Published/Archived)
+- **EmptyState** — generic empty state with icon, title, subtitle, optional action
+- **HoverCard** — card with hover effects for desktop
+- **SkeletonLoader** — shimmer placeholder for loading states
+- **PresenceBar** — shows active users editing menu with avatars
+- **OfflineBanner** — inline connectivity warning
+- **OfflineErrorPage** — full-page offline error with retry
+- **EdgeInsetsEditor** — padding/margin editing (`isCompact` for side panel)
+- **AdaptiveLoadingIndicator** — platform-specific spinner
 
-### Other Widgets
-- **WidgetRenderer** (`widget_renderer.dart`) — dynamic dispatch: registry lookup → parseProps → render
-- **MenuListItem** — rich card: status header, name, version, date (admin only), actions
-- **TemplateCanvas** — canvas for template preview rendering
-- **TemplateCard** / **TemplateStatusIndicator** — template list card and status badge
-- **MenuStatusIndicator** — status badge (Draft/Published/Archived)
-- **AllergenSelector** — multi-select for UK FSA allergens
+### Dialog Widgets
+- **DeleteConfirmationDialog** — reusable platform-adaptive confirm
 - **MenuDisplayOptionsDialog** — edit showPrices/showAllergens
-- **PageSizePickerDialog** / **SizeCreateEditDialog** / **TemplateCreateDialog**
+- **AllergenSelector** — multi-select for UK FSA allergens
 
 ### Helpers (`helpers/`)
 - **status_helpers.dart** — status → color mapping
+- **grid_helpers.dart** — `computeGridColumns()` for responsive layouts
+- **edit_dialog_helper.dart** — platform-adaptive dialog opening
+- **snackbar_helper.dart** — `showThemedSnackBar(context, message, isError)`
 
-## Theme (`lib/presentation/theme/app_theme.dart`)
+### Mixins (`mixins/`)
+- **ConnectivityRetryMixin** — connectivity-aware auto-retry for pages
 
-Material 3, seed color: Deep Purple, font: Futura. Light + Dark themes. Filled inputs (12px border radius), full-width buttons (48px height, rounded).
+## Theme (`lib/presentation/theme/`)
+
+Material 3 with rich burgundy palette. Font: Futura (Book for body, Bold for headings).
+
+- **app_colors.dart** — Light: burgundy (#8B2252), espresso (#5C4033), gold (#C7953C). Dark: warm dark variants
+- **app_spacing.dart** — Spacing: xs(4) sm(8) md(12) lg(16) xl(24) xxl(32) xxxl(48). Radii: sm(8) md(12) lg(16) xl(24) full(999)
+- **app_text_theme.dart** — Futura-based TextTheme
+- **app_theme.dart** — Light/dark builder with Material 3 component theming
+- **app_transitions.dart** — Animation curves/durations

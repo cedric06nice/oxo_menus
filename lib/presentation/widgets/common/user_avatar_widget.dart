@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 /// Widget that displays user avatar or initials
 ///
 /// Shows a CircleAvatar with:
-/// - Network image if avatar URL is available
+/// - Network image if avatar UUID is available (authenticated via Bearer token)
 /// - Initials from first/last name if names are available
 /// - First letter of email as fallback
 /// - Consistent color generated from initials
-class UserAvatarWidget extends StatelessWidget {
+class UserAvatarWidget extends ConsumerWidget {
   final User? user;
   final double radius;
 
   const UserAvatarWidget({super.key, required this.user, this.radius = 20.0});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (user == null) {
       return CircleAvatar(radius: radius, child: const Icon(Icons.person));
     }
@@ -23,17 +25,24 @@ class UserAvatarWidget extends StatelessWidget {
     final initials = _getInitials(user!);
 
     if (user!.avatar != null && user!.avatar!.isNotEmpty) {
+      final baseUrl = ref.watch(directusBaseUrlProvider);
+      final token = ref.watch(directusAccessTokenProvider);
+      final imageUrl = '$baseUrl/assets/${user!.avatar}';
+      final headers = token != null
+          ? <String, String>{'Authorization': 'Bearer $token'}
+          : null;
+
       return CircleAvatar(
         radius: radius,
         backgroundColor: _getColorFromInitials(initials),
         child: ClipOval(
           child: Image.network(
-            user!.avatar!,
+            imageUrl,
+            headers: headers,
             width: radius * 2,
             height: radius * 2,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
-              // Fallback to initials if image fails to load
               return Center(
                 child: Text(
                   initials,
@@ -47,7 +56,6 @@ class UserAvatarWidget extends StatelessWidget {
             },
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
-              // Show initials while loading
               return Center(
                 child: Text(
                   initials,
@@ -90,7 +98,6 @@ class UserAvatarWidget extends StatelessWidget {
   }
 
   Color _getColorFromInitials(String initials) {
-    // Generate consistent color from initials
     final hash = initials.codeUnitAt(0);
     return Colors.primaries[hash % Colors.primaries.length];
   }

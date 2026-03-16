@@ -11,9 +11,11 @@ Clean Architecture: `core/` → `domain/` → `data/` → `presentation/`
 
 - **core/types/result.dart** — sealed `Result<T, E>` (Success | Failure), railway-oriented error handling
 - **core/errors/domain_errors.dart** — sealed `DomainError` hierarchy (InvalidCredentials, TokenExpired, Unauthorized, Network, NetworkUnavailable, NotFound, Validation, Server, Unknown, RateLimit)
+- **core/routing/app_router.dart** — GoRouter with auth guards, 11 routes
+- **core/utils/directus_url_resolver.dart** — environment-aware URL resolution (dart-define → web hostname → localhost)
 - Repositories return `Result<T, DomainError>`, never throw
 
-Detailed references: [domain](.claude/docs/domain.md) | [data](.claude/docs/data.md) | [presentation](.claude/docs/presentation.md) | [testing](.claude/docs/testing.md)
+Detailed references: [domain](.claude/docs/domain.md) | [data](.claude/docs/data.md) | [presentation](.claude/docs/presentation.md) | [testing](.claude/docs/testing.md) | [new widget](.claude/docs/new_widget_checklist.md)
 
 ## Domain Model (hierarchy, each level sorted by `index`)
 
@@ -22,7 +24,7 @@ Menu → Page → Container → Column → WidgetInstance
 ```
 
 - `FetchMenuTreeUseCase` builds `MenuTree` with nested freezed value objects: `PageWithContainers`, `ContainerWithColumns`, `ColumnWithWidgets`
-- `GeneratePdfUseCase` renders `MenuTree` to PDF client-side (`pdf` package)
+- `GeneratePdfUseCase` renders `MenuTree` to PDF client-side (`pdf` package), runs in background isolate
 - `DuplicateMenuUseCase` deep-copies menu with all children, rollback on failure
 
 ## Widget System
@@ -41,6 +43,20 @@ Widget types: `dish`, `section`, `text`, `wine`, `image`
 - Definitions in `presentation/widgets/{type}_widget/{type}_widget_definition.dart`
 - Each has `*_edit_dialog.dart` for editing
 
+## Real-Time Collaboration
+
+- `MenuSubscriptionRepository` — WebSocket stream of `MenuChangeEvent` (widget create/update/delete)
+- `PresenceRepository` — user presence tracking (join, leave, heartbeat, watchActiveUsers)
+- `WidgetInstance` editing locks — `editingBy`, `editingSince` fields
+- `PresenceBar` widget shows active users; `EditingUserBadge` shows who's editing a widget
+
+## Connectivity
+
+- `ConnectivityRepository` — DNS-probe-based connectivity monitoring (not just network interface)
+- `ConnectivityStatus` enum: `online`, `offline`
+- Periodic probes: 30s when online, 5s recovery when offline
+- `OfflineBanner` / `OfflineErrorPage` UI; `ConnectivityRetryMixin` for auto-retry
+
 ## Allergens
 
 UK FSA 14 allergens (`UkAllergen` enum). Legacy `List<String>` → `List<AllergenInfo>` migration via `DishProps.effectiveAllergenInfo`. `AllergenFormatter` handles UK-compliant display (e.g., `GLUTEN [wheat], MILK, MAY CONTAIN EGGS`).
@@ -53,7 +69,7 @@ Riverpod with manual `Provider` declarations (not riverpod_generator):
 - `usecases_provider.dart` — use case providers
 - `widget_registry_provider.dart` — registers all 5 widget types
 - `auth_provider.dart` — `AuthNotifier` + `isAdminProvider` (single source of truth for admin check)
-- Page-level state: freezed state classes + `Notifier` (e.g., `admin_templates_*`, `admin_sizes_*`, `menu_list_*`)
+- Page-level state: freezed state classes + `Notifier` (e.g., `admin_templates_*`, `admin_sizes_*`, `menu_list_*`, `editor_tree_*`, `menu_collaboration_*`)
 
 ## Data Layer
 
@@ -92,6 +108,7 @@ flutter test test/widget/       # widget only
 ```
 
 - Structure mirrors `lib/`: `test/unit/`, `test/widget/`, `test/integration/`
+- ~130 unit tests, ~64 widget tests, 1 integration test
 - Mocking: `mocktail`
 - CI enforces 75% coverage, `dart format`, `flutter analyze --fatal-infos`
 

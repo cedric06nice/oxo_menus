@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editing_user_badge.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
 import 'package:oxo_menus/presentation/widgets/canvas/widget_renderer.dart';
 
@@ -14,8 +15,13 @@ class DraggableWidgetItem extends StatelessWidget {
   final int columnId;
   final bool isEditable;
   final bool isLocked;
+  final String? currentUserId;
+  final String? editingUserName;
+  final String? editingUserAvatar;
   final ValueChanged<Map<String, dynamic>>? onUpdate;
   final VoidCallback? onDelete;
+  final VoidCallback? onEditStarted;
+  final VoidCallback? onEditEnded;
   final Future<bool?> Function()? onConfirmDismiss;
   final ValueChanged<int>? onDismissed;
 
@@ -25,11 +31,31 @@ class DraggableWidgetItem extends StatelessWidget {
     required this.columnId,
     this.isEditable = true,
     this.isLocked = false,
+    this.currentUserId,
+    this.editingUserName,
+    this.editingUserAvatar,
     this.onUpdate,
     this.onDelete,
+    this.onEditStarted,
+    this.onEditEnded,
     this.onConfirmDismiss,
     this.onDismissed,
   });
+
+  /// Whether this widget is currently being edited by another user.
+  bool get _isEditingLocked {
+    final editingBy = widgetInstance.editingBy;
+    if (editingBy == null || editingBy == currentUserId) return false;
+
+    // Ignore stale locks (>2 minutes old)
+    final editingSince = widgetInstance.editingSince;
+    if (editingSince != null) {
+      final elapsed = DateTime.now().difference(editingSince);
+      if (elapsed.inMinutes >= 2) return false;
+    }
+
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,34 +64,79 @@ class DraggableWidgetItem extends StatelessWidget {
         theme.platform == TargetPlatform.iOS ||
         theme.platform == TargetPlatform.macOS;
 
-    if (isLocked) {
-      return Container(
-        key: Key('template_widget_${widgetInstance.id}'),
-        margin: const EdgeInsets.only(bottom: 8),
-        child: Stack(
-          children: [
-            WidgetRenderer(widgetInstance: widgetInstance, isEditable: false),
-            Positioned(
-              top: 4,
-              right: 4,
-              child: Icon(
-                isApple ? CupertinoIcons.lock : Icons.lock,
-                size: 16,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+    // Editing lock overlay: another user is editing this widget
+    if (_isEditingLocked) {
+      return SizedBox(
+        width: double.infinity,
+        child: Container(
+          key: Key('editing_lock_overlay_${widgetInstance.id}'),
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: theme.colorScheme.tertiary.withValues(alpha: 0.6),
+              width: 2,
             ),
-          ],
+          ),
+          child: Stack(
+            children: [
+              Opacity(
+                opacity: 0.5,
+                child: WidgetRenderer(
+                  widgetInstance: widgetInstance,
+                  isEditable: false,
+                ),
+              ),
+              Positioned(
+                top: 4,
+                right: 4,
+                child: EditingUserBadge(
+                  userName: editingUserName,
+                  userAvatar: editingUserAvatar,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    final widgetContent = Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: WidgetRenderer(
-        widgetInstance: widgetInstance,
-        isEditable: isEditable,
-        onUpdate: onUpdate,
-        onDelete: onDelete,
+    if (isLocked) {
+      return SizedBox(
+        width: double.infinity,
+        child: Container(
+          key: Key('template_widget_${widgetInstance.id}'),
+          margin: const EdgeInsets.only(bottom: 8),
+          child: Stack(
+            children: [
+              WidgetRenderer(widgetInstance: widgetInstance, isEditable: false),
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Icon(
+                  isApple ? CupertinoIcons.lock : Icons.lock,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final widgetContent = SizedBox(
+      width: double.infinity,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 0),
+        child: WidgetRenderer(
+          widgetInstance: widgetInstance,
+          isEditable: isEditable,
+          onUpdate: onUpdate,
+          onDelete: onDelete,
+          onEditStarted: onEditStarted,
+          onEditEnded: onEditEnded,
+        ),
       ),
     );
 

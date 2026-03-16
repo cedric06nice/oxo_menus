@@ -1,34 +1,35 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
-import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
+import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_provider.dart';
+import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_state.dart';
+import 'package:oxo_menus/presentation/pages/menu_editor/state/menu_collaboration_provider.dart';
+import 'package:oxo_menus/presentation/pages/menu_editor/state/menu_collaboration_state.dart';
+import 'package:oxo_menus/presentation/providers/app_lifecycle_provider.dart';
+import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
-import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/menu_settings/menu_settings_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/common/offline_error_page.dart';
+import 'package:oxo_menus/presentation/widgets/common/presence_bar.dart';
 import 'package:oxo_menus/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
-import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
-import 'package:oxo_menus/presentation/widgets/editor/editor_widget_crud_helper.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
-import 'package:oxo_menus/presentation/widgets/dialogs/menu_display_options_dialog.dart';
+import 'package:oxo_menus/presentation/widgets/editor/display_options_dialog_helper.dart';
 
-/// Menu Editor Page
-///
-/// Allows users to create and edit menus by:
-/// - Selecting a template
-/// - Dragging widgets from palette into columns
-/// - Editing widget content
-/// - Reordering widgets
-/// - Saving the menu
 class MenuEditorPage extends ConsumerStatefulWidget {
   final int menuId;
 
@@ -41,52 +42,42 @@ class MenuEditorPage extends ConsumerStatefulWidget {
 class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   static const narrowBreakpoint = 600.0;
 
-  Menu? _menu;
-  List<entity.Page> _pages = [];
-  final Map<int, List<entity.Container>> _containers = {};
-  final Map<int, List<entity.Column>> _columns = {};
-  final Map<int, List<WidgetInstance>> _widgets = {};
-  bool _isLoading = true;
-  String? _errorMessage;
-
-  // Track hover position for drag-and-drop: columnId -> hoverIndex (-1 = not hovering)
-  final Map<int, int> _hoverIndex = {};
-
   final ScrollController _scrollController = ScrollController();
-
-  late EditorWidgetCrudHelper _crudHelper;
-
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _crudHelper = EditorWidgetCrudHelper(
-      widgetRepository: ref.read(widgetRepositoryProvider),
-      widgetRegistry: ref.read(widgetRegistryProvider),
-      onReload: _loadMenu,
-      isTemplate: false,
-      onMessage: (message, {bool isError = false}) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(message),
-              backgroundColor: isError ? Colors.red : null,
-            ),
-          );
-        }
-      },
-    );
-  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadMenu(isInitialLoad: true);
+      ref.read(editorTreeProvider(widget.menuId).notifier).loadTree();
+      ref
+          .read(menuCollaborationProvider(widget.menuId).notifier)
+          .startTracking();
+      _listenForDisplayOptions();
+      _listenToConnectivityAndLifecycle();
+    });
+  }
+
+  void _listenForDisplayOptions() {
+    ref.listenManual(editorTreeProvider(widget.menuId), (prev, next) {
+      if (next.menu != null && next.menu != prev?.menu) {
+        ref
+            .read(menuDisplayOptionsProvider.notifier)
+            .set(next.menu?.displayOptions);
+      }
+    });
+  }
+
+  void _listenToConnectivityAndLifecycle() {
+    ref.listenManual(connectivityProvider, (prev, next) {
+      ref
+          .read(menuCollaborationProvider(widget.menuId).notifier)
+          .onConnectivityChanged(prev?.value, next.value);
+    });
+
+    ref.listenManual(isAppInForegroundProvider, (prev, next) {
+      ref
+          .read(menuCollaborationProvider(widget.menuId).notifier)
+          .onLifecycleChanged(prev, next);
     });
   }
 
@@ -96,174 +87,87 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     super.dispose();
   }
 
-  Future<void> _loadMenu({bool isInitialLoad = false}) async {
-    if (isInitialLoad) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-    }
-
-    // Load menu
-    final menuResult = await ref
-        .read(menuRepositoryProvider)
-        .getById(widget.menuId);
-
-    if (menuResult.isFailure) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage =
-            menuResult.errorOrNull?.message ?? 'Failed to load menu';
-      });
-      return;
-    }
-
-    _menu = menuResult.valueOrNull!;
-
-    // Load pages
-    final pagesResult = await ref
-        .read(pageRepositoryProvider)
-        .getAllForMenu(widget.menuId);
-
-    if (pagesResult.isFailure) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage =
-            pagesResult.errorOrNull?.message ?? 'Failed to load pages';
-      });
-      return;
-    }
-
-    _pages = List<entity.Page>.from(pagesResult.valueOrNull!)
-      ..sort((a, b) => a.index.compareTo(b.index))
-      ..removeWhere((page) => page.type != entity.PageType.content);
-
-    // Load containers for each page
-    _containers.clear();
-    _columns.clear();
-    _widgets.clear();
-
-    for (final page in _pages) {
-      final containersResult = await ref
-          .read(containerRepositoryProvider)
-          .getAllForPage(page.id);
-
-      if (containersResult.isSuccess) {
-        final containers = List<entity.Container>.from(
-          containersResult.valueOrNull!,
-        )..sort((a, b) => a.index.compareTo(b.index));
-        _containers[page.id] = containers;
-
-        // Load columns for each container
-        for (final container in containers) {
-          final columnsResult = await ref
-              .read(columnRepositoryProvider)
-              .getAllForContainer(container.id);
-
-          if (columnsResult.isSuccess) {
-            _columns[container.id] = List<entity.Column>.from(
-              columnsResult.valueOrNull!,
-            )..sort((a, b) => a.index.compareTo(b.index));
-
-            // Load widgets for each column
-            for (final column in _columns[container.id] ?? <entity.Column>[]) {
-              final widgetsResult = await ref
-                  .read(widgetRepositoryProvider)
-                  .getAllForColumn(column.id);
-
-              if (widgetsResult.isSuccess) {
-                _widgets[column.id] = List<WidgetInstance>.from(
-                  widgetsResult.valueOrNull!,
-                )..sort((a, b) => a.index.compareTo(b.index));
-              }
-            }
-          }
-        }
-      }
-    }
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    // Set display options in provider
-    ref.read(menuDisplayOptionsProvider.notifier).state = _menu?.displayOptions;
-  }
-
   Future<void> _showPdf() async {
     context.push('/menus/pdf/${widget.menuId}');
   }
 
-  Future<void> _showDisplayOptionsDialog() async {
-    showDialog(
+  void _showDisplayOptionsDialog() {
+    final treeState = ref.read(editorTreeProvider(widget.menuId));
+    showDisplayOptionsDialog(
       context: context,
-      builder: (ctx) => MenuDisplayOptionsDialog(
-        displayOptions: _menu?.displayOptions,
-        onSave: (options) async {
-          final result = await ref
-              .read(menuRepositoryProvider)
-              .update(
-                UpdateMenuInput(id: widget.menuId, displayOptions: options),
-              );
-          if (result.isSuccess) {
-            setState(() {
-              _menu = _menu?.copyWith(displayOptions: options);
-            });
-            ref.read(menuDisplayOptionsProvider.notifier).state = options;
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Display options saved')),
-              );
-            }
-          }
-        },
-      ),
+      ref: ref,
+      menuId: widget.menuId,
+      menu: treeState.menu,
+      onMenuUpdated: (updatedMenu) {
+        if (updatedMenu != null) {
+          ref
+              .read(editorTreeProvider(widget.menuId).notifier)
+              .updateMenuLocally(updatedMenu);
+        }
+      },
     );
   }
 
   Future<void> _saveMenu() async {
     final result = await ref
-        .read(menuRepositoryProvider)
-        .update(
-          UpdateMenuInput(
-            id: widget.menuId,
-            // Keep existing data for now
-          ),
-        );
+        .read(menuSettingsProvider.notifier)
+        .saveMenu(widget.menuId);
 
     if (result.isSuccess && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Menu saved')));
+      showThemedSnackBar(context, 'Menu saved');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return AuthenticatedScaffold(
+    final treeState = ref.watch(editorTreeProvider(widget.menuId));
+    final collabState = ref.watch(menuCollaborationProvider(widget.menuId));
+
+    if (treeState.isLoading) {
+      return const AuthenticatedScaffold(
         title: 'Loading...',
-        body: Center(
-          child: _isApple
-              ? const CupertinoActivityIndicator()
-              : const CircularProgressIndicator(),
+        body: Center(child: AdaptiveLoadingIndicator()),
+      );
+    }
+
+    final isOffline =
+        ref.watch(connectivityProvider).value == ConnectivityStatus.offline;
+
+    if (isOffline) {
+      return AuthenticatedScaffold(
+        title: treeState.menu?.name ?? 'Menu Editor',
+        body: OfflineErrorPage(
+          onRetry: () => ref.invalidate(connectivityProvider),
         ),
       );
     }
 
-    if (_errorMessage != null) {
+    if (treeState.errorMessage != null) {
       return AuthenticatedScaffold(
         title: 'Error',
-        body: Center(child: Text('Error: $_errorMessage')),
+        body: AdaptiveErrorState(
+          message: treeState.errorMessage!,
+          onRetry: () =>
+              ref.read(editorTreeProvider(widget.menuId).notifier).loadTree(),
+        ),
       );
     }
 
     final registry = ref.watch(widgetRegistryProvider);
     final theme = Theme.of(context);
+    final menu = treeState.menu;
+    final pages = treeState.pages
+        .where((page) => page.type == entity.PageType.content)
+        .toList();
 
     return AuthenticatedScaffold(
-      title: _menu?.name ?? 'Menu Editor',
+      title: menu?.name ?? 'Menu Editor',
       actions: [
+        if (collabState.currentUserId != null)
+          PresenceBar(
+            presences: collabState.presences,
+            currentUserId: collabState.currentUserId!,
+          ),
         IconButton(
           key: const Key('display_options_button'),
           onPressed: _showDisplayOptionsDialog,
@@ -283,47 +187,90 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
           tooltip: 'Save',
         ),
       ],
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isNarrow = constraints.maxWidth < narrowBreakpoint;
-
-          if (isNarrow) {
-            return Column(
-              children: [
-                WidgetPalette(
-                  axis: Axis.horizontal,
-                  registry: registry,
-                  allowedWidgetTypes: _menu?.allowedWidgetTypes,
-                ),
-                Expanded(child: _buildCanvas()),
-              ],
-            );
-          }
-
-          return Row(
-            children: [
-              Container(
-                width: 260,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerLow,
-                  border: Border(
-                    right: BorderSide(color: theme.colorScheme.outlineVariant),
+      body: Column(
+        children: [
+          if (collabState.isReconnecting)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              color: theme.colorScheme.errorContainer,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: theme.colorScheme.onErrorContainer,
+                    ),
                   ),
-                ),
-                child: WidgetPalette(
-                  registry: registry,
-                  allowedWidgetTypes: _menu?.allowedWidgetTypes,
-                ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Reconnecting...',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: theme.colorScheme.onErrorContainer,
+                    ),
+                  ),
+                ],
               ),
-              Expanded(child: _buildCanvas()),
-            ],
-          );
-        },
+            ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isNarrow = constraints.maxWidth < narrowBreakpoint;
+
+                if (isNarrow) {
+                  return Column(
+                    children: [
+                      WidgetPalette(
+                        axis: Axis.horizontal,
+                        registry: registry,
+                        allowedWidgetTypes: menu?.allowedWidgetTypes,
+                      ),
+                      Expanded(
+                        child: _buildCanvas(pages, treeState, collabState),
+                      ),
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Container(
+                      width: 260,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surfaceContainerLow,
+                        border: Border(
+                          right: BorderSide(
+                            color: theme.colorScheme.outlineVariant,
+                          ),
+                        ),
+                      ),
+                      child: WidgetPalette(
+                        registry: registry,
+                        allowedWidgetTypes: menu?.allowedWidgetTypes,
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildCanvas(pages, treeState, collabState),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildCanvas() {
+  Widget _buildCanvas(
+    List<entity.Page> pages,
+    EditorTreeState treeState,
+    MenuCollaborationState collabState,
+  ) {
     return AutoScrollListener(
       scrollController: _scrollController,
       child: SingleChildScrollView(
@@ -332,10 +279,12 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 900),
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(6.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: _pages.map((page) => _buildPageCard(page)).toList(),
+                children: pages
+                    .map((page) => _buildPageCard(page, treeState, collabState))
+                    .toList(),
               ),
             ),
           ),
@@ -344,32 +293,41 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     );
   }
 
-  Widget _buildPageCard(entity.Page page) {
-    final containers = _containers[page.id] ?? [];
+  Widget _buildPageCard(
+    entity.Page page,
+    EditorTreeState treeState,
+    MenuCollaborationState collabState,
+  ) {
+    final containers = treeState.containers[page.id] ?? [];
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(6.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Containers
-            ...containers.map((container) => _buildContainerCard(container)),
+            ...containers.map(
+              (container) =>
+                  _buildContainerCard(container, treeState, collabState),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildContainerCard(entity.Container container) {
-    final columns = _columns[container.id] ?? [];
+  Widget _buildContainerCard(
+    entity.Container container,
+    EditorTreeState treeState,
+    MenuCollaborationState collabState,
+  ) {
+    final columns = treeState.columns[container.id] ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Columns
         if (columns.isNotEmpty)
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,7 +335,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
                 .map(
                   (column) => Expanded(
                     flex: column.flex ?? 1,
-                    child: _buildColumnCard(column),
+                    child: _buildColumnCard(column, treeState, collabState),
                   ),
                 )
                 .toList(),
@@ -386,113 +344,51 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     );
   }
 
-  Widget _buildColumnCard(entity.Column column) {
-    final widgets = _widgets[column.id] ?? [];
+  Widget _buildColumnCard(
+    entity.Column column,
+    EditorTreeState treeState,
+    MenuCollaborationState collabState,
+  ) {
+    final widgets = treeState.widgets[column.id] ?? [];
     final registry = ref.watch(widgetRegistryProvider);
-    final currentHoverIndex = _hoverIndex[column.id] ?? -1;
-    final theme = Theme.of(context);
+    final collabNotifier = ref.read(
+      menuCollaborationProvider(widget.menuId).notifier,
+    );
 
-    return Container(
-      key: Key('column_${column.id}'),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(8),
-        color: theme.colorScheme.surface,
-      ),
-      constraints: const BoxConstraints(minHeight: 100),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (column.isDroppable) ...[
-            // Build interleaved list of drop zones and widgets
-            for (int i = 0; i <= widgets.length; i++) ...[
-              // Drop zone at position i
-              EditorDropZone(
-                columnId: column.id,
-                index: i,
-                isHovering: currentHoverIndex == i,
-                registry: registry,
-                onHoverIndexChanged: (index) {
-                  setState(() {
-                    _hoverIndex[column.id] = index;
-                  });
-                },
-                onAccept: (dragData) {
-                  if (dragData.isNewWidget) {
-                    _handleWidgetDropAtIndex(
-                      dragData.newWidgetType!,
-                      column.id,
-                      i,
-                    );
-                  } else if (dragData.isExistingWidget) {
-                    _handleWidgetMoveToIndex(
-                      dragData.existingWidget!,
-                      dragData.sourceColumnId!,
-                      column.id,
-                      i,
-                    );
-                  }
-                },
-              ),
-
-              // Widget at position i (if exists)
-              if (i < widgets.length)
-                DraggableWidgetItem(
-                  widgetInstance: widgets[i],
-                  columnId: column.id,
-                  isEditable: !widgets[i].isTemplate,
-                  isLocked: widgets[i].isTemplate,
-                  onUpdate: (props) =>
-                      _handleWidgetUpdate(widgets[i].id, props),
-                  onDelete: () => _handleWidgetDelete(widgets[i].id),
-                  onConfirmDismiss: () =>
-                      showDeleteConfirmation(context, itemType: 'widget'),
-                  onDismissed: (id) => _performWidgetDelete(id),
-                ),
-            ],
-
-            // Empty state (only show when no widgets and not hovering)
-            if (widgets.isEmpty && currentHoverIndex == -1)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Text(
-                    'Drop widgets here',
-                    style: TextStyle(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-          ] else ...[
-            // Non-droppable column: widgets only, no drop zones
-            for (final widget in widgets)
-              DraggableWidgetItem(
-                widgetInstance: widget,
-                columnId: column.id,
-                isEditable: !widget.isTemplate,
-                isLocked: widget.isTemplate,
-                onUpdate: (props) => _handleWidgetUpdate(widget.id, props),
-                onDelete: () => _handleWidgetDelete(widget.id),
-                onConfirmDismiss: () =>
-                    showDeleteConfirmation(context, itemType: 'widget'),
-                onDismissed: (id) => _performWidgetDelete(id),
-              ),
-
-            // Empty state for locked column
-            if (widgets.isEmpty)
-              Center(
-                child: Icon(
-                  Icons.lock,
-                  color: theme.colorScheme.onSurfaceVariant,
-                  size: 16,
-                ),
-              ),
-          ],
-        ],
+    return EditorColumnCard(
+      column: column,
+      widgets: widgets,
+      registry: registry,
+      onWidgetDrop: _handleWidgetDropAtIndex,
+      onWidgetMove: _handleWidgetMoveToIndex,
+      widgetItemBuilder: (widgetInstance, columnId) => DraggableWidgetItem(
+        widgetInstance: widgetInstance,
+        columnId: columnId,
+        isEditable: !widgetInstance.isTemplate,
+        isLocked: widgetInstance.isTemplate,
+        currentUserId: ref.read(currentUserProvider)?.id,
+        editingUserName: collabNotifier
+            .findEditingPresence(widgetInstance)
+            ?.userName,
+        editingUserAvatar: collabNotifier
+            .findEditingPresence(widgetInstance)
+            ?.userAvatar,
+        onUpdate: (props) => _handleWidgetUpdate(widgetInstance.id, props),
+        onDelete: () => _handleWidgetDelete(widgetInstance.id),
+        onEditStarted: () {
+          final userId = ref.read(currentUserProvider)?.id;
+          if (userId != null) {
+            ref
+                .read(editorTreeProvider(widget.menuId).notifier)
+                .lockWidget(widgetInstance.id, userId);
+          }
+        },
+        onEditEnded: () => ref
+            .read(editorTreeProvider(widget.menuId).notifier)
+            .unlockWidget(widgetInstance.id),
+        onConfirmDismiss: () =>
+            showDeleteConfirmation(context, itemType: 'widget'),
+        onDismissed: (id) => _performWidgetDelete(id),
       ),
     );
   }
@@ -502,34 +398,64 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     int columnId,
     int index,
   ) async {
-    final allowed = _menu?.allowedWidgetTypes;
+    final treeState = ref.read(editorTreeProvider(widget.menuId));
+    final allowed = treeState.menu?.allowedWidgetTypes;
     if (allowed != null &&
         allowed.isNotEmpty &&
         !allowed.contains(widgetType)) {
       return;
     }
-    await _crudHelper.handleWidgetDropAtIndex(widgetType, columnId, index);
+    final notifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    final result = await notifier.createWidget(widgetType, columnId, index);
+    if (result != null && result.isFailure && mounted) {
+      showThemedSnackBar(
+        context,
+        'Failed to create widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+        isError: true,
+      );
+    }
   }
 
   Future<void> _handleWidgetUpdate(
     int widgetId,
-    Map<String, dynamic> updatedProps,
+    Map<String, dynamic> props,
   ) async {
-    await _crudHelper.handleWidgetUpdate(widgetId, updatedProps);
+    final notifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    await notifier.updateWidgetProps(widgetId, props);
+  }
+
+  Future<void> _performWidgetDelete(int widgetId) async {
+    final notifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    final result = await notifier.deleteWidget(widgetId);
+    if (result.isFailure && mounted) {
+      showThemedSnackBar(
+        context,
+        'Failed to delete widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+        isError: true,
+      );
+    }
   }
 
   Future<void> _handleWidgetMoveToIndex(
-    WidgetInstance widget,
+    WidgetInstance widgetInstance,
     int sourceColumnId,
     int targetColumnId,
     int targetIndex,
   ) async {
-    await _crudHelper.handleWidgetMoveToIndex(
-      widget,
+    final notifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    final result = await notifier.moveWidget(
+      widgetInstance,
       sourceColumnId,
       targetColumnId,
       targetIndex,
     );
+    if (result.isFailure && mounted) {
+      showThemedSnackBar(
+        context,
+        'Failed to move widget: ${result.errorOrNull?.message ?? 'Unknown error'}',
+        isError: true,
+      );
+    }
   }
 
   Future<void> _handleWidgetDelete(int widgetId) async {
@@ -537,9 +463,5 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     if (confirmed != true) return;
 
     await _performWidgetDelete(widgetId);
-  }
-
-  Future<void> _performWidgetDelete(int widgetId) async {
-    await _crudHelper.performWidgetDelete(widgetId);
   }
 }

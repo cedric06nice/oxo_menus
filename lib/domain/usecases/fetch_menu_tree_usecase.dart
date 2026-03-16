@@ -47,85 +47,66 @@ class FetchMenuTreeUseCase {
     final pages = List<Page>.from(pagesResult.valueOrNull!)
       ..sort((a, b) => a.index.compareTo(b.index));
 
-    // 3. For each page, fetch containers and build hierarchy
-    final List<PageWithContainers> pagesWithContainers = [];
-    for (final page in pages) {
-      final containersResult = await containerRepository.getAllForPage(page.id);
-      if (containersResult.isFailure) {
-        return Failure(containersResult.errorOrNull!);
-      }
-      final containers = List<Container>.from(containersResult.valueOrNull!)
-        ..sort((a, b) => a.index.compareTo(b.index));
+    // 3. Build tree with parallel fetches at each level
+    try {
+      final pagesWithContainers = await Future.wait(pages.map(_buildPageTree));
 
-      // 4. For each container, fetch columns
-      final List<ContainerWithColumns> containersWithColumns = [];
-      for (final container in containers) {
-        final columnsResult = await columnRepository.getAllForContainer(
-          container.id,
-        );
-        if (columnsResult.isFailure) {
-          return Failure(columnsResult.errorOrNull!);
+      // 4. Separate pages by type
+      PageWithContainers? headerPage;
+      PageWithContainers? footerPage;
+      final contentPages = <PageWithContainers>[];
+
+      for (final pageWithContainers in pagesWithContainers) {
+        switch (pageWithContainers.page.type) {
+          case PageType.header:
+            headerPage = pageWithContainers;
+            break;
+          case PageType.footer:
+            footerPage = pageWithContainers;
+            break;
+          case PageType.content:
+            contentPages.add(pageWithContainers);
+            break;
         }
-        final columns = List<Column>.from(columnsResult.valueOrNull!)
-          ..sort((a, b) => a.index.compareTo(b.index));
-
-        // 5. For each column, fetch widgets
-        final List<ColumnWithWidgets> columnsWithWidgets = [];
-        for (final column in columns) {
-          final widgetsResult = await widgetRepository.getAllForColumn(
-            column.id,
-          );
-          if (widgetsResult.isFailure) {
-            return Failure(widgetsResult.errorOrNull!);
-          }
-          final widgets = List<WidgetInstance>.from(widgetsResult.valueOrNull!)
-            ..sort((a, b) => a.index.compareTo(b.index));
-
-          columnsWithWidgets.add(
-            ColumnWithWidgets(column: column, widgets: widgets),
-          );
-        }
-
-        containersWithColumns.add(
-          ContainerWithColumns(
-            container: container,
-            columns: columnsWithWidgets,
-          ),
-        );
       }
 
-      pagesWithContainers.add(
-        PageWithContainers(page: page, containers: containersWithColumns),
+      return Success(
+        MenuTree(
+          menu: menu,
+          pages: contentPages,
+          headerPage: headerPage,
+          footerPage: footerPage,
+        ),
       );
+    } on DomainError catch (e) {
+      return Failure(e);
     }
+  }
 
-    // 6. Separate pages by type
-    PageWithContainers? headerPage;
-    PageWithContainers? footerPage;
-    final contentPages = <PageWithContainers>[];
+  Future<PageWithContainers> _buildPageTree(Page page) async {
+    final result = await containerRepository.getAllForPage(page.id);
+    if (result.isFailure) throw result.errorOrNull!;
+    final containers = List<Container>.from(result.valueOrNull!)
+      ..sort((a, b) => a.index.compareTo(b.index));
+    final withColumns = await Future.wait(containers.map(_buildContainerTree));
+    return PageWithContainers(page: page, containers: withColumns);
+  }
 
-    for (final pageWithContainers in pagesWithContainers) {
-      switch (pageWithContainers.page.type) {
-        case PageType.header:
-          headerPage = pageWithContainers;
-          break;
-        case PageType.footer:
-          footerPage = pageWithContainers;
-          break;
-        case PageType.content:
-          contentPages.add(pageWithContainers);
-          break;
-      }
-    }
+  Future<ContainerWithColumns> _buildContainerTree(Container container) async {
+    final result = await columnRepository.getAllForContainer(container.id);
+    if (result.isFailure) throw result.errorOrNull!;
+    final columns = List<Column>.from(result.valueOrNull!)
+      ..sort((a, b) => a.index.compareTo(b.index));
+    final withWidgets = await Future.wait(columns.map(_buildColumnTree));
+    return ContainerWithColumns(container: container, columns: withWidgets);
+  }
 
-    return Success(
-      MenuTree(
-        menu: menu,
-        pages: contentPages,
-        headerPage: headerPage,
-        footerPage: footerPage,
-      ),
-    );
+  Future<ColumnWithWidgets> _buildColumnTree(Column column) async {
+    final result = await widgetRepository.getAllForColumn(column.id);
+    if (result.isFailure) throw result.errorOrNull!;
+    final widgets = List<WidgetInstance>.from(result.valueOrNull!)
+      ..sort((a, b) => a.index.compareTo(b.index));
+    return ColumnWithWidgets(column: column, widgets: widgets);
   }
 }
 

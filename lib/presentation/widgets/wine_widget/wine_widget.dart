@@ -23,28 +23,26 @@ class WineWidget extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      props.displayName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  if (context.displayOptions?.showPrices ?? true)
-                    Text(
-                      '£${props.price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                ],
+              // Wine name
+              Text(
+                props.displayName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
+
+              // Price
+              if (context.displayOptions?.showPrices ?? true)
+                Text(
+                  '£${props.price.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+
+              // Vintage
               if (props.vintage != null) ...[
                 const SizedBox(height: 4),
                 Text(
@@ -55,6 +53,8 @@ class WineWidget extends StatelessWidget {
                   ),
                 ),
               ],
+
+              // Description
               if (props.description != null &&
                   props.description!.isNotEmpty) ...[
                 const SizedBox(height: 4),
@@ -66,6 +66,8 @@ class WineWidget extends StatelessWidget {
                   ),
                 ),
               ],
+
+              // Allergens
               if (props.containsSulphites &&
                   (context.displayOptions?.showAllergens ?? true))
                 Padding(
@@ -86,8 +88,9 @@ class WineWidget extends StatelessWidget {
     );
   }
 
-  void _handleEdit(BuildContext buildContext) {
-    showEditDialog(
+  Future<void> _handleEdit(BuildContext buildContext) async {
+    context.onEditStarted?.call();
+    await showEditDialog(
       buildContext,
       WineEditDialog(
         props: props,
@@ -96,5 +99,6 @@ class WineWidget extends StatelessWidget {
         },
       ),
     );
+    context.onEditEnded?.call();
   }
 }

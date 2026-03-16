@@ -15,9 +15,8 @@ class TextWidget extends StatelessWidget {
   Widget build(BuildContext buildContext) {
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-        padding: const EdgeInsets.all(8.0),
+      child: SizedBox(
+        width: double.infinity,
         child: Text(
           props.text,
           textAlign: _getTextAlign(),
@@ -43,8 +42,9 @@ class TextWidget extends StatelessWidget {
     }
   }
 
-  void _handleEdit(BuildContext buildContext) {
-    showEditDialog(
+  Future<void> _handleEdit(BuildContext buildContext) async {
+    context.onEditStarted?.call();
+    await showEditDialog(
       buildContext,
       TextEditDialog(
         props: props,
@@ -53,5 +53,6 @@ class TextWidget extends StatelessWidget {
         },
       ),
     );
+    context.onEditEnded?.call();
   }
 }

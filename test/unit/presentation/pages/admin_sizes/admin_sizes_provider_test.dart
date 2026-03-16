@@ -28,5 +28,24 @@ void main() {
       expect(notifier, isA<AdminSizesNotifier>());
       expect(state, const AdminSizesState());
     });
+
+    test('build() returns default AdminSizesState', () {
+      final mockSizeRepository = MockSizeRepository();
+
+      final container = ProviderContainer(
+        overrides: [
+          sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+        ],
+      );
+
+      addTearDown(container.dispose);
+
+      final state = container.read(adminSizesProvider);
+
+      expect(state.sizes, isEmpty);
+      expect(state.isLoading, false);
+      expect(state.errorMessage, isNull);
+      expect(state.statusFilter, 'all');
+    });
   });
 }

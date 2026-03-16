@@ -5,6 +5,7 @@ import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/presentation/helpers/edit_dialog_helper.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/image_widget/image_edit_dialog.dart';
 
 /// Widget that displays an image from Directus
@@ -16,16 +17,14 @@ class ImageWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext buildContext, WidgetRef ref) {
-    final baseUrl = ref.watch(directusBaseUrlProvider);
-    final imageUrl = '$baseUrl/assets/${props.fileId}';
+    final asyncBytes = ref.watch(imageDataProvider(props.fileId));
 
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
       child: Align(
         alignment: _getAlignment(),
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-          padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          width: double.infinity,
           child: Builder(
             builder: (ctx) {
               final colorScheme = Theme.of(ctx).colorScheme;
@@ -33,22 +32,27 @@ class ImageWidget extends ConsumerWidget {
               final isApple =
                   platform == TargetPlatform.iOS ||
                   platform == TargetPlatform.macOS;
-              return Image.network(
-                imageUrl,
-                width: props.width,
-                height: props.height,
-                fit: _getBoxFit(),
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: props.width ?? 100,
-                    height: props.height ?? 100,
-                    color: colorScheme.surfaceContainerHigh,
-                    child: Icon(
-                      isApple ? CupertinoIcons.photo : Icons.broken_image,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  );
-                },
+              return asyncBytes.when(
+                data: (bytes) => Image.memory(
+                  bytes,
+                  width: props.width,
+                  height: props.height,
+                  fit: _getBoxFit(),
+                ),
+                loading: () => SizedBox(
+                  width: props.width ?? 100,
+                  height: props.height ?? 100,
+                  child: Center(child: const AdaptiveLoadingIndicator()),
+                ),
+                error: (_, _) => Container(
+                  width: props.width ?? 100,
+                  height: props.height ?? 100,
+                  color: colorScheme.surfaceContainerHigh,
+                  child: Icon(
+                    isApple ? CupertinoIcons.photo : Icons.broken_image,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
               );
             },
           ),
@@ -57,8 +61,9 @@ class ImageWidget extends ConsumerWidget {
     );
   }
 
-  void _handleEdit(BuildContext buildContext) {
-    showEditDialog(
+  Future<void> _handleEdit(BuildContext buildContext) async {
+    context.onEditStarted?.call();
+    await showEditDialog(
       buildContext,
       ImageEditDialog(
         props: props,
@@ -67,6 +72,7 @@ class ImageWidget extends ConsumerWidget {
         },
       ),
     );
+    context.onEditEnded?.call();
   }
 
   Alignment _getAlignment() {

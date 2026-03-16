@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/presentation/helpers/status_helpers.dart';
 import 'package:oxo_menus/presentation/widgets/common/status_badge.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// A template card with left accent strip and status badge pill.
 class TemplateCard extends StatelessWidget {
@@ -19,16 +20,11 @@ class TemplateCard extends StatelessWidget {
     required this.onTap,
   });
 
-  bool _isApple(BuildContext context) {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isApple = _isApple(context);
+    final isApple = isApplePlatform(context);
     final accentColor = statusColor(template.status, colorScheme);
 
     final cardContent = Card(

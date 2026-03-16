@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
@@ -46,7 +47,7 @@ void main() {
         userUpdated: 'user-2',
         styleConfig: styleConfig,
         pageSize: pageSize,
-        area: 'Restaurant',
+        area: const Area(id: 1, name: 'Restaurant'),
       );
 
       expect(menu.id, 1);
@@ -59,7 +60,7 @@ void main() {
       expect(menu.userUpdated, 'user-2');
       expect(menu.styleConfig, styleConfig);
       expect(menu.pageSize, pageSize);
-      expect(menu.area, 'Restaurant');
+      expect(menu.area, const Area(id: 1, name: 'Restaurant'));
     });
 
     test('should support copyWith', () {

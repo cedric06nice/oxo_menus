@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
+import 'package:oxo_menus/presentation/providers/app_version_provider.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/user_avatar_widget.dart';
 
@@ -21,7 +23,7 @@ class SettingsPage extends ConsumerWidget {
     return AuthenticatedScaffold(
       title: 'Settings',
       body: user == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: AdaptiveLoadingIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -42,6 +44,13 @@ class SettingsPage extends ConsumerWidget {
                     const SizedBox(height: 16),
                     _buildDebugSection(context, ref),
                   ],
+
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 16),
+
+                  // About section
+                  _buildAboutSection(context, ref),
                 ],
               ),
             ),
@@ -132,8 +141,34 @@ class SettingsPage extends ConsumerWidget {
             subtitle: const Text('Preview the app as a regular user'),
             value: viewAsUser,
             onChanged: (value) {
-              ref.read(adminViewAsUserProvider.notifier).state = value;
+              ref.read(adminViewAsUserProvider.notifier).set(value);
             },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAboutSection(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final versionAsync = ref.watch(appVersionProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text('About', style: theme.textTheme.titleMedium),
+        ),
+        const SizedBox(height: 8),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: versionAsync.when(
+              data: (version) => Text('Version $version'),
+              loading: () => const Text('Version ...'),
+              error: (_, _) => const Text('Version unknown'),
+            ),
           ),
         ),
       ],

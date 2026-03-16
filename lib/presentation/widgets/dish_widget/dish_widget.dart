@@ -25,29 +25,24 @@ class DishWidget extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Dish name and price row
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      props.displayName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  if (context.displayOptions?.showPrices ?? true)
-                    Text(
-                      '£${props.price.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                ],
+              // Dish name
+              Text(
+                props.displayName,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
+
+              // Price
+              if (context.displayOptions?.showPrices ?? true)
+                Text(
+                  '£${props.price.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
 
               // Description
               if (props.description != null &&
@@ -105,8 +100,9 @@ class DishWidget extends StatelessWidget {
     );
   }
 
-  void _handleEdit(BuildContext buildContext) {
-    showEditDialog(
+  Future<void> _handleEdit(BuildContext buildContext) async {
+    context.onEditStarted?.call();
+    await showEditDialog(
       buildContext,
       DishEditDialog(
         props: props,
@@ -115,5 +111,6 @@ class DishWidget extends StatelessWidget {
         },
       ),
     );
+    context.onEditEnded?.call();
   }
 }

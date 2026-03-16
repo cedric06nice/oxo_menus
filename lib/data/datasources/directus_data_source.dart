@@ -59,7 +59,7 @@ class DirectusDataSource {
   }
 
   /// Get the current access token (from api manager or restored session)
-  String? get _currentAccessToken =>
+  String? get currentAccessToken =>
       _apiManager.accessToken ?? _restoredAccessToken;
 
   // ===== Authentication Methods =====
@@ -199,7 +199,8 @@ class DirectusDataSource {
   /// through its proven request pipeline.
   Future<Map<String, dynamic>> getCurrentUser() async {
     final user = await _apiManager.currentDirectusUser(
-      fields: 'id,email,first_name,last_name,avatar,role.name',
+      fields:
+          'id,email,first_name,last_name,avatar,role.name,areas.area_id.id,areas.area_id.name',
       canUseCacheForResponse: false,
       canSaveResponseToCache: false,
     );
@@ -311,7 +312,7 @@ class DirectusDataSource {
 
   /// Upload a file to Directus and return the file ID
   Future<String> uploadFile(Uint8List bytes, String filename) async {
-    final accessToken = _currentAccessToken;
+    final accessToken = currentAccessToken;
 
     if (accessToken == null || accessToken.isEmpty) {
       throw DirectusException(
@@ -389,7 +390,7 @@ class DirectusDataSource {
   /// Download file bytes from Directus by file ID
   /// Directus serves files at GET /assets/{fileId}
   Future<Uint8List> downloadFileBytes(String fileId) async {
-    final accessToken = _currentAccessToken;
+    final accessToken = currentAccessToken;
 
     if (accessToken == null || accessToken.isEmpty) {
       throw DirectusException(
@@ -421,6 +422,20 @@ class DirectusDataSource {
         message: 'Failed to download file: ${response.statusCode}',
       );
     }
+  }
+
+  // ===== WebSocket Methods =====
+
+  /// Start a WebSocket subscription via the underlying API manager.
+  Future<void> startSubscription(
+    DirectusWebSocketSubscription subscription,
+  ) async {
+    await _apiManager.startWebsocketSubscription(subscription);
+  }
+
+  /// Stop a WebSocket subscription by its unique ID.
+  Future<void> stopSubscription(String subscriptionUid) async {
+    await _apiManager.stopWebsocketSubscription(subscriptionUid);
   }
 
   // ===== Helper Methods =====

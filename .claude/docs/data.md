@@ -17,19 +17,22 @@ All DTOs extend `DirectusItem` from `directus_api_manager` (except `UserDto` whi
 `index`, `width` (num), `isDroppable` (default: true), `dateCreated`, `dateUpdated`, `userUpdated`, `styleJson` (Map), `container` (ContainerDto?), `widgets` (List\<WidgetDto\>?)
 
 ### WidgetDto (collection: `widget`)
-`index`, `typeKey`, `version`, `status?`, `isTemplate` (default: false), `dateCreated`, `dateUpdated`, `userUpdated`, `styleJson` (Map), `propsJson` (Map), `column` (ColumnDto?)
+`index`, `typeKey`, `version`, `status?`, `isTemplate` (default: false), `dateCreated`, `dateUpdated`, `userUpdated`, `styleJson` (Map), `propsJson` (Map), `editingBy` (String?), `editingSince` (DateTime?), `column` (ColumnDto?)
 
 ### UserDto (freezed)
-`id`, `email`, `firstName?`, `lastName?`, `role?` (flexible: string, Map with `name`, or UUID), `avatar?`
+`id`, `email`, `firstName?`, `lastName?`, `role?` (flexible: string, Map with `name`, or UUID), `avatar?`, `areas` (M2M junction data)
 
 ### SizeDto (collection: `size`)
 `name`, `width`, `height`, `status`, `direction`
 
 ### AreaDto (collection: `area`)
-`name` (dining|bar|terrace|takeaway), `dateCreated`, `dateUpdated`, `userUpdated`, `menus` (List\<MenuDto\>?)
+`name`, `dateCreated`, `dateUpdated`, `userUpdated`, `menus` (List\<MenuDto\>?)
 
 ### VersionDto (collection: `version`)
 `snapshotJson` (Map), `dateCreated`, `dateUpdated`, `userUpdated`, `menu` (MenuDto?)
+
+### PresenceDto (collection: `menu_presence`)
+`userId`, `menuId`, `lastSeen`, `userName?`, `userAvatar?`
 
 ## Mappers (`lib/data/mappers/`)
 
@@ -37,16 +40,18 @@ Pattern: `XxxMapper.toEntity(dto)` for DTO→Entity, `toDto(entity)` for reverse
 
 | Mapper | Key Logic |
 |--------|-----------|
-| MenuMapper | Parses status enum, style, display options, page size. Maps area name→ID (dining=1, bar=2, terrace=3, takeaway=4) |
+| MenuMapper | Parses status enum, style, display options, page size. Maps area relationship |
 | PageMapper | Parses PageType enum (default: content) |
 | ContainerMapper | Splits/merges layout+style into single `styleJson` |
 | ColumnMapper | Converts width num→double, no `flex` in DTO |
-| WidgetMapper | Parses props JSON and WidgetStyle |
-| UserMapper | Flexible role mapping: 'admin'/'administrator'→admin, 'user'/'standard'/'regular'/UUID→user |
+| WidgetMapper | Parses props JSON, WidgetStyle, and editing lock fields |
+| UserMapper | Flexible role mapping: 'admin'/'administrator'→admin, 'user'/'standard'/'regular'/UUID→user. Parses M2M junction area data |
+| AreaMapper | Simple id+name mapping |
 | SizeMapper | Parses status enum |
 | StyleConfigMapper | Shared: fonts, colors, margin/padding (per-side), borderType |
 | DisplayOptionsMapper | showPrices/showAllergens with defaults (true) |
 | FileMapper | Extracts id, title, type from file metadata |
+| PresenceMapper | Maps PresenceDto to MenuPresence entity |
 | ErrorMapper | `mapDirectusError()` — maps Directus/network exceptions to DomainError |
 
 ### Error Code Mapping (`mapDirectusError`)
@@ -66,12 +71,16 @@ Pattern: `XxxMapper.toEntity(dto)` for DTO→Entity, `toDto(entity)` for reverse
 All follow the same pattern: inject `DirectusDataSource`, try-catch with `mapDirectusError()`, return `Result<T, DomainError>`.
 
 ### Notable Implementation Details
-- **MenuRepositoryImpl**: `getById` fetches full tree (pages→containers→columns→widgets) with nested field specifications
-- **WidgetRepositoryImpl**: `reorder()` shifts indices within column; `moveTo()` handles cross-column moves with index adjustments in both source and target
+- **MenuRepositoryImpl**: `getById` fetches full tree (pages→containers→columns→widgets) with nested field specifications. `listAll` supports area ID filtering for non-admin users
+- **WidgetRepositoryImpl**: `reorder()` shifts indices within column; `moveTo()` handles cross-column moves with index adjustments. `lockForEditing`/`unlockEditing` for editing locks
 - **ContainerRepositoryImpl**: `moveTo()` moves container to different page
 - **AuthRepositoryImpl**: `tryRestoreSession()` returns `TokenExpiredError` if no stored tokens
 - **ColumnRepositoryImpl**: Width defaults to 100 if null on create
 - **FileRepositoryImpl**: `listImageFiles()` filters by `type` starts with `image/`, limited to 100, sorted by `-uploaded_on`
+- **MenuSubscriptionRepositoryImpl**: WebSocket subscription for widget changes via nested relation filter
+- **PresenceRepositoryImpl**: WebSocket presence tracking with `joinMenu`/`leaveMenu`/`heartbeat` + `watchActiveUsers` stream
+- **ConnectivityRepositoryImpl**: DNS probe (dns.google) with 3 attempts; periodic 30s online, 5s recovery offline; distinct stream
+- **AssetLoaderRepositoryImpl**: Wrapper for Flutter's `rootBundle.load()` — keeps domain framework-agnostic
 
 ## Data Sources (`lib/data/datasources/`)
 
@@ -94,6 +103,10 @@ Wraps `directus_api_manager` for all Directus API calls.
 - `uploadFile(bytes, filename)` → multipart POST to `/files` → returns file ID
 - `listFiles({filter, fields, sort, limit})` → queries `DirectusFile` collection
 - `downloadFileBytes(fileId)` → GET `/assets/{fileId}` → raw bytes
+
+**WebSocket:**
+- `startSubscription(collection, filter)` → `DirectusWebSocketSubscription`
+- `stopSubscription(subscription)`
 
 ### SecureTokenStorage
 Wraps `flutter_secure_storage`. Methods: `saveTokens()`, `getAccessToken()`, `getRefreshToken()`, `hasTokens()`, `saveRefreshToken()`, `clearTokens()`.

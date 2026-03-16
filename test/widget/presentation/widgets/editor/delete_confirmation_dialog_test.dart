@@ -126,6 +126,86 @@ void main() {
       );
     });
 
+    testWidgets('shows custom title when provided', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () =>
+                  showDeleteConfirmation(context, title: 'Delete Template'),
+              child: const Text('Show'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Show'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete Template'), findsOneWidget);
+    });
+
+    testWidgets('shows custom message when provided', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () => showDeleteConfirmation(
+                context,
+                message: 'Are you sure you want to delete "My Menu"?',
+              ),
+              child: const Text('Show'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Show'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Are you sure you want to delete "My Menu"?'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('custom title and message work on iOS', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.iOS),
+          home: Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () => showDeleteConfirmation(
+                context,
+                title: 'Delete Page Size',
+                message:
+                    'Are you sure you want to delete "A4"? This action cannot be undone.',
+              ),
+              child: const Text('Show'),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Show'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CupertinoAlertDialog), findsOneWidget);
+      expect(find.text('Delete Page Size'), findsOneWidget);
+      expect(
+        find.text(
+          'Are you sure you want to delete "A4"? This action cannot be undone.',
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('renders CupertinoAlertDialog on iOS', (
       WidgetTester tester,
     ) async {

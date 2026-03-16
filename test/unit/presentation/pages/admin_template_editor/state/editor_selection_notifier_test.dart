@@ -1,23 +1,30 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/state/editor_selection_notifier.dart';
+import 'package:oxo_menus/presentation/pages/admin_template_editor/state/editor_selection_provider.dart';
+import 'package:oxo_menus/presentation/pages/admin_template_editor/state/editor_selection_state.dart';
 
 void main() {
+  late ProviderContainer container;
+
+  setUp(() {
+    container = ProviderContainer();
+  });
+
+  tearDown(() {
+    container.dispose();
+  });
+
+  EditorSelectionNotifier notifier() =>
+      container.read(editorSelectionProvider.notifier);
+
+  EditorSelectionState state() => container.read(editorSelectionProvider);
+
   group('EditorSelectionNotifier - select/deselect', () {
-    late EditorSelectionNotifier notifier;
-
-    setUp(() {
-      notifier = EditorSelectionNotifier(
-        saveMenuStyle: (_) async {},
-        saveContainerStyle: (_, _) async {},
-        saveColumnStyle: (_, _) async {},
-        resolveStyle: (_) => null,
-      );
-    });
-
     test('initial state has null selection', () {
-      expect(notifier.state.selection, isNull);
+      expect(state().selection, isNull);
     });
 
     test('select() sets the selection in state', () {
@@ -26,9 +33,9 @@ void main() {
         id: 5,
       );
 
-      notifier.select(selection, const StyleConfig());
+      notifier().select(selection, const StyleConfig());
 
-      expect(notifier.state.selection, selection);
+      expect(state().selection, selection);
     });
 
     test('deselect() clears the selection in state', () {
@@ -36,169 +43,92 @@ void main() {
         type: EditorElementType.container,
         id: 5,
       );
-      notifier.select(selection, const StyleConfig());
+      notifier().select(selection, const StyleConfig());
 
-      notifier.deselect();
+      notifier().deselect();
 
-      expect(notifier.state.selection, isNull);
+      expect(state().selection, isNull);
     });
 
     test('select() with new element replaces previous selection', () {
       const first = EditorSelection(type: EditorElementType.container, id: 1);
       const second = EditorSelection(type: EditorElementType.column, id: 2);
 
-      notifier.select(first, const StyleConfig());
-      notifier.select(second, const StyleConfig());
+      notifier().select(first, const StyleConfig());
+      notifier().select(second, const StyleConfig());
 
-      expect(notifier.state.selection, second);
+      expect(state().selection, second);
     });
-  });
 
-  group('EditorSelectionNotifier - auto-save', () {
-    test('select() when previous element has modified style calls save', () {
-      StyleConfig? savedStyle;
-      int? savedId;
-
-      final notifier = EditorSelectionNotifier(
-        saveMenuStyle: (_) async {},
-        saveContainerStyle: (id, style) async {
-          savedId = id;
-          savedStyle = style;
-        },
-        saveColumnStyle: (_, _) async {},
-        resolveStyle: (_) => null,
-      );
-
+    test('select() stores the style as currentStyle in state', () {
       const selection = EditorSelection(
         type: EditorElementType.container,
         id: 5,
       );
-      notifier.select(selection, const StyleConfig());
+      const style = StyleConfig(marginTop: 10);
 
-      // Modify the style
+      notifier().select(selection, style);
+
+      expect(state().currentStyle, style);
+    });
+
+    test('select() stores the style as originalStyle in state', () {
+      const selection = EditorSelection(
+        type: EditorElementType.container,
+        id: 5,
+      );
+      const style = StyleConfig(marginTop: 10);
+
+      notifier().select(selection, style);
+
+      expect(state().originalStyle, style);
+    });
+
+    test('deselect() clears currentStyle and originalStyle', () {
+      const selection = EditorSelection(
+        type: EditorElementType.container,
+        id: 5,
+      );
+      notifier().select(selection, const StyleConfig(marginTop: 10));
+
+      notifier().deselect();
+
+      expect(state().currentStyle, isNull);
+      expect(state().originalStyle, isNull);
+    });
+  });
+
+  group('EditorSelectionNotifier - updateStyle', () {
+    test('updateStyle() updates currentStyle in state', () {
+      const selection = EditorSelection(
+        type: EditorElementType.container,
+        id: 5,
+      );
+      notifier().select(selection, const StyleConfig());
+
       const newStyle = StyleConfig(marginTop: 20);
-      notifier.updateStyle(newStyle);
+      notifier().updateStyle(newStyle);
 
-      // Select a different element — triggers auto-save of previous
-      const next = EditorSelection(type: EditorElementType.column, id: 10);
-      notifier.select(next, const StyleConfig());
-
-      expect(savedId, 5);
-      expect(savedStyle, newStyle);
+      expect(state().currentStyle, newStyle);
     });
 
-    test(
-      'select() when previous element has unchanged style does NOT save',
-      () {
-        bool saveCalled = false;
-
-        final notifier = EditorSelectionNotifier(
-          saveMenuStyle: (_) async {},
-          saveContainerStyle: (_, _) async {
-            saveCalled = true;
-          },
-          saveColumnStyle: (_, _) async {},
-          resolveStyle: (_) => null,
-        );
-
-        const selection = EditorSelection(
-          type: EditorElementType.container,
-          id: 5,
-        );
-        notifier.select(selection, const StyleConfig());
-
-        // Select a different element without modifying style
-        const next = EditorSelection(type: EditorElementType.column, id: 10);
-        notifier.select(next, const StyleConfig());
-
-        expect(saveCalled, isFalse);
-      },
-    );
-
-    test('deselect() saves current dirty element', () {
-      StyleConfig? savedStyle;
-
-      final notifier = EditorSelectionNotifier(
-        saveMenuStyle: (style) async {
-          savedStyle = style;
-        },
-        saveContainerStyle: (_, _) async {},
-        saveColumnStyle: (_, _) async {},
-        resolveStyle: (_) => null,
+    test('updateStyle() does not change originalStyle', () {
+      const selection = EditorSelection(
+        type: EditorElementType.container,
+        id: 5,
       );
+      const originalStyle = StyleConfig(marginTop: 10);
+      notifier().select(selection, originalStyle);
 
-      const selection = EditorSelection(type: EditorElementType.menu, id: 0);
-      notifier.select(selection, const StyleConfig());
-      notifier.updateStyle(const StyleConfig(paddingTop: 15));
-      notifier.deselect();
+      notifier().updateStyle(const StyleConfig(marginTop: 20));
 
-      expect(savedStyle, const StyleConfig(paddingTop: 15));
-    });
-
-    test('save callback receives correct id and StyleConfig for column', () {
-      int? savedId;
-      StyleConfig? savedStyle;
-
-      final notifier = EditorSelectionNotifier(
-        saveMenuStyle: (_) async {},
-        saveContainerStyle: (_, _) async {},
-        saveColumnStyle: (id, style) async {
-          savedId = id;
-          savedStyle = style;
-        },
-        resolveStyle: (_) => null,
-      );
-
-      const selection = EditorSelection(type: EditorElementType.column, id: 42);
-      notifier.select(selection, const StyleConfig());
-      notifier.updateStyle(const StyleConfig(marginLeft: 8));
-      notifier.deselect();
-
-      expect(savedId, 42);
-      expect(savedStyle, const StyleConfig(marginLeft: 8));
-    });
-
-    test('updateStyle() marks the element as dirty', () {
-      bool saveCalled = false;
-
-      final notifier = EditorSelectionNotifier(
-        saveMenuStyle: (_) async {
-          saveCalled = true;
-        },
-        saveContainerStyle: (_, _) async {},
-        saveColumnStyle: (_, _) async {},
-        resolveStyle: (_) => null,
-      );
-
-      const selection = EditorSelection(type: EditorElementType.menu, id: 0);
-      notifier.select(selection, const StyleConfig());
-
-      // Without updateStyle, save should not be called
-      notifier.deselect();
-      expect(saveCalled, isFalse);
-
-      // With updateStyle, save should be called
-      notifier.select(selection, const StyleConfig());
-      notifier.updateStyle(const StyleConfig(fontSize: 14));
-      notifier.deselect();
-      expect(saveCalled, isTrue);
+      expect(state().originalStyle, originalStyle);
     });
   });
 
   group('EditorSelectionNotifier - copy/paste', () {
-    late EditorSelectionNotifier notifier;
-
-    setUp(() {
-      notifier = EditorSelectionNotifier(
-        saveMenuStyle: (_) async {},
-        saveContainerStyle: (_, _) async {},
-        saveColumnStyle: (_, _) async {},
-        resolveStyle: (_) => null,
-      );
-    });
-
     test('clipboard is null initially', () {
-      expect(notifier.state.clipboardStyle, isNull);
+      expect(state().clipboardStyle, isNull);
     });
 
     test('copyStyle() stores current style in state.clipboardStyle', () {
@@ -207,17 +137,17 @@ void main() {
         id: 1,
       );
       const style = StyleConfig(marginTop: 10, paddingLeft: 5);
-      notifier.select(selection, style);
+      notifier().select(selection, style);
 
-      notifier.copyStyle();
+      notifier().copyStyle();
 
-      expect(notifier.state.clipboardStyle, style);
+      expect(state().clipboardStyle, style);
     });
 
     test('copyStyle() when no selection does nothing', () {
-      notifier.copyStyle();
+      notifier().copyStyle();
 
-      expect(notifier.state.clipboardStyle, isNull);
+      expect(state().clipboardStyle, isNull);
     });
 
     test('pasteStyle() returns clipboard value', () {
@@ -226,10 +156,10 @@ void main() {
         id: 1,
       );
       const style = StyleConfig(marginTop: 10);
-      notifier.select(selection, style);
-      notifier.copyStyle();
+      notifier().select(selection, style);
+      notifier().copyStyle();
 
-      final pasted = notifier.pasteStyle();
+      final pasted = notifier().pasteStyle();
 
       expect(pasted, style);
     });
@@ -237,14 +167,27 @@ void main() {
     test('clipboard persists across selection changes', () {
       const first = EditorSelection(type: EditorElementType.container, id: 1);
       const style = StyleConfig(marginTop: 10);
-      notifier.select(first, style);
-      notifier.copyStyle();
+      notifier().select(first, style);
+      notifier().copyStyle();
 
       const second = EditorSelection(type: EditorElementType.column, id: 2);
-      notifier.select(second, const StyleConfig());
+      notifier().select(second, const StyleConfig());
 
-      expect(notifier.state.clipboardStyle, style);
-      expect(notifier.pasteStyle(), style);
+      expect(state().clipboardStyle, style);
+      expect(notifier().pasteStyle(), style);
+    });
+
+    test('copyStyle() copies updated style after updateStyle()', () {
+      const selection = EditorSelection(
+        type: EditorElementType.container,
+        id: 1,
+      );
+      notifier().select(selection, const StyleConfig());
+      notifier().updateStyle(const StyleConfig(fontSize: 14));
+
+      notifier().copyStyle();
+
+      expect(state().clipboardStyle, const StyleConfig(fontSize: 14));
     });
   });
 }

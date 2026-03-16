@@ -3,11 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_provider.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/widgets/template_card.dart';
 import 'package:oxo_menus/presentation/helpers/grid_helpers.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/empty_state.dart';
+import 'package:oxo_menus/presentation/widgets/common/status_filter_bar.dart';
+import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialog.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 class AdminTemplatesPage extends ConsumerStatefulWidget {
   const AdminTemplatesPage({super.key});
@@ -17,23 +25,29 @@ class AdminTemplatesPage extends ConsumerStatefulWidget {
 }
 
 class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
       ref.read(adminTemplatesProvider.notifier).loadTemplates();
+      _listenForConnectivityRestore();
+    });
+  }
+
+  void _listenForConnectivityRestore() {
+    ref.listenManual(connectivityProvider, (prev, next) {
+      final wasOffline = prev?.value == ConnectivityStatus.offline;
+      final isOnline = next.value == ConnectivityStatus.online;
+      if (wasOffline && isOnline) {
+        ref.read(adminTemplatesProvider.notifier).loadTemplates();
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(adminTemplatesProvider);
-    final isApple = _isApple;
+    final isApple = isApplePlatform(context);
 
     return AuthenticatedScaffold(
       title: 'Templates',
@@ -62,46 +76,25 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
 
   Widget _buildStatusFilters() {
     final state = ref.watch(adminTemplatesProvider);
-    final filters = ['all', 'draft', 'published', 'archived'];
-    final labels = ['All', 'Draft', 'Published', 'Archived'];
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: List.generate(filters.length, (i) {
-            return Padding(
-              padding: EdgeInsets.only(left: i > 0 ? 8 : 0),
-              child: ChoiceChip(
-                label: Text(labels[i]),
-                selected: state.statusFilter == filters[i],
-                onSelected: (_) => _filterByStatus(filters[i]),
-              ),
-            );
-          }),
-        ),
-      ),
+    return StatusFilterBar(
+      selectedFilter: state.statusFilter,
+      onFilterChanged: (status) => ref
+          .read(adminTemplatesProvider.notifier)
+          .loadTemplates(statusFilter: status),
     );
-  }
-
-  void _filterByStatus(String status) {
-    ref
-        .read(adminTemplatesProvider.notifier)
-        .loadTemplates(statusFilter: status);
   }
 
   Widget _buildBody(dynamic state) {
     if (state.isLoading) {
-      return Center(
-        child: _isApple
-            ? const CupertinoActivityIndicator()
-            : const CircularProgressIndicator(),
-      );
+      return const Center(child: AdaptiveLoadingIndicator());
     }
 
     if (state.errorMessage != null) {
-      return _buildErrorState(state.errorMessage!);
+      return AdaptiveErrorState(
+        message: state.errorMessage!,
+        onRetry: () =>
+            ref.read(adminTemplatesProvider.notifier).loadTemplates(),
+      );
     }
 
     if (state.templates.isEmpty) {
@@ -111,45 +104,11 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
     return _buildTemplatesGrid(state.templates);
   }
 
-  Widget _buildErrorState(String message) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            _isApple
-                ? CupertinoIcons.exclamationmark_triangle
-                : Icons.error_outline,
-            size: 48,
-            color: theme.colorScheme.error,
-          ),
-          const SizedBox(height: 16),
-          Text('Error: $message'),
-          const SizedBox(height: 16),
-          if (_isApple)
-            CupertinoButton.filled(
-              onPressed: () {
-                ref.read(adminTemplatesProvider.notifier).loadTemplates();
-              },
-              child: const Text('Retry'),
-            )
-          else
-            FilledButton(
-              onPressed: () {
-                ref.read(adminTemplatesProvider.notifier).loadTemplates();
-              },
-              child: const Text('Retry'),
-            ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEmptyState() {
     return EmptyState(
-      icon: _isApple ? CupertinoIcons.doc_text : Icons.restaurant_menu,
+      icon: isApplePlatform(context)
+          ? CupertinoIcons.doc_text
+          : Icons.restaurant_menu,
       title: 'No templates found',
       subtitle: 'Create your first template to get started',
       actionLabel: 'Create Template',
@@ -192,53 +151,12 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
   }
 
   Future<void> _confirmDelete(Menu template) async {
-    final bool? confirmed;
-
-    if (_isApple) {
-      confirmed = await showCupertinoDialog<bool>(
-        context: context,
-        builder: (dialogContext) => CupertinoAlertDialog(
-          title: const Text('Delete Template'),
-          content: Text(
-            'Are you sure you want to delete "${template.name}"? This action cannot be undone.',
-          ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            CupertinoDialogAction(
-              isDestructiveAction: true,
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Delete'),
-            ),
-          ],
-        ),
-      );
-    } else {
-      confirmed = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: const Text('Delete Template'),
-          content: Text(
-            'Are you sure you want to delete "${template.name}"? This action cannot be undone.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-              child: const Text('Delete'),
-            ),
-          ],
-        ),
-      );
-    }
+    final confirmed = await showDeleteConfirmation(
+      context,
+      title: 'Delete Template',
+      message:
+          'Are you sure you want to delete "${template.name}"? This action cannot be undone.',
+    );
 
     if (confirmed == true && mounted) {
       await ref
@@ -246,9 +164,7 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
           .deleteTemplate(template.id);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Template "${template.name}" deleted')),
-        );
+        showThemedSnackBar(context, 'Template "${template.name}" deleted');
       }
     }
   }

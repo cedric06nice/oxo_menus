@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Menu {
 
- int get id; String get name; Status get status; String get version; DateTime? get dateCreated; DateTime? get dateUpdated; String? get userCreated; String? get userUpdated; StyleConfig? get styleConfig; PageSize? get pageSize; String? get area; MenuDisplayOptions? get displayOptions; List<String> get allowedWidgetTypes;
+ int get id; String get name; Status get status; String get version; DateTime? get dateCreated; DateTime? get dateUpdated; String? get userCreated; String? get userUpdated; StyleConfig? get styleConfig; PageSize? get pageSize; Area? get area; MenuDisplayOptions? get displayOptions; List<String> get allowedWidgetTypes;
 /// Create a copy of Menu
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,11 +48,11 @@ abstract mixin class $MenuCopyWith<$Res>  {
   factory $MenuCopyWith(Menu value, $Res Function(Menu) _then) = _$MenuCopyWithImpl;
 @useResult
 $Res call({
- int id, String name, Status status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, String? area, MenuDisplayOptions? displayOptions, List<String> allowedWidgetTypes
+ int id, String name, Status status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, Area? area, MenuDisplayOptions? displayOptions, List<String> allowedWidgetTypes
 });
 
 
-$StyleConfigCopyWith<$Res>? get styleConfig;$PageSizeCopyWith<$Res>? get pageSize;$MenuDisplayOptionsCopyWith<$Res>? get displayOptions;
+$StyleConfigCopyWith<$Res>? get styleConfig;$PageSizeCopyWith<$Res>? get pageSize;$AreaCopyWith<$Res>? get area;$MenuDisplayOptionsCopyWith<$Res>? get displayOptions;
 
 }
 /// @nodoc
@@ -78,7 +78,7 @@ as String?,userUpdated: freezed == userUpdated ? _self.userUpdated : userUpdated
 as String?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
 as StyleConfig?,pageSize: freezed == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
 as PageSize?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
-as String?,displayOptions: freezed == displayOptions ? _self.displayOptions : displayOptions // ignore: cast_nullable_to_non_nullable
+as Area?,displayOptions: freezed == displayOptions ? _self.displayOptions : displayOptions // ignore: cast_nullable_to_non_nullable
 as MenuDisplayOptions?,allowedWidgetTypes: null == allowedWidgetTypes ? _self.allowedWidgetTypes : allowedWidgetTypes // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));
@@ -106,6 +106,18 @@ $PageSizeCopyWith<$Res>? get pageSize {
 
   return $PageSizeCopyWith<$Res>(_self.pageSize!, (value) {
     return _then(_self.copyWith(pageSize: value));
+  });
+}/// Create a copy of Menu
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$AreaCopyWith<$Res>? get area {
+    if (_self.area == null) {
+    return null;
+  }
+
+  return $AreaCopyWith<$Res>(_self.area!, (value) {
+    return _then(_self.copyWith(area: value));
   });
 }/// Create a copy of Menu
 /// with the given fields replaced by the non-null parameter values.
@@ -201,7 +213,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area,  MenuDisplayOptions? displayOptions,  List<String> allowedWidgetTypes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  Area? area,  MenuDisplayOptions? displayOptions,  List<String> allowedWidgetTypes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Menu() when $default != null:
 return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area,_that.displayOptions,_that.allowedWidgetTypes);case _:
@@ -222,7 +234,7 @@ return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area,  MenuDisplayOptions? displayOptions,  List<String> allowedWidgetTypes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  Area? area,  MenuDisplayOptions? displayOptions,  List<String> allowedWidgetTypes)  $default,) {final _that = this;
 switch (_that) {
 case _Menu():
 return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area,_that.displayOptions,_that.allowedWidgetTypes);case _:
@@ -242,7 +254,7 @@ return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  String? area,  MenuDisplayOptions? displayOptions,  List<String> allowedWidgetTypes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  String name,  Status status,  String version,  DateTime? dateCreated,  DateTime? dateUpdated,  String? userCreated,  String? userUpdated,  StyleConfig? styleConfig,  PageSize? pageSize,  Area? area,  MenuDisplayOptions? displayOptions,  List<String> allowedWidgetTypes)?  $default,) {final _that = this;
 switch (_that) {
 case _Menu() when $default != null:
 return $default(_that.id,_that.name,_that.status,_that.version,_that.dateCreated,_that.dateUpdated,_that.userCreated,_that.userUpdated,_that.styleConfig,_that.pageSize,_that.area,_that.displayOptions,_that.allowedWidgetTypes);case _:
@@ -270,7 +282,7 @@ class _Menu extends Menu {
 @override final  String? userUpdated;
 @override final  StyleConfig? styleConfig;
 @override final  PageSize? pageSize;
-@override final  String? area;
+@override final  Area? area;
 @override final  MenuDisplayOptions? displayOptions;
  final  List<String> _allowedWidgetTypes;
 @override@JsonKey() List<String> get allowedWidgetTypes {
@@ -313,11 +325,11 @@ abstract mixin class _$MenuCopyWith<$Res> implements $MenuCopyWith<$Res> {
   factory _$MenuCopyWith(_Menu value, $Res Function(_Menu) _then) = __$MenuCopyWithImpl;
 @override @useResult
 $Res call({
- int id, String name, Status status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, String? area, MenuDisplayOptions? displayOptions, List<String> allowedWidgetTypes
+ int id, String name, Status status, String version, DateTime? dateCreated, DateTime? dateUpdated, String? userCreated, String? userUpdated, StyleConfig? styleConfig, PageSize? pageSize, Area? area, MenuDisplayOptions? displayOptions, List<String> allowedWidgetTypes
 });
 
 
-@override $StyleConfigCopyWith<$Res>? get styleConfig;@override $PageSizeCopyWith<$Res>? get pageSize;@override $MenuDisplayOptionsCopyWith<$Res>? get displayOptions;
+@override $StyleConfigCopyWith<$Res>? get styleConfig;@override $PageSizeCopyWith<$Res>? get pageSize;@override $AreaCopyWith<$Res>? get area;@override $MenuDisplayOptionsCopyWith<$Res>? get displayOptions;
 
 }
 /// @nodoc
@@ -343,7 +355,7 @@ as String?,userUpdated: freezed == userUpdated ? _self.userUpdated : userUpdated
 as String?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
 as StyleConfig?,pageSize: freezed == pageSize ? _self.pageSize : pageSize // ignore: cast_nullable_to_non_nullable
 as PageSize?,area: freezed == area ? _self.area : area // ignore: cast_nullable_to_non_nullable
-as String?,displayOptions: freezed == displayOptions ? _self.displayOptions : displayOptions // ignore: cast_nullable_to_non_nullable
+as Area?,displayOptions: freezed == displayOptions ? _self.displayOptions : displayOptions // ignore: cast_nullable_to_non_nullable
 as MenuDisplayOptions?,allowedWidgetTypes: null == allowedWidgetTypes ? _self._allowedWidgetTypes : allowedWidgetTypes // ignore: cast_nullable_to_non_nullable
 as List<String>,
   ));
@@ -372,6 +384,18 @@ $PageSizeCopyWith<$Res>? get pageSize {
 
   return $PageSizeCopyWith<$Res>(_self.pageSize!, (value) {
     return _then(_self.copyWith(pageSize: value));
+  });
+}/// Create a copy of Menu
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$AreaCopyWith<$Res>? get area {
+    if (_self.area == null) {
+    return null;
+  }
+
+  return $AreaCopyWith<$Res>(_self.area!, (value) {
+    return _then(_self.copyWith(area: value));
   });
 }/// Create a copy of Menu
 /// with the given fields replaced by the non-null parameter values.

@@ -18,6 +18,8 @@ import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
+import 'package:oxo_menus/domain/repositories/area_repository.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
@@ -45,6 +47,8 @@ class MockWidgetRepository extends Mock implements WidgetRepository {}
 
 class MockSizeRepository extends Mock implements SizeRepository {}
 
+class MockAreaRepository extends Mock implements AreaRepository {}
+
 class MockGoRouter extends Mock implements GoRouter {}
 
 void main() {
@@ -54,6 +58,7 @@ void main() {
   late MockColumnRepository mockColumnRepository;
   late MockWidgetRepository mockWidgetRepository;
   late MockSizeRepository mockSizeRepository;
+  late MockAreaRepository mockAreaRepository;
   late WidgetRegistry testWidgetRegistry;
   late MockGoRouter mockRouter;
 
@@ -64,6 +69,7 @@ void main() {
     mockColumnRepository = MockColumnRepository();
     mockWidgetRepository = MockWidgetRepository();
     mockSizeRepository = MockSizeRepository();
+    mockAreaRepository = MockAreaRepository();
     mockRouter = MockGoRouter();
 
     testWidgetRegistry = WidgetRegistry();
@@ -115,6 +121,7 @@ void main() {
         columnRepositoryProvider.overrideWithValue(mockColumnRepository),
         widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
         sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+        areaRepositoryProvider.overrideWithValue(mockAreaRepository),
         widgetRegistryProvider.overrideWithValue(testWidgetRegistry),
         currentUserProvider.overrideWithValue(mockUser),
       ],
@@ -2812,5 +2819,140 @@ void main() {
         tester.view.resetDevicePixelRatio();
       },
     );
+  });
+
+  group('AdminTemplateEditorPage - Area Picker', () {
+    testWidgets('should show area button in toolbar', (tester) async {
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('area_button')), findsOneWidget);
+    });
+
+    testWidgets('tapping area button opens dialog with loaded areas', (
+      tester,
+    ) async {
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+      when(() => mockAreaRepository.getAll()).thenAnswer(
+        (_) async => const Success([
+          Area(id: 1, name: 'Dining'),
+          Area(id: 2, name: 'Bar'),
+        ]),
+      );
+
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('area_button')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Select Area'), findsOneWidget);
+      expect(find.text('None'), findsOneWidget);
+      expect(find.text('Dining'), findsOneWidget);
+      expect(find.text('Bar'), findsOneWidget);
+    });
+
+    testWidgets('selecting area updates menu via repository', (tester) async {
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+      when(() => mockAreaRepository.getAll()).thenAnswer(
+        (_) async => const Success([
+          Area(id: 1, name: 'Dining'),
+          Area(id: 2, name: 'Bar'),
+        ]),
+      );
+      when(() => mockMenuRepository.update(any())).thenAnswer(
+        (_) async => const Success(
+          Menu(
+            id: menuId,
+            name: 'Test Template',
+            status: Status.draft,
+            version: '1.0.0',
+            area: Area(id: 1, name: 'Dining'),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('area_button')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Dining'));
+      await tester.pumpAndSettle();
+
+      final captured = verify(
+        () => mockMenuRepository.update(captureAny()),
+      ).captured;
+      final input = captured.last as UpdateMenuInput;
+      expect(input.areaId, 1);
+    });
+
+    testWidgets('shows current area name on button tooltip', (tester) async {
+      const menuId = 1;
+      const menu = Menu(
+        id: menuId,
+        name: 'Test Template',
+        status: Status.draft,
+        version: '1.0.0',
+        area: Area(id: 1, name: 'Dining'),
+      );
+
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => const Success([]));
+
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      final button = tester.widget<IconButton>(
+        find.byKey(const Key('area_button')),
+      );
+      expect(button.tooltip, 'Area: Dining');
+    });
   });
 }

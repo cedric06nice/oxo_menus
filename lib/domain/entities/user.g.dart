@@ -13,6 +13,11 @@ _User _$UserFromJson(Map<String, dynamic> json) => _User(
   lastName: json['lastName'] as String?,
   role: $enumDecodeNullable(_$UserRoleEnumMap, json['role']),
   avatar: json['avatar'] as String?,
+  areas:
+      (json['areas'] as List<dynamic>?)
+          ?.map((e) => Area.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$UserToJson(_User instance) => <String, dynamic>{
@@ -22,6 +27,7 @@ Map<String, dynamic> _$UserToJson(_User instance) => <String, dynamic>{
   'lastName': instance.lastName,
   'role': _$UserRoleEnumMap[instance.role],
   'avatar': instance.avatar,
+  'areas': instance.areas,
 };
 
 const _$UserRoleEnumMap = {UserRole.admin: 'admin', UserRole.user: 'user'};

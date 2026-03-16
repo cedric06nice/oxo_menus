@@ -14,8 +14,8 @@ void main() {
     test('should have correct default props', () {
       final defaults = sectionWidgetDefinition.defaultProps;
       expect(defaults.title, 'New Section');
-      expect(defaults.uppercase, false);
-      expect(defaults.showDivider, true);
+      expect(defaults.uppercase, true);
+      expect(defaults.showDivider, false);
     });
 
     test('should parse props from JSON', () {

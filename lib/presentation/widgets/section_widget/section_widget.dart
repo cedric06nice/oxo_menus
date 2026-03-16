@@ -43,8 +43,9 @@ class SectionWidget extends StatelessWidget {
     );
   }
 
-  void _handleEdit(BuildContext buildContext) {
-    showEditDialog(
+  Future<void> _handleEdit(BuildContext buildContext) async {
+    context.onEditStarted?.call();
+    await showEditDialog(
       buildContext,
       SectionEditDialog(
         props: props,
@@ -53,5 +54,6 @@ class SectionWidget extends StatelessWidget {
         },
       ),
     );
+    context.onEditEnded?.call();
   }
 }

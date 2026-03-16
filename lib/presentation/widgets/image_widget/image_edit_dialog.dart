@@ -1,12 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/image_file_info.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
+import 'package:oxo_menus/presentation/providers/image_files/image_files_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_edit_scaffold.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Dialog for editing image properties
 class ImageEditDialog extends ConsumerStatefulWidget {
@@ -26,16 +27,6 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
   late String _align;
   late String _fit;
 
-  // File loading state
-  List<ImageFileInfo> _imageFiles = [];
-  bool _isLoading = true;
-  String? _loadError;
-
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -48,27 +39,9 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     );
     _align = widget.props.align;
     _fit = widget.props.fit;
-    _loadImageFiles();
-  }
-
-  Future<void> _loadImageFiles() async {
-    final fileRepository = ref.read(fileRepositoryProvider);
-    final result = await fileRepository.listImageFiles();
-
-    if (!mounted) return;
-
-    switch (result) {
-      case Success(:final value):
-        setState(() {
-          _imageFiles = value;
-          _isLoading = false;
-        });
-      case Failure(:final error):
-        setState(() {
-          _loadError = error.message;
-          _isLoading = false;
-        });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(imageFilesProvider.notifier).loadImageFiles();
+    });
   }
 
   @override
@@ -89,7 +62,6 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
   }
 
   List<Widget> _buildAppleFormChildren(BuildContext context) {
-    final baseUrl = ref.watch(directusBaseUrlProvider);
     final alignLabels = {'left': 'Left', 'center': 'Center', 'right': 'Right'};
     final fitLabels = {
       'contain': 'Contain',
@@ -100,7 +72,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     };
 
     return [
-      _buildImageGrid(baseUrl),
+      _buildImageGrid(),
       CupertinoFormSection.insetGrouped(
         header: const Text('LAYOUT'),
         children: [
@@ -152,11 +124,9 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
   }
 
   List<Widget> _buildMaterialFormChildren(BuildContext context) {
-    final baseUrl = ref.watch(directusBaseUrlProvider);
-
     return [
       // Thumbnail grid section
-      _buildImageGrid(baseUrl),
+      _buildImageGrid(),
       const SizedBox(height: 12),
       DropdownButtonFormField<String>(
         initialValue: _align,
@@ -210,26 +180,26 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     ];
   }
 
-  Widget _buildImageGrid(String baseUrl) {
-    if (_isLoading) {
+  Widget _buildImageGrid() {
+    final imageFilesState = ref.watch(imageFilesProvider);
+
+    if (imageFilesState.isLoading) {
       return SizedBox(
         height: 100,
-        child: Center(
-          child: _isApple
-              ? const CupertinoActivityIndicator()
-              : const CircularProgressIndicator(),
-        ),
+        child: const Center(child: AdaptiveLoadingIndicator()),
       );
     }
 
-    if (_loadError != null) {
+    if (imageFilesState.errorMessage != null) {
       return Text(
-        'Error loading images: $_loadError',
+        'Error loading images: ${imageFilesState.errorMessage}',
         style: TextStyle(color: Theme.of(context).colorScheme.error),
       );
     }
 
-    if (_imageFiles.isEmpty) {
+    final imageFiles = imageFilesState.files;
+
+    if (imageFiles.isEmpty) {
       return const Text('No images available');
     }
 
@@ -237,16 +207,14 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
       height: 200,
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
+          crossAxisCount: 6,
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
         ),
-        itemCount: _imageFiles.length,
+        itemCount: imageFiles.length,
         itemBuilder: (context, index) {
-          final file = _imageFiles[index];
+          final file = imageFiles[index];
           final isSelected = file.id == _selectedFileId;
-          final thumbnailUrl =
-              '$baseUrl/assets/${file.id}?width=150&height=150&fit=cover';
 
           return GestureDetector(
             onTap: () => setState(() => _selectedFileId = file.id),
@@ -265,13 +233,25 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
                 child: Column(
                   children: [
                     Expanded(
-                      child: Image.network(
-                        thumbnailUrl,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        errorBuilder: (_, _, _) => Icon(
-                          _isApple ? CupertinoIcons.photo : Icons.broken_image,
-                        ),
+                      child: Consumer(
+                        builder: (context, ref, _) {
+                          final asyncBytes = ref.watch(
+                            imageDataProvider(file.id),
+                          );
+                          return asyncBytes.when(
+                            data: (bytes) => Image.memory(
+                              bytes,
+                              fit: BoxFit.contain,
+                              width: double.infinity,
+                            ),
+                            loading: () => const AdaptiveLoadingIndicator(),
+                            error: (_, _) => Icon(
+                              isApplePlatform(context)
+                                  ? CupertinoIcons.photo
+                                  : Icons.broken_image,
+                            ),
+                          );
+                        },
                       ),
                     ),
                     if (file.title != null)

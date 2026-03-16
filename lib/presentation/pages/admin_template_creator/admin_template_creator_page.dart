@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
+import 'package:oxo_menus/presentation/providers/menu_settings/menu_settings_provider.dart';
+import 'package:oxo_menus/presentation/providers/menu_settings/menu_settings_state.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 
 /// Page for creating a new admin template
@@ -25,10 +29,8 @@ class _AdminTemplateCreatorPageState
   late TextEditingController _nameController;
   late TextEditingController _versionController;
 
-  List<domain.Size> _sizes = [];
   domain.Size? _selectedSize;
-  bool _isLoadingSizes = true;
-  String? _sizeError;
+  Area? _selectedArea;
   bool _isSaving = false;
 
   @override
@@ -36,30 +38,35 @@ class _AdminTemplateCreatorPageState
     super.initState();
     _nameController = TextEditingController();
     _versionController = TextEditingController(text: '1.0.0');
-    _loadSizes();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifier = ref.read(menuSettingsProvider.notifier);
+      notifier.loadSizes();
+      notifier.loadAreas();
+    });
+    _listenForConnectivityRestore();
+    _listenForSizesLoaded();
   }
 
-  Future<void> _loadSizes() async {
-    final sizeRepository = ref.read(sizeRepositoryProvider);
-    final result = await sizeRepository.getAll();
+  void _listenForSizesLoaded() {
+    ref.listenManual(menuSettingsProvider, (prev, next) {
+      final hadNoSizes = prev?.sizes.isEmpty ?? true;
+      if (hadNoSizes && next.sizes.isNotEmpty && _selectedSize == null) {
+        setState(() => _selectedSize = next.sizes.first);
+      }
+    });
+  }
 
-    if (!mounted) return;
-
-    result.fold(
-      onSuccess: (sizes) {
-        setState(() {
-          _sizes = sizes;
-          _selectedSize = sizes.isNotEmpty ? sizes.first : null;
-          _isLoadingSizes = false;
-        });
-      },
-      onFailure: (error) {
-        setState(() {
-          _sizeError = error.message;
-          _isLoadingSizes = false;
-        });
-      },
-    );
+  void _listenForConnectivityRestore() {
+    ref.listenManual(connectivityProvider, (prev, next) {
+      final wasOffline = prev?.value == ConnectivityStatus.offline;
+      final isOnline = next.value == ConnectivityStatus.online;
+      final settingsState = ref.read(menuSettingsProvider);
+      if (wasOffline && isOnline && settingsState.errorMessage != null) {
+        final notifier = ref.read(menuSettingsProvider.notifier);
+        notifier.loadSizes();
+        notifier.loadAreas();
+      }
+    });
   }
 
   @override
@@ -81,14 +88,15 @@ class _AdminTemplateCreatorPageState
 
     setState(() => _isSaving = true);
 
-    final input = CreateMenuInput(
-      name: _nameController.text.trim(),
-      version: _versionController.text.trim(),
-      status: Status.draft,
-      sizeId: _selectedSize!.id,
-    );
-
-    final result = await ref.read(menuRepositoryProvider).create(input);
+    final result = await ref
+        .read(menuSettingsProvider.notifier)
+        .createTemplate(
+          name: _nameController.text.trim(),
+          version: _versionController.text.trim(),
+          status: Status.draft,
+          sizeId: _selectedSize!.id,
+          areaId: _selectedArea?.id,
+        );
 
     if (!mounted) return;
 
@@ -98,10 +106,10 @@ class _AdminTemplateCreatorPageState
       },
       onFailure: (error) {
         setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to create template: ${error.message}'),
-          ),
+        showThemedSnackBar(
+          context,
+          'Failed to create template: ${error.message}',
+          isError: true,
         );
       },
     );
@@ -109,6 +117,8 @@ class _AdminTemplateCreatorPageState
 
   @override
   Widget build(BuildContext context) {
+    final settingsState = ref.watch(menuSettingsProvider);
+
     return AuthenticatedScaffold(
       title: 'Create Template',
       body: SingleChildScrollView(
@@ -139,7 +149,9 @@ class _AdminTemplateCreatorPageState
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: 16),
-                  _buildSizeDropdown(),
+                  _buildSizeDropdown(settingsState),
+                  const SizedBox(height: 16),
+                  _buildAreaDropdown(settingsState),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -172,8 +184,8 @@ class _AdminTemplateCreatorPageState
     );
   }
 
-  Widget _buildSizeDropdown() {
-    if (_isLoadingSizes) {
+  Widget _buildSizeDropdown(MenuSettingsState settingsState) {
+    if (settingsState.isLoadingSizes && settingsState.sizes.isEmpty) {
       return const Row(
         children: [
           SizedBox(
@@ -187,14 +199,14 @@ class _AdminTemplateCreatorPageState
       );
     }
 
-    if (_sizeError != null) {
+    if (settingsState.errorMessage != null && settingsState.sizes.isEmpty) {
       return Text(
-        'Error loading sizes: $_sizeError',
+        'Error loading sizes: ${settingsState.errorMessage}',
         style: TextStyle(color: Theme.of(context).colorScheme.error),
       );
     }
 
-    if (_sizes.isEmpty) {
+    if (settingsState.sizes.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -214,7 +226,7 @@ class _AdminTemplateCreatorPageState
     return DropdownButtonFormField<domain.Size>(
       initialValue: _selectedSize,
       decoration: const InputDecoration(labelText: 'Page Size'),
-      items: _sizes.map((domain.Size size) {
+      items: settingsState.sizes.map((domain.Size size) {
         return DropdownMenuItem<domain.Size>(
           value: size,
           child: Text(
@@ -225,6 +237,38 @@ class _AdminTemplateCreatorPageState
       onChanged: (size) {
         setState(() {
           _selectedSize = size;
+        });
+      },
+    );
+  }
+
+  Widget _buildAreaDropdown(MenuSettingsState settingsState) {
+    if (settingsState.isLoadingAreas && settingsState.areas.isEmpty) {
+      return const Row(
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          SizedBox(width: 12),
+          Text('Loading areas...'),
+        ],
+      );
+    }
+
+    return DropdownButtonFormField<Area?>(
+      initialValue: _selectedArea,
+      decoration: const InputDecoration(labelText: 'Area'),
+      items: [
+        const DropdownMenuItem<Area?>(value: null, child: Text('None')),
+        ...settingsState.areas.map((area) {
+          return DropdownMenuItem<Area?>(value: area, child: Text(area.name));
+        }),
+      ],
+      onChanged: (area) {
+        setState(() {
+          _selectedArea = area;
         });
       },
     );

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Dialog that lists available page sizes and lets the user pick one.
 class PageSizePickerDialog extends StatelessWidget {
@@ -16,14 +17,9 @@ class PageSizePickerDialog extends StatelessWidget {
     this.currentPageSize,
   });
 
-  bool _isApple(BuildContext context) {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return _isApple(context)
+    return isApplePlatform(context)
         ? _buildCupertinoDialog(context)
         : _buildMaterialDialog(context);
   }

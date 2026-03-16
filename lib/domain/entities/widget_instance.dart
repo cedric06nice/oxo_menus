@@ -19,6 +19,8 @@ abstract class WidgetInstance with _$WidgetInstance {
     @Default(false) bool isTemplate,
     DateTime? dateCreated,
     DateTime? dateUpdated,
+    String? editingBy,
+    DateTime? editingSince,
   }) = _WidgetInstance;
 
   factory WidgetInstance.fromJson(Map<String, dynamic> json) =>

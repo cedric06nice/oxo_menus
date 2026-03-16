@@ -51,6 +51,7 @@ services:
       PUBLIC_URL: https://${DOMAIN_API_PROD:-api.your-app.example.com}
       CORS_ENABLED: "true"
       CORS_ORIGIN: "https://${DOMAIN_FLUTTER_PROD:-your-app.example.com}"
+      WEBSOCKETS_ENABLED: "true"
       DB_CLIENT: pg
       DB_HOST: postgres-prod
       DB_PORT: 5432
@@ -110,6 +111,7 @@ services:
       PUBLIC_URL: https://${DOMAIN_API_DEV:-api.your-app-dev.example.com}
       CORS_ENABLED: "true"
       CORS_ORIGIN: "https://${DOMAIN_FLUTTER_DEV:-your-app-dev.example.com}"
+      WEBSOCKETS_ENABLED: "true"
       DB_CLIENT: pg
       DB_HOST: postgres-dev
       DB_PORT: 5432

@@ -47,11 +47,19 @@ void main() {
       expect(find.text('Summer Menu'), findsOneWidget);
     });
 
-    testWidgets('should display menu status via StatusBadge', (tester) async {
-      await tester.pumpWidget(buildWidget());
+    testWidgets('should display menu status via StatusBadge for admin', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildWidget(isAdmin: true));
 
       expect(find.byType(StatusBadge), findsOneWidget);
       expect(find.text('PUBLISHED'), findsOneWidget);
+    });
+
+    testWidgets('should not display StatusBadge for non-admin', (tester) async {
+      await tester.pumpWidget(buildWidget(isAdmin: false));
+
+      expect(find.byType(StatusBadge), findsNothing);
     });
 
     testWidgets('should display version for admin', (tester) async {

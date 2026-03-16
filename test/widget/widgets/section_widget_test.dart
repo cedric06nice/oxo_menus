@@ -188,6 +188,41 @@ void main() {
       expect(capturedUpdate!['title'], 'Updated Title');
     });
 
+    testWidgets(
+      'should call onEditStarted before and onEditEnded after edit dialog',
+      (tester) async {
+        const props = SectionProps(title: 'Sides');
+        var editStartedCount = 0;
+        var editEndedCount = 0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SectionWidget(
+                props: props,
+                context: WidgetContext(
+                  isEditable: true,
+                  onEditStarted: () => editStartedCount++,
+                  onEditEnded: () => editEndedCount++,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('Sides'));
+        await tester.pumpAndSettle();
+
+        expect(editStartedCount, 1);
+        expect(editEndedCount, 0);
+
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+
+        expect(editEndedCount, 1);
+      },
+    );
+
     testWidgets('should render with proper styling', (tester) async {
       const props = SectionProps(title: 'Test Section');
 

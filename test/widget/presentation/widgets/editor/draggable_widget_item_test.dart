@@ -156,6 +156,40 @@ void main() {
       });
     });
 
+    group('edit lifecycle callbacks', () {
+      testWidgets('passes onEditStarted and onEditEnded to WidgetRenderer', (
+        WidgetTester tester,
+      ) async {
+        var editStartedCalled = false;
+        var editEndedCalled = false;
+
+        await tester.pumpWidget(
+          createTestWidget(
+            child: DraggableWidgetItem(
+              widgetInstance: testWidget,
+              columnId: 1,
+              isEditable: true,
+              isLocked: false,
+              onEditStarted: () => editStartedCalled = true,
+              onEditEnded: () => editEndedCalled = true,
+            ),
+          ),
+        );
+
+        final renderer = tester.widget<WidgetRenderer>(
+          find.byType(WidgetRenderer),
+        );
+        expect(renderer.onEditStarted, isNotNull);
+        expect(renderer.onEditEnded, isNotNull);
+
+        renderer.onEditStarted!();
+        expect(editStartedCalled, isTrue);
+
+        renderer.onEditEnded!();
+        expect(editEndedCalled, isTrue);
+      });
+    });
+
     group('feedback widget', () {
       testWidgets(
         'feedback container uses maxWidth constraint instead of fixed width',
@@ -279,6 +313,58 @@ void main() {
         expect(foundOnErrorIcon, isTrue);
 
         await tester.pumpAndSettle();
+      });
+    });
+
+    group('full-width layout', () {
+      testWidgets('normal editable path fills full column width', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            child: DraggableWidgetItem(
+              widgetInstance: testWidget,
+              columnId: 1,
+              isEditable: true,
+              isLocked: false,
+            ),
+          ),
+        );
+
+        final sizedBoxFinder = find.byWidgetPredicate(
+          (widget) => widget is SizedBox && widget.width == double.infinity,
+        );
+        expect(sizedBoxFinder, findsOneWidget);
+      });
+
+      testWidgets('template-lock path fills full column width', (
+        WidgetTester tester,
+      ) async {
+        final templateWidget = WidgetInstance(
+          id: 99,
+          columnId: 1,
+          type: 'text',
+          version: '1.0.0',
+          index: 0,
+          props: {'content': 'Template'},
+          isTemplate: true,
+        );
+
+        await tester.pumpWidget(
+          createTestWidget(
+            child: DraggableWidgetItem(
+              widgetInstance: templateWidget,
+              columnId: 1,
+              isEditable: false,
+              isLocked: true,
+            ),
+          ),
+        );
+
+        final sizedBoxFinder = find.byWidgetPredicate(
+          (widget) => widget is SizedBox && widget.width == double.infinity,
+        );
+        expect(sizedBoxFinder, findsOneWidget);
       });
     });
 

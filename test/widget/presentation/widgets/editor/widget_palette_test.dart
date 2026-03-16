@@ -468,6 +468,52 @@ void main() {
         expect(rootContainer.constraints?.maxHeight, 60);
       });
 
+      testWidgets('short label shrinks to content width', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: WidgetPalette(registry: registry, axis: Axis.horizontal),
+            ),
+          ),
+        );
+
+        final itemBox = tester.renderObject<RenderBox>(
+          find.byKey(const Key('palette_item_text')),
+        );
+        // "TEXT" is short — item should shrink below 200px max
+        expect(itemBox.size.width, lessThan(200));
+      });
+
+      testWidgets('item width is capped at maxWidth', (
+        WidgetTester tester,
+      ) async {
+        // Register a widget with a very long type name
+        final longRegistry = WidgetRegistry();
+        longRegistry.register(textWidgetDefinition);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 800,
+                child: WidgetPalette(
+                  registry: longRegistry,
+                  axis: Axis.horizontal,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        // The palette item's rendered width should not exceed 200
+        final itemBox = tester.renderObject<RenderBox>(
+          find.byKey(const Key('palette_item_text')),
+        );
+        expect(itemBox.size.width, lessThanOrEqualTo(200));
+      });
+
       testWidgets('defaults to vertical axis', (WidgetTester tester) async {
         await tester.pumpWidget(
           MaterialApp(

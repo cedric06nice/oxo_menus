@@ -74,5 +74,37 @@ void main() {
       final repo = container.read(fileRepositoryProvider);
       expect(repo, isA<FileRepository>());
     });
+
+    group('directusAccessTokenProvider', () {
+      test('returns token from DirectusDataSource.currentAccessToken', () {
+        final mockDataSource = MockDirectusDataSource();
+        when(() => mockDataSource.currentAccessToken).thenReturn('test-token');
+
+        final tokenContainer = ProviderContainer(
+          overrides: [
+            directusDataSourceProvider.overrideWithValue(mockDataSource),
+          ],
+        );
+        addTearDown(tokenContainer.dispose);
+
+        final token = tokenContainer.read(directusAccessTokenProvider);
+        expect(token, 'test-token');
+      });
+
+      test('returns null when no token is available', () {
+        final mockDataSource = MockDirectusDataSource();
+        when(() => mockDataSource.currentAccessToken).thenReturn(null);
+
+        final tokenContainer = ProviderContainer(
+          overrides: [
+            directusDataSourceProvider.overrideWithValue(mockDataSource),
+          ],
+        );
+        addTearDown(tokenContainer.dispose);
+
+        final token = tokenContainer.read(directusAccessTokenProvider);
+        expect(token, isNull);
+      });
+    });
   });
 }

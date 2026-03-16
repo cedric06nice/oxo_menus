@@ -1,14 +1,12 @@
-import 'package:flutter_riverpod/legacy.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_state.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_state.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 /// Notifier for managing admin templates list state
-class AdminTemplatesNotifier extends StateNotifier<AdminTemplatesState> {
-  final MenuRepository _menuRepository;
-
-  AdminTemplatesNotifier(this._menuRepository)
-    : super(const AdminTemplatesState());
+class AdminTemplatesNotifier extends Notifier<AdminTemplatesState> {
+  @override
+  AdminTemplatesState build() => const AdminTemplatesState();
 
   /// Load templates from repository with optional status filter
   Future<void> loadTemplates({String? statusFilter}) async {
@@ -19,15 +17,14 @@ class AdminTemplatesNotifier extends StateNotifier<AdminTemplatesState> {
     );
 
     // Fetch all menus (not just published)
-    final result = await _menuRepository.listAll(onlyPublished: false);
+    final result = await ref
+        .read(menuRepositoryProvider)
+        .listAll(onlyPublished: false);
 
     result.fold(
       onSuccess: (menus) {
         // Filter templates based on status filter
         var templates = menus;
-
-        // Filter to only templates (area == null indicates template)
-        templates = templates.where((m) => m.area == null).toList();
 
         // Apply status filter if not 'all'
         if (state.statusFilter != 'all') {
@@ -46,7 +43,7 @@ class AdminTemplatesNotifier extends StateNotifier<AdminTemplatesState> {
 
   /// Delete a template by ID
   Future<void> deleteTemplate(int templateId) async {
-    final result = await _menuRepository.delete(templateId);
+    final result = await ref.read(menuRepositoryProvider).delete(templateId);
 
     result.fold(
       onSuccess: (_) {

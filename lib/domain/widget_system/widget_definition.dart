@@ -16,6 +16,12 @@ class WidgetContext {
   /// Callback to delete the widget
   final VoidCallback? onDelete;
 
+  /// Callback when widget editing starts (e.g., to acquire a lock)
+  final VoidCallback? onEditStarted;
+
+  /// Callback when widget editing ends (e.g., to release a lock)
+  final VoidCallback? onEditEnded;
+
   /// Menu-level display options
   final MenuDisplayOptions? displayOptions;
 
@@ -23,6 +29,8 @@ class WidgetContext {
     required this.isEditable,
     this.onUpdate,
     this.onDelete,
+    this.onEditStarted,
+    this.onEditEnded,
     this.displayOptions,
   });
 }

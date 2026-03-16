@@ -49,7 +49,7 @@ class WelcomeCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Manage your menus and templates',
+                      'Welcome on your dashboard',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onPrimary.withValues(alpha: 0.8),
                       ),

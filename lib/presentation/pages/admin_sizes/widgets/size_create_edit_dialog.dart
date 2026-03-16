@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/presentation/helpers/cupertino_picker_helper.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Result returned from the SizeCreateEditDialog
 class SizeCreateEditResult {
@@ -45,11 +46,6 @@ class _SizeCreateEditDialogState extends State<SizeCreateEditDialog> {
 
   bool get _isEditMode => widget.existingSize != null;
 
-  bool get _isApple {
-    final platform = Theme.of(context).platform;
-    return platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -83,7 +79,9 @@ class _SizeCreateEditDialogState extends State<SizeCreateEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return _isApple ? _buildAppleForm(context) : _buildMaterialDialog(context);
+    return isApplePlatform(context)
+        ? _buildAppleForm(context)
+        : _buildMaterialDialog(context);
   }
 
   Widget _buildAppleForm(BuildContext context) {

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
@@ -10,6 +11,7 @@ import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
+import 'package:oxo_menus/domain/repositories/asset_loader_repository.dart';
 import 'package:oxo_menus/domain/repositories/file_repository.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
@@ -18,12 +20,20 @@ import '../../helpers/test_image_data.dart';
 
 class MockFileRepository extends Mock implements FileRepository {}
 
+/// Uses rootBundle under the hood — tests already call ensureInitialized()
+class RootBundleAssetLoader implements AssetLoaderRepository {
+  @override
+  Future<ByteData> loadAsset(String assetPath) => rootBundle.load(assetPath);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late GeneratePdfUseCase useCase;
+  late AssetLoaderRepository assetLoader;
 
   setUp(() {
-    useCase = const GeneratePdfUseCase();
+    assetLoader = RootBundleAssetLoader();
+    useCase = GeneratePdfUseCase(assetLoader: assetLoader);
   });
 
   group('GeneratePdfUseCase', () {
@@ -1238,12 +1248,16 @@ void main() {
         mockFileRepository = MockFileRepository();
         useCaseWithRepo = GeneratePdfUseCase(
           fileRepository: mockFileRepository,
+          assetLoader: assetLoader,
         );
       });
 
       test('should accept an optional FileRepository parameter', () {
         final mockRepo = MockFileRepository();
-        final useCaseLocal = GeneratePdfUseCase(fileRepository: mockRepo);
+        final useCaseLocal = GeneratePdfUseCase(
+          fileRepository: mockRepo,
+          assetLoader: assetLoader,
+        );
         expect(useCaseLocal, isNotNull);
       });
 

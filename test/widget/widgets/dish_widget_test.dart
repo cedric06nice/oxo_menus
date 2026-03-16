@@ -442,6 +442,46 @@ void main() {
       expect(find.text('Vegan'), findsOneWidget);
     });
 
+    testWidgets(
+      'should call onEditStarted before and onEditEnded after edit dialog',
+      (tester) async {
+        const props = DishProps(name: 'Pasta Carbonara', price: 12.50);
+        var editStartedCount = 0;
+        var editEndedCount = 0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: DishWidget(
+                props: props,
+                context: WidgetContext(
+                  isEditable: true,
+                  onEditStarted: () => editStartedCount++,
+                  onEditEnded: () => editEndedCount++,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        // Tap to open edit dialog
+        await tester.tap(find.byType(Card));
+        await tester.pumpAndSettle();
+
+        // onEditStarted should have been called
+        expect(editStartedCount, 1);
+        // onEditEnded should NOT have been called yet
+        expect(editEndedCount, 0);
+
+        // Close the dialog
+        await tester.tap(find.text('Cancel'));
+        await tester.pumpAndSettle();
+
+        // onEditEnded should now have been called
+        expect(editEndedCount, 1);
+      },
+    );
+
     group('calories display', () {
       testWidgets(
         'should display calories after description when present and allergens showing',

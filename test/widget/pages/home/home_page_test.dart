@@ -163,7 +163,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Manage your menus and templates'), findsOneWidget);
+      expect(find.text('Welcome on your dashboard'), findsOneWidget);
     });
   });
 
@@ -313,13 +313,24 @@ void main() {
       expect(hasMax800, isTrue);
     });
 
-    testWidgets('uses LayoutBuilder for responsive grid', (tester) async {
+    testWidgets('uses Wrap for quick action cards layout', (tester) async {
       await tester.pumpWidget(
         createWidgetUnderTest(user: adminUser, isAdmin: true),
       );
       await tester.pumpAndSettle();
 
-      expect(find.byType(LayoutBuilder), findsAtLeastNWidgets(1));
+      expect(find.byType(Wrap), findsOneWidget);
+      expect(find.byType(GridView), findsNothing);
+    });
+
+    testWidgets('QuickActionCard sizes to intrinsic height', (tester) async {
+      await tester.pumpWidget(createWidgetUnderTest(user: regularUser));
+      await tester.pumpAndSettle();
+
+      final cardElement = find.byType(QuickActionCard).evaluate().first;
+      final cardBox = cardElement.renderObject! as RenderBox;
+      // Card should be shorter than its width (not square)
+      expect(cardBox.size.height, lessThan(cardBox.size.width));
     });
   });
 

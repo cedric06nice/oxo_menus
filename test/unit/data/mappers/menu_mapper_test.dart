@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/data/mappers/menu_mapper.dart';
 import 'package:oxo_menus/data/models/menu_dto.dart';
+import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
@@ -55,7 +56,8 @@ void main() {
         expect(entity.userCreated, 'f8205fcc-3816-4a93-9010-76df1a1f4a90');
         expect(entity.userUpdated, 'f8205fcc-3816-4a93-9010-76df1a1f4a90');
         expect(entity.pageSize, isNull);
-        expect(entity.area, null);
+        // Area is int-only (no expanded name), so maps to null
+        expect(entity.area, isNull);
 
         // StyleConfig
         expect(entity.styleConfig, isNotNull);
@@ -90,6 +92,49 @@ void main() {
         expect(entity.version, '1.0.0');
         expect(entity.styleConfig, isNull);
         expect(entity.pageSize, isNull);
+        expect(entity.area, isNull);
+      });
+
+      test('should map expanded area DTO to Area entity', () {
+        final dto = MenuDto({
+          'id': 1,
+          'status': 'draft',
+          'name': 'Menu',
+          'version': '1.0.0',
+          'area': {'id': 3, 'name': 'Terrace'},
+        });
+
+        final entity = MenuMapper.toEntity(dto);
+
+        expect(entity.area, isNotNull);
+        expect(entity.area!.id, 3);
+        expect(entity.area!.name, 'Terrace');
+      });
+
+      test('should map int-only area to null (no name data)', () {
+        final dto = MenuDto({
+          'id': 1,
+          'status': 'draft',
+          'name': 'Menu',
+          'version': '1.0.0',
+          'area': 1,
+        });
+
+        final entity = MenuMapper.toEntity(dto);
+
+        expect(entity.area, isNull);
+      });
+
+      test('should map null area to null', () {
+        final dto = MenuDto({
+          'id': 1,
+          'status': 'draft',
+          'name': 'Menu',
+          'version': '1.0.0',
+        });
+
+        final entity = MenuMapper.toEntity(dto);
+
         expect(entity.area, isNull);
       });
 
@@ -143,7 +188,7 @@ void main() {
             fontSize: 14.0,
             primaryColor: '#000000',
           ),
-          area: 'dining',
+          area: const Area(id: 1, name: 'Dining'),
           pageSize: const PageSize(name: 'A4', width: 210.0, height: 297.0),
         );
 
@@ -171,7 +216,7 @@ void main() {
           status: Status.draft,
           styleConfig: StyleConfig(fontFamily: 'Arial', fontSize: 14.0),
           sizeId: 3,
-          area: 'dining',
+          areaId: 1,
         );
 
         // Act
@@ -184,7 +229,7 @@ void main() {
         expect(dto['style_json'], isNotNull);
         expect(dto['style_json']['fontFamily'], 'Arial');
         expect(dto['size'], 3);
-        expect(dto['area'], 1); // Now converted from 'dining' string to 1 int
+        expect(dto['area'], 1);
       });
 
       test('should convert CreateMenuInput with minimal fields', () {

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/offline_banner.dart';
 
 /// Adaptive navigation scaffold using LayoutBuilder.
 ///
@@ -25,6 +28,18 @@ class AppShell extends ConsumerWidget {
     final location = GoRouterState.of(context).matchedLocation;
     final selectedIndex = _locationToIndex(location, isAdmin);
 
+    final connectivityAsync = ref.watch(connectivityProvider);
+    final isOffline = connectivityAsync.value == ConnectivityStatus.offline;
+
+    final wrappedChild = isOffline
+        ? Column(
+            children: [
+              const OfflineBanner(),
+              Expanded(child: child),
+            ],
+          )
+        : child;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
@@ -35,7 +50,7 @@ class AppShell extends ConsumerWidget {
             selectedIndex: selectedIndex,
             onDestinationSelected: (index) =>
                 _onDestinationSelected(context, index, isAdmin),
-            child: child,
+            child: wrappedChild,
           );
         }
 
@@ -45,7 +60,7 @@ class AppShell extends ConsumerWidget {
             selectedIndex: selectedIndex,
             onDestinationSelected: (index) =>
                 _onDestinationSelected(context, index, isAdmin),
-            child: child,
+            child: wrappedChild,
           );
         }
 
@@ -54,7 +69,7 @@ class AppShell extends ConsumerWidget {
           selectedIndex: selectedIndex,
           onDestinationSelected: (index) =>
               _onDestinationSelected(context, index, isAdmin),
-          child: child,
+          child: wrappedChild,
         );
       },
     );

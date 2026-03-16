@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_page.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_creator/admin_template_creator_page.dart';
@@ -13,7 +14,10 @@ import 'package:oxo_menus/presentation/pages/menu_editor/pdf_preview_page.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
 import 'package:oxo_menus/presentation/pages/settings/settings_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
+import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/app_shell.dart';
+import 'package:oxo_menus/presentation/widgets/common/offline_banner.dart';
 
 /// Listenable that notifies when auth state changes
 class AuthNotifierListenable extends ChangeNotifier {
@@ -32,12 +36,22 @@ final authListenableProvider = Provider<AuthNotifierListenable>((ref) {
 });
 
 /// Splash screen shown while checking authentication status
-class _SplashScreen extends StatelessWidget {
+class _SplashScreen extends ConsumerWidget {
   const _SplashScreen();
 
   @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isOffline =
+        ref.watch(connectivityProvider).value == ConnectivityStatus.offline;
+
+    return Scaffold(
+      body: Column(
+        children: [
+          if (isOffline) const OfflineBanner(),
+          const Expanded(child: Center(child: AdaptiveLoadingIndicator())),
+        ],
+      ),
+    );
   }
 }
 
