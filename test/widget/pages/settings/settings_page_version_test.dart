@@ -36,12 +36,12 @@ void main() {
   group('SettingsPage version display', () {
     testWidgets('should show version with build number', (tester) async {
       await tester.pumpWidget(
-        createWidgetUnderTest(user: regularUser, version: '1.1.2+42'),
+        createWidgetUnderTest(user: regularUser, version: '1.1.2 (42)'),
       );
       await tester.pumpAndSettle();
 
       expect(find.text('About'), findsOneWidget);
-      expect(find.text('Version 1.1.2+42'), findsOneWidget);
+      expect(find.text('Version 1.1.2 (42)'), findsOneWidget);
     });
 
     testWidgets('should show version for admin user', (tester) async {

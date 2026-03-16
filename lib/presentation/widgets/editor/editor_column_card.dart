@@ -11,12 +11,10 @@ import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
 class EditorColumnCard extends StatelessWidget {
   final entity.Column column;
   final List<WidgetInstance> widgets;
-  final int hoverIndex;
   final WidgetRegistry registry;
   final bool isSelected;
   final Widget? header;
   final VoidCallback? onTap;
-  final ValueChanged<int> onHoverIndexChanged;
   final Future<void> Function(String type, int columnId, int index)
   onWidgetDrop;
   final Future<void> Function(
@@ -32,12 +30,10 @@ class EditorColumnCard extends StatelessWidget {
     super.key,
     required this.column,
     required this.widgets,
-    required this.hoverIndex,
     required this.registry,
     this.isSelected = false,
     this.header,
     this.onTap,
-    required this.onHoverIndexChanged,
     required this.onWidgetDrop,
     required this.onWidgetMove,
     required this.widgetItemBuilder,
@@ -49,8 +45,7 @@ class EditorColumnCard extends StatelessWidget {
 
     final card = Container(
       key: Key('column_${column.id}'),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.all(8),
+      margin: const EdgeInsets.symmetric(horizontal: 2.0),
       decoration: BoxDecoration(
         border: Border.all(
           color: isSelected
@@ -61,13 +56,13 @@ class EditorColumnCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         color: theme.colorScheme.surface,
       ),
-      constraints: const BoxConstraints(minHeight: 100),
+      constraints: const BoxConstraints(minHeight: 20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ?header,
           if (column.isDroppable) ...[
-            _buildDroppableContent(theme),
+            _buildDroppableContent(),
           ] else ...[
             _buildNonDroppableContent(theme),
           ],
@@ -81,17 +76,15 @@ class EditorColumnCard extends StatelessWidget {
     return card;
   }
 
-  Widget _buildDroppableContent(ThemeData theme) {
+  Widget _buildDroppableContent() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (int i = 0; i <= widgets.length; i++) ...[
           EditorDropZone(
             columnId: column.id,
             index: i,
-            isHovering: hoverIndex == i,
             registry: registry,
-            onHoverIndexChanged: onHoverIndexChanged,
             onAccept: (dragData) {
               if (dragData.isNewWidget) {
                 onWidgetDrop(dragData.newWidgetType!, column.id, i);
@@ -107,26 +100,13 @@ class EditorColumnCard extends StatelessWidget {
           ),
           if (i < widgets.length) widgetItemBuilder(widgets[i], column.id),
         ],
-        if (widgets.isEmpty && hoverIndex == -1)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Text(
-                'Drop widgets here',
-                style: TextStyle(
-                  color: theme.colorScheme.onSurfaceVariant,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ),
       ],
     );
   }
 
   Widget _buildNonDroppableContent(ThemeData theme) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final widget in widgets) widgetItemBuilder(widget, column.id),
         if (widgets.isEmpty)

@@ -44,7 +44,6 @@ class _AdminTemplateEditorPageState
     extends ConsumerState<AdminTemplateEditorPage> {
   static const narrowBreakpoint = 600.0;
 
-  final Map<int, int> _hoverIndex = {};
   bool _isNarrow = false;
 
   final ScrollController _scrollController = ScrollController();
@@ -835,7 +834,6 @@ class _AdminTemplateEditorPageState
       key: Key('selectable_column_${column.id}'),
       column: droppableColumn,
       widgets: widgets,
-      hoverIndex: _hoverIndex[column.id] ?? -1,
       registry: registry,
       isSelected: isSelected,
       onTap: () => _selectElement(
@@ -868,11 +866,6 @@ class _AdminTemplateEditorPageState
           const SizedBox(height: 8),
         ],
       ),
-      onHoverIndexChanged: (index) {
-        setState(() {
-          _hoverIndex[column.id] = index;
-        });
-      },
       onWidgetDrop: _handleWidgetDropAtIndex,
       onWidgetMove: _handleWidgetMoveToIndex,
       widgetItemBuilder: (widgetInstance, columnId) => DraggableWidgetItem(

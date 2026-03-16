@@ -42,7 +42,6 @@ class MenuEditorPage extends ConsumerStatefulWidget {
 class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   static const narrowBreakpoint = 600.0;
 
-  final Map<int, int> _hoverIndex = {};
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -280,7 +279,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 900),
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(6.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: pages
@@ -305,7 +304,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(6.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -359,13 +358,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     return EditorColumnCard(
       column: column,
       widgets: widgets,
-      hoverIndex: _hoverIndex[column.id] ?? -1,
       registry: registry,
-      onHoverIndexChanged: (index) {
-        setState(() {
-          _hoverIndex[column.id] = index;
-        });
-      },
       onWidgetDrop: _handleWidgetDropAtIndex,
       onWidgetMove: _handleWidgetMoveToIndex,
       widgetItemBuilder: (widgetInstance, columnId) => DraggableWidgetItem(

@@ -316,6 +316,58 @@ void main() {
       });
     });
 
+    group('full-width layout', () {
+      testWidgets('normal editable path fills full column width', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            child: DraggableWidgetItem(
+              widgetInstance: testWidget,
+              columnId: 1,
+              isEditable: true,
+              isLocked: false,
+            ),
+          ),
+        );
+
+        final sizedBoxFinder = find.byWidgetPredicate(
+          (widget) => widget is SizedBox && widget.width == double.infinity,
+        );
+        expect(sizedBoxFinder, findsOneWidget);
+      });
+
+      testWidgets('template-lock path fills full column width', (
+        WidgetTester tester,
+      ) async {
+        final templateWidget = WidgetInstance(
+          id: 99,
+          columnId: 1,
+          type: 'text',
+          version: '1.0.0',
+          index: 0,
+          props: {'content': 'Template'},
+          isTemplate: true,
+        );
+
+        await tester.pumpWidget(
+          createTestWidget(
+            child: DraggableWidgetItem(
+              widgetInstance: templateWidget,
+              columnId: 1,
+              isEditable: false,
+              isLocked: true,
+            ),
+          ),
+        );
+
+        final sizedBoxFinder = find.byWidgetPredicate(
+          (widget) => widget is SizedBox && widget.width == double.infinity,
+        );
+        expect(sizedBoxFinder, findsOneWidget);
+      });
+    });
+
     group('locked mode (template widgets)', () {
       final templateWidget = WidgetInstance(
         id: 99,

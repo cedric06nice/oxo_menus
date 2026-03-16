@@ -5,15 +5,13 @@ import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
 /// A drop zone for accepting widget drag operations in the editor.
 ///
 /// Features:
+/// - Shows "Drop widgets here" text when idle
 /// - Visual feedback (blue line when hovering, grey for no-op drops)
 /// - No-op detection (prevents dropping widget at its current position)
-/// - Delayed hover leave (prevents flickering when moving between zones)
 class EditorDropZone extends StatefulWidget {
   final int columnId;
   final int index;
-  final bool isHovering;
   final WidgetRegistry registry;
-  final ValueChanged<int> onHoverIndexChanged;
   final void Function(WidgetDragData) onAccept;
   final double idleHeight;
 
@@ -21,11 +19,9 @@ class EditorDropZone extends StatefulWidget {
     super.key,
     required this.columnId,
     required this.index,
-    required this.isHovering,
     required this.registry,
-    required this.onHoverIndexChanged,
     required this.onAccept,
-    this.idleHeight = 32,
+    this.idleHeight = 24,
   });
 
   /// Check if dropping at this position would be a no-op (widget already at this position)
@@ -58,7 +54,6 @@ class _EditorDropZoneState extends State<EditorDropZone> {
         return false;
       },
       onAcceptWithDetails: (details) {
-        widget.onHoverIndexChanged(-1);
         final dragData = details.data;
 
         // Skip no-op drops (widget already at this position)
@@ -72,22 +67,11 @@ class _EditorDropZoneState extends State<EditorDropZone> {
 
         widget.onAccept(dragData);
       },
-      onMove: (details) {
-        widget.onHoverIndexChanged(widget.index);
-      },
-      onLeave: (data) {
-        // Small delay to prevent flickering when moving between zones
-        Future.delayed(const Duration(milliseconds: 50), () {
-          if (mounted) {
-            widget.onHoverIndexChanged(-1);
-          }
-        });
-      },
       builder: (context, candidateData, rejectedData) {
-        final showLine = widget.isHovering && candidateData.isNotEmpty;
+        final isHovering = candidateData.isNotEmpty;
         // Show a muted color for no-op positions
         final isNoOp =
-            candidateData.isNotEmpty &&
+            isHovering &&
             candidateData.first != null &&
             EditorDropZone.isNoOpDrop(
               candidateData.first!,
@@ -96,17 +80,38 @@ class _EditorDropZoneState extends State<EditorDropZone> {
             );
 
         final theme = Theme.of(context);
+
+        if (isHovering) {
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            height: 24,
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            decoration: BoxDecoration(
+              color: isNoOp
+                  ? theme.colorScheme.outline
+                  : theme.colorScheme.primary,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          );
+        }
+
         return AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          height: showLine ? 6 : widget.idleHeight,
+          height: widget.idleHeight,
           margin: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
-            color: showLine
-                ? (isNoOp
-                      ? theme.colorScheme.outline
-                      : theme.colorScheme.primary)
-                : Colors.transparent,
+            color: Colors.transparent,
             borderRadius: BorderRadius.circular(3),
+          ),
+          child: Center(
+            child: Text(
+              'Drop widgets here',
+              style: TextStyle(
+                color: theme.colorScheme.primary,
+                fontSize: 10,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
           ),
         );
       },

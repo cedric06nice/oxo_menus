@@ -22,8 +22,6 @@ void main() {
     Widget createTestWidget({
       required int columnId,
       required int index,
-      required bool isHovering,
-      ValueChanged<int>? onHoverIndexChanged,
       void Function(WidgetDragData)? onAccept,
     }) {
       return MaterialApp(
@@ -31,9 +29,7 @@ void main() {
           body: EditorDropZone(
             columnId: columnId,
             index: index,
-            isHovering: isHovering,
             registry: registry,
-            onHoverIndexChanged: onHoverIndexChanged ?? (_) {},
             onAccept: onAccept ?? (_) {},
           ),
         ),
@@ -41,103 +37,47 @@ void main() {
     }
 
     testWidgets('renders with correct key', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        createTestWidget(columnId: 1, index: 0, isHovering: false),
-      );
+      await tester.pumpWidget(createTestWidget(columnId: 1, index: 0));
 
       expect(find.byKey(const Key('drop_zone_1_0')), findsOneWidget);
     });
 
-    testWidgets('onHoverIndexChanged fires with index on move', (
-      WidgetTester tester,
-    ) async {
-      int? receivedIndex;
-
-      await tester.pumpWidget(
-        createTestWidget(
-          columnId: 1,
-          index: 2,
-          isHovering: false,
-          onHoverIndexChanged: (index) => receivedIndex = index,
-        ),
-      );
-
-      // Simulate drag enter
-      final dropZone = find.byKey(const Key('drop_zone_1_2'));
-      // final dragData = WidgetDragData.newWidget('dish');
-
-      await tester.drag(dropZone, const Offset(0, 0));
-      await tester.pumpAndSettle();
-
-      // Note: Testing DragTarget onMove is complex in widget tests
-      // This test verifies the callback is wired up correctly
-      expect(receivedIndex, isNull); // No actual drag in this simple test
-    });
-
-    testWidgets('onHoverIndexChanged fires with -1 on leave after delay', (
-      WidgetTester tester,
-    ) async {
-      int? receivedIndex;
-
-      await tester.pumpWidget(
-        createTestWidget(
-          columnId: 1,
-          index: 0,
-          isHovering: true,
-          onHoverIndexChanged: (index) => receivedIndex = index,
-        ),
-      );
-
-      // Verify callback is set up
-      expect(receivedIndex, isNull);
-    });
-
-    testWidgets('onAccept fires when drag is accepted', (
-      WidgetTester tester,
-    ) async {
-      WidgetDragData? receivedData;
-
-      await tester.pumpWidget(
-        createTestWidget(
-          columnId: 1,
-          index: 0,
-          isHovering: false,
-          onAccept: (data) => receivedData = data,
-        ),
-      );
-
-      // Note: Simulating DragTarget.onAccept in widget tests is complex
-      // This test verifies the callback is wired up correctly
-      expect(receivedData, isNull);
-    });
-
     testWidgets('renders DragTarget', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        createTestWidget(columnId: 1, index: 0, isHovering: false),
-      );
+      await tester.pumpWidget(createTestWidget(columnId: 1, index: 0));
 
       expect(find.byType(DragTarget<WidgetDragData>), findsOneWidget);
     });
 
-    testWidgets('contains AnimatedContainer', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        createTestWidget(columnId: 1, index: 0, isHovering: false),
-      );
-
-      expect(find.byType(AnimatedContainer), findsOneWidget);
-    });
-
-    testWidgets('idle drop zone has 32px height, 4px vertical margin', (
+    testWidgets('shows "Drop widgets here" text when idle', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        createTestWidget(columnId: 1, index: 0, isHovering: false),
-      );
+      await tester.pumpWidget(createTestWidget(columnId: 1, index: 0));
       await tester.pumpAndSettle();
 
-      // Total rendered height = 32 (content) + 4*2 (margin) = 40
-      final size = tester.getSize(find.byType(AnimatedContainer));
-      expect(size.height, 40.0);
+      expect(find.text('Drop widgets here'), findsOneWidget);
+    });
+
+    testWidgets('idle text is styled italic with 10px font', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(createTestWidget(columnId: 1, index: 0));
+      await tester.pumpAndSettle();
+
+      final text = tester.widget<Text>(find.text('Drop widgets here'));
+      expect(text.style?.fontStyle, FontStyle.italic);
+      expect(text.style?.fontSize, 10);
+    });
+
+    testWidgets('idle drop zone has correct height and margin', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(createTestWidget(columnId: 1, index: 0));
+      await tester.pumpAndSettle();
+
+      final container = tester.widget<AnimatedContainer>(
+        find.byType(AnimatedContainer),
+      );
+      expect(container.margin, const EdgeInsets.symmetric(vertical: 4));
     });
 
     testWidgets('custom idleHeight overrides default height', (
@@ -149,9 +89,7 @@ void main() {
             body: EditorDropZone(
               columnId: 1,
               index: 0,
-              isHovering: false,
               registry: registry,
-              onHoverIndexChanged: (_) {},
               onAccept: (_) {},
               idleHeight: 50,
             ),
@@ -163,36 +101,6 @@ void main() {
       // Total rendered height = 50 (content) + 4*2 (margin) = 58
       final size = tester.getSize(find.byType(AnimatedContainer));
       expect(size.height, 58.0);
-    });
-
-    testWidgets('idle margin is 4 pixels vertical', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        createTestWidget(columnId: 1, index: 0, isHovering: false),
-      );
-      await tester.pumpAndSettle();
-
-      final container = tester.widget<AnimatedContainer>(
-        find.byType(AnimatedContainer),
-      );
-      expect(container.margin, const EdgeInsets.symmetric(vertical: 4));
-    });
-
-    testWidgets('uses theme colorScheme.outline for no-op color', (
-      WidgetTester tester,
-    ) async {
-      await tester.pumpWidget(
-        createTestWidget(columnId: 1, index: 0, isHovering: false),
-      );
-
-      // Verify the widget builds without hardcoded Colors.grey[400]
-      // by checking it renders with theme colors
-      final container = tester.widget<AnimatedContainer>(
-        find.byType(AnimatedContainer),
-      );
-      final decoration = container.decoration as BoxDecoration;
-      expect(decoration.borderRadius, BorderRadius.circular(3));
     });
 
     group('isNoOpDrop static method', () {

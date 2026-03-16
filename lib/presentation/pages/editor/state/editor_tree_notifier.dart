@@ -170,11 +170,19 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
   }
 
   Future<Result<void, DomainError>> deleteWidget(int widgetId) async {
+    // Optimistic removal: update state immediately so the Dismissible
+    // animation doesn't conflict with the widget still being in the tree.
+    final updatedWidgets = {
+      for (final entry in state.widgets.entries)
+        entry.key: entry.value.where((w) => w.id != widgetId).toList(),
+    };
+    state = state.copyWith(widgets: updatedWidgets);
+
     final result = await ref.read(widgetRepositoryProvider).delete(widgetId);
 
-    if (result.isSuccess) {
-      await loadTree(separateHeaderFooter: _hasSeparateHeaderFooter);
-    }
+    // Reload tree to sync with server (also rolls back on failure).
+    await loadTree(separateHeaderFooter: _hasSeparateHeaderFooter);
+
     return result;
   }
 

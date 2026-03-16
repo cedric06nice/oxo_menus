@@ -66,68 +66,77 @@ class DraggableWidgetItem extends StatelessWidget {
 
     // Editing lock overlay: another user is editing this widget
     if (_isEditingLocked) {
-      return Container(
-        key: Key('editing_lock_overlay_${widgetInstance.id}'),
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: theme.colorScheme.tertiary.withValues(alpha: 0.6),
-            width: 2,
+      return SizedBox(
+        width: double.infinity,
+        child: Container(
+          key: Key('editing_lock_overlay_${widgetInstance.id}'),
+          margin: const EdgeInsets.only(bottom: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: theme.colorScheme.tertiary.withValues(alpha: 0.6),
+              width: 2,
+            ),
           ),
-        ),
-        child: Stack(
-          children: [
-            Opacity(
-              opacity: 0.5,
-              child: WidgetRenderer(
-                widgetInstance: widgetInstance,
-                isEditable: false,
+          child: Stack(
+            children: [
+              Opacity(
+                opacity: 0.5,
+                child: WidgetRenderer(
+                  widgetInstance: widgetInstance,
+                  isEditable: false,
+                ),
               ),
-            ),
-            Positioned(
-              top: 4,
-              right: 4,
-              child: EditingUserBadge(
-                userName: editingUserName,
-                userAvatar: editingUserAvatar,
+              Positioned(
+                top: 4,
+                right: 4,
+                child: EditingUserBadge(
+                  userName: editingUserName,
+                  userAvatar: editingUserAvatar,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
 
     if (isLocked) {
-      return Container(
-        key: Key('template_widget_${widgetInstance.id}'),
-        margin: const EdgeInsets.only(bottom: 8),
-        child: Stack(
-          children: [
-            WidgetRenderer(widgetInstance: widgetInstance, isEditable: false),
-            Positioned(
-              top: 4,
-              right: 4,
-              child: Icon(
-                isApple ? CupertinoIcons.lock : Icons.lock,
-                size: 16,
-                color: theme.colorScheme.onSurfaceVariant,
+      return SizedBox(
+        width: double.infinity,
+        child: Container(
+          key: Key('template_widget_${widgetInstance.id}'),
+          margin: const EdgeInsets.only(bottom: 8),
+          child: Stack(
+            children: [
+              WidgetRenderer(widgetInstance: widgetInstance, isEditable: false),
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Icon(
+                  isApple ? CupertinoIcons.lock : Icons.lock,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
 
-    final widgetContent = Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: WidgetRenderer(
-        widgetInstance: widgetInstance,
-        isEditable: isEditable,
-        onUpdate: onUpdate,
-        onDelete: onDelete,
-        onEditStarted: onEditStarted,
-        onEditEnded: onEditEnded,
+    final widgetContent = SizedBox(
+      width: double.infinity,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 0),
+        child: WidgetRenderer(
+          widgetInstance: widgetInstance,
+          isEditable: isEditable,
+          onUpdate: onUpdate,
+          onDelete: onDelete,
+          onEditStarted: onEditStarted,
+          onEditEnded: onEditEnded,
+        ),
       ),
     );
 
