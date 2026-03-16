@@ -6,5 +6,5 @@ final appVersionProvider = FutureProvider<String>((ref) async {
   if (info.buildNumber.isEmpty) {
     return info.version;
   }
-  return '${info.version}+${info.buildNumber}';
+  return '${info.version} (${info.buildNumber})';
 });
