@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
@@ -45,6 +46,7 @@ final generatePdfUseCaseProvider = Provider<GeneratePdfUseCase>((ref) {
   return GeneratePdfUseCase(
     fileRepository: ref.watch(fileRepositoryProvider),
     assetLoader: ref.watch(assetLoaderRepositoryProvider),
+    useIsolate: !kIsWeb,
   );
 });
 

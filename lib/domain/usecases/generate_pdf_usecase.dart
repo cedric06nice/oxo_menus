@@ -18,14 +18,17 @@ class GeneratePdfUseCase {
   final PdfDocumentBuilder _builder;
   final FileRepository? _fileRepository;
   final AssetLoaderRepository _assetLoader;
+  final bool _useIsolate;
 
   GeneratePdfUseCase({
     PdfStyleResolver resolver = const PdfStyleResolver(),
     FileRepository? fileRepository,
     required AssetLoaderRepository assetLoader,
+    bool useIsolate = true,
   }) : _builder = PdfDocumentBuilder(resolver: resolver),
        _fileRepository = fileRepository,
-       _assetLoader = assetLoader;
+       _assetLoader = assetLoader,
+       _useIsolate = useIsolate;
 
   /// Execute PDF generation for a menu tree
   Future<Result<Uint8List, DomainError>> execute(MenuTree menuTree) async {
@@ -41,16 +44,26 @@ class GeneratePdfUseCase {
       // 2. Pre-fetch images (HTTP — main thread)
       final imageCache = await _prefetchImages(menuTree);
 
-      // 3. Build PDF in background isolate (fixes main-thread hang)
-      final builder = _builder;
-      final bytes = await Isolate.run(
-        () => builder.buildDocument(
+      // 3. Build PDF — use isolate on native, main thread on web
+      final Uint8List bytes;
+      if (_useIsolate) {
+        final builder = _builder;
+        bytes = await Isolate.run(
+          () => builder.buildDocument(
+            menuTree: menuTree,
+            baseFontData: baseFontData,
+            boldFontData: boldFontData,
+            imageCache: imageCache,
+          ),
+        );
+      } else {
+        bytes = await _builder.buildDocument(
           menuTree: menuTree,
           baseFontData: baseFontData,
           boldFontData: boldFontData,
           imageCache: imageCache,
-        ),
-      );
+        );
+      }
 
       return Success(bytes);
     } catch (e) {
