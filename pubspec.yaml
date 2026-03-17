@@ -41,7 +41,7 @@ dependencies:
 
   # HTTP & Networking
   http: ^1.2.0
-  connectivity_plus: ^6.1.0
+  connectivity_plus: ^7.0.0
 
   # PDF Generation
   pdf: ^3.10.0
