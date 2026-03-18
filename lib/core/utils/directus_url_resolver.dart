@@ -10,12 +10,19 @@ String resolveDirectusUrl({
   required bool isWeb,
   required Uri baseUri,
 }) {
-  if (dartDefineUrl.isNotEmpty) return dartDefineUrl;
-
-  final host = baseUri.host;
-  if (isWeb && host.isNotEmpty && host != 'localhost') {
-    return 'https://api.$host';
+  String url;
+  if (dartDefineUrl.isNotEmpty) {
+    url = dartDefineUrl;
+  } else {
+    final host = baseUri.host;
+    if (isWeb && host.isNotEmpty && host != 'localhost') {
+      url = 'https://api.$host';
+    } else {
+      url = 'http://localhost:8055';
+    }
   }
-
-  return 'http://localhost:8055';
+  while (url.endsWith('/')) {
+    url = url.substring(0, url.length - 1);
+  }
+  return url;
 }
