@@ -16,7 +16,7 @@ import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart'
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/domain/repositories/presence_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/menu_editor_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
@@ -114,7 +114,7 @@ void main() {
         menuSubscriptionRepositoryProvider.overrideWithValue(mockSubRepo),
         presenceRepositoryProvider.overrideWithValue(mockPresenceRepo),
         widgetRepositoryProvider.overrideWithValue(MockWidgetRepo()),
-        widgetRegistryProvider.overrideWithValue(WidgetRegistry()),
+        widgetRegistryProvider.overrideWithValue(PresentableWidgetRegistry()),
         currentUserProvider.overrideWithValue(
           const User(
             id: 'user1',

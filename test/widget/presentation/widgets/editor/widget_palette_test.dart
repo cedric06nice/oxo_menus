@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/section_widget/section_widget_definition.dart';
@@ -9,10 +9,10 @@ import 'package:oxo_menus/presentation/widgets/text_widget/text_widget_definitio
 
 void main() {
   group('WidgetPalette', () {
-    late WidgetRegistry registry;
+    late PresentableWidgetRegistry registry;
 
     setUp(() {
-      registry = WidgetRegistry();
+      registry = PresentableWidgetRegistry();
       registry.register(dishWidgetDefinition);
       registry.register(sectionWidgetDefinition);
       registry.register(textWidgetDefinition);
@@ -490,7 +490,7 @@ void main() {
         WidgetTester tester,
       ) async {
         // Register a widget with a very long type name
-        final longRegistry = WidgetRegistry();
+        final longRegistry = PresentableWidgetRegistry();
         longRegistry.register(textWidgetDefinition);
 
         await tester.pumpWidget(

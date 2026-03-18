@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
 
 void main() {
-  late WidgetRegistry registry;
+  late PresentableWidgetRegistry registry;
 
   setUp(() {
-    registry = WidgetRegistry();
+    registry = PresentableWidgetRegistry();
     registry.register(dishWidgetDefinition);
   });
 

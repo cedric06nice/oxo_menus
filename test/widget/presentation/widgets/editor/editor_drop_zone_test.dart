@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
@@ -10,10 +10,10 @@ import 'package:oxo_menus/presentation/widgets/text_widget/text_widget_definitio
 
 void main() {
   group('EditorDropZone', () {
-    late WidgetRegistry registry;
+    late PresentableWidgetRegistry registry;
 
     setUp(() {
-      registry = WidgetRegistry();
+      registry = PresentableWidgetRegistry();
       registry.register(dishWidgetDefinition);
       registry.register(sectionWidgetDefinition);
       registry.register(textWidgetDefinition);

@@ -16,8 +16,8 @@ import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
-import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_definition.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_provider.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
@@ -33,9 +33,11 @@ class MockColumnRepository extends Mock implements ColumnRepository {}
 
 class MockWidgetRepository extends Mock implements WidgetRepository {}
 
-class MockWidgetRegistry extends Mock implements WidgetRegistry {}
+class MockPresentableWidgetRegistry extends Mock
+    implements PresentableWidgetRegistry {}
 
-class MockWidgetDefinition extends Mock implements WidgetDefinition {}
+class MockWidgetDefinition extends Mock
+    implements PresentableWidgetDefinition {}
 
 void main() {
   late MockMenuRepository mockMenuRepo;
@@ -43,7 +45,7 @@ void main() {
   late MockContainerRepository mockContainerRepo;
   late MockColumnRepository mockColumnRepo;
   late MockWidgetRepository mockWidgetRepo;
-  late MockWidgetRegistry mockWidgetRegistry;
+  late MockPresentableWidgetRegistry mockPresentableWidgetRegistry;
 
   const menuId = 1;
 
@@ -80,7 +82,7 @@ void main() {
     mockContainerRepo = MockContainerRepository();
     mockColumnRepo = MockColumnRepository();
     mockWidgetRepo = MockWidgetRepository();
-    mockWidgetRegistry = MockWidgetRegistry();
+    mockPresentableWidgetRegistry = MockPresentableWidgetRegistry();
   });
 
   setUpAll(() {
@@ -104,7 +106,7 @@ void main() {
         containerRepositoryProvider.overrideWithValue(mockContainerRepo),
         columnRepositoryProvider.overrideWithValue(mockColumnRepo),
         widgetRepositoryProvider.overrideWithValue(mockWidgetRepo),
-        widgetRegistryProvider.overrideWithValue(mockWidgetRegistry),
+        widgetRegistryProvider.overrideWithValue(mockPresentableWidgetRegistry),
       ],
     );
   }
@@ -404,7 +406,9 @@ void main() {
       await notifier.loadTree();
 
       final mockDef = MockWidgetDefinition();
-      when(() => mockWidgetRegistry.getDefinition('text')).thenReturn(mockDef);
+      when(
+        () => mockPresentableWidgetRegistry.getDefinition('text'),
+      ).thenReturn(mockDef);
       when(() => mockDef.defaultProps).thenReturn(_FakeProps());
       when(() => mockDef.version).thenReturn('1.0');
       when(() => mockWidgetRepo.create(any())).thenAnswer(
@@ -430,7 +434,9 @@ void main() {
       final container = createContainer();
       addTearDown(container.dispose);
 
-      when(() => mockWidgetRegistry.getDefinition('unknown')).thenReturn(null);
+      when(
+        () => mockPresentableWidgetRegistry.getDefinition('unknown'),
+      ).thenReturn(null);
 
       final notifier = container.read(editorTreeProvider(menuId).notifier);
       final result = await notifier.createWidget('unknown', 30, 0);
@@ -448,7 +454,9 @@ void main() {
       await notifier.loadTree();
 
       final mockDef = MockWidgetDefinition();
-      when(() => mockWidgetRegistry.getDefinition('text')).thenReturn(mockDef);
+      when(
+        () => mockPresentableWidgetRegistry.getDefinition('text'),
+      ).thenReturn(mockDef);
       when(() => mockDef.defaultProps).thenReturn(_FakeProps());
       when(() => mockDef.version).thenReturn('1.0');
       when(

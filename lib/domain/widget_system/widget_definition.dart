@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/widgets.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 
 /// Context provided to widgets during rendering
@@ -14,13 +12,13 @@ class WidgetContext {
   final void Function(Map<String, dynamic>)? onUpdate;
 
   /// Callback to delete the widget
-  final VoidCallback? onDelete;
+  final void Function()? onDelete;
 
   /// Callback when widget editing starts (e.g., to acquire a lock)
-  final VoidCallback? onEditStarted;
+  final void Function()? onEditStarted;
 
   /// Callback when widget editing ends (e.g., to release a lock)
-  final VoidCallback? onEditEnded;
+  final void Function()? onEditEnded;
 
   /// Menu-level display options
   final MenuDisplayOptions? displayOptions;
@@ -35,24 +33,15 @@ class WidgetContext {
   });
 }
 
-/// Generic widget definition with type-safe props
+/// Domain-pure widget definition with type-safe props.
 ///
-/// This class defines how a widget type behaves, including:
+/// This class defines a widget type's data behavior:
 /// - Parsing JSON props into typed objects
-/// - Rendering the widget with props and context
 /// - Providing default props for new instances
 /// - Optional migration function for version upgrades
 ///
-/// Example:
-/// ```dart
-/// final dishWidgetDefinition = WidgetDefinition<DishProps>(
-///   type: 'dish',
-///   version: '1.0.0',
-///   parseProps: (json) => DishProps.fromJson(json),
-///   render: (props, context) => DishWidget(props: props, context: context),
-///   defaultProps: const DishProps(name: 'New Dish', price: 0.0),
-/// );
-/// ```
+/// Rendering and UI concerns (icons, Flutter widgets) are handled
+/// by [PresentableWidgetDefinition] in the presentation layer.
 class WidgetDefinition<P> {
   /// Unique widget type identifier (e.g., 'dish', 'section')
   final String type;
@@ -63,16 +52,10 @@ class WidgetDefinition<P> {
   /// Parse JSON props into typed props object
   final P Function(Map<String, dynamic>) parseProps;
 
-  /// Render the widget with props and context (type-safe version)
-  final Widget Function(P props, WidgetContext context) render;
-
   /// Default props for new instances
   final P defaultProps;
 
   /// Optional migration function for version upgrades
-  ///
-  /// When a widget instance has an older version than the definition,
-  /// this function is called to migrate the props to the new format.
   final P Function(Map<String, dynamic>)? migrate;
 
   /// Human-readable display name (e.g., 'Dish', 'Wine')
@@ -80,30 +63,12 @@ class WidgetDefinition<P> {
   /// Falls back to [type] if not provided.
   final String? displayName;
 
-  /// Material icon for palette and UI display
-  final IconData? materialIcon;
-
-  /// Cupertino icon for palette and UI display on Apple platforms
-  final IconData? cupertinoIcon;
-
   const WidgetDefinition({
     required this.type,
     required this.version,
     required this.parseProps,
-    required this.render,
     required this.defaultProps,
     this.migrate,
     this.displayName,
-    this.materialIcon,
-    this.cupertinoIcon,
   });
-
-  /// Render the widget with dynamic props (type-erased version)
-  ///
-  /// This method is used by the WidgetRenderer to avoid generic type issues
-  /// when the definition is stored in a heterogeneous registry.
-  /// The props should already be parsed using [parseProps].
-  Widget renderDynamic(dynamic props, WidgetContext context) {
-    return render(props as P, context);
-  }
 }

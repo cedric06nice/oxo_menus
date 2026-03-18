@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widgets/wine/wine_props.dart';
-import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_definition.dart';
 import 'wine_widget.dart';
 
-final wineWidgetDefinition = WidgetDefinition<WineProps>(
+final wineWidgetDefinition = PresentableWidgetDefinition<WineProps>(
   type: 'wine',
   version: '1.0.0',
   parseProps: (json) => WineProps.fromJson(json),

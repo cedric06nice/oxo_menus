@@ -6,7 +6,7 @@
 test/
 ├── helpers/                    # Shared utilities (test_image_data.dart)
 ├── integration/                # Directus integration tests
-├── unit/                       # ~130 test files, mirrors lib/
+├── unit/                       # 130 test files, mirrors lib/
 │   ├── core/                   # Result, DomainError, router, URL resolver
 │   ├── data/
 │   │   ├── datasources/        # DirectusDataSource, WebSocket, SecureTokenStorage
@@ -22,16 +22,18 @@ test/
 │   │   └── widgets/            # Props tests (dish, image, section, text, wine)
 │   ├── presentation/
 │   │   ├── helpers/            # Status, grid, edit dialog helpers
-│   │   ├── pages/              # Notifier + state tests (admin_sizes, admin_templates, editor, home)
-│   │   ├── providers/          # Auth, menu_list, repos, usecases, widget_registry, image_data, display_options, subscription, presence, connectivity
+│   │   ├── pages/              # Notifier + state tests
+│   │   ├── providers/          # Auth, menu_list, repos, usecases, widget_registry, connectivity
 │   │   ├── theme/              # AppTheme
-│   │   └── widgets/            # Widget definition + editor tests (all 5 types + CRUD helper + drag data)
+│   │   └── widgets/            # Widget definition + editor tests (all 5 types + CRUD helper)
 │   └── usecases/               # GeneratePdf, PdfDocumentBuilder, PdfStyleResolver
-└── widget/                     # ~64 UI test files
+└── widget/                     # 64 UI test files
     ├── pages/                  # Page widget tests (all 10 pages incl. live sync + presence)
     ├── presentation/widgets/   # AllergenSelector, editor components, dialogs, presence bar
     └── widgets/                # Common widgets + type-specific render tests
 ```
+
+**Total:** 195 test files, 2023 test cases, 87.7% coverage
 
 ## Commands
 
@@ -47,13 +49,14 @@ flutter test test/widget/       # Widget only
 2. `flutter pub run build_runner build --delete-conflicting-outputs`
 3. `flutter analyze --fatal-infos`
 4. `flutter test --coverage --reporter expanded`
-5. Coverage ≥ 75% (LH/LF from lcov.info)
+5. Coverage >= 75% (LH/LF from lcov.info)
 
 ## Mocking Patterns
 
 ### Library: `mocktail`
 
 ### Unit / Provider Tests
+
 ```dart
 class MockAuthRepository extends Mock implements AuthRepository {}
 
@@ -65,6 +68,7 @@ setUp(() {
 ```
 
 ### Riverpod Provider Tests
+
 ```dart
 late ProviderContainer container;
 setUp(() {
@@ -76,6 +80,7 @@ tearDown(() => container.dispose());
 ```
 
 ### Widget Tests
+
 ```dart
 Widget createWidgetUnderTest() => ProviderScope(
   overrides: [authRepositoryProvider.overrideWithValue(mockAuthRepo)],
