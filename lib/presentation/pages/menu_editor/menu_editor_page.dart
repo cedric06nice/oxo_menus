@@ -29,6 +29,7 @@ import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart
 import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/editor/display_options_dialog_helper.dart';
+import 'package:oxo_menus/presentation/theme/app_spacing.dart';
 
 class MenuEditorPage extends ConsumerStatefulWidget {
   final int menuId;
@@ -40,7 +41,7 @@ class MenuEditorPage extends ConsumerStatefulWidget {
 }
 
 class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
-  static const narrowBreakpoint = 600.0;
+  static const narrowBreakpoint = AppBreakpoints.mobile;
 
   final ScrollController _scrollController = ScrollController();
 

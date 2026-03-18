@@ -1,14 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
-import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_definition.dart';
 import 'image_widget.dart';
 
 /// Widget definition for ImageWidget
 ///
 /// Registers the image widget type with the widget registry,
 /// defining how to parse props, render the widget, and provide defaults.
-final imageWidgetDefinition = WidgetDefinition<ImageProps>(
+final imageWidgetDefinition = PresentableWidgetDefinition<ImageProps>(
   type: 'image',
   version: '1.0.0',
   parseProps: (json) => ImageProps.fromJson(json),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/allergens/allergen_info.dart';
 import 'package:oxo_menus/domain/widgets/shared/dietary_type.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
-import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_definition.dart';
 import 'dish_widget.dart';
 
 /// Widget definition for DishWidget
@@ -16,7 +16,7 @@ import 'dish_widget.dart';
 /// - 2.0.0: Added structured allergenInfo with UK allergen support
 /// - 3.0.0: Changed dietary from `List<String>` to DietaryType? enum
 /// - 4.0.0: Added optional calories (int?) field
-final dishWidgetDefinition = WidgetDefinition<DishProps>(
+final dishWidgetDefinition = PresentableWidgetDefinition<DishProps>(
   type: 'dish',
   version: '4.0.0',
   parseProps: (json) => DishProps.fromJson(json),

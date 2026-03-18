@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
@@ -28,7 +27,6 @@ void main() {
         type: 'mock',
         version: '1.0.0',
         parseProps: (json) => MockProps.fromJson(json),
-        render: (props, context) => const SizedBox(),
         defaultProps: const MockProps('default'),
       );
 
@@ -43,7 +41,6 @@ void main() {
         type: 'test',
         version: '1.0.0',
         parseProps: (json) => MockProps.fromJson(json),
-        render: (props, context) => const SizedBox(),
         defaultProps: const MockProps('default'),
       );
 
@@ -67,7 +64,6 @@ void main() {
         type: 'widget1',
         version: '1.0.0',
         parseProps: (json) => MockProps.fromJson(json),
-        render: (props, context) => const SizedBox(),
         defaultProps: const MockProps('default'),
       );
 
@@ -75,7 +71,6 @@ void main() {
         type: 'widget2',
         version: '1.0.0',
         parseProps: (json) => MockProps.fromJson(json),
-        render: (props, context) => const SizedBox(),
         defaultProps: const MockProps('default'),
       );
 
@@ -94,7 +89,6 @@ void main() {
         type: 'registered',
         version: '1.0.0',
         parseProps: (json) => MockProps.fromJson(json),
-        render: (props, context) => const SizedBox(),
         defaultProps: const MockProps('default'),
       );
 
@@ -109,7 +103,6 @@ void main() {
         type: 'widget',
         version: '1.0.0',
         parseProps: (json) => MockProps.fromJson(json),
-        render: (props, context) => const SizedBox(),
         defaultProps: const MockProps('v1'),
       );
 
@@ -117,7 +110,6 @@ void main() {
         type: 'widget',
         version: '2.0.0',
         parseProps: (json) => MockProps.fromJson(json),
-        render: (props, context) => const SizedBox(),
         defaultProps: const MockProps('v2'),
       );
 
@@ -136,7 +128,6 @@ void main() {
           type: 'widget$i',
           version: '1.0.0',
           parseProps: (json) => MockProps.fromJson(json),
-          render: (props, context) => const SizedBox(),
           defaultProps: const MockProps('default'),
         );
         registry.register(definition);

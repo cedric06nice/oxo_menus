@@ -23,7 +23,7 @@ import 'package:oxo_menus/domain/entities/menu_change_event.dart';
 import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
 import 'package:oxo_menus/domain/repositories/presence_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/menu_editor_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
@@ -61,7 +61,7 @@ void main() {
   late MockWidgetRepository mockWidgetRepository;
   late MockMenuSubscriptionRepository mockMenuSubscriptionRepository;
   late MockPresenceRepository mockPresenceRepository;
-  late WidgetRegistry mockWidgetRegistry;
+  late PresentableWidgetRegistry mockPresentableWidgetRegistry;
 
   setUp(() {
     mockMenuRepository = MockMenuRepository();
@@ -106,10 +106,10 @@ void main() {
     ).thenAnswer((_) async {});
 
     // Set up widget registry with test widgets
-    mockWidgetRegistry = WidgetRegistry();
-    mockWidgetRegistry.register(dishWidgetDefinition);
-    mockWidgetRegistry.register(sectionWidgetDefinition);
-    mockWidgetRegistry.register(textWidgetDefinition);
+    mockPresentableWidgetRegistry = PresentableWidgetRegistry();
+    mockPresentableWidgetRegistry.register(dishWidgetDefinition);
+    mockPresentableWidgetRegistry.register(sectionWidgetDefinition);
+    mockPresentableWidgetRegistry.register(textWidgetDefinition);
 
     // Register fallback values
     registerFallbackValue(const CreateMenuInput(name: '', version: ''));
@@ -152,7 +152,7 @@ void main() {
         containerRepositoryProvider.overrideWithValue(mockContainerRepository),
         columnRepositoryProvider.overrideWithValue(mockColumnRepository),
         widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
-        widgetRegistryProvider.overrideWithValue(mockWidgetRegistry),
+        widgetRegistryProvider.overrideWithValue(mockPresentableWidgetRegistry),
         currentUserProvider.overrideWithValue(mockUser),
         menuSubscriptionRepositoryProvider.overrideWithValue(
           mockMenuSubscriptionRepository,
@@ -237,7 +237,9 @@ void main() {
             ),
             columnRepositoryProvider.overrideWithValue(mockColumnRepository),
             widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
-            widgetRegistryProvider.overrideWithValue(mockWidgetRegistry),
+            widgetRegistryProvider.overrideWithValue(
+              mockPresentableWidgetRegistry,
+            ),
             currentUserProvider.overrideWithValue(mockUser),
             menuSubscriptionRepositoryProvider.overrideWithValue(
               mockMenuSubscriptionRepository,

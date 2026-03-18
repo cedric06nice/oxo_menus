@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
+import 'package:oxo_menus/presentation/theme/app_spacing.dart';
 import 'package:oxo_menus/presentation/widgets/common/offline_banner.dart';
 
 /// Adaptive navigation scaffold using LayoutBuilder.
@@ -18,8 +19,8 @@ class AppShell extends ConsumerWidget {
 
   const AppShell({super.key, required this.child});
 
-  static const _mobileBreakpoint = 600.0;
-  static const _desktopBreakpoint = 1200.0;
+  static const _mobileBreakpoint = AppBreakpoints.mobile;
+  static const _desktopBreakpoint = AppBreakpoints.desktop;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

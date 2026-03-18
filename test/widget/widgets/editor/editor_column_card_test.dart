@@ -3,14 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
 
 void main() {
-  late WidgetRegistry registry;
+  late PresentableWidgetRegistry registry;
 
   setUp(() {
-    registry = WidgetRegistry();
+    registry = PresentableWidgetRegistry();
   });
 
   Widget buildTestWidget({

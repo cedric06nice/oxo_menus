@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 
@@ -24,7 +22,6 @@ void main() {
         type: 'test',
         version: '1.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
         defaultProps: const TestProps(name: 'default', value: 0),
       );
 
@@ -39,7 +36,6 @@ void main() {
         type: 'test',
         version: '1.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
         defaultProps: const TestProps(name: 'default', value: 0),
       );
 
@@ -50,33 +46,11 @@ void main() {
       expect(props.value, 42);
     });
 
-    testWidgets('should render widget with props and context', (tester) async {
-      final definition = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '1.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text('${props.name}: ${props.value}'),
-        defaultProps: const TestProps(name: 'default', value: 0),
-      );
-
-      const props = TestProps(name: 'test', value: 123);
-      const widgetContext = WidgetContext(isEditable: false);
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: definition.render(props, widgetContext)),
-        ),
-      );
-
-      expect(find.text('test: 123'), findsOneWidget);
-    });
-
     test('should support optional migrate function', () {
       final definitionWithMigration = WidgetDefinition<TestProps>(
         type: 'test',
         version: '2.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
         defaultProps: const TestProps(name: 'default', value: 0),
         migrate: (json) {
           // Example migration: add 100 to value
@@ -101,42 +75,46 @@ void main() {
         type: 'test',
         version: '1.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
         defaultProps: const TestProps(name: 'default', value: 0),
       );
 
       expect(definitionWithoutMigration.migrate, isNull);
     });
 
-    test('should accept optional displayName, materialIcon, cupertinoIcon', () {
+    test('should accept optional displayName', () {
       final definition = WidgetDefinition<TestProps>(
         type: 'test',
         version: '1.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
         defaultProps: const TestProps(name: 'default', value: 0),
         displayName: 'Test Widget',
-        materialIcon: Icons.widgets,
-        cupertinoIcon: CupertinoIcons.square_grid_2x2,
       );
 
       expect(definition.displayName, 'Test Widget');
-      expect(definition.materialIcon, Icons.widgets);
-      expect(definition.cupertinoIcon, CupertinoIcons.square_grid_2x2);
     });
 
-    test('display metadata defaults to null when not provided', () {
+    test('displayName defaults to null when not provided', () {
       final definition = WidgetDefinition<TestProps>(
         type: 'test',
         version: '1.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
         defaultProps: const TestProps(name: 'default', value: 0),
       );
 
       expect(definition.displayName, isNull);
-      expect(definition.materialIcon, isNull);
-      expect(definition.cupertinoIcon, isNull);
+    });
+
+    test('has no Flutter imports (domain purity)', () {
+      // This test documents that WidgetDefinition is domain-pure.
+      // It should compile without any flutter/widgets.dart imports.
+      final definition = WidgetDefinition<TestProps>(
+        type: 'pure',
+        version: '1.0.0',
+        parseProps: (json) => TestProps.fromJson(json),
+        defaultProps: const TestProps(name: 'default', value: 0),
+      );
+
+      expect(definition.type, 'pure');
     });
   });
 
@@ -177,6 +155,23 @@ void main() {
       expect(context.isEditable, false);
       expect(context.onUpdate, isNull);
       expect(context.onDelete, isNull);
+    });
+
+    test('should support onEditStarted and onEditEnded callbacks', () {
+      bool editStarted = false;
+      bool editEnded = false;
+
+      final context = WidgetContext(
+        isEditable: true,
+        onEditStarted: () => editStarted = true,
+        onEditEnded: () => editEnded = true,
+      );
+
+      context.onEditStarted!();
+      expect(editStarted, true);
+
+      context.onEditEnded!();
+      expect(editEnded, true);
     });
   });
 }

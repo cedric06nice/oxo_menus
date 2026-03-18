@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
@@ -34,7 +33,7 @@ void main() {
         type: 'test',
         version: '2.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
+
         defaultProps: const TestProps(name: 'default', value: 0),
       );
 
@@ -55,7 +54,7 @@ void main() {
         type: 'test',
         version: '1.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
+
         defaultProps: const TestProps(name: 'default', value: 0),
       );
 
@@ -76,7 +75,7 @@ void main() {
         type: 'test',
         version: '2.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
+
         defaultProps: const TestProps(name: 'default', value: 0),
         migrate: (json) {
           // Migration: add 100 to value
@@ -107,7 +106,7 @@ void main() {
         type: 'test',
         version: '2.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
+
         defaultProps: const TestProps(name: 'default', value: 0),
       );
 
@@ -132,7 +131,7 @@ void main() {
         type: 'test',
         version: '2.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
+
         defaultProps: const TestProps(name: 'default', value: 0),
         migrate: (json) {
           // Migration that throws an error
@@ -162,7 +161,7 @@ void main() {
         type: 'test',
         version: '2.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
+
         defaultProps: const TestProps(name: 'default', value: 0),
         migrate: (json) {
           // Migration that adds missing field
@@ -193,7 +192,7 @@ void main() {
         type: 'test',
         version: '2.0.0',
         parseProps: (json) => TestProps.fromJson(json),
-        render: (props, context) => Text(props.name),
+
         defaultProps: const TestProps(name: 'default', value: 0),
         migrate: (json) {
           throw Exception('Migration error');
