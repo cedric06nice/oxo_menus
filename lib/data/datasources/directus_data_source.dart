@@ -143,17 +143,14 @@ class DirectusDataSource {
       );
     }
 
-    final response = await _httpClient.post(
-      Uri.parse('$_baseUrl/auth/refresh'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'refresh_token': refreshToken, 'mode': 'json'}),
-    );
+    // Ensure the manager has the refresh token before attempting refresh
+    _apiManager.refreshToken = refreshToken;
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body) as Map<String, dynamic>;
-      final tokenData = data['data'] as Map<String, dynamic>?;
-      final newAccessToken = tokenData?['access_token'] as String?;
-      final newRefreshToken = tokenData?['refresh_token'] as String?;
+    final success = await _apiManager.tryAndRefreshToken();
+
+    if (success) {
+      final newAccessToken = _apiManager.accessToken;
+      final newRefreshToken = _apiManager.refreshToken;
 
       if (newAccessToken != null && newRefreshToken != null) {
         await _tokenStorage.saveTokens(
@@ -161,7 +158,6 @@ class DirectusDataSource {
           refreshToken: newRefreshToken,
         );
         _restoredAccessToken = newAccessToken;
-        _apiManager.refreshToken = newRefreshToken;
         return;
       }
     }
@@ -390,36 +386,34 @@ class DirectusDataSource {
   /// Download file bytes from Directus by file ID
   /// Directus serves files at GET /assets/{fileId}
   Future<Uint8List> downloadFileBytes(String fileId) async {
-    final accessToken = currentAccessToken;
-
-    if (accessToken == null || accessToken.isEmpty) {
-      throw DirectusException(
-        code: 'NOT_AUTHENTICATED',
-        message: 'No access token available',
+    try {
+      return await _apiManager.sendRequestToEndpoint<Uint8List>(
+        prepareRequest: () =>
+            http.Request('GET', Uri.parse('$_baseUrl/assets/$fileId')),
+        jsonConverter: (response) {
+          if (response.statusCode == 200) {
+            return response.bodyBytes;
+          } else if (response.statusCode == 404) {
+            throw DirectusException(
+              code: 'NOT_FOUND',
+              message: 'File not found: $fileId',
+            );
+          } else {
+            throw DirectusException(
+              code: 'DOWNLOAD_FAILED',
+              message: 'Failed to download file: ${response.statusCode}',
+            );
+          }
+        },
+        canUseCacheForResponse: false,
+        canSaveResponseToCache: false,
       );
-    }
-
-    final response = await _httpClient.get(
-      Uri.parse('$_baseUrl/assets/$fileId'),
-      headers: {'Authorization': 'Bearer $accessToken'},
-    );
-
-    if (response.statusCode == 200) {
-      return response.bodyBytes;
-    } else if (response.statusCode == 401) {
-      throw DirectusException(
-        code: 'NOT_AUTHENTICATED',
-        message: 'Authentication required',
-      );
-    } else if (response.statusCode == 404) {
-      throw DirectusException(
-        code: 'NOT_FOUND',
-        message: 'File not found: $fileId',
-      );
-    } else {
+    } on DirectusException {
+      rethrow;
+    } catch (e) {
       throw DirectusException(
         code: 'DOWNLOAD_FAILED',
-        message: 'Failed to download file: ${response.statusCode}',
+        message: 'Failed to download file: $e',
       );
     }
   }
