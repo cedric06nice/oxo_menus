@@ -25,6 +25,9 @@ All DTOs extend `DirectusItem` from `directus_api_manager` (except `UserDto` whi
 ### SizeDto, AreaDto, VersionDto, PresenceDto
 Standard Directus DTOs with typed relation resolution (int ID vs expanded Map).
 
+### PresenceDto (collection: `menu_presence`)
+`userId`, `menuId`, `lastSeen`, `userName?`, `userAvatar?`
+
 ## Mappers (`lib/data/mappers/`)
 
 Pattern: `XxxMapper.toEntity(dto)` for DTO→Entity, `toDto(entity)` for reverse. Input mappers: `toCreateDto(input)` → Map, `toUpdateDto(input)` → Map (only non-null fields).
