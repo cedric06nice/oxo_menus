@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
 
 /// A drop zone for accepting widget drag operations in the editor.
@@ -11,7 +11,7 @@ import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
 class EditorDropZone extends StatefulWidget {
   final int columnId;
   final int index;
-  final WidgetRegistry registry;
+  final PresentableWidgetRegistry registry;
   final void Function(WidgetDragData) onAccept;
   final double idleHeight;
 

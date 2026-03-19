@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
 
 /// Reusable column card for both AdminTemplateEditorPage and MenuEditorPage.
@@ -11,7 +11,7 @@ import 'package:oxo_menus/presentation/widgets/editor/editor_drop_zone.dart';
 class EditorColumnCard extends StatelessWidget {
   final entity.Column column;
   final List<WidgetInstance> widgets;
-  final WidgetRegistry registry;
+  final PresentableWidgetRegistry registry;
   final bool isSelected;
   final Widget? header;
   final VoidCallback? onTap;

@@ -83,91 +83,84 @@ void main() {
     });
 
     group('refreshSession', () {
-      test(
-        'syncs refreshToken to apiManager after successful refresh',
-        () async {
-          // Arrange — store a refresh token
-          fakeTokenStorage._refreshToken = 'old-refresh-token';
-          when(() => mockApiManager.refreshToken).thenReturn(null);
-
-          final responseBody = json.encode({
-            'data': {
-              'access_token': 'new-access-token',
-              'refresh_token': 'new-refresh-token',
-            },
-          });
-          when(
-            () => mockHttpClient.post(
-              any(),
-              headers: any(named: 'headers'),
-              body: any(named: 'body'),
-            ),
-          ).thenAnswer((_) async => http.Response(responseBody, 200));
-
-          // Act
-          await dataSource.refreshSession();
-
-          // Assert — refreshToken was set on the api manager
-          verify(
-            () => mockApiManager.refreshToken = 'new-refresh-token',
-          ).called(1);
-        },
-      );
-
-      test('uses injected httpClient instead of top-level http', () async {
-        // Arrange
+      test('delegates to apiManager.tryAndRefreshToken on success', () async {
+        // Arrange — store a refresh token
         fakeTokenStorage._refreshToken = 'old-refresh-token';
-        when(() => mockApiManager.refreshToken).thenReturn(null);
-
-        final responseBody = json.encode({
-          'data': {
-            'access_token': 'new-access-token',
-            'refresh_token': 'new-refresh-token',
-          },
+        var refreshCallCount = 0;
+        when(() => mockApiManager.refreshToken).thenAnswer((_) {
+          // Before tryAndRefreshToken: return null so it falls through to storage
+          // After tryAndRefreshToken: return the new token
+          return refreshCallCount > 0 ? 'new-refresh-token' : null;
         });
-        when(
-          () => mockHttpClient.post(
-            any(),
-            headers: any(named: 'headers'),
-            body: any(named: 'body'),
-          ),
-        ).thenAnswer((_) async => http.Response(responseBody, 200));
+        when(() => mockApiManager.tryAndRefreshToken()).thenAnswer((_) async {
+          refreshCallCount++;
+          return true;
+        });
+        when(() => mockApiManager.accessToken).thenReturn('new-access-token');
 
         // Act
         await dataSource.refreshSession();
 
-        // Assert — the mock httpClient was used (not top-level http.post)
+        // Assert — tryAndRefreshToken was called
+        verify(() => mockApiManager.tryAndRefreshToken()).called(1);
+        // refreshToken was set on the api manager before calling
         verify(
-          () => mockHttpClient.post(
-            Uri.parse('http://localhost:8055/auth/refresh'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode({
-              'refresh_token': 'old-refresh-token',
-              'mode': 'json',
-            }),
-          ),
+          () => mockApiManager.refreshToken = 'old-refresh-token',
         ).called(1);
+        // Tokens saved to storage
+        expect(await fakeTokenStorage.getAccessToken(), 'new-access-token');
+        expect(await fakeTokenStorage.getRefreshToken(), 'new-refresh-token');
+        // Restored access token set (accessible via currentAccessToken)
+        expect(dataSource.currentAccessToken, 'new-access-token');
       });
 
-      test('clears tokens and throws when refresh fails', () async {
-        // Arrange
-        fakeTokenStorage._refreshToken = 'old-refresh-token';
-        when(() => mockApiManager.refreshToken).thenReturn(null);
+      test(
+        'clears tokens and throws when tryAndRefreshToken returns false',
+        () async {
+          // Arrange
+          fakeTokenStorage._refreshToken = 'old-refresh-token';
+          when(() => mockApiManager.refreshToken).thenReturn(null);
+          when(
+            () => mockApiManager.tryAndRefreshToken(),
+          ).thenAnswer((_) async => false);
 
-        when(
-          () => mockHttpClient.post(
-            any(),
-            headers: any(named: 'headers'),
-            body: any(named: 'body'),
-          ),
-        ).thenAnswer((_) async => http.Response('Unauthorized', 401));
+          // Act & Assert
+          await expectLater(
+            () => dataSource.refreshSession(),
+            throwsA(
+              isA<DirectusException>().having(
+                (e) => e.code,
+                'code',
+                'TOKEN_EXPIRED',
+              ),
+            ),
+          );
+          // Tokens cleared from storage
+          expect(await fakeTokenStorage.getAccessToken(), isNull);
+          expect(await fakeTokenStorage.getRefreshToken(), isNull);
+        },
+      );
 
-        // Act & Assert
-        expect(
-          () => dataSource.refreshSession(),
-          throwsA(isA<DirectusException>()),
-        );
-      });
+      test(
+        'throws when no refresh token available without calling tryAndRefreshToken',
+        () async {
+          // Arrange — no token in storage or api manager
+          when(() => mockApiManager.refreshToken).thenReturn(null);
+
+          // Act & Assert
+          await expectLater(
+            () => dataSource.refreshSession(),
+            throwsA(
+              isA<DirectusException>().having(
+                (e) => e.code,
+                'code',
+                'TOKEN_EXPIRED',
+              ),
+            ),
+          );
+          verifyNever(() => mockApiManager.tryAndRefreshToken());
+        },
+      );
     });
 
     group('getCurrentUser delegates to apiManager', () {
@@ -262,15 +255,18 @@ void main() {
       });
     });
 
-    group('downloadFileBytes uses httpClient', () {
-      test('uses injected httpClient for GET request', () async {
+    group('downloadFileBytes', () {
+      test('delegates to apiManager.sendRequestToEndpoint', () async {
         // Arrange
-        when(() => mockApiManager.accessToken).thenReturn('test-token');
-
         final bytes = Uint8List.fromList([1, 2, 3, 4, 5]);
         when(
-          () => mockHttpClient.get(any(), headers: any(named: 'headers')),
-        ).thenAnswer((_) async => http.Response.bytes(bytes, 200));
+          () => mockApiManager.sendRequestToEndpoint<Uint8List>(
+            prepareRequest: any(named: 'prepareRequest'),
+            jsonConverter: any(named: 'jsonConverter'),
+            canSaveResponseToCache: any(named: 'canSaveResponseToCache'),
+            canUseCacheForResponse: any(named: 'canUseCacheForResponse'),
+          ),
+        ).thenAnswer((_) async => bytes);
 
         // Act
         final result = await dataSource.downloadFileBytes('file-123');
@@ -278,11 +274,66 @@ void main() {
         // Assert
         expect(result, bytes);
         verify(
-          () => mockHttpClient.get(
-            Uri.parse('http://localhost:8055/assets/file-123'),
-            headers: {'Authorization': 'Bearer test-token'},
+          () => mockApiManager.sendRequestToEndpoint<Uint8List>(
+            prepareRequest: any(named: 'prepareRequest'),
+            jsonConverter: any(named: 'jsonConverter'),
+            canSaveResponseToCache: any(named: 'canSaveResponseToCache'),
+            canUseCacheForResponse: any(named: 'canUseCacheForResponse'),
           ),
         ).called(1);
+      });
+
+      test(
+        'throws NOT_FOUND when sendRequestToEndpoint propagates 404',
+        () async {
+          // Arrange
+          when(
+            () => mockApiManager.sendRequestToEndpoint<Uint8List>(
+              prepareRequest: any(named: 'prepareRequest'),
+              jsonConverter: any(named: 'jsonConverter'),
+              canSaveResponseToCache: any(named: 'canSaveResponseToCache'),
+              canUseCacheForResponse: any(named: 'canUseCacheForResponse'),
+            ),
+          ).thenThrow(
+            DirectusException(code: 'NOT_FOUND', message: 'File not found'),
+          );
+
+          // Act & Assert
+          expect(
+            () => dataSource.downloadFileBytes('file-123'),
+            throwsA(
+              isA<DirectusException>().having(
+                (e) => e.code,
+                'code',
+                'NOT_FOUND',
+              ),
+            ),
+          );
+        },
+      );
+
+      test('throws DOWNLOAD_FAILED for other errors', () async {
+        // Arrange
+        when(
+          () => mockApiManager.sendRequestToEndpoint<Uint8List>(
+            prepareRequest: any(named: 'prepareRequest'),
+            jsonConverter: any(named: 'jsonConverter'),
+            canSaveResponseToCache: any(named: 'canSaveResponseToCache'),
+            canUseCacheForResponse: any(named: 'canUseCacheForResponse'),
+          ),
+        ).thenThrow(Exception('network error'));
+
+        // Act & Assert
+        expect(
+          () => dataSource.downloadFileBytes('file-123'),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'DOWNLOAD_FAILED',
+            ),
+          ),
+        );
       });
     });
 
@@ -306,21 +357,55 @@ void main() {
           fakeTokenStorage._accessToken = 'old-access';
           fakeTokenStorage._refreshToken = 'old-refresh';
           when(() => mockApiManager.refreshToken).thenReturn(null);
-          when(() => mockApiManager.accessToken).thenReturn(null);
-
-          final refreshResponse = json.encode({
-            'data': {
-              'access_token': 'restored-access-token',
-              'refresh_token': 'new-refresh-token',
-            },
-          });
           when(
-            () => mockHttpClient.post(
-              any(),
-              headers: any(named: 'headers'),
-              body: any(named: 'body'),
-            ),
-          ).thenAnswer((_) async => http.Response(refreshResponse, 200));
+            () => mockApiManager.tryAndRefreshToken(),
+          ).thenAnswer((_) async => true);
+          when(
+            () => mockApiManager.accessToken,
+          ).thenReturn('restored-access-token');
+          when(
+            () => mockApiManager.refreshToken,
+          ).thenReturn('new-refresh-token');
+
+          await dataSource.tryRestoreSession();
+
+          // Act & Assert — restored token should be available
+          expect(dataSource.currentAccessToken, 'restored-access-token');
+        },
+      );
+    });
+
+    group('currentAccessToken', () {
+      test('returns accessToken from apiManager when available', () {
+        when(() => mockApiManager.accessToken).thenReturn('api-token');
+
+        expect(dataSource.currentAccessToken, 'api-token');
+      });
+
+      test('returns null when no token is available', () {
+        when(() => mockApiManager.accessToken).thenReturn(null);
+
+        expect(dataSource.currentAccessToken, isNull);
+      });
+
+      test(
+        'returns restored token after session restore when apiManager has none',
+        () async {
+          // Arrange — restore a session
+          fakeTokenStorage._accessToken = 'old-access';
+          fakeTokenStorage._refreshToken = 'old-refresh';
+          when(() => mockApiManager.refreshToken).thenReturn(null);
+          when(() => mockApiManager.accessToken).thenReturn(null);
+          when(
+            () => mockApiManager.tryAndRefreshToken(),
+          ).thenAnswer((_) async => true);
+          // After successful refresh, apiManager returns the new tokens
+          when(() => mockApiManager.accessToken).thenReturn(
+            'restored-access-token',
+          );
+          when(() => mockApiManager.refreshToken).thenReturn(
+            'new-refresh-token',
+          );
 
           await dataSource.tryRestoreSession();
 
@@ -332,35 +417,26 @@ void main() {
 
     group('tryRestoreSession', () {
       test(
-        'sets apiManager.refreshToken after successful session restore',
+        'returns true and saves tokens after successful session restore',
         () async {
           // Arrange
           fakeTokenStorage._accessToken = 'old-access';
           fakeTokenStorage._refreshToken = 'old-refresh';
           when(() => mockApiManager.refreshToken).thenReturn(null);
-
-          final refreshResponse = json.encode({
-            'data': {
-              'access_token': 'new-access-token',
-              'refresh_token': 'new-refresh-token',
-            },
-          });
           when(
-            () => mockHttpClient.post(
-              any(),
-              headers: any(named: 'headers'),
-              body: any(named: 'body'),
-            ),
-          ).thenAnswer((_) async => http.Response(refreshResponse, 200));
+            () => mockApiManager.tryAndRefreshToken(),
+          ).thenAnswer((_) async => true);
+          when(() => mockApiManager.accessToken).thenReturn('new-access-token');
+          when(
+            () => mockApiManager.refreshToken,
+          ).thenReturn('new-refresh-token');
 
           // Act
           final result = await dataSource.tryRestoreSession();
 
           // Assert
           expect(result, isTrue);
-          verify(
-            () => mockApiManager.refreshToken = 'new-refresh-token',
-          ).called(1);
+          verify(() => mockApiManager.tryAndRefreshToken()).called(1);
         },
       );
     });

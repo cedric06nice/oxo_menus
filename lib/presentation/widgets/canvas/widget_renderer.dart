@@ -55,10 +55,8 @@ class WidgetRenderer extends ConsumerWidget {
         displayOptions: displayOptions,
       );
 
-      // Render the widget by calling the render function
-      // The render function expects (P props, WidgetContext context)
-      // We use dynamic invocation to work around the generic type constraint
-      return _renderWidget(definition, props, widgetContext);
+      // Render the widget using the presentable definition
+      return definition.renderDynamic(props, widgetContext);
     } catch (e) {
       return Container(
         padding: const EdgeInsets.all(8),
@@ -66,14 +64,5 @@ class WidgetRenderer extends ConsumerWidget {
         child: Text('Error rendering widget: $e'),
       );
     }
-  }
-
-  Widget _renderWidget(
-    WidgetDefinition definition,
-    dynamic props,
-    WidgetContext context,
-  ) {
-    // Use the type-erased renderDynamic method to avoid generic type issues
-    return definition.renderDynamic(props, context);
   }
 }

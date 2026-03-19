@@ -29,6 +29,7 @@ import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart
 import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/editor/display_options_dialog_helper.dart';
+import 'package:oxo_menus/presentation/theme/app_spacing.dart';
 
 class AdminTemplateEditorPage extends ConsumerStatefulWidget {
   final int menuId;
@@ -42,7 +43,7 @@ class AdminTemplateEditorPage extends ConsumerStatefulWidget {
 
 class _AdminTemplateEditorPageState
     extends ConsumerState<AdminTemplateEditorPage> {
-  static const narrowBreakpoint = 600.0;
+  static const narrowBreakpoint = AppBreakpoints.mobile;
 
   bool _isNarrow = false;
 

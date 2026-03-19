@@ -29,3 +29,10 @@ class AppElevation {
   static const double medium = 3;
   static const double high = 6;
 }
+
+class AppBreakpoints {
+  AppBreakpoints._();
+
+  static const double mobile = 600.0;
+  static const double desktop = 1200.0;
+}

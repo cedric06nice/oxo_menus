@@ -22,7 +22,7 @@ import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/repositories/area_repository.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/admin_template_editor_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
@@ -59,7 +59,7 @@ void main() {
   late MockWidgetRepository mockWidgetRepository;
   late MockSizeRepository mockSizeRepository;
   late MockAreaRepository mockAreaRepository;
-  late WidgetRegistry testWidgetRegistry;
+  late PresentableWidgetRegistry testPresentableWidgetRegistry;
   late MockGoRouter mockRouter;
 
   setUp(() {
@@ -72,11 +72,11 @@ void main() {
     mockAreaRepository = MockAreaRepository();
     mockRouter = MockGoRouter();
 
-    testWidgetRegistry = WidgetRegistry();
-    testWidgetRegistry.register(dishWidgetDefinition);
-    testWidgetRegistry.register(imageWidgetDefinition);
-    testWidgetRegistry.register(sectionWidgetDefinition);
-    testWidgetRegistry.register(textWidgetDefinition);
+    testPresentableWidgetRegistry = PresentableWidgetRegistry();
+    testPresentableWidgetRegistry.register(dishWidgetDefinition);
+    testPresentableWidgetRegistry.register(imageWidgetDefinition);
+    testPresentableWidgetRegistry.register(sectionWidgetDefinition);
+    testPresentableWidgetRegistry.register(textWidgetDefinition);
   });
 
   setUpAll(() {
@@ -122,7 +122,7 @@ void main() {
         widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
         sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
         areaRepositoryProvider.overrideWithValue(mockAreaRepository),
-        widgetRegistryProvider.overrideWithValue(testWidgetRegistry),
+        widgetRegistryProvider.overrideWithValue(testPresentableWidgetRegistry),
         currentUserProvider.overrideWithValue(mockUser),
       ],
       child: MaterialApp(

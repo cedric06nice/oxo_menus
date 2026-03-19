@@ -3,7 +3,7 @@
 ## Project
 
 OXO Menus — Flutter menu template builder with Directus CMS backend.
-SDK >=3.8.0 <4.0.0 | Flutter 3.24.0
+SDK >=3.8.0 <4.0.0 | Flutter 3.41.4 | Dart 3.11.1
 
 ## Architecture
 
@@ -108,7 +108,7 @@ flutter test test/widget/       # widget only
 ```
 
 - Structure mirrors `lib/`: `test/unit/`, `test/widget/`, `test/integration/`
-- ~130 unit tests, ~64 widget tests, 1 integration test
+- 195 test files (130 unit, 64 widget, 1 integration), 2023 test cases
 - Mocking: `mocktail`
 - CI enforces 75% coverage, `dart format`, `flutter analyze --fatal-infos`
 
@@ -120,6 +120,10 @@ flutter run --dart-define=DIRECTUS_URL=http://localhost:8055
 
 # Default fallback: http://localhost:8055
 ```
+
+## Deployment
+
+CI/CD via GitHub Actions (`deploy.yml`), 7 jobs: analyze → test → deploy-web (Docker/Nginx on VPS), build-android (APK), deploy-ios (TestFlight/AppStore via Fastlane), deploy-macos (Fastlane), sync-schema (Directus dev→prod).
 
 ## TDD — Mandatory Invariant
 

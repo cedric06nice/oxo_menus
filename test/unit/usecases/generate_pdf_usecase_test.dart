@@ -37,6 +37,34 @@ void main() {
   });
 
   group('GeneratePdfUseCase', () {
+    test(
+      'should generate PDF without isolate when useIsolate is false',
+      () async {
+        // Arrange — simulates the web platform where Isolate.run() is unavailable
+        final mainThreadUseCase = GeneratePdfUseCase(
+          assetLoader: assetLoader,
+          useIsolate: false,
+        );
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Main Thread Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [],
+        );
+
+        // Act
+        final result = await mainThreadUseCase.execute(menuTree);
+
+        // Assert
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull, isNotNull);
+        expect(result.valueOrNull!.isNotEmpty, true);
+      },
+    );
+
     test('should generate PDF for empty menu', () async {
       // Arrange
       const menuTree = MenuTree(

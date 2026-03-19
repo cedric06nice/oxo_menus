@@ -56,5 +56,23 @@ void main() {
       );
       expect(result, 'http://localhost:8055');
     });
+
+    test('strips trailing slash from dart-define URL', () {
+      final result = resolveDirectusUrl(
+        dartDefineUrl: 'https://api.example.com/',
+        isWeb: false,
+        baseUri: Uri.parse('http://localhost'),
+      );
+      expect(result, 'https://api.example.com');
+    });
+
+    test('strips multiple trailing slashes from dart-define URL', () {
+      final result = resolveDirectusUrl(
+        dartDefineUrl: 'https://api.example.com///',
+        isWeb: false,
+        baseUri: Uri.parse('http://localhost'),
+      );
+      expect(result, 'https://api.example.com');
+    });
   });
 }

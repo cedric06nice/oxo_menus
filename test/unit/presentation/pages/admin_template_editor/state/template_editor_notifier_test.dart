@@ -13,7 +13,7 @@ import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/state/template_editor_provider.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_provider.dart';
@@ -30,7 +30,8 @@ class MockColumnRepository extends Mock implements ColumnRepository {}
 
 class MockWidgetRepository extends Mock implements WidgetRepository {}
 
-class MockWidgetRegistry extends Mock implements WidgetRegistry {}
+class MockPresentableWidgetRegistry extends Mock
+    implements PresentableWidgetRegistry {}
 
 void main() {
   late MockMenuRepository mockMenuRepo;
@@ -38,7 +39,7 @@ void main() {
   late MockContainerRepository mockContainerRepo;
   late MockColumnRepository mockColumnRepo;
   late MockWidgetRepository mockWidgetRepo;
-  late MockWidgetRegistry mockWidgetRegistry;
+  late MockPresentableWidgetRegistry mockPresentableWidgetRegistry;
 
   const menuId = 1;
 
@@ -75,7 +76,7 @@ void main() {
     mockContainerRepo = MockContainerRepository();
     mockColumnRepo = MockColumnRepository();
     mockWidgetRepo = MockWidgetRepository();
-    mockWidgetRegistry = MockWidgetRegistry();
+    mockPresentableWidgetRegistry = MockPresentableWidgetRegistry();
   });
 
   setUpAll(() {
@@ -99,7 +100,7 @@ void main() {
         containerRepositoryProvider.overrideWithValue(mockContainerRepo),
         columnRepositoryProvider.overrideWithValue(mockColumnRepo),
         widgetRepositoryProvider.overrideWithValue(mockWidgetRepo),
-        widgetRegistryProvider.overrideWithValue(mockWidgetRegistry),
+        widgetRegistryProvider.overrideWithValue(mockPresentableWidgetRegistry),
       ],
     );
   }

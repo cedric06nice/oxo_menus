@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
-import 'package:oxo_menus/domain/widget_system/widget_registry.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_definition.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
 
 /// Resolves the icon for a widget definition, falling back to generic icons.
 IconData _getDefinitionIcon(
-  WidgetDefinition? definition, {
+  PresentableWidgetDefinition? definition, {
   required bool isApple,
 }) {
   if (definition != null) {
@@ -18,7 +18,7 @@ IconData _getDefinitionIcon(
 
 /// Widget palette for dragging widgets into the editor canvas.
 class WidgetPalette extends StatelessWidget {
-  final WidgetRegistry registry;
+  final PresentableWidgetRegistry registry;
   final List<String>? allowedWidgetTypes;
   final ValueChanged<List<String>>? onAllowedTypesChanged;
   final Axis axis;
@@ -115,7 +115,7 @@ class WidgetPalette extends StatelessWidget {
 /// Individual palette item that can be dragged
 class _PaletteItem extends StatelessWidget {
   final String type;
-  final WidgetDefinition? definition;
+  final PresentableWidgetDefinition? definition;
 
   const _PaletteItem({required this.type, required this.definition});
 
@@ -189,7 +189,7 @@ class _PaletteItem extends StatelessWidget {
 /// Admin palette item with checkbox for toggling widget availability
 class _AdminPaletteItem extends StatelessWidget {
   final String type;
-  final WidgetDefinition? definition;
+  final PresentableWidgetDefinition? definition;
   final bool isChecked;
   final ValueChanged<bool> onChanged;
 
