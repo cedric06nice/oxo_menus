@@ -6,7 +6,7 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
-import 'package:printing/printing.dart';
+import 'package:oxo_menus/presentation/widgets/common/pdf_viewer_widget.dart';
 
 /// PDF Preview Page
 ///
@@ -65,26 +65,9 @@ class PdfPreviewPage extends ConsumerWidget {
             return const Center(child: Text('No PDF data available'));
           }
 
-          return PdfPreview(
-            build: (format) => snapshot.data!,
-            canChangeOrientation: false,
-            canChangePageFormat: false,
-            canDebug: false,
-            allowPrinting: false,
-            allowSharing: true,
-            pdfFileName: 'menu_$menuId.pdf',
-            useActions: false,
-            actions: [
-              PdfPreviewAction(
-                icon: Icon(isApple ? CupertinoIcons.share_up : Icons.share),
-                onPressed: (context, _, _) {
-                  Printing.sharePdf(
-                    bytes: snapshot.data!,
-                    filename: 'menu_$menuId.pdf',
-                  );
-                },
-              ),
-            ],
+          return PdfViewerWidget(
+            pdfBytes: snapshot.data!,
+            filename: 'menu_$menuId.pdf',
           );
         },
       ),
