@@ -1,0 +1,34 @@
+name: PR Cleanup
+
+on:
+  pull_request:
+    branches: [prod]
+    types: [closed]
+
+jobs:
+  cleanup-preview:
+    name: Remove Preview Container
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Copy cleanup script to VPS
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: directus
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: deploy/scripts/pr-cleanup.sh
+          target: /tmp/
+          strip_components: 2
+
+      - name: Cleanup preview on VPS
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: directus
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            chmod +x /tmp/pr-cleanup.sh
+            /tmp/pr-cleanup.sh ${{ github.event.pull_request.number }}
+            rm /tmp/pr-cleanup.sh

@@ -4,12 +4,10 @@
 set -euo pipefail
 
 DOMAIN_FLUTTER_PROD="your-app.example.com"
-DOMAIN_FLUTTER_DEV="your-app-dev.example.com"
 DOMAIN_API_PROD="api.your-app.example.com"
 DOMAIN_API_DEV="api.your-app-dev.example.com"
 DEPLOY_USER="directus"
 DEPLOY_DIR="/home/${DEPLOY_USER}/oxo-menus"
-EMAIL="admin@example.com"
 
 echo "=== Installing Docker ==="
 if ! command -v docker &> /dev/null; then
@@ -24,46 +22,13 @@ else
 fi
 
 echo ""
-echo "=== Installing Certbot ==="
-if ! command -v certbot &> /dev/null; then
-    apt-get update
-    apt-get install -y certbot
-    echo "Certbot installed."
-else
-    echo "Certbot already installed."
-fi
-
-echo ""
-echo "=== Obtaining SSL certificates ==="
-echo "Make sure DNS A records for all 4 domains point to this server!"
-echo "  - ${DOMAIN_FLUTTER_PROD}"
-echo "  - ${DOMAIN_FLUTTER_DEV}"
-echo "  - ${DOMAIN_API_PROD}"
-echo "  - ${DOMAIN_API_DEV}"
-echo ""
-
-# Stop anything on port 80 temporarily for certbot standalone
-docker stop oxo-nginx-proxy 2>/dev/null || true
-
-for DOMAIN in ${DOMAIN_FLUTTER_PROD} ${DOMAIN_FLUTTER_DEV} ${DOMAIN_API_PROD} ${DOMAIN_API_DEV}; do
-    echo "--- Requesting certificate for ${DOMAIN} ---"
-    certbot certonly --standalone -d ${DOMAIN} \
-        --non-interactive --agree-tos --email ${EMAIL} \
-        || echo "Certificate for ${DOMAIN} may already exist"
-done
-
-echo ""
-echo "=== Setting up auto-renewal ==="
-cat > /etc/cron.d/certbot-renew << 'CRON'
-0 3 * * * root certbot renew --pre-hook "docker stop oxo-nginx-proxy || true" --post-hook "docker start oxo-nginx-proxy || true" --quiet
-CRON
-
-echo ""
 echo "=== Setting up deploy directory ==="
+mkdir -p ${DEPLOY_DIR}/traefik
+
 # Script is expected to run from within ${DEPLOY_DIR}
 if [ "$(pwd)" != "${DEPLOY_DIR}" ]; then
-    mkdir -p ${DEPLOY_DIR}
-    cp docker-compose.yml nginx-proxy.conf .env.example ${DEPLOY_DIR}/ 2>/dev/null || true
+    cp docker-compose.yml .env.example ${DEPLOY_DIR}/ 2>/dev/null || true
+    cp traefik/traefik.yml ${DEPLOY_DIR}/traefik/ 2>/dev/null || true
 fi
 
 echo ""
@@ -75,6 +40,11 @@ if [ ! -f "${DEPLOY_DIR}/.env" ]; then
     echo "  Generate passwords with: openssl rand -base64 32"
 else
     echo ".env already exists, skipping."
+fi
+
+# Initialize blue/green state
+if [ ! -f "${DEPLOY_DIR}/.active-slot" ]; then
+    echo "blue" > "${DEPLOY_DIR}/.active-slot"
 fi
 
 chown -R ${DEPLOY_USER}:${DEPLOY_USER} ${DEPLOY_DIR}
@@ -91,16 +61,25 @@ echo "  docker compose restart directus-dev directus-prod"
 echo ""
 echo "=== Setup complete ==="
 echo ""
+echo "New .env variables to set:"
+echo "  ACME_EMAIL         — Let's Encrypt registration email"
+echo "  DOMAIN_FLUTTER_PROD — e.g. oxo-menus.cedric06nice.com"
+echo "  DOMAIN_API_PROD    — e.g. api.oxo-menus.cedric06nice.com"
+echo "  DOMAIN_API_DEV     — e.g. api-dev.oxo-menus.cedric06nice.com"
+echo "  BLUE_ENABLED       — true (default)"
+echo "  GREEN_ENABLED      — false (default)"
+echo ""
 echo "Next steps:"
-echo "  1. Edit ${DEPLOY_DIR}/.env with real passwords and keys"
+echo "  1. Edit ${DEPLOY_DIR}/.env with real passwords, keys, and domains"
 echo "  2. cd ${DEPLOY_DIR} && docker compose up -d"
 echo "  3. Add GitHub secrets:"
 echo "     - VPS_HOST (this server's IP or hostname)"
 echo "     - SSH_PRIVATE_KEY (SSH key for '${DEPLOY_USER}' user)"
-echo "  4. Push to 'develop' or 'main' to trigger deployment"
+echo "  4. Push to 'prod' branch to trigger deployment"
+echo ""
+echo "Traefik will automatically obtain TLS certificates on first request."
 echo ""
 echo "Domains:"
 echo "  Flutter prod:  https://${DOMAIN_FLUTTER_PROD}"
-echo "  Flutter dev:   https://${DOMAIN_FLUTTER_DEV}"
 echo "  Directus prod: https://${DOMAIN_API_PROD}"
 echo "  Directus dev:  https://${DOMAIN_API_DEV}"
