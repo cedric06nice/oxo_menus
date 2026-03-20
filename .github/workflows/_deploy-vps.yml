@@ -1,0 +1,68 @@
+name: Deploy to VPS
+
+on:
+  workflow_call:
+    inputs:
+      artifact_name:
+        required: true
+        type: string
+      script_path:
+        required: true
+        type: string
+      script_args:
+        required: false
+        type: string
+        default: ''
+      environment:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      vps_host:
+        required: true
+      ssh_private_key:
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || '' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ inputs.artifact_name }}
+
+      - name: Copy image to VPS
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.vps_host }}
+          username: directus
+          key: ${{ secrets.ssh_private_key }}
+          source: image.tar.gz
+          target: /tmp/
+
+      - name: Copy deploy script to VPS
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.vps_host }}
+          username: directus
+          key: ${{ secrets.ssh_private_key }}
+          source: ${{ inputs.script_path }}
+          target: /tmp/
+          strip_components: 2
+
+      - name: Run deploy script on VPS
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.vps_host }}
+          username: directus
+          key: ${{ secrets.ssh_private_key }}
+          script: |
+            SCRIPT_NAME=$(basename ${{ inputs.script_path }})
+            chmod +x /tmp/$SCRIPT_NAME
+            /tmp/$SCRIPT_NAME ${{ inputs.script_args }}
+            rm /tmp/$SCRIPT_NAME /tmp/image.tar.gz

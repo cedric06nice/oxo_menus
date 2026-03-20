@@ -1,0 +1,52 @@
+name: Build Android
+
+on:
+  workflow_call:
+    inputs:
+      build_version:
+        required: false
+        type: string
+        default: ''
+      build_number:
+        required: true
+        type: string
+      artifact_name:
+        required: true
+        type: string
+      retention_days:
+        required: false
+        type: number
+        default: 90
+    secrets:
+      directus_url:
+        required: true
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-flutter
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Build APK
+        run: |
+          VERSION_FLAG=""
+          if [ -n "${{ inputs.build_version }}" ]; then
+            VERSION_FLAG="--build-name=${{ inputs.build_version }}"
+          fi
+          flutter build apk --release $VERSION_FLAG --build-number=${{ inputs.build_number }} --dart-define=DIRECTUS_URL=${{ secrets.directus_url }}
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: ${{ inputs.retention_days }}
