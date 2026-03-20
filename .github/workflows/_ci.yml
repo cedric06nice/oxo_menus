@@ -10,7 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-flutter
+        with:
+          skip_build_runner: 'true'
       - run: dart format --output=none --set-exit-if-changed .
+      - run: flutter pub run build_runner build --delete-conflicting-outputs
       - run: flutter analyze --fatal-infos
 
   test:
