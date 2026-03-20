@@ -15,7 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: |
-          FLUTTER_VERSION=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json | jq -r '.current_release.stable')
+          RELEASES_JSON=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json)
+          STABLE_HASH=$(echo "$RELEASES_JSON" | jq -r '.current_release.stable')
+          FLUTTER_VERSION=$(echo "$RELEASES_JSON" | jq -r --arg hash "$STABLE_HASH" '.releases[] | select(.hash == $hash) | .version')
           echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> $GITHUB_ENV
       - uses: subosito/flutter-action@v2
         with:
@@ -34,7 +36,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: |
-          FLUTTER_VERSION=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json | jq -r '.current_release.stable')
+          RELEASES_JSON=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json)
+          STABLE_HASH=$(echo "$RELEASES_JSON" | jq -r '.current_release.stable')
+          FLUTTER_VERSION=$(echo "$RELEASES_JSON" | jq -r --arg hash "$STABLE_HASH" '.releases[] | select(.hash == $hash) | .version')
           echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> $GITHUB_ENV
       - uses: subosito/flutter-action@v2
         with:
@@ -86,7 +90,9 @@ jobs:
           fetch-depth: 0
 
       - run: |
-          FLUTTER_VERSION=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json | jq -r '.current_release.stable')
+          RELEASES_JSON=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json)
+          STABLE_HASH=$(echo "$RELEASES_JSON" | jq -r '.current_release.stable')
+          FLUTTER_VERSION=$(echo "$RELEASES_JSON" | jq -r --arg hash "$STABLE_HASH" '.releases[] | select(.hash == $hash) | .version')
           echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
@@ -169,7 +175,9 @@ jobs:
           fetch-depth: 0
 
       - run: |
-          FLUTTER_VERSION=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json | jq -r '.current_release.stable')
+          RELEASES_JSON=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json)
+          STABLE_HASH=$(echo "$RELEASES_JSON" | jq -r '.current_release.stable')
+          FLUTTER_VERSION=$(echo "$RELEASES_JSON" | jq -r --arg hash "$STABLE_HASH" '.releases[] | select(.hash == $hash) | .version')
           echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
@@ -214,7 +222,9 @@ jobs:
           fetch-depth: 0
 
       - run: |
-          FLUTTER_VERSION=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json | jq -r '.current_release.stable')
+          RELEASES_JSON=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json)
+          STABLE_HASH=$(echo "$RELEASES_JSON" | jq -r '.current_release.stable')
+          FLUTTER_VERSION=$(echo "$RELEASES_JSON" | jq -r --arg hash "$STABLE_HASH" '.releases[] | select(.hash == $hash) | .version')
           echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> $GITHUB_ENV
 
       - uses: subosito/flutter-action@v2
@@ -255,7 +265,9 @@ jobs:
         with:
           fetch-depth: 0
       - run: |
-          FLUTTER_VERSION=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json | jq -r '.current_release.stable')
+          RELEASES_JSON=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json)
+          STABLE_HASH=$(echo "$RELEASES_JSON" | jq -r '.current_release.stable')
+          FLUTTER_VERSION=$(echo "$RELEASES_JSON" | jq -r --arg hash "$STABLE_HASH" '.releases[] | select(.hash == $hash) | .version')
           echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> $GITHUB_ENV
       - uses: subosito/flutter-action@v2
         with:
