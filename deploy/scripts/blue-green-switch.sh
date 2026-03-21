@@ -43,7 +43,7 @@ RETRIES=10
 HEALTHY=false
 
 for i in $(seq 1 ${RETRIES}); do
-  if docker exec "${CONTAINER}" wget --quiet --tries=1 --spider http://localhost/ 2>/dev/null; then
+  if docker exec "${CONTAINER}" wget --quiet --tries=1 --spider http://127.0.0.1/ 2>/dev/null; then
     HEALTHY=true
     break
   fi
