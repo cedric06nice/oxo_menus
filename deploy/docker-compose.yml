@@ -12,7 +12,7 @@ services:
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - traefik-acme:/acme
     environment:
-      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
+      TRAEFIK_CERTIFICATESRESOLVERS_LETSENCRYPT_ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL in .env}
     networks:
       - oxo-network
 

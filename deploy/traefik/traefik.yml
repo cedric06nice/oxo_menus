@@ -18,7 +18,7 @@ providers:
 certificatesResolvers:
   letsencrypt:
     acme:
-      email: "${ACME_EMAIL}"
+      email: "placeholder@replaced-by-env"
       storage: /acme/acme.json
       httpChallenge:
         entryPoint: web
