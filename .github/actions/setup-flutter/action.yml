@@ -28,15 +28,7 @@ runs:
       shell: bash
       run: flutter pub get
 
-    - name: Cache build_runner output
-      if: inputs.skip_build_runner != 'true'
-      id: build-runner-cache
-      uses: actions/cache@v4
-      with:
-        path: .dart_tool/build
-        key: build-runner-${{ runner.os }}-${{ hashFiles('lib/**/*.dart', 'pubspec.lock') }}
-
     - name: Run build_runner
-      if: inputs.skip_build_runner != 'true' && steps.build-runner-cache.outputs.cache-hit != 'true'
+      if: inputs.skip_build_runner != 'true'
       shell: bash
       run: flutter pub run build_runner build --delete-conflicting-outputs
