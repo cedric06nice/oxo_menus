@@ -21,7 +21,7 @@ docker rm "${CONTAINER_NAME}" 2>/dev/null || true
 echo "Starting container..."
 docker run -d \
   --name "${CONTAINER_NAME}" \
-  --network oxo-network \
+  --network oxo-menus_oxo-network \
   --restart unless-stopped \
   --label "traefik.enable=true" \
   --label "traefik.http.routers.${CONTAINER_NAME}.rule=Host(\`${DOMAIN}\`)" \
