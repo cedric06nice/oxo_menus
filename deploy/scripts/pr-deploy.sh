@@ -5,7 +5,13 @@ set -euo pipefail
 PR_NUMBER="${1:?Usage: pr-deploy.sh <PR_NUMBER>}"
 CONTAINER_NAME="oxo-menus-pr-${PR_NUMBER}"
 IMAGE_NAME="oxo-menus-pr-${PR_NUMBER}:latest"
-DOMAIN="pr-${PR_NUMBER}.oxo-menus.cedric06nice.com"
+
+# Source base domain from .env
+DEPLOY_DIR="${HOME}/oxo-menus"
+# shellcheck disable=SC1091
+source "${DEPLOY_DIR}/.env"
+BASE_DOMAIN="${DOMAIN_FLUTTER_PROD:?DOMAIN_FLUTTER_PROD must be set in .env}"
+DOMAIN="pr-${PR_NUMBER}.${BASE_DOMAIN}"
 
 echo "=== Deploying PR #${PR_NUMBER} preview ==="
 
