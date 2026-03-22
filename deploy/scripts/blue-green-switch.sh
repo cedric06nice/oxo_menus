@@ -54,7 +54,7 @@ done
 if [ "${HEALTHY}" = true ]; then
   echo "${NEXT_SLOT}" > "${SLOT_FILE}"
   echo "Switch complete. Active slot: ${NEXT_SLOT}"
-  rm -f /tmp/image.tar.gz
+  rm -f /tmp/image.tar.gz || true
 else
   echo "ERROR: ${NEXT_SLOT} slot failed health check. Rolling back..."
   # Revert .env

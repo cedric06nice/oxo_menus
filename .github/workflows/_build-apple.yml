@@ -72,7 +72,9 @@ jobs:
         run: |
           VERSION_FLAG=""
           if [ -n "${{ inputs.build_version }}" ]; then
-            VERSION_FLAG="--build-name=${{ inputs.build_version }}"
+            # Apple requires at most 3 numeric components (X.Y.Z)
+            CLEAN_VERSION=$(echo "${{ inputs.build_version }}" | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+')
+            VERSION_FLAG="--build-name=${CLEAN_VERSION}"
           fi
           flutter build ${{ matrix.build_cmd }} $VERSION_FLAG --build-number=${{ inputs.build_number }} --dart-define=DIRECTUS_URL=${{ secrets.directus_url }}
 

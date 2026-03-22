@@ -4,6 +4,9 @@ on:
   push:
     branches: [prod]
 
+permissions:
+  contents: write
+
 concurrency:
   group: production-deploy
   cancel-in-progress: false
