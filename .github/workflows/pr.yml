@@ -1,0 +1,98 @@
+name: PR Pipeline
+
+on:
+  pull_request:
+    branches: [prod]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: ./.github/workflows/_ci.yml
+
+  build-web:
+    needs: ci
+    uses: ./.github/workflows/_build-web-docker.yml
+    with:
+      image_name: oxo-menus-pr-${{ github.event.pull_request.number }}
+    secrets:
+      directus_url: ${{ secrets.DIRECTUS_URL_DEV }}
+
+  deploy-preview:
+    needs: build-web
+    uses: ./.github/workflows/_deploy-vps.yml
+    with:
+      artifact_name: docker-image-oxo-menus-pr-${{ github.event.pull_request.number }}
+      script_path: deploy/scripts/pr-deploy.sh
+      script_args: ${{ github.event.pull_request.number }}
+    secrets:
+      vps_host: ${{ secrets.VPS_HOST }}
+      ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+  comment-preview:
+    name: Comment Preview URL
+    needs: deploy-preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment PR with preview URL
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const domain = '${{ vars.DOMAIN_FLUTTER_PROD }}';
+            const url = `https://pr-${prNumber}.${domain}/`;
+            const body = `Preview deployed: ${url}`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const botComment = comments.find(c => c.body.startsWith('Preview deployed:'));
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
+
+  build-apple:
+    needs: ci
+    if: contains(github.event.pull_request.labels.*.name, 'deploy-mobile')
+    uses: ./.github/workflows/_build-apple.yml
+    with:
+      lane: beta
+      build_number: ${{ github.run_number }}
+    secrets:
+      directus_url: ${{ secrets.DIRECTUS_URL_DEV }}
+      match_git_url: ${{ secrets.MATCH_GIT_URL }}
+      match_git_basic_authorization: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+      match_password: ${{ secrets.MATCH_PASSWORD }}
+      asc_key_id: ${{ secrets.ASC_KEY_ID }}
+      asc_issuer_id: ${{ secrets.ASC_ISSUER_ID }}
+      asc_key_content: ${{ secrets.ASC_KEY_CONTENT }}
+
+  build-android:
+    needs: ci
+    if: contains(github.event.pull_request.labels.*.name, 'deploy-mobile')
+    uses: ./.github/workflows/_build-android.yml
+    with:
+      build_number: ${{ github.run_number }}
+      artifact_name: android-apk-pr-${{ github.event.pull_request.number }}
+      retention_days: 7
+    secrets:
+      directus_url: ${{ secrets.DIRECTUS_URL_DEV }}

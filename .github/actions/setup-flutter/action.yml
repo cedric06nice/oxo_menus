@@ -1,0 +1,34 @@
+name: Setup Flutter
+description: Resolve latest stable Flutter version, install SDK, pub get, and build_runner with caching
+
+inputs:
+  skip_build_runner:
+    description: 'Skip build_runner step (useful when format must run before codegen)'
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve Flutter stable version
+      shell: bash
+      run: |
+        RELEASES_JSON=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json)
+        STABLE_HASH=$(echo "$RELEASES_JSON" | jq -r '.current_release.stable')
+        FLUTTER_VERSION=$(echo "$RELEASES_JSON" | jq -r --arg hash "$STABLE_HASH" '.releases[] | select(.hash == $hash) | .version')
+        echo "FLUTTER_VERSION=$FLUTTER_VERSION" >> $GITHUB_ENV
+
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+
+    - name: Install dependencies
+      shell: bash
+      run: flutter pub get
+
+    - name: Run build_runner
+      if: inputs.skip_build_runner != 'true'
+      shell: bash
+      run: flutter pub run build_runner build --delete-conflicting-outputs

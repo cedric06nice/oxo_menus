@@ -1,323 +1,131 @@
-name: Deploy
+name: Production Deploy
 
 on:
   push:
-    branches: [main, develop]
+    branches: [prod]
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
 
 jobs:
-  analyze:
-    name: Analyze & Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.41.4'
-          channel: 'stable'
-          cache: true
-      - run: flutter pub get
-      - run: dart format --output=none --set-exit-if-changed .
-      - run: flutter pub run build_runner build --delete-conflicting-outputs
-      - run: flutter analyze --fatal-infos
+  ci:
+    uses: ./.github/workflows/_ci.yml
 
-  test:
-    name: Test
+  version:
+    name: Version (Semver)
     runs-on: ubuntu-latest
-    needs: analyze
-    steps:
-      - uses: actions/checkout@v5
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.41.4'
-          channel: 'stable'
-          cache: true
-      - run: flutter pub get
-      - run: flutter pub run build_runner build --delete-conflicting-outputs
-      - run: flutter test --coverage --reporter expanded
-      - name: Check coverage threshold (75%)
-        run: |
-          COVERAGE=$(grep -o "LH:[0-9]*" coverage/lcov.info | awk -F: '{sum += $2} END {print sum}')
-          TOTAL=$(grep -o "LF:[0-9]*" coverage/lcov.info | awk -F: '{sum += $2} END {print sum}')
-          PCT=$(awk "BEGIN {printf \"%.2f\", ($COVERAGE/$TOTAL)*100}")
-          echo "Coverage: $PCT%"
-          if (( $(echo "$PCT < 75.0" | bc -l) )); then
-            echo "::error::Coverage $PCT% is below 75% threshold"
-            exit 1
-          fi
-
-  deploy-web:
-    name: Deploy Web → ${{ github.ref_name == 'main' && 'Production' || 'Staging' }}
-    runs-on: ubuntu-latest
-    needs: test
-    environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    needs: ci
+    outputs:
+      new_version: ${{ steps.tag.outputs.new_version }}
+      new_tag: ${{ steps.tag.outputs.new_tag }}
+      changelog: ${{ steps.tag.outputs.changelog }}
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
-      - name: Get version from git tag
-        run: |
-          VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0")
-          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "App version: $VERSION"
-
-      - uses: subosito/flutter-action@v2
+      - name: Bump version and push tag
+        id: tag
+        uses: mathieudutour/github-tag-action@v6.2
         with:
-          flutter-version: '3.41.4'
-          channel: 'stable'
-          cache: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
 
-      - run: flutter pub get
-      - run: flutter pub run build_runner build --delete-conflicting-outputs
+  build-web:
+    needs: version
+    uses: ./.github/workflows/_build-web-docker.yml
+    with:
+      image_name: oxo-menus-prod
+      build_version: ${{ needs.version.outputs.new_version }}
+    secrets:
+      directus_url: ${{ secrets.DIRECTUS_URL_PROD }}
 
-      - name: Set environment
-        run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_PROD }}" >> $GITHUB_ENV
-            echo "IMAGE_NAME=oxo-menus-prod" >> $GITHUB_ENV
-          else
-            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_DEV }}" >> $GITHUB_ENV
-            echo "IMAGE_NAME=oxo-menus-staging" >> $GITHUB_ENV
-          fi
+  deploy-web:
+    needs: build-web
+    uses: ./.github/workflows/_deploy-vps.yml
+    with:
+      artifact_name: docker-image-oxo-menus-prod
+      script_path: deploy/scripts/blue-green-switch.sh
+      environment: production
+    secrets:
+      vps_host: ${{ secrets.VPS_HOST }}
+      ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Build web
-        run: flutter build web --release --build-name=${{ env.APP_VERSION }} --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
+  build-apple:
+    needs: version
+    uses: ./.github/workflows/_build-apple.yml
+    with:
+      lane: release
+      build_version: ${{ needs.version.outputs.new_version }}
+      build_number: ${{ github.run_number }}
+    secrets:
+      directus_url: ${{ secrets.DIRECTUS_URL_PROD }}
+      match_git_url: ${{ secrets.MATCH_GIT_URL }}
+      match_git_basic_authorization: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+      match_password: ${{ secrets.MATCH_PASSWORD }}
+      asc_key_id: ${{ secrets.ASC_KEY_ID }}
+      asc_issuer_id: ${{ secrets.ASC_ISSUER_ID }}
+      asc_key_content: ${{ secrets.ASC_KEY_CONTENT }}
 
-      - name: Set up QEMU (for ARM64 cross-build)
-        uses: docker/setup-qemu-action@v4
+  build-android:
+    needs: version
+    uses: ./.github/workflows/_build-android.yml
+    with:
+      build_version: ${{ needs.version.outputs.new_version }}
+      build_number: ${{ github.run_number }}
+      artifact_name: android-apk
+      retention_days: 90
+    secrets:
+      directus_url: ${{ secrets.DIRECTUS_URL_PROD }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build Docker image (linux/arm64)
-        uses: docker/build-push-action@v7
+  release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    needs: [version, deploy-web, build-apple, build-android]
+    steps:
+      - uses: actions/checkout@v5
+      - name: Download Android APK
+        uses: actions/download-artifact@v5
         with:
-          context: .
-          platforms: linux/arm64
-          tags: |
-            ${{ env.IMAGE_NAME }}:${{ github.sha }}
-            ${{ env.IMAGE_NAME }}:latest
-          outputs: type=docker,dest=image.tar
+          name: android-apk
+          path: artifacts/
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.version.outputs.new_tag }}
+          name: v${{ needs.version.outputs.new_version }}
+          body: ${{ needs.version.outputs.changelog }}
+          files: artifacts/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compress Docker image
-        run: gzip image.tar -c > image.tar.gz
-
-      - name: Copy image to VPS
+  export-schema:
+    name: Export Directus Schema
+    runs-on: ubuntu-latest
+    needs: deploy-web
+    steps:
+      - name: Export schema from prod Directus
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: directus
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker exec oxo-directus-prod npx directus schema snapshot /tmp/schema-snapshot.yaml --yes
+            docker cp oxo-directus-prod:/tmp/schema-snapshot.yaml /tmp/schema-snapshot.yaml
+            docker exec oxo-directus-prod rm -f /tmp/schema-snapshot.yaml
+      - name: Download schema from VPS
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
           username: directus
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: image.tar.gz
-          target: /tmp/
-
-      - name: Deploy on VPS
-        uses: appleboy/ssh-action@v1.2.5
+          source: /tmp/schema-snapshot.yaml
+          target: ./
+          strip_components: 1
+      - name: Upload schema as artifact
+        uses: actions/upload-artifact@v5
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: directus
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            docker load < /tmp/image.tar.gz
-            cd ~/oxo-menus
-            docker compose up -d --no-deps ${{ env.IMAGE_NAME }}
-            rm /tmp/image.tar.gz
-            echo "Deployed ${{ env.IMAGE_NAME }}:${{ github.sha }}"
-
-  sync-schema:
-    name: Sync Directus schema dev → prod
-    runs-on: ubuntu-latest
-    needs: deploy-web
-    if: github.ref_name == 'main'
-    steps:
-      - name: Export dev schema and apply to prod
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: directus
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            echo "=== Exporting schema from Directus dev ==="
-            docker exec oxo-directus-dev npx directus schema snapshot /tmp/schema-snapshot.yaml --yes
-
-            echo "=== Copying snapshot to prod container ==="
-            docker cp oxo-directus-dev:/tmp/schema-snapshot.yaml /tmp/schema-snapshot.yaml
-            docker cp /tmp/schema-snapshot.yaml oxo-directus-prod:/tmp/schema-snapshot.yaml
-
-            echo "=== Applying schema diff to Directus prod ==="
-            docker exec oxo-directus-prod npx directus schema apply /tmp/schema-snapshot.yaml --yes
-
-            echo "=== Cleaning up ==="
-            rm -f /tmp/schema-snapshot.yaml
-            docker exec oxo-directus-dev rm -f /tmp/schema-snapshot.yaml
-            docker exec oxo-directus-prod rm -f /tmp/schema-snapshot.yaml
-
-            echo "Schema sync complete"
-
-  build-android:
-    name: Build Android → ${{ github.ref_name == 'main' && 'Production' || 'Staging' }}
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Get version from git tag
-        run: |
-          VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0")
-          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "App version: $VERSION"
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.41.4'
-          channel: 'stable'
-          cache: true
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-
-      - name: Set Directus URL
-        run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_PROD }}" >> $GITHUB_ENV
-          else
-            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_DEV }}" >> $GITHUB_ENV
-          fi
-
-      - run: flutter pub get
-      - run: flutter pub run build_runner build --delete-conflicting-outputs
-      - run: flutter build apk --release --build-name=${{ env.APP_VERSION }} --build-number=${{ github.run_number }} --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
-
-      - uses: actions/upload-artifact@v5
-        with:
-          name: android-apk-${{ github.ref_name }}
-          path: build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 30
-
-  deploy-ios:
-    name: Deploy iOS → ${{ github.ref_name == 'main' && 'App Store' || 'TestFlight' }}
-    runs-on: macos-26
-    needs: test
-    timeout-minutes: 45
-    env:
-      MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-      ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Get version from git tag
-        run: |
-          VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0")
-          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "App version: $VERSION"
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.41.4'
-          channel: 'stable'
-          cache: true
-
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-          working-directory: ios
-
-      - name: Set Directus URL
-        run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_PROD }}" >> $GITHUB_ENV
-          else
-            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_DEV }}" >> $GITHUB_ENV
-          fi
-
-      - run: flutter pub get
-      - run: flutter pub run build_runner build --delete-conflicting-outputs
-      - run: flutter build ios --release --no-codesign --build-name=${{ env.APP_VERSION }} --build-number=${{ github.run_number }} --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
-
-      - name: Install CocoaPods dependencies
-        run: bundle exec pod install
-        working-directory: ios
-
-      - name: Deploy to TestFlight
-        if: github.ref_name == 'develop'
-        run: bundle exec fastlane beta
-        working-directory: ios
-
-      - name: Deploy to App Store
-        if: github.ref_name == 'main'
-        run: bundle exec fastlane release
-        working-directory: ios
-
-  deploy-macos:
-    name: Deploy macOS → ${{ github.ref_name == 'main' && 'App Store' || 'TestFlight' }}
-    runs-on: macos-26
-    needs: test
-    timeout-minutes: 45
-    env:
-      MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
-      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
-      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-      ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Get version from git tag
-        run: |
-          VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "0.0.0")
-          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "App version: $VERSION"
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.41.4'
-          channel: 'stable'
-          cache: true
-
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-          working-directory: macos
-
-      - name: Set Directus URL
-        run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_PROD }}" >> $GITHUB_ENV
-          else
-            echo "DIRECTUS_URL=${{ secrets.DIRECTUS_URL_DEV }}" >> $GITHUB_ENV
-          fi
-
-      - run: flutter pub get
-      - run: flutter pub run build_runner build --delete-conflicting-outputs
-
-      - name: Install certificates and provisioning profiles
-        run: bundle exec fastlane install_profiles
-        working-directory: macos
-
-      - run: flutter build macos --release --build-name=${{ env.APP_VERSION }} --build-number=${{ github.run_number }} --dart-define=DIRECTUS_URL=${{ env.DIRECTUS_URL }}
-
-      - name: Install CocoaPods dependencies
-        run: bundle exec pod install
-        working-directory: macos
-
-      - name: Deploy to TestFlight
-        if: github.ref_name == 'develop'
-        run: bundle exec fastlane beta
-        working-directory: macos
-
-      - name: Deploy to App Store
-        if: github.ref_name == 'main'
-        run: bundle exec fastlane release
-        working-directory: macos
+          name: directus-schema
+          path: schema-snapshot.yaml
+          retention-days: 90

@@ -1,0 +1,65 @@
+name: Build Web + Docker
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        required: true
+        type: string
+      build_version:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      directus_url:
+        required: true
+    outputs:
+      artifact_name:
+        description: Name of the uploaded Docker image artifact
+        value: ${{ jobs.build.outputs.artifact_name }}
+
+jobs:
+  build:
+    name: Build Web + Docker Image
+    runs-on: ubuntu-latest
+    outputs:
+      artifact_name: docker-image-${{ inputs.image_name }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-flutter
+
+      - name: Build web
+        run: |
+          VERSION_FLAG=""
+          if [ -n "${{ inputs.build_version }}" ]; then
+            VERSION_FLAG="--build-name=${{ inputs.build_version }}"
+          fi
+          flutter build web --release $VERSION_FLAG --dart-define=DIRECTUS_URL=${{ secrets.directus_url }}
+
+      - name: Set up QEMU (for ARM64 cross-build)
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Docker image (linux/arm64)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: deploy/docker/Dockerfile
+          platforms: linux/arm64
+          tags: ${{ inputs.image_name }}:latest
+          outputs: type=docker,dest=image.tar
+
+      - name: Compress Docker image
+        run: gzip image.tar -c > image.tar.gz
+
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: docker-image-${{ inputs.image_name }}
+          path: image.tar.gz
+          retention-days: 1
