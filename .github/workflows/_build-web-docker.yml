@@ -49,6 +49,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
+          file: deploy/docker/Dockerfile
           platforms: linux/arm64
           tags: ${{ inputs.image_name }}:latest
           outputs: type=docker,dest=image.tar
