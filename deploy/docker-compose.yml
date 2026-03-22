@@ -139,7 +139,7 @@ services:
       ADMIN_PASSWORD: ${DEV_ADMIN_PASSWORD:?Set DEV_ADMIN_PASSWORD in .env}
       PUBLIC_URL: https://${DOMAIN_API_DEV:-api.your-app-dev.example.com}
       CORS_ENABLED: "true"
-      CORS_ORIGIN: "/^https:\\/\\/(pr-\\d+\\.)?${DOMAIN_FLUTTER_PROD}$$/"
+      CORS_ORIGIN: "regex:^https://(pr-\\d+\\.)?${DOMAIN_FLUTTER_PROD}$$"
       WEBSOCKETS_ENABLED: "true"
       DB_CLIENT: pg
       DB_HOST: postgres-dev
