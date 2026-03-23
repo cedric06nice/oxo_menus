@@ -400,12 +400,12 @@ void main() {
             () => mockApiManager.tryAndRefreshToken(),
           ).thenAnswer((_) async => true);
           // After successful refresh, apiManager returns the new tokens
-          when(() => mockApiManager.accessToken).thenReturn(
-            'restored-access-token',
-          );
-          when(() => mockApiManager.refreshToken).thenReturn(
-            'new-refresh-token',
-          );
+          when(
+            () => mockApiManager.accessToken,
+          ).thenReturn('restored-access-token');
+          when(
+            () => mockApiManager.refreshToken,
+          ).thenReturn('new-refresh-token');
 
           await dataSource.tryRestoreSession();
 

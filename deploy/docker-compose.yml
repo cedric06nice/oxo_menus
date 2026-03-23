@@ -1,20 +1,27 @@
 services:
-  # ─── Reverse Proxy (HTTPS termination for all 4 domains) ───
-  nginx-proxy:
-    image: nginx:alpine
-    container_name: oxo-nginx-proxy
+  # ─── Reverse Proxy (Traefik v3 — automatic TLS) ───
+  traefik:
+    image: traefik:v3.3
+    container_name: oxo-traefik
     restart: unless-stopped
+    command:
+      - --log.level=INFO
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.network=oxo-network
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:?Set ACME_EMAIL in .env}
+      - --certificatesresolvers.letsencrypt.acme.storage=/acme/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-    depends_on:
-      - oxo-menus-prod
-      - oxo-menus-staging
-      - directus-prod
-      - directus-dev
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-acme:/acme
     networks:
       - oxo-network
 
@@ -63,23 +70,45 @@ services:
       - directus-prod-uploads:/directus/uploads
       - directus-prod-extensions:/directus/extensions
       - directus-schema-sync:/directus/schema-sync
-    expose:
-      - "8055"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.directus-prod.rule=Host(`${DOMAIN_API_PROD}`)"
+      - "traefik.http.routers.directus-prod.entrypoints=websecure"
+      - "traefik.http.routers.directus-prod.tls.certresolver=letsencrypt"
+      - "traefik.http.services.directus-prod.loadbalancer.server.port=8055"
     networks:
       - oxo-network
 
-  # ─── Flutter Web Production ───
-  oxo-menus-prod:
+  # ─── Flutter Web Production — Blue Slot ───
+  oxo-menus-blue:
     image: oxo-menus-prod:latest
-    container_name: oxo-menus-prod
+    container_name: oxo-menus-blue
     restart: unless-stopped
-    expose:
-      - "80"
+    labels:
+      - "traefik.enable=${BLUE_ENABLED:-true}"
+      - "traefik.http.routers.oxo-blue.rule=Host(`${DOMAIN_FLUTTER_PROD}`)"
+      - "traefik.http.routers.oxo-blue.entrypoints=websecure"
+      - "traefik.http.routers.oxo-blue.tls.certresolver=letsencrypt"
+      - "traefik.http.services.oxo-blue.loadbalancer.server.port=80"
+    networks:
+      - oxo-network
+
+  # ─── Flutter Web Production — Green Slot ───
+  oxo-menus-green:
+    image: oxo-menus-prod:latest
+    container_name: oxo-menus-green
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=${GREEN_ENABLED:-false}"
+      - "traefik.http.routers.oxo-green.rule=Host(`${DOMAIN_FLUTTER_PROD}`)"
+      - "traefik.http.routers.oxo-green.entrypoints=websecure"
+      - "traefik.http.routers.oxo-green.tls.certresolver=letsencrypt"
+      - "traefik.http.services.oxo-green.loadbalancer.server.port=80"
     networks:
       - oxo-network
 
   # ═══════════════════════════════════════════════════
-  # DEV / STAGING
+  # DEV
   # ═══════════════════════════════════════════════════
 
   # ─── PostgreSQL Dev ───
@@ -110,7 +139,7 @@ services:
       ADMIN_PASSWORD: ${DEV_ADMIN_PASSWORD:?Set DEV_ADMIN_PASSWORD in .env}
       PUBLIC_URL: https://${DOMAIN_API_DEV:-api.your-app-dev.example.com}
       CORS_ENABLED: "true"
-      CORS_ORIGIN: "https://${DOMAIN_FLUTTER_DEV:-your-app-dev.example.com}"
+      CORS_ORIGIN: "regex:^https://(pr-\\d+\\.)?${DOMAIN_FLUTTER_PROD}$$"
       WEBSOCKETS_ENABLED: "true"
       DB_CLIENT: pg
       DB_HOST: postgres-dev
@@ -123,18 +152,12 @@ services:
       - directus-dev-uploads:/directus/uploads
       - directus-dev-extensions:/directus/extensions
       - directus-schema-sync:/directus/schema-sync
-    expose:
-      - "8055"
-    networks:
-      - oxo-network
-
-  # ─── Flutter Web Staging ───
-  oxo-menus-staging:
-    image: oxo-menus-staging:latest
-    container_name: oxo-menus-staging
-    restart: unless-stopped
-    expose:
-      - "80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.directus-dev.rule=Host(`${DOMAIN_API_DEV}`)"
+      - "traefik.http.routers.directus-dev.entrypoints=websecure"
+      - "traefik.http.routers.directus-dev.tls.certresolver=letsencrypt"
+      - "traefik.http.services.directus-dev.loadbalancer.server.port=8055"
     networks:
       - oxo-network
 
@@ -146,7 +169,8 @@ volumes:
   directus-dev-uploads:
   directus-dev-extensions:
   directus-schema-sync:
+  traefik-acme:
 
 networks:
   oxo-network:
-    driver: bridge
+    external: true

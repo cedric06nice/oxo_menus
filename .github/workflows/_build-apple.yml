@@ -1,0 +1,87 @@
+name: Build Apple (iOS + macOS)
+
+on:
+  workflow_call:
+    inputs:
+      lane:
+        required: true
+        type: string
+      build_version:
+        required: false
+        type: string
+        default: ''
+      build_number:
+        required: true
+        type: string
+    secrets:
+      directus_url:
+        required: true
+      match_git_url:
+        required: true
+      match_git_basic_authorization:
+        required: true
+      match_password:
+        required: true
+      asc_key_id:
+        required: true
+      asc_issuer_id:
+        required: true
+      asc_key_content:
+        required: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: macos-26
+    timeout-minutes: 45
+    strategy:
+      matrix:
+        include:
+          - platform: ios
+            build_cmd: ios --release --no-codesign
+            fastlane_dir: ios
+          - platform: macos
+            build_cmd: macos --release
+            fastlane_dir: macos
+    env:
+      MATCH_GIT_URL: ${{ secrets.match_git_url }}
+      MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.match_git_basic_authorization }}
+      MATCH_PASSWORD: ${{ secrets.match_password }}
+      ASC_KEY_ID: ${{ secrets.asc_key_id }}
+      ASC_ISSUER_ID: ${{ secrets.asc_issuer_id }}
+      ASC_KEY_CONTENT: ${{ secrets.asc_key_content }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-flutter
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: ${{ matrix.fastlane_dir }}
+
+      - name: Install certificates and provisioning profiles (macOS only)
+        if: matrix.platform == 'macos'
+        run: bundle exec fastlane install_profiles
+        working-directory: macos
+
+      - name: Build Flutter app
+        run: |
+          VERSION_FLAG=""
+          if [ -n "${{ inputs.build_version }}" ]; then
+            # Apple requires at most 3 numeric components (X.Y.Z)
+            CLEAN_VERSION=$(echo "${{ inputs.build_version }}" | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+')
+            VERSION_FLAG="--build-name=${CLEAN_VERSION}"
+          fi
+          flutter build ${{ matrix.build_cmd }} $VERSION_FLAG --build-number=${{ inputs.build_number }} --dart-define=DIRECTUS_URL=${{ secrets.directus_url }}
+
+      - name: Install CocoaPods dependencies
+        run: bundle exec pod install
+        working-directory: ${{ matrix.fastlane_dir }}
+
+      - name: Deploy via Fastlane
+        run: bundle exec fastlane ${{ inputs.lane }}
+        working-directory: ${{ matrix.fastlane_dir }}
