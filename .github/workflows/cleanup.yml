@@ -2,7 +2,7 @@ name: PR Cleanup
 
 on:
   pull_request:
-    branches: [prod]
+    branches: [main]
     types: [closed]
 
 jobs:
