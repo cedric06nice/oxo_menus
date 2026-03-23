@@ -26,7 +26,7 @@ class SectionWidget extends StatelessWidget {
             Text(
               props.uppercase ? props.title.toUpperCase() : props.title,
               style: const TextStyle(
-                fontFamily: 'Baskerville',
+                fontFamily: 'LibreBaskerville',
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.2,

@@ -15,10 +15,14 @@ void main() {
   late PdfDocumentBuilder builder;
   late ByteData baseFontData;
   late ByteData boldFontData;
+  late ByteData sectionFontData;
 
   setUpAll(() async {
     baseFontData = await rootBundle.load('assets/fonts/FuturaStd-Light.ttf');
     boldFontData = await rootBundle.load('assets/fonts/FuturaStd-Book.ttf');
+    sectionFontData = await rootBundle.load(
+      'assets/fonts/LibreBaskerville-Regular.ttf',
+    );
   });
 
   setUp(() {
@@ -41,6 +45,7 @@ void main() {
         menuTree: menuTree,
         baseFontData: baseFontData,
         boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
         imageCache: {},
       );
 
@@ -100,6 +105,7 @@ void main() {
         menuTree: menuTree,
         baseFontData: baseFontData,
         boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
         imageCache: {},
       );
 
@@ -168,6 +174,7 @@ void main() {
         menuTree: menuTree,
         baseFontData: baseFontData,
         boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
         imageCache: {},
       );
 
@@ -223,6 +230,7 @@ void main() {
         menuTree: menuTree,
         baseFontData: baseFontData,
         boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
         imageCache: {},
       );
 

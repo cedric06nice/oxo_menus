@@ -223,7 +223,7 @@ void main() {
       },
     );
 
-    testWidgets('should render title with Baskerville font at size 17', (
+    testWidgets('should render title with LibreBaskerville font at size 17', (
       tester,
     ) async {
       const props = SectionProps(title: 'Test Section');
@@ -240,7 +240,7 @@ void main() {
       );
 
       final textWidget = tester.widget<Text>(find.text('Test Section'));
-      expect(textWidget.style?.fontFamily, 'Baskerville');
+      expect(textWidget.style?.fontFamily, 'LibreBaskerville');
       expect(textWidget.style?.fontSize, 17);
     });
 

@@ -33,12 +33,14 @@ class PdfDocumentBuilder {
     required MenuTree menuTree,
     required ByteData baseFontData,
     required ByteData boldFontData,
+    required ByteData sectionFontData,
     required Map<String, Uint8List> imageCache,
   }) async {
     final theme = pw.ThemeData.withFont(
       base: pw.Font.ttf(baseFontData),
       bold: pw.Font.ttf(boldFontData),
     );
+    final sectionFont = pw.Font.ttf(sectionFontData);
     final pdf = pw.Document(theme: theme, version: PdfVersion.pdf_1_5);
 
     final styleConfig = menuTree.menu.styleConfig;
@@ -60,6 +62,7 @@ class PdfDocumentBuilder {
             displayOptions,
             imageCache,
             availableWidth,
+            sectionFont,
           ),
         ),
       );
@@ -76,6 +79,7 @@ class PdfDocumentBuilder {
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
     double availableWidth,
+    pw.Font sectionFont,
   ) {
     final contentChildren = <pw.Widget>[];
 
@@ -87,6 +91,7 @@ class PdfDocumentBuilder {
             styleConfig,
             displayOptions,
             imageCache,
+            sectionFont,
           );
         }),
       );
@@ -99,6 +104,7 @@ class PdfDocumentBuilder {
           styleConfig,
           displayOptions,
           imageCache,
+          sectionFont,
         );
       }),
     );
@@ -112,6 +118,7 @@ class PdfDocumentBuilder {
             styleConfig,
             displayOptions,
             imageCache,
+            sectionFont,
           );
         }),
       );
@@ -177,6 +184,7 @@ class PdfDocumentBuilder {
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
+    pw.Font sectionFont,
   ) {
     final containerStyle = containerData.container.styleConfig;
 
@@ -202,6 +210,7 @@ class PdfDocumentBuilder {
                 styleConfig,
                 displayOptions,
                 imageCache,
+                sectionFont,
               ),
           ],
         ),
@@ -214,6 +223,7 @@ class PdfDocumentBuilder {
           styleConfig,
           displayOptions,
           imageCache,
+          sectionFont,
         ),
       );
     }
@@ -228,6 +238,7 @@ class PdfDocumentBuilder {
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
+    pw.Font sectionFont,
   ) {
     final maxWidgetCount = columns.fold<int>(
       0,
@@ -252,6 +263,7 @@ class PdfDocumentBuilder {
             styleConfig,
             displayOptions,
             imageCache,
+            sectionFont,
           );
         } else {
           cell = pw.SizedBox();
@@ -285,6 +297,7 @@ class PdfDocumentBuilder {
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
+    pw.Font sectionFont,
   ) {
     final columnStyle = columnData.column.styleConfig;
 
@@ -301,7 +314,13 @@ class PdfDocumentBuilder {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         children: columnData.widgets.map((widget) {
-          return _buildWidget(widget, styleConfig, displayOptions, imageCache);
+          return _buildWidget(
+            widget,
+            styleConfig,
+            displayOptions,
+            imageCache,
+            sectionFont,
+          );
         }).toList(),
       ),
     );
@@ -316,6 +335,7 @@ class PdfDocumentBuilder {
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
+    pw.Font sectionFont,
   ) {
     switch (widget.type) {
       case 'dish':
@@ -323,7 +343,7 @@ class PdfDocumentBuilder {
       case 'text':
         return _buildTextWidget(widget, styleConfig);
       case 'section':
-        return _buildSectionWidget(widget, styleConfig);
+        return _buildSectionWidget(widget, styleConfig, sectionFont);
       case 'image':
         return _buildImageWidget(widget, styleConfig, imageCache);
       case 'wine':
@@ -550,6 +570,7 @@ class PdfDocumentBuilder {
   pw.Widget _buildSectionWidget(
     WidgetInstance widget,
     StyleConfig? styleConfig,
+    pw.Font sectionFont,
   ) {
     final props = SectionProps.fromJson(widget.props);
     final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
@@ -563,6 +584,7 @@ class PdfDocumentBuilder {
           pw.Text(
             title,
             style: pw.TextStyle(
+              font: sectionFont,
               fontSize: baseFontSize + 2,
               fontWeight: pw.FontWeight.bold,
               letterSpacing: props.uppercase ? 1.5 : 0,

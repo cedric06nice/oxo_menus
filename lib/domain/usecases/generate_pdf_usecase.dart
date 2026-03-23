@@ -40,6 +40,9 @@ class GeneratePdfUseCase {
       final boldFontData = await _assetLoader.loadAsset(
         'assets/fonts/FuturaStd-Book.ttf',
       );
+      final sectionFontData = await _assetLoader.loadAsset(
+        'assets/fonts/LibreBaskerville-Regular.ttf',
+      );
 
       // 2. Pre-fetch images (HTTP — main thread)
       final imageCache = await _prefetchImages(menuTree);
@@ -53,6 +56,7 @@ class GeneratePdfUseCase {
             menuTree: menuTree,
             baseFontData: baseFontData,
             boldFontData: boldFontData,
+            sectionFontData: sectionFontData,
             imageCache: imageCache,
           ),
         );
@@ -61,6 +65,7 @@ class GeneratePdfUseCase {
           menuTree: menuTree,
           baseFontData: baseFontData,
           boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
           imageCache: imageCache,
         );
       }
