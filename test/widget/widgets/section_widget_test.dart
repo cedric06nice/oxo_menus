@@ -223,7 +223,9 @@ void main() {
       },
     );
 
-    testWidgets('should render with proper styling', (tester) async {
+    testWidgets('should render title with Baskerville font at size 17', (
+      tester,
+    ) async {
       const props = SectionProps(title: 'Test Section');
 
       await tester.pumpWidget(
@@ -237,9 +239,9 @@ void main() {
         ),
       );
 
-      // Verify the widget renders a Container
-      expect(find.byType(Container), findsWidgets);
-      expect(find.text('Test Section'), findsOneWidget);
+      final textWidget = tester.widget<Text>(find.text('Test Section'));
+      expect(textWidget.style?.fontFamily, 'Baskerville');
+      expect(textWidget.style?.fontSize, 17);
     });
 
     testWidgets('should handle both uppercase and divider options', (
