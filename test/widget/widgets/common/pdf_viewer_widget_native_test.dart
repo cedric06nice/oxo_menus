@@ -39,6 +39,20 @@ void main() {
       expect(find.byIcon(Icons.share), findsOneWidget);
     });
 
+    testWidgets('wraps content in InteractiveViewer for pinch-to-zoom', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PdfViewerWidget(pdfBytes: testBytes, filename: 'test.pdf'),
+          ),
+        ),
+      );
+
+      expect(find.byType(InteractiveViewer), findsOneWidget);
+    });
+
     testWidgets('includes share action with Cupertino icon on iOS', (
       WidgetTester tester,
     ) async {

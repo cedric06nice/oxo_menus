@@ -21,23 +21,27 @@ class PdfViewerWidget extends StatelessWidget {
         theme.platform == TargetPlatform.iOS ||
         theme.platform == TargetPlatform.macOS;
 
-    return PdfPreview(
-      build: (format) => pdfBytes,
-      canChangeOrientation: false,
-      canChangePageFormat: false,
-      canDebug: false,
-      allowPrinting: false,
-      allowSharing: true,
-      pdfFileName: filename,
-      useActions: false,
-      actions: [
-        PdfPreviewAction(
-          icon: Icon(isApple ? CupertinoIcons.share_up : Icons.share),
-          onPressed: (context, _, _) {
-            Printing.sharePdf(bytes: pdfBytes, filename: filename);
-          },
-        ),
-      ],
+    return InteractiveViewer(
+      minScale: 1.0,
+      maxScale: 4.0,
+      child: PdfPreview(
+        build: (format) => pdfBytes,
+        canChangeOrientation: false,
+        canChangePageFormat: false,
+        canDebug: false,
+        allowPrinting: false,
+        allowSharing: true,
+        pdfFileName: filename,
+        useActions: false,
+        actions: [
+          PdfPreviewAction(
+            icon: Icon(isApple ? CupertinoIcons.share_up : Icons.share),
+            onPressed: (context, _, _) {
+              Printing.sharePdf(bytes: pdfBytes, filename: filename);
+            },
+          ),
+        ],
+      ),
     );
   }
 }
