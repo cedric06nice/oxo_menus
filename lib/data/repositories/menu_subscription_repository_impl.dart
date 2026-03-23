@@ -77,10 +77,14 @@ class MenuSubscriptionRepositoryImpl implements MenuSubscriptionRepository {
   @override
   Future<void> unsubscribe(int menuId) async {
     final uid = _activeSubscriptions.remove(menuId);
-    if (uid != null) {
-      await _dataSource.stopSubscription(uid);
-    }
     final controller = _controllers.remove(menuId);
     await controller?.close();
+    if (uid != null) {
+      try {
+        await _dataSource.stopSubscription(uid);
+      } on StateError catch (_) {
+        // WebSocket sink already closed — safe to ignore
+      }
+    }
   }
 }

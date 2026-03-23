@@ -182,10 +182,14 @@ class PresenceRepositoryImpl implements PresenceRepository {
   @override
   Future<void> unsubscribePresence(int menuId) async {
     final uid = _activeSubscriptions.remove(menuId);
-    if (uid != null) {
-      await dataSource.stopSubscription(uid);
-    }
     final controller = _controllers.remove(menuId);
     await controller?.close();
+    if (uid != null) {
+      try {
+        await dataSource.stopSubscription(uid);
+      } on StateError catch (_) {
+        // WebSocket sink already closed — safe to ignore
+      }
+    }
   }
 }
