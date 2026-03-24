@@ -149,6 +149,57 @@ void main() {
       });
     });
 
+    group('formattedPrices', () {
+      test('returns null when price1 is null', () {
+        const props = SetMenuTitleProps(title: 'Menu');
+        expect(props.formattedPrices, isNull);
+      });
+
+      test('returns price1 only when no label and no price2', () {
+        const props = SetMenuTitleProps(title: 'Menu', price1: 45.0);
+        expect(props.formattedPrices, '45');
+      });
+
+      test('returns price1 / price2 when no labels', () {
+        const props = SetMenuTitleProps(
+          title: 'Menu',
+          price1: 45.0,
+          price2: 55.0,
+        );
+        expect(props.formattedPrices, '45 / 55');
+      });
+
+      test('returns label1 price1 when label1 and price1 set', () {
+        const props = SetMenuTitleProps(
+          title: 'Menu',
+          priceLabel1: '3 Courses',
+          price1: 45.0,
+        );
+        expect(props.formattedPrices, '3 Courses 45');
+      });
+
+      test('returns label1 price1 / label2 price2 when all set', () {
+        const props = SetMenuTitleProps(
+          title: 'Menu',
+          priceLabel1: '3 Courses',
+          price1: 45.0,
+          priceLabel2: '4 Courses',
+          price2: 55.0,
+        );
+        expect(props.formattedPrices, '3 Courses 45 / 4 Courses 55');
+      });
+
+      test('strips trailing zeros from decimal prices', () {
+        const props = SetMenuTitleProps(title: 'Menu', price1: 29.5);
+        expect(props.formattedPrices, '29.5');
+      });
+
+      test('ignores price2 when price1 is null', () {
+        const props = SetMenuTitleProps(title: 'Menu', price2: 55.0);
+        expect(props.formattedPrices, isNull);
+      });
+    });
+
     group('equality', () {
       test('two props with same values are equal', () {
         const a = SetMenuTitleProps(

@@ -33,9 +33,31 @@ abstract class SetMenuTitleProps with _$SetMenuTitleProps {
   /// Formatted price line 2 (e.g. "4 Courses  55"), null if incomplete
   String? get formattedPrice2 => _formatPrice(priceLabel2, price2);
 
+  /// Combined inline price string for PDF rendering.
+  ///
+  /// - price1 only → "45"
+  /// - price1 + price2 → "45 / 55"
+  /// - priceLabel1 + price1 → "3 Courses 45"
+  /// - all four → "3 Courses 45 / 4 Courses 55"
+  String? get formattedPrices {
+    if (price1 == null) return null;
+    final part1 = _formatPart(priceLabel1, price1!);
+    if (price2 == null) return part1;
+    final part2 = _formatPart(priceLabel2, price2!);
+    return '$part1 / $part2';
+  }
+
+  static String _formatPart(String? label, double price) {
+    final priceStr = _formatPriceValue(price);
+    return label != null ? '$label $priceStr' : priceStr;
+  }
+
+  static String _formatPriceValue(double price) {
+    return price.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
+  }
+
   static String? _formatPrice(String? label, double? price) {
     if (label == null || price == null) return null;
-    final priceStr = price.toStringAsFixed(2).replaceAll(RegExp(r'\.?0+$'), '');
-    return '$label  $priceStr';
+    return '$label  ${_formatPriceValue(price)}';
   }
 }

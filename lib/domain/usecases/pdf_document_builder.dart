@@ -745,17 +745,15 @@ class PdfDocumentBuilder {
                     fontWeight: pw.FontWeight.bold,
                   ),
                 ),
-            ],
-          ),
-          pw.Padding(
-            padding: const pw.EdgeInsets.only(top: 2),
-            child: pw.Text(
-              props.sharingText,
-              style: pw.TextStyle(
-                fontSize: baseFontSize - 2,
-                fontStyle: pw.FontStyle.italic,
+              pw.Text(
+                '  ${props.sharingText}',
+                style: pw.TextStyle(
+                  fontSize: baseFontSize - 2,
+                  letterSpacing: -0.33,
+                  fontWeight: pw.FontWeight.bold,
+                ),
               ),
-            ),
+            ],
           ),
           if (props.description != null && props.description!.isNotEmpty ||
               showAllergens && props.calories != null)
@@ -843,19 +841,17 @@ class PdfDocumentBuilder {
                   fontStyle: pw.FontStyle.normal,
                 ),
               ),
+              if (props.supplementText.isNotEmpty)
+                pw.Text(
+                  '  ${props.supplementText}',
+                  style: pw.TextStyle(
+                    fontSize: baseFontSize - 3,
+                    letterSpacing: 0.4,
+                    fontStyle: pw.FontStyle.normal,
+                  ),
+                ),
             ],
           ),
-          if (props.supplementText.isNotEmpty)
-            pw.Padding(
-              padding: const pw.EdgeInsets.only(top: 2),
-              child: pw.Text(
-                props.supplementText,
-                style: pw.TextStyle(
-                  fontSize: baseFontSize - 2,
-                  fontStyle: pw.FontStyle.italic,
-                ),
-              ),
-            ),
           if (props.description != null && props.description!.isNotEmpty ||
               showAllergens && props.calories != null)
             pw.RichText(
@@ -915,48 +911,36 @@ class PdfDocumentBuilder {
   ) {
     final props = SetMenuTitleProps.fromJson(widget.props);
     final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
-    final title = props.uppercase ? props.title.toUpperCase() : props.title;
     final showPrices = displayOptions?.showPrices ?? true;
+
+    final titleText = props.title.toUpperCase();
+    final pricesText = showPrices && props.formattedPrices != null
+        ? '  ${props.formattedPrices}'
+        : '';
+
+    final titleStyle = pw.TextStyle(
+      font: sectionFont,
+      fontSize: baseFontSize + 2,
+      fontWeight: pw.FontWeight.bold,
+      letterSpacing: 1.5,
+    );
 
     return pw.Container(
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(
-            title,
-            style: pw.TextStyle(
-              font: sectionFont,
-              fontSize: baseFontSize + 2,
-              fontWeight: pw.FontWeight.bold,
-              letterSpacing: props.uppercase ? 1.5 : 0,
-            ),
-          ),
+          pw.Text('$titleText$pricesText', style: titleStyle),
           if (props.subtitle != null && props.subtitle!.isNotEmpty)
             pw.Padding(
               padding: const pw.EdgeInsets.only(top: 2),
               child: pw.Text(
                 props.subtitle!,
-                style: pw.TextStyle(fontSize: baseFontSize - 1),
+                style: pw.TextStyle(
+                  font: sectionFont,
+                  fontSize: baseFontSize - 1,
+                ),
               ),
             ),
-          if (showPrices) ...[
-            if (props.formattedPrice1 != null)
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(top: 4),
-                child: pw.Text(
-                  props.formattedPrice1!,
-                  style: pw.TextStyle(fontSize: baseFontSize - 1),
-                ),
-              ),
-            if (props.formattedPrice2 != null)
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(top: 2),
-                child: pw.Text(
-                  props.formattedPrice2!,
-                  style: pw.TextStyle(fontSize: baseFontSize - 1),
-                ),
-              ),
-          ],
         ],
       ),
     );

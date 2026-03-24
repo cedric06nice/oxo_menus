@@ -20,6 +20,11 @@ class SetMenuTitleWidget extends StatelessWidget {
     final colorScheme = Theme.of(buildContext).colorScheme;
     final showPrices = context.displayOptions?.showPrices ?? true;
 
+    final titleText = props.displayTitle;
+    final pricesText = showPrices && props.formattedPrices != null
+        ? '  ${props.formattedPrices}'
+        : '';
+
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
       child: Container(
@@ -27,9 +32,9 @@ class SetMenuTitleWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title
+            // Title with inline prices
             Text(
-              props.displayTitle,
+              '$titleText$pricesText',
               style: const TextStyle(
                 fontFamily: 'LibreBaskerville',
                 fontSize: 17,
@@ -48,30 +53,6 @@ class SetMenuTitleWidget extends StatelessWidget {
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
-            ],
-
-            // Price lines
-            if (showPrices) ...[
-              if (props.formattedPrice1 != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  props.formattedPrice1!,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-              if (props.formattedPrice2 != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  props.formattedPrice2!,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
             ],
           ],
         ),

@@ -101,7 +101,7 @@ void main() {
       expect(find.byType(Divider), findsNothing);
     });
 
-    testWidgets('should display price line 1', (tester) async {
+    testWidgets('should display prices inline after title', (tester) async {
       const props = SetMenuTitleProps(
         title: 'Set Menu',
         priceLabel1: '3 Courses',
@@ -119,10 +119,12 @@ void main() {
         ),
       );
 
-      expect(find.text('3 Courses  45'), findsOneWidget);
+      expect(find.text('SET MENU  3 Courses 45'), findsOneWidget);
     });
 
-    testWidgets('should display both price lines', (tester) async {
+    testWidgets('should display both prices inline after title', (
+      tester,
+    ) async {
       const props = SetMenuTitleProps(
         title: 'Set Menu',
         priceLabel1: '3 Courses',
@@ -142,8 +144,10 @@ void main() {
         ),
       );
 
-      expect(find.text('3 Courses  45'), findsOneWidget);
-      expect(find.text('4 Courses  55'), findsOneWidget);
+      expect(
+        find.text('SET MENU  3 Courses 45 / 4 Courses 55'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('should hide prices when showPrices is false', (tester) async {
@@ -170,13 +174,10 @@ void main() {
       );
 
       expect(find.text('SET MENU'), findsOneWidget);
-      expect(find.text('3 Courses  45'), findsNothing);
-      expect(find.text('4 Courses  55'), findsNothing);
+      expect(find.textContaining('45'), findsNothing);
     });
 
-    testWidgets('should not display incomplete price (missing label)', (
-      tester,
-    ) async {
+    testWidgets('should display price without label inline', (tester) async {
       const props = SetMenuTitleProps(title: 'Set Menu', price1: 45.0);
 
       await tester.pumpWidget(
@@ -190,7 +191,7 @@ void main() {
         ),
       );
 
-      expect(find.textContaining('45'), findsNothing);
+      expect(find.text('SET MENU  45'), findsOneWidget);
     });
 
     testWidgets('should render title with LibreBaskerville font', (
