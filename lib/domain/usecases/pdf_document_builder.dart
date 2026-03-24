@@ -384,6 +384,7 @@ class PdfDocumentBuilder {
         children: [
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text(
                 props.name,
@@ -482,6 +483,7 @@ class PdfDocumentBuilder {
         children: [
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text(
                 props.name,
@@ -717,6 +719,7 @@ class PdfDocumentBuilder {
         children: [
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text(
                 props.name,
@@ -822,6 +825,7 @@ class PdfDocumentBuilder {
         children: [
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text(
                 props.name,
