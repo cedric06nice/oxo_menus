@@ -3,7 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
+import 'package:oxo_menus/presentation/utils/pdf_filename.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/widgets/common/pdf_viewer_widget.dart';
@@ -14,8 +16,9 @@ import 'package:oxo_menus/presentation/widgets/common/pdf_viewer_widget.dart';
 /// Uses PdfPreview's built-in toolbar for print and share actions.
 class PdfPreviewPage extends ConsumerWidget {
   final int menuId;
+  final MenuDisplayOptions? displayOptions;
 
-  const PdfPreviewPage({super.key, required this.menuId});
+  const PdfPreviewPage({super.key, required this.menuId, this.displayOptions});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,7 +29,7 @@ class PdfPreviewPage extends ConsumerWidget {
 
     return AuthenticatedScaffold(
       title: 'PDF Preview',
-      body: FutureBuilder<Uint8List?>(
+      body: FutureBuilder<({Uint8List bytes, String filename})?>(
         future: _generatePdf(ref),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -66,15 +69,17 @@ class PdfPreviewPage extends ConsumerWidget {
           }
 
           return PdfViewerWidget(
-            pdfBytes: snapshot.data!,
-            filename: 'menu_$menuId.pdf',
+            pdfBytes: snapshot.data!.bytes,
+            filename: snapshot.data!.filename,
           );
         },
       ),
     );
   }
 
-  Future<Uint8List?> _generatePdf(WidgetRef ref) async {
+  Future<({Uint8List bytes, String filename})?> _generatePdf(
+    WidgetRef ref,
+  ) async {
     final menuTreeResult = await ref
         .read(fetchMenuTreeUseCaseProvider)
         .execute(menuId);
@@ -87,9 +92,15 @@ class PdfPreviewPage extends ConsumerWidget {
 
     final menuTree = menuTreeResult.valueOrNull!;
 
+    final effectiveTree = displayOptions != null
+        ? menuTree.copyWith(
+            menu: menuTree.menu.copyWith(displayOptions: displayOptions),
+          )
+        : menuTree;
+
     final pdfResult = await ref
         .read(generatePdfUseCaseProvider)
-        .execute(menuTree);
+        .execute(effectiveTree);
 
     if (pdfResult.isFailure) {
       throw Exception(
@@ -97,6 +108,12 @@ class PdfPreviewPage extends ConsumerWidget {
       );
     }
 
-    return pdfResult.valueOrNull!;
+    final effectiveOptions =
+        effectiveTree.menu.displayOptions ?? const MenuDisplayOptions();
+
+    return (
+      bytes: pdfResult.valueOrNull!,
+      filename: generatePdfFilename(effectiveTree.menu.name, effectiveOptions),
+    );
   }
 }

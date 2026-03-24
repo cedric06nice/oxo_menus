@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,11 @@ import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/pdf_preview_page.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+
+import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/presentation/widgets/common/pdf_viewer_widget.dart';
 
 class MockFetchMenuTreeUseCase extends Mock implements FetchMenuTreeUseCase {}
 
@@ -35,6 +41,7 @@ void main() {
   Widget buildWidget({
     TargetPlatform platform = TargetPlatform.android,
     bool pendingForever = false,
+    MenuDisplayOptions? displayOptions,
   }) {
     if (pendingForever) {
       when(
@@ -49,7 +56,7 @@ void main() {
       ],
       child: MaterialApp(
         theme: ThemeData(platform: platform),
-        home: const PdfPreviewPage(menuId: 1),
+        home: PdfPreviewPage(menuId: 1, displayOptions: displayOptions),
       ),
     );
   }
@@ -146,6 +153,155 @@ void main() {
       await tester.pump();
 
       expect(find.text('Generating PDF...'), findsOneWidget);
+    });
+
+    testWidgets('overrides menu displayOptions when provided', (
+      WidgetTester tester,
+    ) async {
+      final menu = Menu(
+        id: 1,
+        name: 'Test',
+        status: Status.draft,
+        version: '1',
+        displayOptions: const MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: true,
+        ),
+      );
+      final menuTree = MenuTree(menu: menu, pages: const []);
+
+      when(
+        () => mockFetchMenuTree.execute(1),
+      ).thenAnswer((_) async => Success(menuTree));
+
+      MenuTree? capturedTree;
+      when(() => mockGeneratePdf.execute(any())).thenAnswer((inv) async {
+        capturedTree = inv.positionalArguments[0] as MenuTree;
+        return const Failure(ServerError('test'));
+      });
+
+      const overrideOptions = MenuDisplayOptions(
+        showPrices: false,
+        showAllergens: false,
+      );
+
+      await tester.pumpWidget(buildWidget(displayOptions: overrideOptions));
+      await tester.pumpAndSettle();
+
+      expect(capturedTree, isNotNull);
+      expect(capturedTree!.menu.displayOptions?.showPrices, false);
+      expect(capturedTree!.menu.displayOptions?.showAllergens, false);
+    });
+
+    testWidgets('uses menu displayOptions when none provided', (
+      WidgetTester tester,
+    ) async {
+      final menu = Menu(
+        id: 1,
+        name: 'Test',
+        status: Status.draft,
+        version: '1',
+        displayOptions: const MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: true,
+        ),
+      );
+      final menuTree = MenuTree(menu: menu, pages: const []);
+
+      when(
+        () => mockFetchMenuTree.execute(1),
+      ).thenAnswer((_) async => Success(menuTree));
+
+      MenuTree? capturedTree;
+      when(() => mockGeneratePdf.execute(any())).thenAnswer((inv) async {
+        capturedTree = inv.positionalArguments[0] as MenuTree;
+        return const Failure(ServerError('test'));
+      });
+
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
+
+      expect(capturedTree, isNotNull);
+      expect(capturedTree!.menu.displayOptions?.showPrices, true);
+      expect(capturedTree!.menu.displayOptions?.showAllergens, true);
+    });
+
+    testWidgets('generates filename from menu name and display options', (
+      WidgetTester tester,
+    ) async {
+      final menu = Menu(
+        id: 1,
+        name: 'Restaurant A La Carte',
+        status: Status.draft,
+        version: '1',
+        displayOptions: const MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: true,
+        ),
+      );
+      final menuTree = MenuTree(menu: menu, pages: const []);
+      final pdfBytes = Uint8List.fromList([0x25, 0x50, 0x44, 0x46]);
+
+      when(
+        () => mockFetchMenuTree.execute(1),
+      ).thenAnswer((_) async => Success(menuTree));
+
+      when(
+        () => mockGeneratePdf.execute(any()),
+      ).thenAnswer((_) async => Success(pdfBytes));
+
+      await tester.pumpWidget(buildWidget());
+      await tester.pump();
+      await tester.pump();
+
+      final viewer = tester.widget<PdfViewerWidget>(
+        find.byType(PdfViewerWidget),
+      );
+      expect(viewer.filename, contains('Restaurant A La Carte'));
+      expect(viewer.filename, contains('Allergy'));
+      expect(viewer.filename, endsWith('.pdf'));
+    });
+
+    testWidgets('filename reflects display options without allergens', (
+      WidgetTester tester,
+    ) async {
+      final menu = Menu(
+        id: 1,
+        name: 'Dinner Menu',
+        status: Status.draft,
+        version: '1',
+        displayOptions: const MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: true,
+        ),
+      );
+      final menuTree = MenuTree(menu: menu, pages: const []);
+      final pdfBytes = Uint8List.fromList([0x25, 0x50, 0x44, 0x46]);
+
+      when(
+        () => mockFetchMenuTree.execute(1),
+      ).thenAnswer((_) async => Success(menuTree));
+
+      when(
+        () => mockGeneratePdf.execute(any()),
+      ).thenAnswer((_) async => Success(pdfBytes));
+
+      const overrideOptions = MenuDisplayOptions(
+        showPrices: false,
+        showAllergens: false,
+      );
+
+      await tester.pumpWidget(buildWidget(displayOptions: overrideOptions));
+      await tester.pump();
+      await tester.pump();
+
+      final viewer = tester.widget<PdfViewerWidget>(
+        find.byType(PdfViewerWidget),
+      );
+      expect(viewer.filename, contains('Dinner Menu'));
+      expect(viewer.filename, contains('No Prices'));
+      expect(viewer.filename, isNot(contains('Allergy')));
+      expect(viewer.filename, endsWith('.pdf'));
     });
   });
 }

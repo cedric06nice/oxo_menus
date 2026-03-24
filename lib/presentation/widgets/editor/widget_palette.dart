@@ -136,7 +136,7 @@ class _PaletteItem extends StatelessWidget {
             border: Border.all(color: theme.colorScheme.outline),
           ),
           child: Text(
-            type.toUpperCase(),
+            _label,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
@@ -148,6 +148,8 @@ class _PaletteItem extends StatelessWidget {
       child: _paletteItemContent(theme),
     );
   }
+
+  String get _label => definition?.displayName ?? type;
 
   Widget _paletteItemContent(ThemeData theme) {
     final isApple =
@@ -172,7 +174,7 @@ class _PaletteItem extends StatelessWidget {
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              type.toUpperCase(),
+              _label,
               style: const TextStyle(fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
@@ -217,7 +219,7 @@ class _AdminPaletteItem extends StatelessWidget {
             border: Border.all(color: theme.colorScheme.outline),
           ),
           child: Text(
-            type.toUpperCase(),
+            _label,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ),
@@ -226,6 +228,8 @@ class _AdminPaletteItem extends StatelessWidget {
       child: _content(theme),
     );
   }
+
+  String get _label => definition?.displayName ?? type;
 
   Widget _content(ThemeData theme) {
     final isApple =
@@ -262,7 +266,7 @@ class _AdminPaletteItem extends StatelessWidget {
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              type.toUpperCase(),
+              _label,
               style: const TextStyle(fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),

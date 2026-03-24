@@ -123,6 +123,14 @@ Configure these secrets in your GitHub repository (Settings > Secrets and variab
 
 ### CI/CD Pipeline
 
+Workflow (daily practice)
+```
+  git checkout -b feature/my-change main
+  # ... work, commit ...
+  git push origin feature/my-change
+  # Open PR → CI runs → review → merge to main → auto-deploy
+```
+
 The CI/CD uses reusable workflows (prefixed with `_`) called by two orchestrators:
 
 ```
@@ -140,14 +148,14 @@ The CI/CD uses reusable workflows (prefixed with `_`) called by two orchestrator
     cleanup.yml                 # PR preview cleanup
 ```
 
-**PR Pipeline** (`pr.yml` — on pull_request to `prod`):
+**PR Pipeline** (`pr.yml` — on pull_request to `main`):
 1. **CI** — lint, format check, analyze, test with coverage gate
 2. **Build Web** — Flutter web build, Docker ARM64 image, upload artifact
 3. **Deploy Preview** — SCP image to VPS, run `pr-deploy.sh`
 4. **Comment PR** — post preview URL on the pull request
 5. **Build Mobile** (optional, `deploy-mobile` label) — iOS/macOS TestFlight + Android APK
 
-**Production Pipeline** (`deploy.yml` — on push to `prod`):
+**Production Pipeline** (`deploy.yml` — on push to `main`):
 1. **CI** — same analyze + test
 2. **Version** — semantic version bump + git tag
 3. **Build Web** — Docker image with version tag

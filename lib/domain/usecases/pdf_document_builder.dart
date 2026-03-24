@@ -8,6 +8,9 @@ import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/pdf_style_resolver.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
+import 'package:oxo_menus/domain/widgets/dish_to_share/dish_to_share_props.dart';
+import 'package:oxo_menus/domain/widgets/set_menu_dish/set_menu_dish_props.dart';
+import 'package:oxo_menus/domain/widgets/set_menu_title/set_menu_title_props.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/domain/widgets/section/section_props.dart';
 import 'package:oxo_menus/domain/widgets/text/text_props.dart';
@@ -33,12 +36,14 @@ class PdfDocumentBuilder {
     required MenuTree menuTree,
     required ByteData baseFontData,
     required ByteData boldFontData,
+    required ByteData sectionFontData,
     required Map<String, Uint8List> imageCache,
   }) async {
     final theme = pw.ThemeData.withFont(
       base: pw.Font.ttf(baseFontData),
       bold: pw.Font.ttf(boldFontData),
     );
+    final sectionFont = pw.Font.ttf(sectionFontData);
     final pdf = pw.Document(theme: theme, version: PdfVersion.pdf_1_5);
 
     final styleConfig = menuTree.menu.styleConfig;
@@ -60,6 +65,7 @@ class PdfDocumentBuilder {
             displayOptions,
             imageCache,
             availableWidth,
+            sectionFont,
           ),
         ),
       );
@@ -76,6 +82,7 @@ class PdfDocumentBuilder {
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
     double availableWidth,
+    pw.Font sectionFont,
   ) {
     final contentChildren = <pw.Widget>[];
 
@@ -87,6 +94,7 @@ class PdfDocumentBuilder {
             styleConfig,
             displayOptions,
             imageCache,
+            sectionFont,
           );
         }),
       );
@@ -99,6 +107,7 @@ class PdfDocumentBuilder {
           styleConfig,
           displayOptions,
           imageCache,
+          sectionFont,
         );
       }),
     );
@@ -112,6 +121,7 @@ class PdfDocumentBuilder {
             styleConfig,
             displayOptions,
             imageCache,
+            sectionFont,
           );
         }),
       );
@@ -177,6 +187,7 @@ class PdfDocumentBuilder {
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
+    pw.Font sectionFont,
   ) {
     final containerStyle = containerData.container.styleConfig;
 
@@ -202,6 +213,7 @@ class PdfDocumentBuilder {
                 styleConfig,
                 displayOptions,
                 imageCache,
+                sectionFont,
               ),
           ],
         ),
@@ -214,6 +226,7 @@ class PdfDocumentBuilder {
           styleConfig,
           displayOptions,
           imageCache,
+          sectionFont,
         ),
       );
     }
@@ -228,6 +241,7 @@ class PdfDocumentBuilder {
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
+    pw.Font sectionFont,
   ) {
     final maxWidgetCount = columns.fold<int>(
       0,
@@ -252,6 +266,7 @@ class PdfDocumentBuilder {
             styleConfig,
             displayOptions,
             imageCache,
+            sectionFont,
           );
         } else {
           cell = pw.SizedBox();
@@ -285,6 +300,7 @@ class PdfDocumentBuilder {
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
+    pw.Font sectionFont,
   ) {
     final columnStyle = columnData.column.styleConfig;
 
@@ -301,7 +317,13 @@ class PdfDocumentBuilder {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         children: columnData.widgets.map((widget) {
-          return _buildWidget(widget, styleConfig, displayOptions, imageCache);
+          return _buildWidget(
+            widget,
+            styleConfig,
+            displayOptions,
+            imageCache,
+            sectionFont,
+          );
         }).toList(),
       ),
     );
@@ -316,6 +338,7 @@ class PdfDocumentBuilder {
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
+    pw.Font sectionFont,
   ) {
     switch (widget.type) {
       case 'dish':
@@ -323,11 +346,22 @@ class PdfDocumentBuilder {
       case 'text':
         return _buildTextWidget(widget, styleConfig);
       case 'section':
-        return _buildSectionWidget(widget, styleConfig);
+        return _buildSectionWidget(widget, styleConfig, sectionFont);
       case 'image':
         return _buildImageWidget(widget, styleConfig, imageCache);
       case 'wine':
         return _buildWineWidget(widget, styleConfig, displayOptions);
+      case 'dish_to_share':
+        return _buildDishToShareWidget(widget, styleConfig, displayOptions);
+      case 'set_menu_dish':
+        return _buildSetMenuDishWidget(widget, styleConfig, displayOptions);
+      case 'set_menu_title':
+        return _buildSetMenuTitleWidget(
+          widget,
+          styleConfig,
+          displayOptions,
+          sectionFont,
+        );
       default:
         return pw.SizedBox();
     }
@@ -350,6 +384,7 @@ class PdfDocumentBuilder {
         children: [
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text(
                 props.name,
@@ -448,6 +483,7 @@ class PdfDocumentBuilder {
         children: [
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
               pw.Text(
                 props.name,
@@ -550,6 +586,7 @@ class PdfDocumentBuilder {
   pw.Widget _buildSectionWidget(
     WidgetInstance widget,
     StyleConfig? styleConfig,
+    pw.Font sectionFont,
   ) {
     final props = SectionProps.fromJson(widget.props);
     final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
@@ -563,6 +600,7 @@ class PdfDocumentBuilder {
           pw.Text(
             title,
             style: pw.TextStyle(
+              font: sectionFont,
               fontSize: baseFontSize + 2,
               fontWeight: pw.FontWeight.bold,
               letterSpacing: props.uppercase ? 1.5 : 0,
@@ -660,6 +698,254 @@ class PdfDocumentBuilder {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  pw.Widget _buildDishToShareWidget(
+    WidgetInstance widget,
+    StyleConfig? styleConfig,
+    MenuDisplayOptions? displayOptions,
+  ) {
+    final props = DishToShareProps.fromJson(widget.props);
+    final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
+    final showPrice = displayOptions?.showPrices ?? true;
+    final showAllergens = displayOptions?.showAllergens ?? true;
+
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 8),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              pw.Text(
+                props.name,
+                style: pw.TextStyle(
+                  fontSize: baseFontSize,
+                  letterSpacing: 0.55,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.Text(
+                props.dietary?.abbreviation != null
+                    ? '  ${props.dietary!.abbreviation}'
+                    : '',
+                style: pw.TextStyle(
+                  fontSize: baseFontSize - 3,
+                  letterSpacing: 0.4,
+                  fontStyle: pw.FontStyle.normal,
+                ),
+              ),
+              if (showPrice)
+                pw.Text(
+                  '  ${props.price.toStringAsFixed(2).replaceAll(_trailingZeros, '')}',
+                  style: pw.TextStyle(
+                    fontSize: baseFontSize - 2,
+                    letterSpacing: -0.33,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              pw.Text(
+                '  ${props.sharingText}',
+                style: pw.TextStyle(
+                  fontSize: baseFontSize - 2,
+                  letterSpacing: -0.33,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          if (props.description != null && props.description!.isNotEmpty ||
+              showAllergens && props.calories != null)
+            pw.RichText(
+              text: pw.TextSpan(
+                children: [
+                  if (props.description != null &&
+                      props.description!.isNotEmpty)
+                    pw.TextSpan(
+                      text: props.description!,
+                      style: pw.TextStyle(
+                        fontSize: baseFontSize,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  if (showAllergens && props.calories != null)
+                    pw.TextSpan(
+                      text: '  ${props.calories}KCAL',
+                      style: pw.TextStyle(
+                        fontSize: baseFontSize - 5,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          if (showAllergens) ...[
+            () {
+              final formattedAllergens = AllergenFormatter.formatForDisplay(
+                props.effectiveAllergenInfo,
+              );
+              if (formattedAllergens.isEmpty) {
+                return pw.SizedBox.shrink();
+              }
+              return pw.Padding(
+                padding: const pw.EdgeInsets.only(top: 4),
+                child: pw.Text(
+                  formattedAllergens,
+                  style: pw.TextStyle(
+                    fontSize: baseFontSize - 3,
+                    letterSpacing: 0.6,
+                    fontStyle: pw.FontStyle.normal,
+                  ),
+                ),
+              );
+            }(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildSetMenuDishWidget(
+    WidgetInstance widget,
+    StyleConfig? styleConfig,
+    MenuDisplayOptions? displayOptions,
+  ) {
+    final props = SetMenuDishProps.fromJson(widget.props);
+    final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
+    final showAllergens = displayOptions?.showAllergens ?? true;
+
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 8),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              pw.Text(
+                props.name,
+                style: pw.TextStyle(
+                  fontSize: baseFontSize,
+                  letterSpacing: 0.55,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.Text(
+                props.dietary?.abbreviation != null
+                    ? '  ${props.dietary!.abbreviation}'
+                    : '',
+                style: pw.TextStyle(
+                  fontSize: baseFontSize - 3,
+                  letterSpacing: 0.4,
+                  fontStyle: pw.FontStyle.normal,
+                ),
+              ),
+              if (props.supplementText.isNotEmpty)
+                pw.Text(
+                  '  ${props.supplementText}',
+                  style: pw.TextStyle(
+                    fontSize: baseFontSize - 3,
+                    letterSpacing: 0.4,
+                    fontStyle: pw.FontStyle.normal,
+                  ),
+                ),
+            ],
+          ),
+          if (props.description != null && props.description!.isNotEmpty ||
+              showAllergens && props.calories != null)
+            pw.RichText(
+              text: pw.TextSpan(
+                children: [
+                  if (props.description != null &&
+                      props.description!.isNotEmpty)
+                    pw.TextSpan(
+                      text: props.description!,
+                      style: pw.TextStyle(
+                        fontSize: baseFontSize,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  if (showAllergens && props.calories != null)
+                    pw.TextSpan(
+                      text: '  ${props.calories}KCAL',
+                      style: pw.TextStyle(
+                        fontSize: baseFontSize - 5,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          if (showAllergens) ...[
+            () {
+              final formattedAllergens = AllergenFormatter.formatForDisplay(
+                props.effectiveAllergenInfo,
+              );
+              if (formattedAllergens.isEmpty) {
+                return pw.SizedBox.shrink();
+              }
+              return pw.Padding(
+                padding: const pw.EdgeInsets.only(top: 4),
+                child: pw.Text(
+                  formattedAllergens,
+                  style: pw.TextStyle(
+                    fontSize: baseFontSize - 3,
+                    letterSpacing: 0.6,
+                    fontStyle: pw.FontStyle.normal,
+                  ),
+                ),
+              );
+            }(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildSetMenuTitleWidget(
+    WidgetInstance widget,
+    StyleConfig? styleConfig,
+    MenuDisplayOptions? displayOptions,
+    pw.Font sectionFont,
+  ) {
+    final props = SetMenuTitleProps.fromJson(widget.props);
+    final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
+    final showPrices = displayOptions?.showPrices ?? true;
+
+    final titleText = props.title.toUpperCase();
+    final pricesText = showPrices && props.formattedPrices != null
+        ? '  ${props.formattedPrices}'
+        : '';
+
+    final titleStyle = pw.TextStyle(
+      font: sectionFont,
+      fontSize: baseFontSize + 2,
+      fontWeight: pw.FontWeight.bold,
+      letterSpacing: 1.5,
+    );
+
+    return pw.Container(
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text('$titleText$pricesText', style: titleStyle),
+          if (props.subtitle != null && props.subtitle!.isNotEmpty)
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(top: 2),
+              child: pw.Text(
+                props.subtitle!,
+                style: pw.TextStyle(
+                  font: sectionFont,
+                  fontSize: baseFontSize - 1,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

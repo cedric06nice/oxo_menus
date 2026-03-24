@@ -6,6 +6,7 @@ import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_provider.dart';
@@ -28,7 +29,7 @@ import 'package:oxo_menus/presentation/widgets/dialogs/delete_confirmation_dialo
 import 'package:oxo_menus/presentation/widgets/editor/draggable_widget_item.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_column_card.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
-import 'package:oxo_menus/presentation/widgets/editor/display_options_dialog_helper.dart';
+import 'package:oxo_menus/presentation/widgets/dialogs/pdf_display_options_dialog.dart';
 import 'package:oxo_menus/presentation/theme/app_spacing.dart';
 
 class MenuEditorPage extends ConsumerStatefulWidget {
@@ -89,24 +90,13 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
   }
 
   Future<void> _showPdf() async {
-    context.push('/menus/pdf/${widget.menuId}');
-  }
-
-  void _showDisplayOptionsDialog() {
-    final treeState = ref.read(editorTreeProvider(widget.menuId));
-    showDisplayOptionsDialog(
+    final options = await showDialog<MenuDisplayOptions>(
       context: context,
-      ref: ref,
-      menuId: widget.menuId,
-      menu: treeState.menu,
-      onMenuUpdated: (updatedMenu) {
-        if (updatedMenu != null) {
-          ref
-              .read(editorTreeProvider(widget.menuId).notifier)
-              .updateMenuLocally(updatedMenu);
-        }
-      },
+      builder: (_) => const PdfDisplayOptionsDialog(),
     );
+    if (options != null && mounted) {
+      context.push('/menus/pdf/${widget.menuId}', extra: options);
+    }
   }
 
   Future<void> _saveMenu() async {
@@ -169,12 +159,6 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
             presences: collabState.presences,
             currentUserId: collabState.currentUserId!,
           ),
-        IconButton(
-          key: const Key('display_options_button'),
-          onPressed: _showDisplayOptionsDialog,
-          icon: const Icon(Icons.tune),
-          tooltip: 'Display Options',
-        ),
         IconButton(
           key: const Key('show_pdf_button'),
           onPressed: _showPdf,

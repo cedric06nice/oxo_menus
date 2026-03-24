@@ -5,6 +5,7 @@ import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/presentation/widgets/section_widget/section_widget_definition.dart';
+import 'package:oxo_menus/presentation/widgets/set_menu_title_widget/set_menu_title_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/text_widget/text_widget_definition.dart';
 
 void main() {
@@ -42,7 +43,7 @@ void main() {
       expect(find.byKey(const Key('palette_item_text')), findsOneWidget);
     });
 
-    testWidgets('each palette item shows icon and uppercase label', (
+    testWidgets('each palette item shows icon and displayName label', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -51,9 +52,9 @@ void main() {
         ),
       );
 
-      expect(find.text('DISH'), findsOneWidget);
-      expect(find.text('SECTION'), findsOneWidget);
-      expect(find.text('TEXT'), findsOneWidget);
+      expect(find.text('Dish'), findsOneWidget);
+      expect(find.text('Section'), findsOneWidget);
+      expect(find.text('Text'), findsOneWidget);
 
       // Check icons are present (at least one icon per item)
       expect(find.byIcon(Icons.restaurant_menu), findsOneWidget);
@@ -314,6 +315,26 @@ void main() {
         expect(find.byType(Checkbox), findsNothing);
       });
     });
+
+    testWidgets(
+      'displays displayName without underscores for multi-word types',
+      (WidgetTester tester) async {
+        final registryWithMultiWord = PresentableWidgetRegistry();
+        registryWithMultiWord.register(setMenuTitleWidgetDefinition);
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: WidgetPalette(registry: registryWithMultiWord),
+            ),
+          ),
+        );
+
+        // Should show "Set Menu Title" (from displayName), not "SET_MENU_TITLE"
+        expect(find.text('Set Menu Title'), findsOneWidget);
+        expect(find.text('SET_MENU_TITLE'), findsNothing);
+      },
+    );
 
     testWidgets('palette item has 12px border radius', (
       WidgetTester tester,

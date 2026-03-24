@@ -2,7 +2,7 @@ name: PR Pipeline
 
 on:
   pull_request:
-    branches: [prod]
+    branches: [main]
     types: [opened, synchronize, reopened]
 
 permissions:

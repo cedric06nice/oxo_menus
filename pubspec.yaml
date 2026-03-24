@@ -132,6 +132,9 @@ flutter:
           weight: 500
         - asset: assets/fonts/FuturaStd-Bold.ttf
           weight: 700
+    - family: LibreBaskerville
+      fonts:
+        - asset: assets/fonts/LibreBaskerville-Regular.ttf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package

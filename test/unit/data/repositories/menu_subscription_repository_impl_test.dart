@@ -186,6 +186,28 @@ void main() {
       );
 
       test(
+        'should not throw when stopSubscription throws StateError',
+        () async {
+          when(
+            () => mockDataSource.startSubscription(any()),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockDataSource.stopSubscription(any()),
+          ).thenThrow(StateError('Cannot add event after closing'));
+
+          final stream = repository.subscribeToMenuChanges(42);
+          final sub = stream.listen((_) {});
+
+          await Future<void>.delayed(Duration.zero);
+
+          // Should not throw despite StateError from stopSubscription
+          await expectLater(repository.unsubscribe(42), completes);
+
+          await sub.cancel();
+        },
+      );
+
+      test(
         'should do nothing if no subscription exists for the menuId',
         () async {
           when(

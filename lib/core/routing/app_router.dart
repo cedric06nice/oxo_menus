@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_page.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_creator/admin_template_creator_page.dart';
@@ -151,7 +152,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'menu-pdf',
                 builder: (context, state) {
                   final int menuId = int.parse(state.pathParameters['id']!);
-                  return PdfPreviewPage(menuId: menuId);
+                  final displayOptions = state.extra as MenuDisplayOptions?;
+                  return PdfPreviewPage(
+                    menuId: menuId,
+                    displayOptions: displayOptions,
+                  );
                 },
               ),
               GoRoute(

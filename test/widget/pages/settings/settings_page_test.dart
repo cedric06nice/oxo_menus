@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,6 +29,47 @@ void main() {
       child: const MaterialApp(home: SettingsPage()),
     );
   }
+
+  group('SettingsPage logout confirmation', () {
+    testWidgets('should show CupertinoAlertDialog on iOS', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [currentUserProvider.overrideWithValue(adminUser)],
+          child: MaterialApp(
+            theme: ThemeData(platform: TargetPlatform.iOS),
+            home: const SettingsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap the logout tile
+      await tester.tap(find.text('Logout'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CupertinoAlertDialog), findsOneWidget);
+      expect(find.text('Are you sure you want to logout?'), findsOneWidget);
+    });
+
+    testWidgets('should show AlertDialog on Android', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [currentUserProvider.overrideWithValue(adminUser)],
+          child: MaterialApp(
+            theme: ThemeData(platform: TargetPlatform.android),
+            home: const SettingsPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Logout'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Are you sure you want to logout?'), findsOneWidget);
+    });
+  });
 
   group('SettingsPage debug toggle', () {
     testWidgets('should show debug section for admin user', (tester) async {

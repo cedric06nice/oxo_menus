@@ -15,10 +15,14 @@ void main() {
   late PdfDocumentBuilder builder;
   late ByteData baseFontData;
   late ByteData boldFontData;
+  late ByteData sectionFontData;
 
   setUpAll(() async {
     baseFontData = await rootBundle.load('assets/fonts/FuturaStd-Light.ttf');
     boldFontData = await rootBundle.load('assets/fonts/FuturaStd-Book.ttf');
+    sectionFontData = await rootBundle.load(
+      'assets/fonts/LibreBaskerville-Regular.ttf',
+    );
   });
 
   setUp(() {
@@ -41,6 +45,7 @@ void main() {
         menuTree: menuTree,
         baseFontData: baseFontData,
         boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
         imageCache: {},
       );
 
@@ -100,6 +105,7 @@ void main() {
         menuTree: menuTree,
         baseFontData: baseFontData,
         boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
         imageCache: {},
       );
 
@@ -168,6 +174,7 @@ void main() {
         menuTree: menuTree,
         baseFontData: baseFontData,
         boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
         imageCache: {},
       );
 
@@ -223,10 +230,343 @@ void main() {
         menuTree: menuTree,
         baseFontData: baseFontData,
         boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
         imageCache: {},
       );
 
       expect(bytes, isNotEmpty);
     });
+
+    test('should produce valid PDF with dish_to_share widget', () async {
+      const menuTree = MenuTree(
+        menu: Menu(
+          id: 1,
+          name: 'Sharing Menu',
+          status: Status.published,
+          version: '1.0.0',
+        ),
+        pages: [
+          PageWithContainers(
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 1, pageId: 1, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 1,
+                      containerId: 1,
+                      index: 0,
+                      flex: 1,
+                    ),
+                    widgets: [
+                      WidgetInstance(
+                        id: 1,
+                        columnId: 1,
+                        type: 'dish_to_share',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {
+                          'name': 'Mezze Platter',
+                          'price': 18.5,
+                          'description': 'Selection of dips',
+                          'servings': 2,
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final bytes = await builder.buildDocument(
+        menuTree: menuTree,
+        baseFontData: baseFontData,
+        boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
+        imageCache: {},
+      );
+
+      expect(bytes, isNotEmpty);
+    });
+
+    test(
+      'should produce valid PDF with dish_to_share without servings',
+      () async {
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Sharing Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'dish_to_share',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {'name': 'Sharing Board', 'price': 24.0},
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+      },
+    );
+
+    test('should produce valid PDF with set_menu_dish widget', () async {
+      const menuTree = MenuTree(
+        menu: Menu(
+          id: 1,
+          name: 'Set Menu',
+          status: Status.published,
+          version: '1.0.0',
+        ),
+        pages: [
+          PageWithContainers(
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 1, pageId: 1, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 1,
+                      containerId: 1,
+                      index: 0,
+                      flex: 1,
+                    ),
+                    widgets: [
+                      WidgetInstance(
+                        id: 1,
+                        columnId: 1,
+                        type: 'set_menu_dish',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {
+                          'name': 'Beef Wellington',
+                          'description': 'With truffle jus',
+                          'hasSupplement': true,
+                          'supplementPrice': 7.5,
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final bytes = await builder.buildDocument(
+        menuTree: menuTree,
+        baseFontData: baseFontData,
+        boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
+        imageCache: {},
+      );
+
+      expect(bytes, isNotEmpty);
+    });
+
+    test(
+      'should produce valid PDF with set_menu_dish without supplement',
+      () async {
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Set Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'set_menu_dish',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {'name': 'Soup of the Day'},
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+      },
+    );
+
+    test('should produce valid PDF with set_menu_title widget', () async {
+      const menuTree = MenuTree(
+        menu: Menu(
+          id: 1,
+          name: 'Set Menu',
+          status: Status.published,
+          version: '1.0.0',
+        ),
+        pages: [
+          PageWithContainers(
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 1, pageId: 1, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 1,
+                      containerId: 1,
+                      index: 0,
+                      flex: 1,
+                    ),
+                    widgets: [
+                      WidgetInstance(
+                        id: 1,
+                        columnId: 1,
+                        type: 'set_menu_title',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {
+                          'title': 'Set Lunch Menu',
+                          'subtitle': 'Seasonal dishes',
+                          'priceLabel1': '3 Courses',
+                          'price1': 45.0,
+                          'priceLabel2': '4 Courses',
+                          'price2': 55.0,
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final bytes = await builder.buildDocument(
+        menuTree: menuTree,
+        baseFontData: baseFontData,
+        boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
+        imageCache: {},
+      );
+
+      expect(bytes, isNotEmpty);
+    });
+
+    test(
+      'should produce valid PDF with set_menu_title without prices',
+      () async {
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Set Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'set_menu_title',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {'title': 'Tasting Menu'},
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+      },
+    );
   });
 }
