@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 import 'package:printing/printing.dart';
 
 class PdfViewerWidget extends StatelessWidget {
@@ -16,10 +17,7 @@ class PdfViewerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isApple =
-        theme.platform == TargetPlatform.iOS ||
-        theme.platform == TargetPlatform.macOS;
+    final isApple = isApplePlatform(context);
 
     return InteractiveViewer(
       minScale: 1.0,

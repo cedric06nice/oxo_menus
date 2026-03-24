@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/presentation/theme/app_spacing.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Reusable empty state widget with icon, title, subtitle, and optional action.
 class EmptyState extends StatelessWidget {
@@ -46,7 +47,7 @@ class EmptyState extends StatelessWidget {
             ),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: AppSpacing.xl),
-              _buildActionButton(theme),
+              _buildActionButton(context),
             ],
           ],
         ),
@@ -54,10 +55,8 @@ class EmptyState extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(ThemeData theme) {
-    final isApple =
-        theme.platform == TargetPlatform.iOS ||
-        theme.platform == TargetPlatform.macOS;
+  Widget _buildActionButton(BuildContext context) {
+    final isApple = isApplePlatform(context);
     if (isApple) {
       return CupertinoButton.filled(
         onPressed: onAction,

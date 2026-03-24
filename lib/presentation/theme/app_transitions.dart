@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Custom page transitions for go_router routes.
 ///
@@ -21,8 +21,7 @@ class AppTransitions {
       return _fadeTransition(state: state, child: child);
     }
 
-    final platform = Theme.of(context).platform;
-    if (platform == TargetPlatform.iOS || platform == TargetPlatform.macOS) {
+    if (isApplePlatform(context)) {
       return _cupertinoSlideTransition(state: state, child: child);
     }
 

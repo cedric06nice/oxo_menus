@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/presentation/widget_system/presentable_widget_definition.dart';
 import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
 
 /// Resolves the icon for a widget definition, falling back to generic icons.
@@ -143,18 +144,16 @@ class _PaletteItem extends StatelessWidget {
       ),
       childWhenDragging: Opacity(
         opacity: 0.3,
-        child: _paletteItemContent(theme),
+        child: _paletteItemContent(context, theme),
       ),
-      child: _paletteItemContent(theme),
+      child: _paletteItemContent(context, theme),
     );
   }
 
   String get _label => definition?.displayName ?? type;
 
-  Widget _paletteItemContent(ThemeData theme) {
-    final isApple =
-        theme.platform == TargetPlatform.iOS ||
-        theme.platform == TargetPlatform.macOS;
+  Widget _paletteItemContent(BuildContext context, ThemeData theme) {
+    final isApple = isApplePlatform(context);
     return Container(
       key: Key('palette_item_$type'),
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -224,17 +223,15 @@ class _AdminPaletteItem extends StatelessWidget {
           ),
         ),
       ),
-      childWhenDragging: Opacity(opacity: 0.3, child: _content(theme)),
-      child: _content(theme),
+      childWhenDragging: Opacity(opacity: 0.3, child: _content(context, theme)),
+      child: _content(context, theme),
     );
   }
 
   String get _label => definition?.displayName ?? type;
 
-  Widget _content(ThemeData theme) {
-    final isApple =
-        theme.platform == TargetPlatform.iOS ||
-        theme.platform == TargetPlatform.macOS;
+  Widget _content(BuildContext context, ThemeData theme) {
+    final isApple = isApplePlatform(context);
     return Container(
       key: Key('palette_item_$type'),
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

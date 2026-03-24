@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/presentation/helpers/edit_dialog_helper.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/image_widget/image_edit_dialog.dart';
@@ -28,10 +29,7 @@ class ImageWidget extends ConsumerWidget {
           child: Builder(
             builder: (ctx) {
               final colorScheme = Theme.of(ctx).colorScheme;
-              final platform = Theme.of(ctx).platform;
-              final isApple =
-                  platform == TargetPlatform.iOS ||
-                  platform == TargetPlatform.macOS;
+              final isApple = isApplePlatform(ctx);
               return asyncBytes.when(
                 data: (bytes) => Image.memory(
                   bytes,
