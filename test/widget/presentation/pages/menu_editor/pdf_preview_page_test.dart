@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dar
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/presentation/widgets/common/pdf_viewer_widget.dart';
 
 class MockFetchMenuTreeUseCase extends Mock implements FetchMenuTreeUseCase {}
 
@@ -222,6 +224,84 @@ void main() {
       expect(capturedTree, isNotNull);
       expect(capturedTree!.menu.displayOptions?.showPrices, true);
       expect(capturedTree!.menu.displayOptions?.showAllergens, true);
+    });
+
+    testWidgets('generates filename from menu name and display options', (
+      WidgetTester tester,
+    ) async {
+      final menu = Menu(
+        id: 1,
+        name: 'Restaurant A La Carte',
+        status: Status.draft,
+        version: '1',
+        displayOptions: const MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: true,
+        ),
+      );
+      final menuTree = MenuTree(menu: menu, pages: const []);
+      final pdfBytes = Uint8List.fromList([0x25, 0x50, 0x44, 0x46]);
+
+      when(
+        () => mockFetchMenuTree.execute(1),
+      ).thenAnswer((_) async => Success(menuTree));
+
+      when(
+        () => mockGeneratePdf.execute(any()),
+      ).thenAnswer((_) async => Success(pdfBytes));
+
+      await tester.pumpWidget(buildWidget());
+      await tester.pump();
+      await tester.pump();
+
+      final viewer = tester.widget<PdfViewerWidget>(
+        find.byType(PdfViewerWidget),
+      );
+      expect(viewer.filename, contains('Restaurant A La Carte'));
+      expect(viewer.filename, contains('Allergy'));
+      expect(viewer.filename, endsWith('.pdf'));
+    });
+
+    testWidgets('filename reflects display options without allergens', (
+      WidgetTester tester,
+    ) async {
+      final menu = Menu(
+        id: 1,
+        name: 'Dinner Menu',
+        status: Status.draft,
+        version: '1',
+        displayOptions: const MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: true,
+        ),
+      );
+      final menuTree = MenuTree(menu: menu, pages: const []);
+      final pdfBytes = Uint8List.fromList([0x25, 0x50, 0x44, 0x46]);
+
+      when(
+        () => mockFetchMenuTree.execute(1),
+      ).thenAnswer((_) async => Success(menuTree));
+
+      when(
+        () => mockGeneratePdf.execute(any()),
+      ).thenAnswer((_) async => Success(pdfBytes));
+
+      const overrideOptions = MenuDisplayOptions(
+        showPrices: false,
+        showAllergens: false,
+      );
+
+      await tester.pumpWidget(buildWidget(displayOptions: overrideOptions));
+      await tester.pump();
+      await tester.pump();
+
+      final viewer = tester.widget<PdfViewerWidget>(
+        find.byType(PdfViewerWidget),
+      );
+      expect(viewer.filename, contains('Dinner Menu'));
+      expect(viewer.filename, contains('No Prices'));
+      expect(viewer.filename, isNot(contains('Allergy')));
+      expect(viewer.filename, endsWith('.pdf'));
     });
   });
 }
