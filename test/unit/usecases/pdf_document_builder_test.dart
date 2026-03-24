@@ -456,5 +456,117 @@ void main() {
         expect(bytes, isNotEmpty);
       },
     );
+
+    test('should produce valid PDF with set_menu_title widget', () async {
+      const menuTree = MenuTree(
+        menu: Menu(
+          id: 1,
+          name: 'Set Menu',
+          status: Status.published,
+          version: '1.0.0',
+        ),
+        pages: [
+          PageWithContainers(
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 1, pageId: 1, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 1,
+                      containerId: 1,
+                      index: 0,
+                      flex: 1,
+                    ),
+                    widgets: [
+                      WidgetInstance(
+                        id: 1,
+                        columnId: 1,
+                        type: 'set_menu_title',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {
+                          'title': 'Set Lunch Menu',
+                          'subtitle': 'Seasonal dishes',
+                          'priceLabel1': '3 Courses',
+                          'price1': 45.0,
+                          'priceLabel2': '4 Courses',
+                          'price2': 55.0,
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final bytes = await builder.buildDocument(
+        menuTree: menuTree,
+        baseFontData: baseFontData,
+        boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
+        imageCache: {},
+      );
+
+      expect(bytes, isNotEmpty);
+    });
+
+    test(
+      'should produce valid PDF with set_menu_title without prices',
+      () async {
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Set Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'set_menu_title',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {'title': 'Tasting Menu'},
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+      },
+    );
   });
 }

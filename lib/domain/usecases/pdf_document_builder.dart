@@ -10,6 +10,7 @@ import 'package:oxo_menus/domain/usecases/pdf_style_resolver.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/domain/widgets/dish_to_share/dish_to_share_props.dart';
 import 'package:oxo_menus/domain/widgets/set_menu_dish/set_menu_dish_props.dart';
+import 'package:oxo_menus/domain/widgets/set_menu_title/set_menu_title_props.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/domain/widgets/section/section_props.dart';
 import 'package:oxo_menus/domain/widgets/text/text_props.dart';
@@ -354,6 +355,13 @@ class PdfDocumentBuilder {
         return _buildDishToShareWidget(widget, styleConfig, displayOptions);
       case 'set_menu_dish':
         return _buildSetMenuDishWidget(widget, styleConfig, displayOptions);
+      case 'set_menu_title':
+        return _buildSetMenuTitleWidget(
+          widget,
+          styleConfig,
+          displayOptions,
+          sectionFont,
+        );
       default:
         return pw.SizedBox();
     }
@@ -893,6 +901,61 @@ class PdfDocumentBuilder {
                 ),
               );
             }(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildSetMenuTitleWidget(
+    WidgetInstance widget,
+    StyleConfig? styleConfig,
+    MenuDisplayOptions? displayOptions,
+    pw.Font sectionFont,
+  ) {
+    final props = SetMenuTitleProps.fromJson(widget.props);
+    final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
+    final title = props.uppercase ? props.title.toUpperCase() : props.title;
+    final showPrices = displayOptions?.showPrices ?? true;
+
+    return pw.Container(
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text(
+            title,
+            style: pw.TextStyle(
+              font: sectionFont,
+              fontSize: baseFontSize + 2,
+              fontWeight: pw.FontWeight.bold,
+              letterSpacing: props.uppercase ? 1.5 : 0,
+            ),
+          ),
+          if (props.subtitle != null && props.subtitle!.isNotEmpty)
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(top: 2),
+              child: pw.Text(
+                props.subtitle!,
+                style: pw.TextStyle(fontSize: baseFontSize - 1),
+              ),
+            ),
+          if (showPrices) ...[
+            if (props.formattedPrice1 != null)
+              pw.Padding(
+                padding: const pw.EdgeInsets.only(top: 4),
+                child: pw.Text(
+                  props.formattedPrice1!,
+                  style: pw.TextStyle(fontSize: baseFontSize - 1),
+                ),
+              ),
+            if (props.formattedPrice2 != null)
+              pw.Padding(
+                padding: const pw.EdgeInsets.only(top: 2),
+                child: pw.Text(
+                  props.formattedPrice2!,
+                  style: pw.TextStyle(fontSize: baseFontSize - 1),
+                ),
+              ),
           ],
         ],
       ),
