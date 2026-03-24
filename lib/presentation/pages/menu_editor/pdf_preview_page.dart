@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
@@ -14,8 +15,9 @@ import 'package:oxo_menus/presentation/widgets/common/pdf_viewer_widget.dart';
 /// Uses PdfPreview's built-in toolbar for print and share actions.
 class PdfPreviewPage extends ConsumerWidget {
   final int menuId;
+  final MenuDisplayOptions? displayOptions;
 
-  const PdfPreviewPage({super.key, required this.menuId});
+  const PdfPreviewPage({super.key, required this.menuId, this.displayOptions});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -87,9 +89,15 @@ class PdfPreviewPage extends ConsumerWidget {
 
     final menuTree = menuTreeResult.valueOrNull!;
 
+    final effectiveTree = displayOptions != null
+        ? menuTree.copyWith(
+            menu: menuTree.menu.copyWith(displayOptions: displayOptions),
+          )
+        : menuTree;
+
     final pdfResult = await ref
         .read(generatePdfUseCaseProvider)
-        .execute(menuTree);
+        .execute(effectiveTree);
 
     if (pdfResult.isFailure) {
       throw Exception(

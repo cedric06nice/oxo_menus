@@ -13,6 +13,10 @@ import 'package:oxo_menus/presentation/pages/menu_editor/pdf_preview_page.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 
+import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
+
 class MockFetchMenuTreeUseCase extends Mock implements FetchMenuTreeUseCase {}
 
 class MockGeneratePdfUseCase extends Mock implements GeneratePdfUseCase {}
@@ -35,6 +39,7 @@ void main() {
   Widget buildWidget({
     TargetPlatform platform = TargetPlatform.android,
     bool pendingForever = false,
+    MenuDisplayOptions? displayOptions,
   }) {
     if (pendingForever) {
       when(
@@ -49,7 +54,7 @@ void main() {
       ],
       child: MaterialApp(
         theme: ThemeData(platform: platform),
-        home: const PdfPreviewPage(menuId: 1),
+        home: PdfPreviewPage(menuId: 1, displayOptions: displayOptions),
       ),
     );
   }
@@ -146,6 +151,77 @@ void main() {
       await tester.pump();
 
       expect(find.text('Generating PDF...'), findsOneWidget);
+    });
+
+    testWidgets('overrides menu displayOptions when provided', (
+      WidgetTester tester,
+    ) async {
+      final menu = Menu(
+        id: 1,
+        name: 'Test',
+        status: Status.draft,
+        version: '1',
+        displayOptions: const MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: true,
+        ),
+      );
+      final menuTree = MenuTree(menu: menu, pages: const []);
+
+      when(
+        () => mockFetchMenuTree.execute(1),
+      ).thenAnswer((_) async => Success(menuTree));
+
+      MenuTree? capturedTree;
+      when(() => mockGeneratePdf.execute(any())).thenAnswer((inv) async {
+        capturedTree = inv.positionalArguments[0] as MenuTree;
+        return const Failure(ServerError('test'));
+      });
+
+      const overrideOptions = MenuDisplayOptions(
+        showPrices: false,
+        showAllergens: false,
+      );
+
+      await tester.pumpWidget(buildWidget(displayOptions: overrideOptions));
+      await tester.pumpAndSettle();
+
+      expect(capturedTree, isNotNull);
+      expect(capturedTree!.menu.displayOptions?.showPrices, false);
+      expect(capturedTree!.menu.displayOptions?.showAllergens, false);
+    });
+
+    testWidgets('uses menu displayOptions when none provided', (
+      WidgetTester tester,
+    ) async {
+      final menu = Menu(
+        id: 1,
+        name: 'Test',
+        status: Status.draft,
+        version: '1',
+        displayOptions: const MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: true,
+        ),
+      );
+      final menuTree = MenuTree(menu: menu, pages: const []);
+
+      when(
+        () => mockFetchMenuTree.execute(1),
+      ).thenAnswer((_) async => Success(menuTree));
+
+      MenuTree? capturedTree;
+      when(() => mockGeneratePdf.execute(any())).thenAnswer((inv) async {
+        capturedTree = inv.positionalArguments[0] as MenuTree;
+        return const Failure(ServerError('test'));
+      });
+
+      await tester.pumpWidget(buildWidget());
+      await tester.pumpAndSettle();
+
+      expect(capturedTree, isNotNull);
+      expect(capturedTree!.menu.displayOptions?.showPrices, true);
+      expect(capturedTree!.menu.displayOptions?.showAllergens, true);
     });
   });
 }
