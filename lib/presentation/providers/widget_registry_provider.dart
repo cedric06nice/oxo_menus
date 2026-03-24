@@ -6,6 +6,7 @@ import 'package:oxo_menus/presentation/widgets/dish_to_share_widget/dish_to_shar
 import 'package:oxo_menus/presentation/widgets/image_widget/image_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/section_widget/section_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/text_widget/text_widget_definition.dart';
+import 'package:oxo_menus/presentation/widgets/set_menu_dish_widget/set_menu_dish_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/wine_widget/wine_widget_definition.dart';
 
 /// All built-in widget definitions.
@@ -16,6 +17,7 @@ final allWidgetDefinitions = <PresentableWidgetDefinition>[
   dishToShareWidgetDefinition,
   imageWidgetDefinition,
   sectionWidgetDefinition,
+  setMenuDishWidgetDefinition,
   textWidgetDefinition,
   wineWidgetDefinition,
 ];

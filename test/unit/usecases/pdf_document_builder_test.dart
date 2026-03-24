@@ -346,5 +346,115 @@ void main() {
         expect(bytes, isNotEmpty);
       },
     );
+
+    test('should produce valid PDF with set_menu_dish widget', () async {
+      const menuTree = MenuTree(
+        menu: Menu(
+          id: 1,
+          name: 'Set Menu',
+          status: Status.published,
+          version: '1.0.0',
+        ),
+        pages: [
+          PageWithContainers(
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 1, pageId: 1, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 1,
+                      containerId: 1,
+                      index: 0,
+                      flex: 1,
+                    ),
+                    widgets: [
+                      WidgetInstance(
+                        id: 1,
+                        columnId: 1,
+                        type: 'set_menu_dish',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {
+                          'name': 'Beef Wellington',
+                          'description': 'With truffle jus',
+                          'hasSupplement': true,
+                          'supplementPrice': 7.5,
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final bytes = await builder.buildDocument(
+        menuTree: menuTree,
+        baseFontData: baseFontData,
+        boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
+        imageCache: {},
+      );
+
+      expect(bytes, isNotEmpty);
+    });
+
+    test(
+      'should produce valid PDF with set_menu_dish without supplement',
+      () async {
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Set Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'set_menu_dish',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {'name': 'Soup of the Day'},
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+      },
+    );
   });
 }

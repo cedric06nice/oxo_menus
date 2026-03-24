@@ -9,6 +9,7 @@ import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/pdf_style_resolver.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/domain/widgets/dish_to_share/dish_to_share_props.dart';
+import 'package:oxo_menus/domain/widgets/set_menu_dish/set_menu_dish_props.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/domain/widgets/section/section_props.dart';
 import 'package:oxo_menus/domain/widgets/text/text_props.dart';
@@ -351,6 +352,8 @@ class PdfDocumentBuilder {
         return _buildWineWidget(widget, styleConfig, displayOptions);
       case 'dish_to_share':
         return _buildDishToShareWidget(widget, styleConfig, displayOptions);
+      case 'set_menu_dish':
+        return _buildSetMenuDishWidget(widget, styleConfig, displayOptions);
       default:
         return pw.SizedBox();
     }
@@ -746,6 +749,105 @@ class PdfDocumentBuilder {
               ),
             ),
           ),
+          if (props.description != null && props.description!.isNotEmpty ||
+              showAllergens && props.calories != null)
+            pw.RichText(
+              text: pw.TextSpan(
+                children: [
+                  if (props.description != null &&
+                      props.description!.isNotEmpty)
+                    pw.TextSpan(
+                      text: props.description!,
+                      style: pw.TextStyle(
+                        fontSize: baseFontSize,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  if (showAllergens && props.calories != null)
+                    pw.TextSpan(
+                      text: '  ${props.calories}KCAL',
+                      style: pw.TextStyle(
+                        fontSize: baseFontSize - 5,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          if (showAllergens) ...[
+            () {
+              final formattedAllergens = AllergenFormatter.formatForDisplay(
+                props.effectiveAllergenInfo,
+              );
+              if (formattedAllergens.isEmpty) {
+                return pw.SizedBox.shrink();
+              }
+              return pw.Padding(
+                padding: const pw.EdgeInsets.only(top: 4),
+                child: pw.Text(
+                  formattedAllergens,
+                  style: pw.TextStyle(
+                    fontSize: baseFontSize - 3,
+                    letterSpacing: 0.6,
+                    fontStyle: pw.FontStyle.normal,
+                  ),
+                ),
+              );
+            }(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _buildSetMenuDishWidget(
+    WidgetInstance widget,
+    StyleConfig? styleConfig,
+    MenuDisplayOptions? displayOptions,
+  ) {
+    final props = SetMenuDishProps.fromJson(widget.props);
+    final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
+    final showAllergens = displayOptions?.showAllergens ?? true;
+
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 8),
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.start,
+            children: [
+              pw.Text(
+                props.name,
+                style: pw.TextStyle(
+                  fontSize: baseFontSize,
+                  letterSpacing: 0.55,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.Text(
+                props.dietary?.abbreviation != null
+                    ? '  ${props.dietary!.abbreviation}'
+                    : '',
+                style: pw.TextStyle(
+                  fontSize: baseFontSize - 3,
+                  letterSpacing: 0.4,
+                  fontStyle: pw.FontStyle.normal,
+                ),
+              ),
+            ],
+          ),
+          if (props.supplementText.isNotEmpty)
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(top: 2),
+              child: pw.Text(
+                props.supplementText,
+                style: pw.TextStyle(
+                  fontSize: baseFontSize - 2,
+                  fontStyle: pw.FontStyle.italic,
+                ),
+              ),
+            ),
           if (props.description != null && props.description!.isNotEmpty ||
               showAllergens && props.calories != null)
             pw.RichText(
