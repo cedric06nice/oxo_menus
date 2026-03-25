@@ -83,34 +83,34 @@ void main() {
       expect(find.byIcon(Icons.broken_image), findsOneWidget);
     });
 
-    testWidgets('should align left when align is left', (tester) async {
+    testWidgets('should pass left alignment to Image.memory', (tester) async {
       const props = ImageProps(fileId: 'test-file-id', align: 'left');
 
       await tester.pumpWidget(buildWidget(props: props));
       await tester.pumpAndSettle();
 
-      final align = tester.widget<Align>(find.byType(Align));
-      expect(align.alignment, Alignment.centerLeft);
+      final image = tester.widget<Image>(find.byType(Image));
+      expect(image.alignment, Alignment.centerLeft);
     });
 
-    testWidgets('should align center when align is center', (tester) async {
+    testWidgets('should pass center alignment to Image.memory', (tester) async {
       const props = ImageProps(fileId: 'test-file-id', align: 'center');
 
       await tester.pumpWidget(buildWidget(props: props));
       await tester.pumpAndSettle();
 
-      final align = tester.widget<Align>(find.byType(Align));
-      expect(align.alignment, Alignment.center);
+      final image = tester.widget<Image>(find.byType(Image));
+      expect(image.alignment, Alignment.center);
     });
 
-    testWidgets('should align right when align is right', (tester) async {
+    testWidgets('should pass right alignment to Image.memory', (tester) async {
       const props = ImageProps(fileId: 'test-file-id', align: 'right');
 
       await tester.pumpWidget(buildWidget(props: props));
       await tester.pumpAndSettle();
 
-      final align = tester.widget<Align>(find.byType(Align));
-      expect(align.alignment, Alignment.centerRight);
+      final image = tester.widget<Image>(find.byType(Image));
+      expect(image.alignment, Alignment.centerRight);
     });
 
     testWidgets('should wrap in GestureDetector when isEditable is true', (

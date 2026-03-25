@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/data/mappers/style_config_mapper.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 
 void main() {
   group('StyleConfigMapper', () {
@@ -129,6 +130,51 @@ void main() {
         expect(restored.paddingLeft, original.paddingLeft);
         expect(restored.borderType, original.borderType);
         expect(restored.fontSize, original.fontSize);
+      });
+    });
+
+    group('verticalAlignment', () {
+      test('should parse verticalAlignment from JSON', () {
+        final json = <String, dynamic>{'verticalAlignment': 'center'};
+
+        final config = StyleConfigMapper.fromJson(json);
+
+        expect(config.verticalAlignment, VerticalAlignment.center);
+      });
+
+      test('should handle null verticalAlignment', () {
+        final config = StyleConfigMapper.fromJson(<String, dynamic>{});
+
+        expect(config.verticalAlignment, isNull);
+      });
+
+      test('should serialize verticalAlignment to JSON', () {
+        const config = StyleConfig(verticalAlignment: VerticalAlignment.bottom);
+
+        final json = StyleConfigMapper.toJson(config);
+
+        expect(json['verticalAlignment'], 'bottom');
+      });
+
+      test('should omit verticalAlignment when null', () {
+        const config = StyleConfig();
+
+        final json = StyleConfigMapper.toJson(config);
+
+        expect(json.containsKey('verticalAlignment'), false);
+      });
+
+      test('should round-trip verticalAlignment', () {
+        const original = StyleConfig(
+          verticalAlignment: VerticalAlignment.center,
+          marginTop: 10.0,
+        );
+
+        final json = StyleConfigMapper.toJson(original);
+        final restored = StyleConfigMapper.fromJson(json);
+
+        expect(restored.verticalAlignment, original.verticalAlignment);
+        expect(restored.marginTop, original.marginTop);
       });
     });
   });

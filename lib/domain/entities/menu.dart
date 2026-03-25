@@ -3,6 +3,7 @@ import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 
 part 'menu.freezed.dart';
 part 'menu.g.dart';
@@ -53,6 +54,7 @@ abstract class StyleConfig with _$StyleConfig {
     double? paddingLeft,
     double? paddingRight,
     BorderType? borderType,
+    VerticalAlignment? verticalAlignment,
   }) = _StyleConfig;
 
   factory StyleConfig.fromJson(Map<String, dynamic> json) =>

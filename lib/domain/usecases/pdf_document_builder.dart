@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:oxo_menus/domain/allergens/allergen_formatter.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
+import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/pdf_style_resolver.dart';
@@ -279,8 +280,19 @@ class PdfDocumentBuilder {
     return pw.Table(
       children: rows,
       columnWidths: columnWidths,
-      defaultVerticalAlignment: pw.TableCellVerticalAlignment.top,
+      defaultVerticalAlignment: _resolveTableVerticalAlignment(columns),
     );
+  }
+
+  pw.TableCellVerticalAlignment _resolveTableVerticalAlignment(
+    List<ColumnWithWidgets> columns,
+  ) {
+    final va = columns.first.column.styleConfig?.verticalAlignment;
+    return switch (va) {
+      VerticalAlignment.center => pw.TableCellVerticalAlignment.middle,
+      VerticalAlignment.bottom => pw.TableCellVerticalAlignment.bottom,
+      _ => pw.TableCellVerticalAlignment.top,
+    };
   }
 
   pw.Widget _wrapCellWithColumnStyle(pw.Widget child, StyleConfig? style) {

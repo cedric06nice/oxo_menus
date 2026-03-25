@@ -22,39 +22,40 @@ class ImageWidget extends ConsumerWidget {
 
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
-      child: Align(
-        alignment: _getAlignment(),
-        child: SizedBox(
-          width: double.infinity,
-          child: Builder(
-            builder: (ctx) {
-              final colorScheme = Theme.of(ctx).colorScheme;
-              final isApple = isApplePlatform(ctx);
-              return asyncBytes.when(
-                data: (bytes) => Image.memory(
-                  bytes,
-                  width: props.width,
-                  height: props.height,
-                  fit: _getBoxFit(),
+      child: Builder(
+        builder: (ctx) {
+          final colorScheme = Theme.of(ctx).colorScheme;
+          final isApple = isApplePlatform(ctx);
+          return asyncBytes.when(
+            data: (bytes) => Image.memory(
+              bytes,
+              width: props.width,
+              height: props.height,
+              fit: _getBoxFit(),
+              alignment: _getAlignment(),
+            ),
+            loading: () => Align(
+              alignment: _getAlignment(),
+              child: SizedBox(
+                width: props.width ?? 100,
+                height: props.height ?? 100,
+                child: const Center(child: AdaptiveLoadingIndicator()),
+              ),
+            ),
+            error: (_, _) => Align(
+              alignment: _getAlignment(),
+              child: Container(
+                width: props.width ?? 100,
+                height: props.height ?? 100,
+                color: colorScheme.surfaceContainerHigh,
+                child: Icon(
+                  isApple ? CupertinoIcons.photo : Icons.broken_image,
+                  color: colorScheme.onSurfaceVariant,
                 ),
-                loading: () => SizedBox(
-                  width: props.width ?? 100,
-                  height: props.height ?? 100,
-                  child: Center(child: const AdaptiveLoadingIndicator()),
-                ),
-                error: (_, _) => Container(
-                  width: props.width ?? 100,
-                  height: props.height ?? 100,
-                  color: colorScheme.surfaceContainerHigh,
-                  child: Icon(
-                    isApple ? CupertinoIcons.photo : Icons.broken_image,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
