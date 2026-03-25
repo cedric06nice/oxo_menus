@@ -394,9 +394,8 @@ class PdfDocumentBuilder {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.start,
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
+          pw.Wrap(
+            crossAxisAlignment: pw.WrapCrossAlignment.end,
             children: [
               pw.Text(
                 props.name,
@@ -493,9 +492,8 @@ class PdfDocumentBuilder {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.start,
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
+          pw.Wrap(
+            crossAxisAlignment: pw.WrapCrossAlignment.end,
             children: [
               pw.Text(
                 props.name,
@@ -729,9 +727,8 @@ class PdfDocumentBuilder {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.start,
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
+          pw.Wrap(
+            crossAxisAlignment: pw.WrapCrossAlignment.end,
             children: [
               pw.Text(
                 props.name,
@@ -835,9 +832,8 @@ class PdfDocumentBuilder {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.start,
-            crossAxisAlignment: pw.CrossAxisAlignment.end,
+          pw.Wrap(
+            crossAxisAlignment: pw.WrapCrossAlignment.end,
             children: [
               pw.Text(
                 props.name,
