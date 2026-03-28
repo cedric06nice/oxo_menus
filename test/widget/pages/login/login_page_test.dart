@@ -778,6 +778,79 @@ void main() {
     });
   });
 
+  group('LoginPage logo', () {
+    testWidgets('should display tower logo image above title', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('tower_logo')), findsOneWidget);
+    });
+
+    testWidgets('should use black tower image in light mode', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(mockAuthRepository),
+          ],
+          child: MaterialApp(
+            theme: ThemeData(brightness: Brightness.light),
+            home: const LoginPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final image = tester.widget<Image>(find.byKey(const Key('tower_logo')));
+      final assetImage = image.image as AssetImage;
+      expect(assetImage.assetName, 'assets/images/OXOTowerDrawingBlack.png');
+    });
+
+    testWidgets('should use white tower image in dark mode', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authRepositoryProvider.overrideWithValue(mockAuthRepository),
+          ],
+          child: MaterialApp(
+            theme: ThemeData(brightness: Brightness.dark),
+            home: const LoginPage(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final image = tester.widget<Image>(find.byKey(const Key('tower_logo')));
+      final assetImage = image.image as AssetImage;
+      expect(assetImage.assetName, 'assets/images/OXOTowerDrawingWhite.png');
+    });
+
+    testWidgets('should place logo above the OXO Menus title', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      final logoOffset = tester.getCenter(find.byKey(const Key('tower_logo')));
+      final titleOffset = tester.getCenter(find.textContaining('OXO'));
+
+      expect(logoOffset.dy, lessThan(titleOffset.dy));
+    });
+  });
+
   group('LoginPage macOS', () {
     testWidgets('should use CupertinoTextField for email on macOS', (
       tester,
