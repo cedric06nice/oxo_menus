@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/widgets/side_panel_style_editor.dart';
 import 'package:oxo_menus/presentation/widgets/common/edge_insets_editor.dart';
@@ -431,6 +432,116 @@ void main() {
           find.byKey(const Key('change_page_size_button')),
         );
         expect(button.onPressed, isNull);
+      });
+    });
+
+    group('Vertical Alignment', () {
+      testWidgets('shows vertical alignment dropdown for column type', (
+        tester,
+      ) async {
+        await tester.pumpWidget(buildSubject(type: EditorElementType.column));
+
+        expect(find.text('Vertical Alignment'), findsOneWidget);
+        expect(
+          find.byType(DropdownButtonFormField<VerticalAlignment>),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('does NOT show vertical alignment for container type', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildSubject(type: EditorElementType.container),
+        );
+
+        expect(find.text('Vertical Alignment'), findsNothing);
+        expect(
+          find.byType(DropdownButtonFormField<VerticalAlignment>),
+          findsNothing,
+        );
+      });
+
+      testWidgets('does NOT show vertical alignment for menu type', (
+        tester,
+      ) async {
+        await tester.pumpWidget(buildSubject(type: EditorElementType.menu));
+
+        expect(find.text('Vertical Alignment'), findsNothing);
+      });
+
+      testWidgets('calls onStyleChanged with selected verticalAlignment', (
+        tester,
+      ) async {
+        StyleConfig? changedStyle;
+
+        await tester.pumpWidget(
+          buildSubject(
+            type: EditorElementType.column,
+            styleConfig: const StyleConfig(),
+            onStyleChanged: (style) => changedStyle = style,
+          ),
+        );
+
+        await tester.tap(
+          find.byType(DropdownButtonFormField<VerticalAlignment>),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Center').last);
+        await tester.pumpAndSettle();
+
+        expect(changedStyle, isNotNull);
+        expect(changedStyle!.verticalAlignment, VerticalAlignment.center);
+      });
+
+      testWidgets('displays current verticalAlignment from styleConfig', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildSubject(
+            type: EditorElementType.column,
+            styleConfig: const StyleConfig(
+              verticalAlignment: VerticalAlignment.bottom,
+            ),
+          ),
+        );
+
+        final state = tester.state<FormFieldState<VerticalAlignment>>(
+          find.byType(DropdownButtonFormField<VerticalAlignment>),
+        );
+        expect(state.value, VerticalAlignment.bottom);
+      });
+
+      testWidgets('updates when styleConfig changes', (tester) async {
+        await tester.pumpWidget(
+          buildSubject(
+            type: EditorElementType.column,
+            styleConfig: const StyleConfig(
+              verticalAlignment: VerticalAlignment.top,
+            ),
+          ),
+        );
+
+        var state = tester.state<FormFieldState<VerticalAlignment>>(
+          find.byType(DropdownButtonFormField<VerticalAlignment>),
+        );
+        expect(state.value, VerticalAlignment.top);
+
+        await tester.pumpWidget(
+          buildSubject(
+            type: EditorElementType.column,
+            styleConfig: const StyleConfig(
+              verticalAlignment: VerticalAlignment.bottom,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        state = tester.state<FormFieldState<VerticalAlignment>>(
+          find.byType(DropdownButtonFormField<VerticalAlignment>),
+        );
+        expect(state.value, VerticalAlignment.bottom);
       });
     });
 

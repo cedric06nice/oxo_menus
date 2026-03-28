@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/presentation/widgets/canvas/widget_renderer.dart';
 
@@ -209,6 +210,7 @@ class ColumnCanvas extends ConsumerWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: _getMainAxisAlignment(),
         children: [
           // Widgets
           ...column.widgets.map((widget) {
@@ -235,5 +237,14 @@ class ColumnCanvas extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  MainAxisAlignment _getMainAxisAlignment() {
+    final va = column.column.styleConfig?.verticalAlignment;
+    return switch (va) {
+      VerticalAlignment.center => MainAxisAlignment.center,
+      VerticalAlignment.bottom => MainAxisAlignment.end,
+      _ => MainAxisAlignment.start,
+    };
   }
 }

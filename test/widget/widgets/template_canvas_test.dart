@@ -6,6 +6,7 @@ import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/presentation/widgets/canvas/template_canvas.dart';
@@ -447,6 +448,119 @@ void main() {
       // WidgetRenderer should be present
       expect(find.byType(ColumnCanvas), findsOneWidget);
     });
+  });
+
+  group('ColumnCanvas - Vertical Alignment', () {
+    testWidgets(
+      'should use MainAxisAlignment.start when verticalAlignment is top',
+      (tester) async {
+        const columnData = ColumnWithWidgets(
+          column: entity.Column(
+            id: 1,
+            containerId: 1,
+            index: 0,
+            styleConfig: StyleConfig(verticalAlignment: VerticalAlignment.top),
+          ),
+          widgets: [],
+        );
+
+        await tester.pumpWidget(
+          const ProviderScope(
+            child: MaterialApp(
+              home: Scaffold(
+                body: ColumnCanvas(column: columnData, isEditable: false),
+              ),
+            ),
+          ),
+        );
+
+        final column = tester.widgetList<Column>(find.byType(Column)).last;
+        expect(column.mainAxisAlignment, MainAxisAlignment.start);
+      },
+    );
+
+    testWidgets(
+      'should use MainAxisAlignment.center when verticalAlignment is center',
+      (tester) async {
+        const columnData = ColumnWithWidgets(
+          column: entity.Column(
+            id: 1,
+            containerId: 1,
+            index: 0,
+            styleConfig: StyleConfig(
+              verticalAlignment: VerticalAlignment.center,
+            ),
+          ),
+          widgets: [],
+        );
+
+        await tester.pumpWidget(
+          const ProviderScope(
+            child: MaterialApp(
+              home: Scaffold(
+                body: ColumnCanvas(column: columnData, isEditable: false),
+              ),
+            ),
+          ),
+        );
+
+        final column = tester.widgetList<Column>(find.byType(Column)).last;
+        expect(column.mainAxisAlignment, MainAxisAlignment.center);
+      },
+    );
+
+    testWidgets(
+      'should use MainAxisAlignment.end when verticalAlignment is bottom',
+      (tester) async {
+        const columnData = ColumnWithWidgets(
+          column: entity.Column(
+            id: 1,
+            containerId: 1,
+            index: 0,
+            styleConfig: StyleConfig(
+              verticalAlignment: VerticalAlignment.bottom,
+            ),
+          ),
+          widgets: [],
+        );
+
+        await tester.pumpWidget(
+          const ProviderScope(
+            child: MaterialApp(
+              home: Scaffold(
+                body: ColumnCanvas(column: columnData, isEditable: false),
+              ),
+            ),
+          ),
+        );
+
+        final column = tester.widgetList<Column>(find.byType(Column)).last;
+        expect(column.mainAxisAlignment, MainAxisAlignment.end);
+      },
+    );
+
+    testWidgets(
+      'should default to MainAxisAlignment.start when no verticalAlignment',
+      (tester) async {
+        const columnData = ColumnWithWidgets(
+          column: entity.Column(id: 1, containerId: 1, index: 0),
+          widgets: [],
+        );
+
+        await tester.pumpWidget(
+          const ProviderScope(
+            child: MaterialApp(
+              home: Scaffold(
+                body: ColumnCanvas(column: columnData, isEditable: false),
+              ),
+            ),
+          ),
+        );
+
+        final column = tester.widgetList<Column>(find.byType(Column)).last;
+        expect(column.mainAxisAlignment, MainAxisAlignment.start);
+      },
+    );
   });
 
   group('PageCanvas - Header/Footer', () {

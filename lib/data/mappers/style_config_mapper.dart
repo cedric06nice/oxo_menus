@@ -1,5 +1,6 @@
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 
 /// Shared mapper for converting between StyleConfig and JSON.
 /// Reused by MenuMapper, ContainerMapper, and ColumnMapper.
@@ -23,6 +24,11 @@ class StyleConfigMapper {
       paddingRight: (json['paddingRight'] as num?)?.toDouble(),
       borderType: json['borderType'] != null
           ? BorderTypeConverter.fromString(json['borderType'] as String)
+          : null,
+      verticalAlignment: json['verticalAlignment'] != null
+          ? VerticalAlignmentConverter.fromString(
+              json['verticalAlignment'] as String,
+            )
           : null,
     );
   }
@@ -53,6 +59,11 @@ class StyleConfigMapper {
     if (config.paddingRight != null) map['paddingRight'] = config.paddingRight;
     if (config.borderType != null) {
       map['borderType'] = BorderTypeConverter.toJsonString(config.borderType!);
+    }
+    if (config.verticalAlignment != null) {
+      map['verticalAlignment'] = VerticalAlignmentConverter.toJsonString(
+        config.verticalAlignment!,
+      );
     }
 
     return map;

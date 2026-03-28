@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editing_user_badge.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_drag_data.dart';
 import 'package:oxo_menus/presentation/widgets/canvas/widget_renderer.dart';
 
@@ -60,9 +61,7 @@ class DraggableWidgetItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isApple =
-        theme.platform == TargetPlatform.iOS ||
-        theme.platform == TargetPlatform.macOS;
+    final isApple = isApplePlatform(context);
 
     // Editing lock overlay: another user is editing this widget
     if (_isEditingLocked) {

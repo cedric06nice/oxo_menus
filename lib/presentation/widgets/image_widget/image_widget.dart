@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/presentation/helpers/edit_dialog_helper.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/image_widget/image_edit_dialog.dart';
@@ -21,42 +22,40 @@ class ImageWidget extends ConsumerWidget {
 
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
-      child: Align(
-        alignment: _getAlignment(),
-        child: SizedBox(
-          width: double.infinity,
-          child: Builder(
-            builder: (ctx) {
-              final colorScheme = Theme.of(ctx).colorScheme;
-              final platform = Theme.of(ctx).platform;
-              final isApple =
-                  platform == TargetPlatform.iOS ||
-                  platform == TargetPlatform.macOS;
-              return asyncBytes.when(
-                data: (bytes) => Image.memory(
-                  bytes,
-                  width: props.width,
-                  height: props.height,
-                  fit: _getBoxFit(),
+      child: Builder(
+        builder: (ctx) {
+          final colorScheme = Theme.of(ctx).colorScheme;
+          final isApple = isApplePlatform(ctx);
+          return asyncBytes.when(
+            data: (bytes) => Image.memory(
+              bytes,
+              width: props.width,
+              height: props.height,
+              fit: _getBoxFit(),
+              alignment: _getAlignment(),
+            ),
+            loading: () => Align(
+              alignment: _getAlignment(),
+              child: SizedBox(
+                width: props.width ?? 100,
+                height: props.height ?? 100,
+                child: const Center(child: AdaptiveLoadingIndicator()),
+              ),
+            ),
+            error: (_, _) => Align(
+              alignment: _getAlignment(),
+              child: Container(
+                width: props.width ?? 100,
+                height: props.height ?? 100,
+                color: colorScheme.surfaceContainerHigh,
+                child: Icon(
+                  isApple ? CupertinoIcons.photo : Icons.broken_image,
+                  color: colorScheme.onSurfaceVariant,
                 ),
-                loading: () => SizedBox(
-                  width: props.width ?? 100,
-                  height: props.height ?? 100,
-                  child: Center(child: const AdaptiveLoadingIndicator()),
-                ),
-                error: (_, _) => Container(
-                  width: props.width ?? 100,
-                  height: props.height ?? 100,
-                  color: colorScheme.surfaceContainerHigh,
-                  child: Icon(
-                    isApple ? CupertinoIcons.photo : Icons.broken_image,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

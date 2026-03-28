@@ -5,6 +5,7 @@ import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/pdf_document_builder.dart';
@@ -566,6 +567,334 @@ void main() {
         );
 
         expect(bytes, isNotEmpty);
+      },
+    );
+
+    test(
+      'should produce valid PDF with dish widget with very long name',
+      () async {
+        const longName =
+            'Slow-Braised Heritage Beef Short Rib with Truffle Pomme Puree, '
+            'Seasonal Root Vegetables, and a Rich Red Wine Jus Reduction Glaze';
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Overflow Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'dish',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {
+                            'name': longName,
+                            'price': 42.5,
+                            'description': 'A signature dish',
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+      },
+    );
+
+    test(
+      'should produce valid PDF with wine widget with very long name',
+      () async {
+        const longName =
+            'Domaine de la Romanée-Conti Grand Cru Monopole Pinot Noir '
+            'Burgundy Côte de Nuits Premier Selection Vintage Reserve';
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Wine Overflow',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'wine',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {
+                            'name': longName,
+                            'price': 850.0,
+                            'vintage': 2015,
+                            'description': 'Exceptional vintage',
+                            'containsSulphites': true,
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+      },
+    );
+
+    test(
+      'should produce valid PDF with dish_to_share widget with very long name',
+      () async {
+        const longName =
+            'Mediterranean Grand Seafood Platter with King Prawns, Oysters, '
+            'Lobster Tails, Smoked Salmon, and Champagne Butter Sauce';
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Sharing Overflow',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'dish_to_share',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {
+                            'name': longName,
+                            'price': 65.0,
+                            'description': 'For the table',
+                            'servings': 4,
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+      },
+    );
+
+    test(
+      'should produce valid PDF with set_menu_dish widget with very long name',
+      () async {
+        const longName =
+            'Pan-Seared Wild Scottish Salmon with Crushed Jersey Royals, '
+            'Wilted Samphire, Lemon and Caper Beurre Blanc Sauce';
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Set Menu Overflow',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'set_menu_dish',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {
+                            'name': longName,
+                            'description': 'Main course',
+                            'hasSupplement': true,
+                            'supplementPrice': 12.0,
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+      },
+    );
+
+    test(
+      'should produce valid PDF with column verticalAlignment set',
+      () async {
+        const menuTree = MenuTree(
+          menu: Menu(
+            id: 1,
+            name: 'Aligned Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+              containers: [
+                ContainerWithColumns(
+                  container: entity.Container(id: 1, pageId: 1, index: 0),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 1,
+                        containerId: 1,
+                        index: 0,
+                        flex: 1,
+                        styleConfig: StyleConfig(
+                          verticalAlignment: VerticalAlignment.center,
+                        ),
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 1,
+                          columnId: 1,
+                          type: 'text',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {'text': 'Centered text'},
+                        ),
+                      ],
+                    ),
+                    ColumnWithWidgets(
+                      column: entity.Column(
+                        id: 2,
+                        containerId: 1,
+                        index: 1,
+                        flex: 1,
+                        styleConfig: StyleConfig(
+                          verticalAlignment: VerticalAlignment.bottom,
+                        ),
+                      ),
+                      widgets: [
+                        WidgetInstance(
+                          id: 2,
+                          columnId: 2,
+                          type: 'text',
+                          version: '1.0.0',
+                          index: 0,
+                          props: {'text': 'Bottom text'},
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+        expect(bytes[0], 0x25); // %PDF
+        expect(bytes[1], 0x50);
       },
     );
   });

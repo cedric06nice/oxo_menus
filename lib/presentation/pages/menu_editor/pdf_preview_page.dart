@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 import 'package:oxo_menus/presentation/utils/pdf_filename.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
@@ -22,10 +23,7 @@ class PdfPreviewPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final isApple =
-        theme.platform == TargetPlatform.iOS ||
-        theme.platform == TargetPlatform.macOS;
+    final isApple = isApplePlatform(context);
 
     return AuthenticatedScaffold(
       title: 'PDF Preview',

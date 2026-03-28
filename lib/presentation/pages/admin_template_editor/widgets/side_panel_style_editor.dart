@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
 import 'package:oxo_menus/presentation/widgets/common/edge_insets_editor.dart';
 
@@ -36,11 +37,14 @@ class SidePanelStyleEditor extends StatefulWidget {
 
 class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
   late BorderType _selectedBorderType;
+  late VerticalAlignment _selectedVerticalAlignment;
 
   @override
   void initState() {
     super.initState();
     _selectedBorderType = widget.styleConfig?.borderType ?? BorderType.none;
+    _selectedVerticalAlignment =
+        widget.styleConfig?.verticalAlignment ?? VerticalAlignment.top;
   }
 
   @override
@@ -48,6 +52,11 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.styleConfig?.borderType != widget.styleConfig?.borderType) {
       _selectedBorderType = widget.styleConfig?.borderType ?? BorderType.none;
+    }
+    if (oldWidget.styleConfig?.verticalAlignment !=
+        widget.styleConfig?.verticalAlignment) {
+      _selectedVerticalAlignment =
+          widget.styleConfig?.verticalAlignment ?? VerticalAlignment.top;
     }
   }
 
@@ -65,6 +74,15 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
         _selectedBorderType = newType;
       });
       widget.onStyleChanged(_style.copyWith(borderType: newType));
+    }
+  }
+
+  void _onVerticalAlignmentChanged(VerticalAlignment? newAlignment) {
+    if (newAlignment != null) {
+      setState(() {
+        _selectedVerticalAlignment = newAlignment;
+      });
+      widget.onStyleChanged(_style.copyWith(verticalAlignment: newAlignment));
     }
   }
 
@@ -134,6 +152,29 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
               dense: true,
               contentPadding: EdgeInsets.zero,
             ),
+
+          // Vertical alignment (column only)
+          if (widget.type == EditorElementType.column) ...[
+            Text(
+              'Vertical Alignment',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 4),
+            DropdownButtonFormField<VerticalAlignment>(
+              key: const Key('side_vertical_alignment'),
+              initialValue: _selectedVerticalAlignment,
+              decoration: const InputDecoration(isDense: true),
+              isExpanded: true,
+              items: VerticalAlignment.values
+                  .map(
+                    (type) =>
+                        DropdownMenuItem(value: type, child: Text(type.label)),
+                  )
+                  .toList(),
+              onChanged: _onVerticalAlignmentChanged,
+            ),
+            const SizedBox(height: 12),
+          ],
 
           // Margins
           EdgeInsetsEditor(

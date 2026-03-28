@@ -6,6 +6,7 @@ import 'package:oxo_menus/presentation/providers/app_version_provider.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 import 'package:oxo_menus/presentation/widgets/common/user_avatar_widget.dart';
 
 /// Settings page with user profile and logout functionality
@@ -177,9 +178,7 @@ class SettingsPage extends ConsumerWidget {
   }
 
   Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
-    final platform = Theme.of(context).platform;
-    final isApple =
-        platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+    final isApple = isApplePlatform(context);
 
     final bool? confirmed;
     if (isApple) {

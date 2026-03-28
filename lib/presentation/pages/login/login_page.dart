@@ -207,6 +207,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        Image.asset(
+                          key: const Key('tower_logo'),
+                          theme.brightness == Brightness.dark
+                              ? 'assets/images/OXOTowerDrawingWhite.png'
+                              : 'assets/images/OXOTowerDrawingBlack.png',
+                          height: 120,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
                         Text.rich(
                           TextSpan(
                             children: [

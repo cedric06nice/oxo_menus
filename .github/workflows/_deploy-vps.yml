@@ -65,4 +65,4 @@ jobs:
             SCRIPT_NAME=$(basename ${{ inputs.script_path }})
             chmod +x /tmp/$SCRIPT_NAME
             /tmp/$SCRIPT_NAME ${{ inputs.script_args }}
-            rm /tmp/$SCRIPT_NAME /tmp/image.tar.gz
+            rm -f /tmp/$SCRIPT_NAME /tmp/image.tar.gz

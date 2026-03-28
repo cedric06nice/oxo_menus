@@ -79,27 +79,33 @@ _StyleConfig _$StyleConfigFromJson(Map<String, dynamic> json) => _StyleConfig(
   paddingLeft: (json['paddingLeft'] as num?)?.toDouble(),
   paddingRight: (json['paddingRight'] as num?)?.toDouble(),
   borderType: $enumDecodeNullable(_$BorderTypeEnumMap, json['borderType']),
+  verticalAlignment: $enumDecodeNullable(
+    _$VerticalAlignmentEnumMap,
+    json['verticalAlignment'],
+  ),
 );
 
-Map<String, dynamic> _$StyleConfigToJson(_StyleConfig instance) =>
-    <String, dynamic>{
-      'fontFamily': instance.fontFamily,
-      'fontSize': instance.fontSize,
-      'primaryColor': instance.primaryColor,
-      'secondaryColor': instance.secondaryColor,
-      'backgroundColor': instance.backgroundColor,
-      'margin': instance.margin,
-      'marginTop': instance.marginTop,
-      'marginBottom': instance.marginBottom,
-      'marginLeft': instance.marginLeft,
-      'marginRight': instance.marginRight,
-      'padding': instance.padding,
-      'paddingTop': instance.paddingTop,
-      'paddingBottom': instance.paddingBottom,
-      'paddingLeft': instance.paddingLeft,
-      'paddingRight': instance.paddingRight,
-      'borderType': _$BorderTypeEnumMap[instance.borderType],
-    };
+Map<String, dynamic> _$StyleConfigToJson(
+  _StyleConfig instance,
+) => <String, dynamic>{
+  'fontFamily': instance.fontFamily,
+  'fontSize': instance.fontSize,
+  'primaryColor': instance.primaryColor,
+  'secondaryColor': instance.secondaryColor,
+  'backgroundColor': instance.backgroundColor,
+  'margin': instance.margin,
+  'marginTop': instance.marginTop,
+  'marginBottom': instance.marginBottom,
+  'marginLeft': instance.marginLeft,
+  'marginRight': instance.marginRight,
+  'padding': instance.padding,
+  'paddingTop': instance.paddingTop,
+  'paddingBottom': instance.paddingBottom,
+  'paddingLeft': instance.paddingLeft,
+  'paddingRight': instance.paddingRight,
+  'borderType': _$BorderTypeEnumMap[instance.borderType],
+  'verticalAlignment': _$VerticalAlignmentEnumMap[instance.verticalAlignment],
+};
 
 const _$BorderTypeEnumMap = {
   BorderType.none: 'none',
@@ -107,6 +113,12 @@ const _$BorderTypeEnumMap = {
   BorderType.plainThick: 'plain_thick',
   BorderType.doubleOffset: 'double_offset',
   BorderType.dropShadow: 'drop_shadow',
+};
+
+const _$VerticalAlignmentEnumMap = {
+  VerticalAlignment.top: 'top',
+  VerticalAlignment.center: 'center',
+  VerticalAlignment.bottom: 'bottom',
 };
 
 _PageSize _$PageSizeFromJson(Map<String, dynamic> json) => _PageSize(

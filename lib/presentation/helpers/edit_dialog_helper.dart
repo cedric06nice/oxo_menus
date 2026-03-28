@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Shows an edit dialog using the appropriate platform style.
 ///
@@ -8,9 +9,7 @@ import 'package:flutter/material.dart';
 ///
 /// Returns a [Future] that completes when the dialog is dismissed.
 Future<void> showEditDialog(BuildContext context, Widget dialog) {
-  final platform = Theme.of(context).platform;
-  final isApple =
-      platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  final isApple = isApplePlatform(context);
 
   if (isApple) {
     return Navigator.of(context).push(

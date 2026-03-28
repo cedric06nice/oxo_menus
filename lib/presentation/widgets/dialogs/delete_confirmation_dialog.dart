@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 
 /// Shows a confirmation dialog for delete actions.
 ///
@@ -11,9 +12,7 @@ Future<bool?> showDeleteConfirmation(
   String? title,
   String? message,
 }) {
-  final platform = Theme.of(context).platform;
-  final isApple =
-      platform == TargetPlatform.iOS || platform == TargetPlatform.macOS;
+  final isApple = isApplePlatform(context);
 
   final resolvedTitle = title ?? 'Confirm Delete';
   final content =
