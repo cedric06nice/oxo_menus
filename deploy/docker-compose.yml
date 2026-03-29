@@ -45,7 +45,7 @@ services:
 
   # ─── Directus Production ───
   directus-prod:
-    image: directus/directus:11
+    image: directus/directus:latest
     container_name: oxo-directus-prod
     restart: unless-stopped
     depends_on:
@@ -58,6 +58,7 @@ services:
       PUBLIC_URL: https://${DOMAIN_API_PROD:-api.your-app.example.com}
       CORS_ENABLED: "true"
       CORS_ORIGIN: "https://${DOMAIN_FLUTTER_PROD:-your-app.example.com}"
+      PASSWORD_RESET_URL_ALLOW_LIST: "https://${DOMAIN_FLUTTER_PROD:-your-app.example.com}"
       WEBSOCKETS_ENABLED: "true"
       DB_CLIENT: pg
       DB_HOST: postgres-prod
@@ -66,6 +67,14 @@ services:
       DB_USER: ${PROD_DB_USER:-directus}
       DB_PASSWORD: ${PROD_DB_PASSWORD}
       SCHEMA_SYNC: IMPORT
+      EMAIL_TRANSPORT: ${EMAIL_TRANSPORT:-smtp}
+      EMAIL_FROM: ${EMAIL_FROM:-user@gmail.com}
+      EMAIL_SMTP_SECURE: ${EMAIL_SMTP_SECURE:-false}
+      EMAIL_SMTP_HOST: ${EMAIL_SMTP_HOST:-smtp.gmail.com}
+      EMAIL_SMTP_PORT: ${EMAIL_SMTP_PORT:-587}
+      EMAIL_SMTP_USER: ${EMAIL_SMTP_USER:-user}
+      EMAIL_SMTP_PASSWORD: ${EMAIL_SMTP_PASSWORD:-password}
+      EMAIL_SMTP_FROM: ${EMAIL_SMTP_FROM:-user@gmail.com}
     volumes:
       - directus-prod-uploads:/directus/uploads
       - directus-prod-extensions:/directus/extensions
@@ -127,7 +136,7 @@ services:
 
   # ─── Directus Dev ───
   directus-dev:
-    image: directus/directus:11
+    image: directus/directus:latest
     container_name: oxo-directus-dev
     restart: unless-stopped
     depends_on:
@@ -140,6 +149,7 @@ services:
       PUBLIC_URL: https://${DOMAIN_API_DEV:-api.your-app-dev.example.com}
       CORS_ENABLED: "true"
       CORS_ORIGIN: "regex:^https://(pr-\\d+\\.)?${DOMAIN_FLUTTER_PROD}$$"
+      PASSWORD_RESET_URL_ALLOW_LIST: "https://${DOMAIN_FLUTTER_PROD:-your-app.example.com}"
       WEBSOCKETS_ENABLED: "true"
       DB_CLIENT: pg
       DB_HOST: postgres-dev

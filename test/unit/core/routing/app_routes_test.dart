@@ -12,6 +12,8 @@ void main() {
       expect(AppRoutes.adminSizes, '/admin/sizes');
       expect(AppRoutes.adminTemplates, '/admin/templates');
       expect(AppRoutes.adminTemplateCreate, '/admin/templates/create');
+      expect(AppRoutes.forgotPassword, '/forgot-password');
+      expect(AppRoutes.resetPassword, '/reset-password');
     });
 
     test('menuEditor returns correct path', () {

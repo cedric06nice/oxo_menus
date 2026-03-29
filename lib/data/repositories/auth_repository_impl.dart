@@ -87,4 +87,30 @@ class AuthRepositoryImpl implements AuthRepository {
       return Failure(mapDirectusError(e));
     }
   }
+
+  @override
+  Future<Result<void, DomainError>> requestPasswordReset(
+    String email, {
+    String? resetUrl,
+  }) async {
+    try {
+      await dataSource.requestPasswordReset(email: email, resetUrl: resetUrl);
+      return const Success(null);
+    } catch (e) {
+      return Failure(mapDirectusError(e));
+    }
+  }
+
+  @override
+  Future<Result<void, DomainError>> confirmPasswordReset({
+    required String token,
+    required String password,
+  }) async {
+    try {
+      await dataSource.confirmPasswordReset(token: token, password: password);
+      return const Success(null);
+    } catch (e) {
+      return Failure(mapDirectusError(e));
+    }
+  }
 }

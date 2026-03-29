@@ -324,6 +324,171 @@ void main() {
       );
     });
 
+    group('requestPasswordReset', () {
+      test('should return Success when reset email sent', () async {
+        // Arrange
+        when(
+          () => mockDataSource.requestPasswordReset(
+            email: any(named: 'email'),
+            resetUrl: any(named: 'resetUrl'),
+          ),
+        ).thenAnswer((_) async => true);
+
+        // Act
+        final result = await repository.requestPasswordReset(
+          'test@example.com',
+        );
+
+        // Assert
+        expect(result.isSuccess, true);
+        verify(
+          () => mockDataSource.requestPasswordReset(email: 'test@example.com'),
+        ).called(1);
+      });
+
+      test('should pass resetUrl to dataSource when provided', () async {
+        // Arrange
+        when(
+          () => mockDataSource.requestPasswordReset(
+            email: any(named: 'email'),
+            resetUrl: any(named: 'resetUrl'),
+          ),
+        ).thenAnswer((_) async => true);
+
+        // Act
+        await repository.requestPasswordReset(
+          'test@example.com',
+          resetUrl: 'https://app.example.com/reset-password',
+        );
+
+        // Assert
+        verify(
+          () => mockDataSource.requestPasswordReset(
+            email: 'test@example.com',
+            resetUrl: 'https://app.example.com/reset-password',
+          ),
+        ).called(1);
+      });
+
+      test('should return error when dataSource throws', () async {
+        // Arrange
+        when(
+          () => mockDataSource.requestPasswordReset(
+            email: any(named: 'email'),
+            resetUrl: any(named: 'resetUrl'),
+          ),
+        ).thenThrow(
+          DirectusException(
+            code: 'PASSWORD_RESET_FAILED',
+            message: 'Failed to send',
+          ),
+        );
+
+        // Act
+        final result = await repository.requestPasswordReset(
+          'test@example.com',
+        );
+
+        // Assert
+        expect(result.isFailure, true);
+      });
+
+      test('should return RateLimitError when rate limited', () async {
+        // Arrange
+        when(
+          () => mockDataSource.requestPasswordReset(
+            email: any(named: 'email'),
+            resetUrl: any(named: 'resetUrl'),
+          ),
+        ).thenThrow(
+          DirectusException(
+            code: 'REQUESTS_EXCEEDED',
+            message: 'Too many requests',
+          ),
+        );
+
+        // Act
+        final result = await repository.requestPasswordReset(
+          'test@example.com',
+        );
+
+        // Assert
+        expect(result.isFailure, true);
+        expect(result.errorOrNull, isA<RateLimitError>());
+      });
+    });
+
+    group('confirmPasswordReset', () {
+      test('should return Success when password reset confirmed', () async {
+        // Arrange
+        when(
+          () => mockDataSource.confirmPasswordReset(
+            token: any(named: 'token'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) async => true);
+
+        // Act
+        final result = await repository.confirmPasswordReset(
+          token: 'reset-token-123',
+          password: 'newPassword1!',
+        );
+
+        // Assert
+        expect(result.isSuccess, true);
+        verify(
+          () => mockDataSource.confirmPasswordReset(
+            token: 'reset-token-123',
+            password: 'newPassword1!',
+          ),
+        ).called(1);
+      });
+
+      test('should return error when dataSource throws', () async {
+        // Arrange
+        when(
+          () => mockDataSource.confirmPasswordReset(
+            token: any(named: 'token'),
+            password: any(named: 'password'),
+          ),
+        ).thenThrow(
+          DirectusException(
+            code: 'PASSWORD_RESET_FAILED',
+            message: 'Invalid token',
+          ),
+        );
+
+        // Act
+        final result = await repository.confirmPasswordReset(
+          token: 'invalid-token',
+          password: 'newPassword1!',
+        );
+
+        // Assert
+        expect(result.isFailure, true);
+      });
+
+      test('should return UnknownError when unexpected error occurs', () async {
+        // Arrange
+        when(
+          () => mockDataSource.confirmPasswordReset(
+            token: any(named: 'token'),
+            password: any(named: 'password'),
+          ),
+        ).thenThrow(Exception('Network error'));
+
+        // Act
+        final result = await repository.confirmPasswordReset(
+          token: 'reset-token',
+          password: 'newPassword1!',
+        );
+
+        // Assert
+        expect(result.isFailure, true);
+        expect(result.errorOrNull, isA<UnknownError>());
+      });
+    });
+
     group('login edge cases', () {
       test(
         'should return UnknownError when login response has no user data',

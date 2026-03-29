@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/theme/app_spacing.dart';
@@ -258,6 +260,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   ),
                                 ),
                                 _buildLoginButton(authState, theme),
+                                const SizedBox(height: AppSpacing.sm),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton(
+                                    key: const Key('forgot_password_link'),
+                                    onPressed: () =>
+                                        context.go(AppRoutes.forgotPassword),
+                                    child: const Text('Forgot password?'),
+                                  ),
+                                ),
                               ],
                             ),
                           ),

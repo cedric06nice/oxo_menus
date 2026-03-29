@@ -415,6 +415,134 @@ void main() {
       );
     });
 
+    group('requestPasswordReset', () {
+      test(
+        'delegates to apiManager.requestPasswordReset and returns true',
+        () async {
+          // Arrange
+          when(
+            () => mockApiManager.requestPasswordReset(
+              email: any(named: 'email'),
+              resetUrl: any(named: 'resetUrl'),
+            ),
+          ).thenAnswer((_) async => true);
+
+          // Act
+          final result = await dataSource.requestPasswordReset(
+            email: 'test@example.com',
+          );
+
+          // Assert
+          expect(result, isTrue);
+          verify(
+            () =>
+                mockApiManager.requestPasswordReset(email: 'test@example.com'),
+          ).called(1);
+        },
+      );
+
+      test('passes resetUrl to apiManager when provided', () async {
+        // Arrange
+        when(
+          () => mockApiManager.requestPasswordReset(
+            email: any(named: 'email'),
+            resetUrl: any(named: 'resetUrl'),
+          ),
+        ).thenAnswer((_) async => true);
+
+        // Act
+        await dataSource.requestPasswordReset(
+          email: 'test@example.com',
+          resetUrl: 'https://app.example.com/reset-password',
+        );
+
+        // Assert
+        verify(
+          () => mockApiManager.requestPasswordReset(
+            email: 'test@example.com',
+            resetUrl: 'https://app.example.com/reset-password',
+          ),
+        ).called(1);
+      });
+
+      test('throws DirectusException when apiManager returns false', () async {
+        // Arrange
+        when(
+          () => mockApiManager.requestPasswordReset(
+            email: any(named: 'email'),
+            resetUrl: any(named: 'resetUrl'),
+          ),
+        ).thenAnswer((_) async => false);
+
+        // Act & Assert
+        expect(
+          () => dataSource.requestPasswordReset(email: 'test@example.com'),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'PASSWORD_RESET_FAILED',
+            ),
+          ),
+        );
+      });
+    });
+
+    group('confirmPasswordReset', () {
+      test(
+        'delegates to apiManager.confirmPasswordReset and returns true',
+        () async {
+          // Arrange
+          when(
+            () => mockApiManager.confirmPasswordReset(
+              token: any(named: 'token'),
+              password: any(named: 'password'),
+            ),
+          ).thenAnswer((_) async => true);
+
+          // Act
+          final result = await dataSource.confirmPasswordReset(
+            token: 'reset-token-123',
+            password: 'newPassword1!',
+          );
+
+          // Assert
+          expect(result, isTrue);
+          verify(
+            () => mockApiManager.confirmPasswordReset(
+              token: 'reset-token-123',
+              password: 'newPassword1!',
+            ),
+          ).called(1);
+        },
+      );
+
+      test('throws DirectusException when apiManager returns false', () async {
+        // Arrange
+        when(
+          () => mockApiManager.confirmPasswordReset(
+            token: any(named: 'token'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) async => false);
+
+        // Act & Assert
+        expect(
+          () => dataSource.confirmPasswordReset(
+            token: 'invalid-token',
+            password: 'newPassword1!',
+          ),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'PASSWORD_RESET_FAILED',
+            ),
+          ),
+        );
+      });
+    });
+
     group('tryRestoreSession', () {
       test(
         'returns true and saves tokens after successful session restore',

@@ -211,6 +211,47 @@ class DirectusDataSource {
     return user.getRawData();
   }
 
+  // ===== Password Reset Methods =====
+
+  /// Request a password reset email for the given email address
+  ///
+  /// Optionally provide a [resetUrl] to redirect the user to a custom
+  /// reset page instead of the Directus default.
+  Future<bool> requestPasswordReset({
+    required String email,
+    String? resetUrl,
+  }) async {
+    final success = await _apiManager.requestPasswordReset(
+      email: email,
+      resetUrl: resetUrl,
+    );
+    if (!success) {
+      throw DirectusException(
+        code: 'PASSWORD_RESET_FAILED',
+        message: 'Failed to send password reset email',
+      );
+    }
+    return true;
+  }
+
+  /// Confirm a password reset with the token received via email
+  Future<bool> confirmPasswordReset({
+    required String token,
+    required String password,
+  }) async {
+    final success = await _apiManager.confirmPasswordReset(
+      token: token,
+      password: password,
+    );
+    if (!success) {
+      throw DirectusException(
+        code: 'PASSWORD_RESET_FAILED',
+        message: 'Failed to reset password',
+      );
+    }
+    return true;
+  }
+
   // ===== CRUD Operations =====
 
   /// Get a single item by ID from a collection

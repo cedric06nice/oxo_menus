@@ -14,6 +14,8 @@ import 'package:oxo_menus/presentation/pages/login/login_page.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/menu_editor_page.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/pdf_preview_page.dart';
 import 'package:oxo_menus/presentation/pages/menu_list/menu_list_page.dart';
+import 'package:oxo_menus/presentation/pages/forgot_password/forgot_password_page.dart';
+import 'package:oxo_menus/presentation/pages/reset_password/reset_password_page.dart';
 import 'package:oxo_menus/presentation/pages/settings/settings_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
@@ -100,8 +102,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return isAuthenticated ? AppRoutes.home : AppRoutes.login;
       }
 
-      // If not authenticated and not going to login, redirect to login
-      if (!isAuthenticated && !isGoingToLogin) {
+      // If not authenticated and not going to a public route, redirect to login
+      final isGoingToPublicRoute =
+          isGoingToLogin ||
+          state.matchedLocation == AppRoutes.forgotPassword ||
+          state.matchedLocation == AppRoutes.resetPassword;
+      if (!isAuthenticated && !isGoingToPublicRoute) {
         return AppRoutes.login;
       }
 
@@ -128,6 +134,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.login,
         name: 'login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.forgotPassword,
+        name: 'forgot-password',
+        builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.resetPassword,
+        name: 'reset-password',
+        builder: (context, state) =>
+            ResetPasswordPage(token: state.uri.queryParameters['token']),
       ),
       // All authenticated routes wrapped in AppShell for persistent navigation
       ShellRoute(

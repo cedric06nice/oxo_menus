@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/presentation/providers/app_version_provider.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/presentation/providers/password_reset_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/presentation/widgets/common/authenticated_scaffold.dart';
 import 'package:oxo_menus/presentation/utils/platform_detection.dart';
@@ -111,13 +112,24 @@ class SettingsPage extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         Card(
-          child: ListTile(
-            leading: Icon(Icons.logout, color: theme.colorScheme.error),
-            title: Text(
-              'Logout',
-              style: TextStyle(color: theme.colorScheme.error),
-            ),
-            onTap: () => _handleLogout(context, ref),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.lock_reset),
+                title: const Text('Reset Password'),
+                subtitle: const Text('Send a reset link to your email'),
+                onTap: () => _handleResetPassword(context, ref),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: Icon(Icons.logout, color: theme.colorScheme.error),
+                title: Text(
+                  'Logout',
+                  style: TextStyle(color: theme.colorScheme.error),
+                ),
+                onTap: () => _handleLogout(context, ref),
+              ),
+            ],
           ),
         ),
       ],
@@ -174,6 +186,54 @@ class SettingsPage extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _handleResetPassword(BuildContext context, WidgetRef ref) async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+
+    await ref.read(passwordResetProvider.notifier).requestReset(user.email);
+
+    if (!context.mounted) return;
+
+    final state = ref.read(passwordResetProvider);
+    final isApple = isApplePlatform(context);
+
+    state.maybeWhen(
+      emailSent: () {
+        if (isApple) {
+          showCupertinoDialog(
+            context: context,
+            builder: (dialogContext) => CupertinoAlertDialog(
+              title: const Text('Reset Link Sent'),
+              content: Text(
+                'A password reset link has been sent to ${user.email}.',
+              ),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'A password reset link has been sent to ${user.email}.',
+              ),
+            ),
+          );
+        }
+      },
+      error: (message) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      },
+      orElse: () {},
     );
   }
 
