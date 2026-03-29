@@ -1,8 +1,8 @@
 # Presentation Layer Reference
 
-## Routing (`lib/core/routing/app_router.dart`)
+## Routing (`lib/core/routing/`)
 
-`GoRouter` with auth guards via `refreshListenable` (watches `authProvider`).
+`GoRouter` with auth guards via `refreshListenable` (watches `authProvider`). Route constants in `app_routes.dart` (`AppRoutes` class).
 
 ### Routes
 
@@ -44,11 +44,11 @@ All watch `directusDataSourceProvider`:
 
 ### Use Cases (`usecases_provider.dart`)
 
-`fetchMenuTreeUseCaseProvider`, `generatePdfUseCaseProvider`, `duplicateMenuUseCaseProvider`
+`fetchMenuTreeUseCaseProvider`, `generatePdfUseCaseProvider`, `duplicateMenuUseCaseProvider`, `listImageFilesUseCaseProvider`, `listSizesUseCaseProvider`, `listTemplatesUseCaseProvider`
 
 ### Widget Registry (`widget_registry_provider.dart`)
 
-Registers all 5 widget types: dish, image, section, text, wine.
+Registers all 8 widget types: dish, dish_to_share, image, section, set_menu_dish, set_menu_title, text, wine.
 
 ### Page-Level State Providers
 
@@ -106,15 +106,18 @@ User profile (avatar, name, role badge). Logout. Admin debug: "Show as non-admin
 
 ## Widgets (`lib/presentation/widgets/`)
 
-### Widget Type Definitions (5 types)
+### Widget Type Definitions (8 types)
 
 Each has: `*_widget_definition.dart`, `*_widget.dart` (render), `*_edit_dialog.dart` (form)
 
 | Type | Key Render Elements |
 |------|-------------------|
 | Dish | Name (uppercase + dietary abbr), price (£), description, calories, allergens (text) |
+| Dish To Share | Like Dish but with servings count |
 | Wine | Name (uppercase + dietary abbr), price (£), description, vintage, sulphites flag |
 | Section | Title (optional uppercase), optional divider line |
+| Set Menu Dish | Dish without price, optional supplement (£) |
+| Set Menu Title | Title/subtitle with 1-2 price columns |
 | Text | Content with alignment, font size, bold/italic |
 | Image | Image from Directus via Image.memory with auth headers, alignment, fit |
 

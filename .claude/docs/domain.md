@@ -89,10 +89,19 @@ Fetches complete `MenuTree` (menu + all pages/containers/columns/widgets sorted 
 **Output:** `MenuTree` → `PageWithContainers` → `ContainerWithColumns` → `ColumnWithWidgets`
 
 ### GeneratePdfUseCase
-Renders `MenuTree` to PDF bytes in background isolate. Pre-fetches images from `FileRepository`. Supports all 5 widget types. Respects `MenuDisplayOptions` for price/allergen visibility.
+Renders `MenuTree` to PDF bytes in background isolate. Pre-fetches images from `FileRepository`. Supports all 8 widget types. Respects `MenuDisplayOptions` for price/allergen visibility.
 
 ### DuplicateMenuUseCase
 Deep-copies a menu with all children. Appends " (copy)" to name. Creates as draft. Resolves pageSize to sizeId. Implements rollback on failure (tracks all created IDs).
+
+### ListTemplatesUseCase
+Lists all templates (menus) with optional status filtering. Fetches via `menuRepository.listAll(onlyPublished: false)`, filters by `status.name` if filter is not `null` or `'all'`.
+
+### ListSizesUseCase
+Lists sizes with optional status filtering. Fetches via `sizeRepository.getAll()`, filters by `status.name`.
+
+### ListImageFilesUseCase
+Lists all image files. Thin wrapper around `fileRepository.listImageFiles()`.
 
 ### PdfDocumentBuilder
 Isolate-safe builder: `buildDocument(menuTree, baseFontData, boldFontData, imageCache)`. Renders containers as columns or multi-column grids. Supports header/footer pages.
@@ -130,6 +139,15 @@ Runtime state: `isEditable`, `onUpdate`, `onDelete`, `onEditStarted?`, `onEditEn
 
 ### ImageProps
 `fileId`, `align` (left|center|right), `fit` (contain|cover|fill|fitwidth|fitheight), `width?`, `height?`
+
+### DishToShareProps
+`name`, `price` (£), `description?`, `calories?`, `allergens`, `allergenInfo`, `dietary?`, `servings?`
+
+### SetMenuDishProps
+`name`, `description?`, `calories?`, `allergens`, `allergenInfo`, `dietary?`, `hasSupplement` (false), `supplementPrice?`
+
+### SetMenuTitleProps
+`title`, `subtitle?`, `uppercase` (false), `priceLabel1?`, `price1?`, `priceLabel2?`, `price2?`
 
 ### DietaryType
 `vegetarian` → "(V)", `vegan` → "(Ve)"
