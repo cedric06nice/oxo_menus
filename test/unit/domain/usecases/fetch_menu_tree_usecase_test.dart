@@ -47,6 +47,11 @@ void main() {
       columnRepository: mockColumnRepo,
       widgetRepository: mockWidgetRepo,
     );
+
+    // Default stub: containers have no children unless overridden
+    when(
+      () => mockContainerRepo.getAllForContainer(any()),
+    ).thenAnswer((_) async => const Success([]));
   });
 
   group('FetchMenuTreeUseCase', () {
@@ -585,6 +590,102 @@ void main() {
       // Both pages should have been attempted (parallel behavior)
       verify(() => mockContainerRepo.getAllForPage(1)).called(1);
       verify(() => mockContainerRepo.getAllForPage(2)).called(1);
+    });
+
+    test('should build tree with nested child containers', () async {
+      const parentContainer = Container(id: 10, pageId: 1, index: 0);
+      const childContainer1 = Container(
+        id: 20,
+        pageId: 1,
+        index: 0,
+        parentContainerId: 10,
+      );
+      const childContainer2 = Container(
+        id: 21,
+        pageId: 1,
+        index: 1,
+        parentContainerId: 10,
+      );
+      const childColumn = Column(id: 30, containerId: 20, index: 0);
+      const childWidget = WidgetInstance(
+        id: 40,
+        columnId: 30,
+        type: 'text',
+        index: 0,
+        version: '1',
+        props: {},
+      );
+
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => const Success(mockMenu));
+      when(() => mockPageRepo.getAllForMenu(menuId)).thenAnswer(
+        (_) async => const Success([
+          Page(id: 1, menuId: menuId, name: 'Page 1', index: 0),
+        ]),
+      );
+      when(
+        () => mockContainerRepo.getAllForPage(1),
+      ).thenAnswer((_) async => const Success([parentContainer]));
+      // Parent has child containers
+      when(() => mockContainerRepo.getAllForContainer(10)).thenAnswer(
+        (_) async => const Success([childContainer1, childContainer2]),
+      );
+      // Child containers have no further children
+      when(
+        () => mockContainerRepo.getAllForContainer(20),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockContainerRepo.getAllForContainer(21),
+      ).thenAnswer((_) async => const Success([]));
+      // Parent has no columns (it's a group container)
+      when(
+        () => mockColumnRepo.getAllForContainer(10),
+      ).thenAnswer((_) async => const Success([]));
+      // Child container 20 has a column
+      when(
+        () => mockColumnRepo.getAllForContainer(20),
+      ).thenAnswer((_) async => const Success([childColumn]));
+      // Child container 21 has no columns
+      when(
+        () => mockColumnRepo.getAllForContainer(21),
+      ).thenAnswer((_) async => const Success([]));
+      // Column 30 has a widget
+      when(
+        () => mockWidgetRepo.getAllForColumn(30),
+      ).thenAnswer((_) async => const Success([childWidget]));
+
+      final result = await useCase.execute(menuId);
+
+      expect(result.isSuccess, true);
+      final tree = result.valueOrNull!;
+      expect(tree.pages.length, 1);
+
+      final pageContainers = tree.pages.first.containers;
+      expect(pageContainers.length, 1);
+
+      // Parent container should have 2 children
+      final parent = pageContainers.first;
+      expect(parent.children.length, 2);
+      expect(parent.children[0].container.id, 20);
+      expect(parent.children[1].container.id, 21);
+
+      // Child 20 should have 1 column with 1 widget
+      expect(parent.children[0].columns.length, 1);
+      expect(parent.children[0].columns.first.widgets.length, 1);
+      expect(parent.children[0].columns.first.widgets.first.id, 40);
+
+      // Child 21 should have no columns
+      expect(parent.children[1].columns, isEmpty);
+    });
+
+    test('ContainerWithColumns should default children to empty list', () {
+      const cwc = ContainerWithColumns(
+        container: Container(id: 1, pageId: 1, index: 0),
+        columns: [],
+      );
+
+      expect(cwc.children, isEmpty);
     });
   });
 }

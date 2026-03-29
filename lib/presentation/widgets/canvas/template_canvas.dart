@@ -159,8 +159,11 @@ class ContainerCanvas extends StatelessWidget {
               ),
             ),
 
-          // Columns in a row
-          if (container.columns.isNotEmpty)
+          // Group container: render child containers
+          if (container.children.isNotEmpty) _buildChildContainers(),
+
+          // Leaf container: columns in a row
+          if (container.children.isEmpty && container.columns.isNotEmpty)
             IntrinsicHeight(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -179,6 +182,46 @@ class ContainerCanvas extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildChildContainers() {
+    final direction = container.container.layout?.direction;
+    final mainAxisAlignment = _resolveMainAxisAlignment(
+      container.container.layout?.mainAxisAlignment,
+    );
+
+    final childWidgets = container.children
+        .map(
+          (child) => ContainerCanvas(container: child, isEditable: isEditable),
+        )
+        .toList();
+
+    if (direction == 'row') {
+      return IntrinsicHeight(
+        child: Row(
+          mainAxisAlignment: mainAxisAlignment,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: childWidgets.map((w) => Expanded(child: w)).toList(),
+        ),
+      );
+    }
+
+    return Column(
+      mainAxisAlignment: mainAxisAlignment,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: childWidgets,
+    );
+  }
+
+  static MainAxisAlignment _resolveMainAxisAlignment(String? value) {
+    return switch (value) {
+      'end' => MainAxisAlignment.end,
+      'center' => MainAxisAlignment.center,
+      'spaceBetween' => MainAxisAlignment.spaceBetween,
+      'spaceAround' => MainAxisAlignment.spaceAround,
+      'spaceEvenly' => MainAxisAlignment.spaceEvenly,
+      _ => MainAxisAlignment.start,
+    };
   }
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
+import 'package:oxo_menus/domain/entities/container.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
@@ -16,6 +17,8 @@ class SidePanelStyleEditor extends StatefulWidget {
   final ValueChanged<bool>? onDroppableChanged;
   final PageSize? pageSize;
   final VoidCallback? onPageSizePressed;
+  final LayoutConfig? layoutConfig;
+  final ValueChanged<LayoutConfig>? onLayoutChanged;
 
   const SidePanelStyleEditor({
     super.key,
@@ -29,6 +32,8 @@ class SidePanelStyleEditor extends StatefulWidget {
     this.onDroppableChanged,
     this.pageSize,
     this.onPageSizePressed,
+    this.layoutConfig,
+    this.onLayoutChanged,
   });
 
   @override
@@ -172,6 +177,67 @@ class _SidePanelStyleEditorState extends State<SidePanelStyleEditor> {
                   )
                   .toList(),
               onChanged: _onVerticalAlignmentChanged,
+            ),
+            const SizedBox(height: 12),
+          ],
+
+          // Direction (container only)
+          if (widget.type == EditorElementType.container &&
+              widget.onLayoutChanged != null) ...[
+            Text('Direction', style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 4),
+            SegmentedButton<String>(
+              key: const Key('side_direction'),
+              segments: const [
+                ButtonSegment(value: 'row', label: Text('Row')),
+                ButtonSegment(value: 'column', label: Text('Column')),
+              ],
+              selected: {widget.layoutConfig?.direction ?? 'column'},
+              onSelectionChanged: (values) {
+                final layout = widget.layoutConfig ?? const LayoutConfig();
+                widget.onLayoutChanged!(
+                  layout.copyWith(direction: values.first),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+
+            // Main Axis Alignment
+            Text(
+              'Main Axis Alignment',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 4),
+            DropdownButtonFormField<String>(
+              key: const Key('side_main_axis_alignment'),
+              initialValue: widget.layoutConfig?.mainAxisAlignment ?? 'start',
+              decoration: const InputDecoration(isDense: true),
+              isExpanded: true,
+              items: const [
+                DropdownMenuItem(value: 'start', child: Text('Start')),
+                DropdownMenuItem(value: 'end', child: Text('End')),
+                DropdownMenuItem(value: 'center', child: Text('Center')),
+                DropdownMenuItem(
+                  value: 'spaceBetween',
+                  child: Text('Space Between'),
+                ),
+                DropdownMenuItem(
+                  value: 'spaceAround',
+                  child: Text('Space Around'),
+                ),
+                DropdownMenuItem(
+                  value: 'spaceEvenly',
+                  child: Text('Space Evenly'),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  final layout = widget.layoutConfig ?? const LayoutConfig();
+                  widget.onLayoutChanged!(
+                    layout.copyWith(mainAxisAlignment: value),
+                  );
+                }
+              },
             ),
             const SizedBox(height: 12),
           ],

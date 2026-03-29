@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/domain/entities/container.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
@@ -111,6 +112,48 @@ class TemplateEditorNotifier extends Notifier<TemplateEditorState> {
     }
   }
 
+  Future<void> addChildContainer(int parentContainerId, int childCount) async {
+    // Find the pageId from the parent container
+    final treeState = ref.read(editorTreeProvider(menuId));
+    int? pageId;
+    for (final entry in treeState.containers.entries) {
+      for (final container in entry.value) {
+        if (container.id == parentContainerId) {
+          pageId = container.pageId;
+          break;
+        }
+      }
+      if (pageId != null) break;
+    }
+    // Also search in childContainers
+    if (pageId == null) {
+      for (final entry in treeState.childContainers.entries) {
+        for (final container in entry.value) {
+          if (container.id == parentContainerId) {
+            pageId = container.pageId;
+            break;
+          }
+        }
+        if (pageId != null) break;
+      }
+    }
+    if (pageId == null) return;
+
+    final result = await ref
+        .read(containerRepositoryProvider)
+        .create(
+          CreateContainerInput(
+            pageId: pageId,
+            index: childCount,
+            direction: 'column',
+            parentContainerId: parentContainerId,
+          ),
+        );
+    if (result.isSuccess) {
+      await _reloadTree();
+    }
+  }
+
   Future<void> deleteContainer(int containerId) async {
     final result = await ref
         .read(containerRepositoryProvider)
@@ -178,6 +221,16 @@ class TemplateEditorNotifier extends Notifier<TemplateEditorState> {
     _styleDebounceTimer?.cancel();
     _styleDebounceTimer = Timer(const Duration(milliseconds: 500), () {
       apiCall();
+    });
+  }
+
+  void updateContainerLayout(int containerId, LayoutConfig layout) {
+    final treeNotifier = ref.read(editorTreeProvider(menuId).notifier);
+    treeNotifier.updateContainerLayoutLocally(containerId, layout);
+    _debounceStyleSave(() async {
+      await ref
+          .read(containerRepositoryProvider)
+          .update(UpdateContainerInput(id: containerId, layout: layout));
     });
   }
 

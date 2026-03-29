@@ -309,6 +309,26 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     MenuCollaborationState collabState,
   ) {
     final columns = treeState.columns[container.id] ?? [];
+    final childContainers = treeState.childContainers[container.id] ?? [];
+
+    if (childContainers.isNotEmpty) {
+      // Group container: render child containers
+      final direction = container.layout?.direction;
+      final childWidgets = childContainers
+          .map((child) => _buildContainerCard(child, treeState, collabState))
+          .toList();
+
+      if (direction == 'row') {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: childWidgets.map((w) => Expanded(child: w)).toList(),
+        );
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: childWidgets,
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

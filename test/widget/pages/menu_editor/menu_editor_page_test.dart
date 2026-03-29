@@ -111,6 +111,11 @@ void main() {
     mockPresentableWidgetRegistry.register(sectionWidgetDefinition);
     mockPresentableWidgetRegistry.register(textWidgetDefinition);
 
+    // Default stub for nested container loading
+    when(
+      () => mockContainerRepository.getAllForContainer(any()),
+    ).thenAnswer((_) async => const Success(<entity.Container>[]));
+
     // Register fallback values
     registerFallbackValue(const CreateMenuInput(name: '', version: ''));
     registerFallbackValue(const UpdateMenuInput(id: -1));

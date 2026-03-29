@@ -116,6 +116,64 @@ void main() {
         expect(entity.id, 3);
         expect(entity.layout, isNull);
       });
+
+      test('should map parent_container as int to parentContainerId', () {
+        final dto = ContainerDto({
+          'id': 10,
+          'index': 0,
+          'status': 'published',
+          'page': 1,
+          'parent_container': 5,
+        });
+
+        final entity = ContainerMapper.toEntity(dto);
+
+        expect(entity.parentContainerId, 5);
+      });
+
+      test('should map parent_container as map to parentContainerId', () {
+        final dto = ContainerDto({
+          'id': 10,
+          'index': 0,
+          'status': 'published',
+          'page': 1,
+          'parent_container': {'id': 7},
+        });
+
+        final entity = ContainerMapper.toEntity(dto);
+
+        expect(entity.parentContainerId, 7);
+      });
+
+      test('should default parentContainerId to null when absent', () {
+        final dto = ContainerDto({
+          'id': 10,
+          'index': 0,
+          'status': 'published',
+          'page': 1,
+        });
+
+        final entity = ContainerMapper.toEntity(dto);
+
+        expect(entity.parentContainerId, isNull);
+      });
+
+      test('should parse mainAxisAlignment from style_json', () {
+        final dto = ContainerDto({
+          'id': 10,
+          'index': 0,
+          'status': 'published',
+          'page': 1,
+          'style_json': {
+            'direction': 'row',
+            'mainAxisAlignment': 'spaceBetween',
+          },
+        });
+
+        final entity = ContainerMapper.toEntity(dto);
+
+        expect(entity.layout!.mainAxisAlignment, 'spaceBetween');
+      });
     });
 
     group('toDto', () {
@@ -229,6 +287,50 @@ void main() {
         expect(dto.id, '3');
         expect(dto.styleJson, isEmpty);
       });
+
+      test('should serialize parentContainerId to parent_container', () {
+        final entity = Container(
+          id: 10,
+          pageId: 1,
+          index: 0,
+          name: 'Child',
+          parentContainerId: 5,
+        );
+
+        final dto = ContainerMapper.toDto(entity);
+
+        expect(dto.getValue(forKey: 'parent_container'), 5);
+      });
+
+      test('should serialize null parentContainerId as null', () {
+        final entity = Container(
+          id: 10,
+          pageId: 1,
+          index: 0,
+          name: 'Top-level',
+        );
+
+        final dto = ContainerMapper.toDto(entity);
+
+        expect(dto.getValue(forKey: 'parent_container'), isNull);
+      });
+
+      test('should serialize mainAxisAlignment in style_json', () {
+        final entity = Container(
+          id: 10,
+          pageId: 1,
+          index: 0,
+          name: 'Group',
+          layout: LayoutConfig(
+            direction: 'column',
+            mainAxisAlignment: 'spaceEvenly',
+          ),
+        );
+
+        final dto = ContainerMapper.toDto(entity);
+
+        expect(dto.styleJson['mainAxisAlignment'], 'spaceEvenly');
+      });
     });
 
     group('layoutConfigToJson', () {
@@ -260,6 +362,25 @@ void main() {
         expect(json['direction'], 'row');
         expect(json.containsKey('alignment'), false);
         expect(json.containsKey('spacing'), false);
+      });
+
+      test('should serialize mainAxisAlignment to JSON', () {
+        final config = LayoutConfig(
+          direction: 'row',
+          mainAxisAlignment: 'center',
+        );
+
+        final json = ContainerMapper.layoutConfigToJson(config);
+
+        expect(json['mainAxisAlignment'], 'center');
+      });
+
+      test('should omit mainAxisAlignment when null', () {
+        final config = LayoutConfig(direction: 'row');
+
+        final json = ContainerMapper.layoutConfigToJson(config);
+
+        expect(json.containsKey('mainAxisAlignment'), false);
       });
     });
   });

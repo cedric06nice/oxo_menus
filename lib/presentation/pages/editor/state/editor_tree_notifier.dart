@@ -60,6 +60,7 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
         headerPage: headerPage,
         footerPage: footerPage,
         containers: tree.containers,
+        childContainers: tree.childContainers,
         columns: tree.columns,
         widgets: tree.widgets,
         isLoading: false,
@@ -72,6 +73,7 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
         headerPage: null,
         footerPage: null,
         containers: tree.containers,
+        childContainers: tree.childContainers,
         columns: tree.columns,
         widgets: tree.widgets,
         isLoading: false,
@@ -96,7 +98,41 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
         return c;
       }).toList();
     }
-    state = state.copyWith(containers: updated);
+    final updatedChildren = <int, List<entity.Container>>{};
+    for (final entry in state.childContainers.entries) {
+      updatedChildren[entry.key] = entry.value.map((c) {
+        if (c.id == containerId) return c.copyWith(styleConfig: style);
+        return c;
+      }).toList();
+    }
+    state = state.copyWith(
+      containers: updated,
+      childContainers: updatedChildren,
+    );
+  }
+
+  void updateContainerLayoutLocally(
+    int containerId,
+    entity.LayoutConfig layout,
+  ) {
+    final updated = <int, List<entity.Container>>{};
+    for (final entry in state.containers.entries) {
+      updated[entry.key] = entry.value.map((c) {
+        if (c.id == containerId) return c.copyWith(layout: layout);
+        return c;
+      }).toList();
+    }
+    final updatedChildren = <int, List<entity.Container>>{};
+    for (final entry in state.childContainers.entries) {
+      updatedChildren[entry.key] = entry.value.map((c) {
+        if (c.id == containerId) return c.copyWith(layout: layout);
+        return c;
+      }).toList();
+    }
+    state = state.copyWith(
+      containers: updated,
+      childContainers: updatedChildren,
+    );
   }
 
   void updateColumnStyleLocally(int columnId, StyleConfig style) {

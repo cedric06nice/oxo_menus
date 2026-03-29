@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$EditorTreeState {
 
- Menu? get menu; List<entity.Page> get pages; entity.Page? get headerPage; entity.Page? get footerPage; Map<int, List<entity.Container>> get containers; Map<int, List<entity.Column>> get columns; Map<int, List<WidgetInstance>> get widgets; bool get isLoading; String? get errorMessage; Map<int, int> get hoverIndex;
+ Menu? get menu; List<entity.Page> get pages; entity.Page? get headerPage; entity.Page? get footerPage; Map<int, List<entity.Container>> get containers; Map<int, List<entity.Container>> get childContainers; Map<int, List<entity.Column>> get columns; Map<int, List<WidgetInstance>> get widgets; bool get isLoading; String? get errorMessage; Map<int, int> get hoverIndex;
 /// Create a copy of EditorTreeState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $EditorTreeStateCopyWith<EditorTreeState> get copyWith => _$EditorTreeStateCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EditorTreeState&&(identical(other.menu, menu) || other.menu == menu)&&const DeepCollectionEquality().equals(other.pages, pages)&&(identical(other.headerPage, headerPage) || other.headerPage == headerPage)&&(identical(other.footerPage, footerPage) || other.footerPage == footerPage)&&const DeepCollectionEquality().equals(other.containers, containers)&&const DeepCollectionEquality().equals(other.columns, columns)&&const DeepCollectionEquality().equals(other.widgets, widgets)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&const DeepCollectionEquality().equals(other.hoverIndex, hoverIndex));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EditorTreeState&&(identical(other.menu, menu) || other.menu == menu)&&const DeepCollectionEquality().equals(other.pages, pages)&&(identical(other.headerPage, headerPage) || other.headerPage == headerPage)&&(identical(other.footerPage, footerPage) || other.footerPage == footerPage)&&const DeepCollectionEquality().equals(other.containers, containers)&&const DeepCollectionEquality().equals(other.childContainers, childContainers)&&const DeepCollectionEquality().equals(other.columns, columns)&&const DeepCollectionEquality().equals(other.widgets, widgets)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&const DeepCollectionEquality().equals(other.hoverIndex, hoverIndex));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,menu,const DeepCollectionEquality().hash(pages),headerPage,footerPage,const DeepCollectionEquality().hash(containers),const DeepCollectionEquality().hash(columns),const DeepCollectionEquality().hash(widgets),isLoading,errorMessage,const DeepCollectionEquality().hash(hoverIndex));
+int get hashCode => Object.hash(runtimeType,menu,const DeepCollectionEquality().hash(pages),headerPage,footerPage,const DeepCollectionEquality().hash(containers),const DeepCollectionEquality().hash(childContainers),const DeepCollectionEquality().hash(columns),const DeepCollectionEquality().hash(widgets),isLoading,errorMessage,const DeepCollectionEquality().hash(hoverIndex));
 
 @override
 String toString() {
-  return 'EditorTreeState(menu: $menu, pages: $pages, headerPage: $headerPage, footerPage: $footerPage, containers: $containers, columns: $columns, widgets: $widgets, isLoading: $isLoading, errorMessage: $errorMessage, hoverIndex: $hoverIndex)';
+  return 'EditorTreeState(menu: $menu, pages: $pages, headerPage: $headerPage, footerPage: $footerPage, containers: $containers, childContainers: $childContainers, columns: $columns, widgets: $widgets, isLoading: $isLoading, errorMessage: $errorMessage, hoverIndex: $hoverIndex)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $EditorTreeStateCopyWith<$Res>  {
   factory $EditorTreeStateCopyWith(EditorTreeState value, $Res Function(EditorTreeState) _then) = _$EditorTreeStateCopyWithImpl;
 @useResult
 $Res call({
- Menu? menu, List<entity.Page> pages, entity.Page? headerPage, entity.Page? footerPage, Map<int, List<entity.Container>> containers, Map<int, List<entity.Column>> columns, Map<int, List<WidgetInstance>> widgets, bool isLoading, String? errorMessage, Map<int, int> hoverIndex
+ Menu? menu, List<entity.Page> pages, entity.Page? headerPage, entity.Page? footerPage, Map<int, List<entity.Container>> containers, Map<int, List<entity.Container>> childContainers, Map<int, List<entity.Column>> columns, Map<int, List<WidgetInstance>> widgets, bool isLoading, String? errorMessage, Map<int, int> hoverIndex
 });
 
 
@@ -62,13 +62,14 @@ class _$EditorTreeStateCopyWithImpl<$Res>
 
 /// Create a copy of EditorTreeState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? menu = freezed,Object? pages = null,Object? headerPage = freezed,Object? footerPage = freezed,Object? containers = null,Object? columns = null,Object? widgets = null,Object? isLoading = null,Object? errorMessage = freezed,Object? hoverIndex = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? menu = freezed,Object? pages = null,Object? headerPage = freezed,Object? footerPage = freezed,Object? containers = null,Object? childContainers = null,Object? columns = null,Object? widgets = null,Object? isLoading = null,Object? errorMessage = freezed,Object? hoverIndex = null,}) {
   return _then(_self.copyWith(
 menu: freezed == menu ? _self.menu : menu // ignore: cast_nullable_to_non_nullable
 as Menu?,pages: null == pages ? _self.pages : pages // ignore: cast_nullable_to_non_nullable
 as List<entity.Page>,headerPage: freezed == headerPage ? _self.headerPage : headerPage // ignore: cast_nullable_to_non_nullable
 as entity.Page?,footerPage: freezed == footerPage ? _self.footerPage : footerPage // ignore: cast_nullable_to_non_nullable
 as entity.Page?,containers: null == containers ? _self.containers : containers // ignore: cast_nullable_to_non_nullable
+as Map<int, List<entity.Container>>,childContainers: null == childContainers ? _self.childContainers : childContainers // ignore: cast_nullable_to_non_nullable
 as Map<int, List<entity.Container>>,columns: null == columns ? _self.columns : columns // ignore: cast_nullable_to_non_nullable
 as Map<int, List<entity.Column>>,widgets: null == widgets ? _self.widgets : widgets // ignore: cast_nullable_to_non_nullable
 as Map<int, List<WidgetInstance>>,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
@@ -195,10 +196,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Menu? menu,  List<entity.Page> pages,  entity.Page? headerPage,  entity.Page? footerPage,  Map<int, List<entity.Container>> containers,  Map<int, List<entity.Column>> columns,  Map<int, List<WidgetInstance>> widgets,  bool isLoading,  String? errorMessage,  Map<int, int> hoverIndex)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Menu? menu,  List<entity.Page> pages,  entity.Page? headerPage,  entity.Page? footerPage,  Map<int, List<entity.Container>> containers,  Map<int, List<entity.Container>> childContainers,  Map<int, List<entity.Column>> columns,  Map<int, List<WidgetInstance>> widgets,  bool isLoading,  String? errorMessage,  Map<int, int> hoverIndex)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EditorTreeState() when $default != null:
-return $default(_that.menu,_that.pages,_that.headerPage,_that.footerPage,_that.containers,_that.columns,_that.widgets,_that.isLoading,_that.errorMessage,_that.hoverIndex);case _:
+return $default(_that.menu,_that.pages,_that.headerPage,_that.footerPage,_that.containers,_that.childContainers,_that.columns,_that.widgets,_that.isLoading,_that.errorMessage,_that.hoverIndex);case _:
   return orElse();
 
 }
@@ -216,10 +217,10 @@ return $default(_that.menu,_that.pages,_that.headerPage,_that.footerPage,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Menu? menu,  List<entity.Page> pages,  entity.Page? headerPage,  entity.Page? footerPage,  Map<int, List<entity.Container>> containers,  Map<int, List<entity.Column>> columns,  Map<int, List<WidgetInstance>> widgets,  bool isLoading,  String? errorMessage,  Map<int, int> hoverIndex)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Menu? menu,  List<entity.Page> pages,  entity.Page? headerPage,  entity.Page? footerPage,  Map<int, List<entity.Container>> containers,  Map<int, List<entity.Container>> childContainers,  Map<int, List<entity.Column>> columns,  Map<int, List<WidgetInstance>> widgets,  bool isLoading,  String? errorMessage,  Map<int, int> hoverIndex)  $default,) {final _that = this;
 switch (_that) {
 case _EditorTreeState():
-return $default(_that.menu,_that.pages,_that.headerPage,_that.footerPage,_that.containers,_that.columns,_that.widgets,_that.isLoading,_that.errorMessage,_that.hoverIndex);case _:
+return $default(_that.menu,_that.pages,_that.headerPage,_that.footerPage,_that.containers,_that.childContainers,_that.columns,_that.widgets,_that.isLoading,_that.errorMessage,_that.hoverIndex);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -236,10 +237,10 @@ return $default(_that.menu,_that.pages,_that.headerPage,_that.footerPage,_that.c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Menu? menu,  List<entity.Page> pages,  entity.Page? headerPage,  entity.Page? footerPage,  Map<int, List<entity.Container>> containers,  Map<int, List<entity.Column>> columns,  Map<int, List<WidgetInstance>> widgets,  bool isLoading,  String? errorMessage,  Map<int, int> hoverIndex)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Menu? menu,  List<entity.Page> pages,  entity.Page? headerPage,  entity.Page? footerPage,  Map<int, List<entity.Container>> containers,  Map<int, List<entity.Container>> childContainers,  Map<int, List<entity.Column>> columns,  Map<int, List<WidgetInstance>> widgets,  bool isLoading,  String? errorMessage,  Map<int, int> hoverIndex)?  $default,) {final _that = this;
 switch (_that) {
 case _EditorTreeState() when $default != null:
-return $default(_that.menu,_that.pages,_that.headerPage,_that.footerPage,_that.containers,_that.columns,_that.widgets,_that.isLoading,_that.errorMessage,_that.hoverIndex);case _:
+return $default(_that.menu,_that.pages,_that.headerPage,_that.footerPage,_that.containers,_that.childContainers,_that.columns,_that.widgets,_that.isLoading,_that.errorMessage,_that.hoverIndex);case _:
   return null;
 
 }
@@ -251,7 +252,7 @@ return $default(_that.menu,_that.pages,_that.headerPage,_that.footerPage,_that.c
 
 
 class _EditorTreeState implements EditorTreeState {
-  const _EditorTreeState({this.menu, final  List<entity.Page> pages = const [], this.headerPage, this.footerPage, final  Map<int, List<entity.Container>> containers = const {}, final  Map<int, List<entity.Column>> columns = const {}, final  Map<int, List<WidgetInstance>> widgets = const {}, this.isLoading = true, this.errorMessage, final  Map<int, int> hoverIndex = const {}}): _pages = pages,_containers = containers,_columns = columns,_widgets = widgets,_hoverIndex = hoverIndex;
+  const _EditorTreeState({this.menu, final  List<entity.Page> pages = const [], this.headerPage, this.footerPage, final  Map<int, List<entity.Container>> containers = const {}, final  Map<int, List<entity.Container>> childContainers = const {}, final  Map<int, List<entity.Column>> columns = const {}, final  Map<int, List<WidgetInstance>> widgets = const {}, this.isLoading = true, this.errorMessage, final  Map<int, int> hoverIndex = const {}}): _pages = pages,_containers = containers,_childContainers = childContainers,_columns = columns,_widgets = widgets,_hoverIndex = hoverIndex;
   
 
 @override final  Menu? menu;
@@ -269,6 +270,13 @@ class _EditorTreeState implements EditorTreeState {
   if (_containers is EqualUnmodifiableMapView) return _containers;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableMapView(_containers);
+}
+
+ final  Map<int, List<entity.Container>> _childContainers;
+@override@JsonKey() Map<int, List<entity.Container>> get childContainers {
+  if (_childContainers is EqualUnmodifiableMapView) return _childContainers;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_childContainers);
 }
 
  final  Map<int, List<entity.Column>> _columns;
@@ -305,16 +313,16 @@ _$EditorTreeStateCopyWith<_EditorTreeState> get copyWith => __$EditorTreeStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EditorTreeState&&(identical(other.menu, menu) || other.menu == menu)&&const DeepCollectionEquality().equals(other._pages, _pages)&&(identical(other.headerPage, headerPage) || other.headerPage == headerPage)&&(identical(other.footerPage, footerPage) || other.footerPage == footerPage)&&const DeepCollectionEquality().equals(other._containers, _containers)&&const DeepCollectionEquality().equals(other._columns, _columns)&&const DeepCollectionEquality().equals(other._widgets, _widgets)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&const DeepCollectionEquality().equals(other._hoverIndex, _hoverIndex));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EditorTreeState&&(identical(other.menu, menu) || other.menu == menu)&&const DeepCollectionEquality().equals(other._pages, _pages)&&(identical(other.headerPage, headerPage) || other.headerPage == headerPage)&&(identical(other.footerPage, footerPage) || other.footerPage == footerPage)&&const DeepCollectionEquality().equals(other._containers, _containers)&&const DeepCollectionEquality().equals(other._childContainers, _childContainers)&&const DeepCollectionEquality().equals(other._columns, _columns)&&const DeepCollectionEquality().equals(other._widgets, _widgets)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&const DeepCollectionEquality().equals(other._hoverIndex, _hoverIndex));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,menu,const DeepCollectionEquality().hash(_pages),headerPage,footerPage,const DeepCollectionEquality().hash(_containers),const DeepCollectionEquality().hash(_columns),const DeepCollectionEquality().hash(_widgets),isLoading,errorMessage,const DeepCollectionEquality().hash(_hoverIndex));
+int get hashCode => Object.hash(runtimeType,menu,const DeepCollectionEquality().hash(_pages),headerPage,footerPage,const DeepCollectionEquality().hash(_containers),const DeepCollectionEquality().hash(_childContainers),const DeepCollectionEquality().hash(_columns),const DeepCollectionEquality().hash(_widgets),isLoading,errorMessage,const DeepCollectionEquality().hash(_hoverIndex));
 
 @override
 String toString() {
-  return 'EditorTreeState(menu: $menu, pages: $pages, headerPage: $headerPage, footerPage: $footerPage, containers: $containers, columns: $columns, widgets: $widgets, isLoading: $isLoading, errorMessage: $errorMessage, hoverIndex: $hoverIndex)';
+  return 'EditorTreeState(menu: $menu, pages: $pages, headerPage: $headerPage, footerPage: $footerPage, containers: $containers, childContainers: $childContainers, columns: $columns, widgets: $widgets, isLoading: $isLoading, errorMessage: $errorMessage, hoverIndex: $hoverIndex)';
 }
 
 
@@ -325,7 +333,7 @@ abstract mixin class _$EditorTreeStateCopyWith<$Res> implements $EditorTreeState
   factory _$EditorTreeStateCopyWith(_EditorTreeState value, $Res Function(_EditorTreeState) _then) = __$EditorTreeStateCopyWithImpl;
 @override @useResult
 $Res call({
- Menu? menu, List<entity.Page> pages, entity.Page? headerPage, entity.Page? footerPage, Map<int, List<entity.Container>> containers, Map<int, List<entity.Column>> columns, Map<int, List<WidgetInstance>> widgets, bool isLoading, String? errorMessage, Map<int, int> hoverIndex
+ Menu? menu, List<entity.Page> pages, entity.Page? headerPage, entity.Page? footerPage, Map<int, List<entity.Container>> containers, Map<int, List<entity.Container>> childContainers, Map<int, List<entity.Column>> columns, Map<int, List<WidgetInstance>> widgets, bool isLoading, String? errorMessage, Map<int, int> hoverIndex
 });
 
 
@@ -342,13 +350,14 @@ class __$EditorTreeStateCopyWithImpl<$Res>
 
 /// Create a copy of EditorTreeState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? menu = freezed,Object? pages = null,Object? headerPage = freezed,Object? footerPage = freezed,Object? containers = null,Object? columns = null,Object? widgets = null,Object? isLoading = null,Object? errorMessage = freezed,Object? hoverIndex = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? menu = freezed,Object? pages = null,Object? headerPage = freezed,Object? footerPage = freezed,Object? containers = null,Object? childContainers = null,Object? columns = null,Object? widgets = null,Object? isLoading = null,Object? errorMessage = freezed,Object? hoverIndex = null,}) {
   return _then(_EditorTreeState(
 menu: freezed == menu ? _self.menu : menu // ignore: cast_nullable_to_non_nullable
 as Menu?,pages: null == pages ? _self._pages : pages // ignore: cast_nullable_to_non_nullable
 as List<entity.Page>,headerPage: freezed == headerPage ? _self.headerPage : headerPage // ignore: cast_nullable_to_non_nullable
 as entity.Page?,footerPage: freezed == footerPage ? _self.footerPage : footerPage // ignore: cast_nullable_to_non_nullable
 as entity.Page?,containers: null == containers ? _self._containers : containers // ignore: cast_nullable_to_non_nullable
+as Map<int, List<entity.Container>>,childContainers: null == childContainers ? _self._childContainers : childContainers // ignore: cast_nullable_to_non_nullable
 as Map<int, List<entity.Container>>,columns: null == columns ? _self._columns : columns // ignore: cast_nullable_to_non_nullable
 as Map<int, List<entity.Column>>,widgets: null == widgets ? _self._widgets : widgets // ignore: cast_nullable_to_non_nullable
 as Map<int, List<WidgetInstance>>,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable

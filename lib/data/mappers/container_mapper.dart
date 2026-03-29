@@ -14,6 +14,7 @@ class ContainerMapper {
       pageId: dto.page?.id != null ? int.parse(dto.page!.id!) : 0,
       index: dto.index,
       name: "Container ${dto.id}",
+      parentContainerId: dto.parentContainerId,
       layout: json.isNotEmpty ? _mapLayoutJsonToLayoutConfig(json) : null,
       styleConfig: json.isNotEmpty ? StyleConfigMapper.fromJson(json) : null,
       dateCreated: dto.dateCreated,
@@ -28,6 +29,7 @@ class ContainerMapper {
       'page': entity.pageId,
       'index': entity.index,
       'name': entity.name,
+      'parent_container': entity.parentContainerId,
       'style_json': _mergeStyleJson(entity.layout, entity.styleConfig),
       'date_created': entity.dateCreated?.toIso8601String(),
       'date_updated': entity.dateUpdated?.toIso8601String(),
@@ -57,6 +59,7 @@ class ContainerMapper {
     return LayoutConfig(
       direction: json['direction'] as String?,
       alignment: json['alignment'] as String?,
+      mainAxisAlignment: json['mainAxisAlignment'] as String?,
       spacing: (json['spacing'] as num?)?.toDouble(),
     );
   }
@@ -67,6 +70,9 @@ class ContainerMapper {
 
     if (config.direction != null) json['direction'] = config.direction;
     if (config.alignment != null) json['alignment'] = config.alignment;
+    if (config.mainAxisAlignment != null) {
+      json['mainAxisAlignment'] = config.mainAxisAlignment;
+    }
     if (config.spacing != null) json['spacing'] = config.spacing;
 
     return json;

@@ -81,6 +81,9 @@ void main() {
       () => mockContainerRepository.getAllForPage(any()),
     ).thenAnswer((_) async => const Success([]));
     when(
+      () => mockContainerRepository.getAllForContainer(any()),
+    ).thenAnswer((_) async => const Success([]));
+    when(
       () => mockColumnRepository.getAllForContainer(any()),
     ).thenAnswer((_) async => const Success([]));
     when(

@@ -122,6 +122,9 @@ void main() {
       () => mockContainerRepo.getAllForPage(any()),
     ).thenAnswer((_) async => const Success(testContainers));
     when(
+      () => mockContainerRepo.getAllForContainer(any()),
+    ).thenAnswer((_) async => const Success(<entity.Container>[]));
+    when(
       () => mockColumnRepo.getAllForContainer(any()),
     ).thenAnswer((_) async => const Success(testColumns));
     when(

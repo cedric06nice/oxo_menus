@@ -94,6 +94,38 @@ void main() {
         expect(dto.styleJson['borderType'], 'plain_thin');
       });
 
+      test(
+        'should pass parentContainerId when creating child container',
+        () async {
+          const childInput = CreateContainerInput(
+            pageId: 1,
+            index: 0,
+            direction: 'row',
+            parentContainerId: 5,
+          );
+
+          when(() => mockDataSource.createItem<ContainerDto>(any())).thenAnswer(
+            (_) async => {
+              'id': 3,
+              'page': 1,
+              'index': 0,
+              'status': 'published',
+              'parent_container': 5,
+            },
+          );
+
+          final result = await repository.create(childInput);
+
+          expect(result.isSuccess, true);
+
+          final captured = verify(
+            () => mockDataSource.createItem<ContainerDto>(captureAny()),
+          ).captured;
+          final dto = captured.first as ContainerDto;
+          expect(dto.parentContainerId, 5);
+        },
+      );
+
       test('should return ValidationError when creation fails', () async {
         // Arrange
         when(() => mockDataSource.createItem<ContainerDto>(any())).thenThrow(
@@ -150,6 +182,29 @@ void main() {
         expect(captured[0], isNotNull);
       });
 
+      test('should filter to only top-level containers', () async {
+        when(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => containersJson);
+
+        await repository.getAllForPage(pageId);
+
+        final captured = verify(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: captureAny(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
+
+        final filter = captured[0] as Map<String, dynamic>;
+        expect(filter['parent_container'], {'_null': true});
+      });
+
       test('should return empty list when no containers found', () async {
         // Arrange
         when(
@@ -166,6 +221,81 @@ void main() {
         // Assert
         expect(result.isSuccess, true);
         expect(result.valueOrNull!.length, 0);
+      });
+    });
+
+    group('getAllForContainer', () {
+      const parentId = 1;
+      final childJson = [
+        {
+          'id': 10,
+          'page': 1,
+          'index': 0,
+          'status': 'published',
+          'parent_container': parentId,
+        },
+        {
+          'id': 11,
+          'page': 1,
+          'index': 1,
+          'status': 'published',
+          'parent_container': parentId,
+        },
+      ];
+
+      test('should return child containers for parent', () async {
+        when(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => childJson);
+
+        final result = await repository.getAllForContainer(parentId);
+
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull!.length, 2);
+        expect(result.valueOrNull![0].id, 10);
+        expect(result.valueOrNull![1].id, 11);
+      });
+
+      test('should filter by parent_container', () async {
+        when(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => childJson);
+
+        await repository.getAllForContainer(parentId);
+
+        final captured = verify(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: captureAny(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
+
+        final filter = captured[0] as Map<String, dynamic>;
+        expect(filter['parent_container'], {'_eq': parentId});
+      });
+
+      test('should return empty list when no children', () async {
+        when(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => []);
+
+        final result = await repository.getAllForContainer(parentId);
+
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull!, isEmpty);
       });
     });
 

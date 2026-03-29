@@ -17,6 +17,7 @@ abstract class EditorTreeState with _$EditorTreeState {
     entity.Page? headerPage,
     entity.Page? footerPage,
     @Default({}) Map<int, List<entity.Container>> containers,
+    @Default({}) Map<int, List<entity.Container>> childContainers,
     @Default({}) Map<int, List<entity.Column>> columns,
     @Default({}) Map<int, List<WidgetInstance>> widgets,
     @Default(true) bool isLoading,

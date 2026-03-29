@@ -173,6 +173,11 @@ class _AdminTemplateEditorPageState
             if (c.id == selection.id) return c.styleConfig;
           }
         }
+        for (final entry in treeState.childContainers.entries) {
+          for (final c in entry.value) {
+            if (c.id == selection.id) return c.styleConfig;
+          }
+        }
         return null;
       case EditorElementType.column:
         for (final entry in treeState.columns.entries) {
@@ -182,6 +187,23 @@ class _AdminTemplateEditorPageState
         }
         return null;
     }
+  }
+
+  entity.LayoutConfig? _resolveContainerLayout(
+    int containerId,
+    EditorTreeState treeState,
+  ) {
+    for (final entry in treeState.containers.entries) {
+      for (final c in entry.value) {
+        if (c.id == containerId) return c.layout;
+      }
+    }
+    for (final entry in treeState.childContainers.entries) {
+      for (final c in entry.value) {
+        if (c.id == containerId) return c.layout;
+      }
+    }
+    return null;
   }
 
   // ===== Selection =====
@@ -472,6 +494,7 @@ class _AdminTemplateEditorPageState
     final style = _resolveStyle(sel);
     bool? isDroppable;
     ValueChanged<bool>? onDroppableChanged;
+    entity.LayoutConfig? layoutConfig;
 
     if (sel.type == EditorElementType.column) {
       for (final entry in treeState.columns.entries) {
@@ -485,6 +508,10 @@ class _AdminTemplateEditorPageState
           }
         }
       }
+    }
+
+    if (sel.type == EditorElementType.container) {
+      layoutConfig = _resolveContainerLayout(sel.id, treeState);
     }
 
     final selectionNotifier = ref.read(editorSelectionProvider.notifier);
@@ -508,6 +535,12 @@ class _AdminTemplateEditorPageState
           : null,
       onPageSizePressed: sel.type == EditorElementType.menu
           ? _showPageSizeDialog
+          : null,
+      layoutConfig: layoutConfig,
+      onLayoutChanged: sel.type == EditorElementType.container
+          ? (layout) => ref
+                .read(templateEditorProvider(widget.menuId).notifier)
+                .updateContainerLayout(sel.id, layout)
           : null,
     );
   }
@@ -735,6 +768,8 @@ class _AdminTemplateEditorPageState
     EditorTreeState treeState,
   ) {
     final columns = treeState.columns[container.id] ?? [];
+    final childContainers = treeState.childContainers[container.id] ?? [];
+    final isGroup = childContainers.isNotEmpty;
     final theme = Theme.of(context);
     final currentSel = ref.watch(editorSelectionProvider).selection;
     final isSelected =
@@ -769,14 +804,28 @@ class _AdminTemplateEditorPageState
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  IconButton(
-                    key: Key('add_column_${container.id}'),
-                    icon: const Icon(Icons.view_column, size: 20),
-                    onPressed: () => templateNotifier.addColumn(
-                      container.id,
-                      (treeState.columns[container.id] ?? []).length,
+                  if (!isGroup) ...[
+                    IconButton(
+                      key: Key('add_column_${container.id}'),
+                      icon: const Icon(Icons.view_column, size: 20),
+                      onPressed: () => templateNotifier.addColumn(
+                        container.id,
+                        (treeState.columns[container.id] ?? []).length,
+                      ),
+                      tooltip: 'Add Column',
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(4),
                     ),
-                    tooltip: 'Add Column',
+                    const SizedBox(width: 4),
+                  ],
+                  IconButton(
+                    key: Key('add_child_container_${container.id}'),
+                    icon: const Icon(Icons.dashboard, size: 20),
+                    onPressed: () => templateNotifier.addChildContainer(
+                      container.id,
+                      childContainers.length,
+                    ),
+                    tooltip: 'Add Child Container',
                     constraints: const BoxConstraints(),
                     padding: const EdgeInsets.all(4),
                   ),
@@ -797,7 +846,13 @@ class _AdminTemplateEditorPageState
                 ],
               ),
               const SizedBox(height: 8),
-              if (columns.isNotEmpty)
+              // Group container: show child containers
+              if (isGroup)
+                ...childContainers.map(
+                  (child) => _buildContainerCard(child, treeState),
+                ),
+              // Leaf container: show columns
+              if (!isGroup && columns.isNotEmpty)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: columns

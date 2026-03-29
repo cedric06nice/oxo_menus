@@ -103,89 +103,134 @@ class DuplicateMenuUseCase {
 
       // Copy containers for this page
       for (final containerWithColumns in pageWithContainers.containers) {
-        final sourceContainer = containerWithColumns.container;
-
-        final containerResult = await containerRepository.create(
-          CreateContainerInput(
-            pageId: newPage.id,
-            index: sourceContainer.index,
-            direction: sourceContainer.layout?.direction ?? 'row',
-            name: sourceContainer.name,
-            layout: sourceContainer.layout,
-            styleConfig: sourceContainer.styleConfig,
-          ),
+        final copyResult = await _copyContainerTree(
+          containerWithColumns,
+          newPage.id,
+          null,
+          newMenu.id,
+          createdContainerIds,
+          createdColumnIds,
+          createdWidgetIds,
+          createdPageIds,
         );
-        if (containerResult.isFailure) {
-          await _rollback(
-            menuId: newMenu.id,
-            pageIds: createdPageIds,
-            containerIds: createdContainerIds,
-            columnIds: createdColumnIds,
-            widgetIds: createdWidgetIds,
-          );
-          return Failure(containerResult.errorOrNull!);
-        }
-        final newContainer = containerResult.valueOrNull!;
-        createdContainerIds.add(newContainer.id);
-
-        // Copy columns for this container
-        for (final columnWithWidgets in containerWithColumns.columns) {
-          final sourceColumn = columnWithWidgets.column;
-
-          final columnResult = await columnRepository.create(
-            CreateColumnInput(
-              containerId: newContainer.id,
-              index: sourceColumn.index,
-              flex: sourceColumn.flex,
-              width: sourceColumn.width,
-              styleConfig: sourceColumn.styleConfig,
-              isDroppable: sourceColumn.isDroppable,
-            ),
-          );
-          if (columnResult.isFailure) {
-            await _rollback(
-              menuId: newMenu.id,
-              pageIds: createdPageIds,
-              containerIds: createdContainerIds,
-              columnIds: createdColumnIds,
-              widgetIds: createdWidgetIds,
-            );
-            return Failure(columnResult.errorOrNull!);
-          }
-          final newColumn = columnResult.valueOrNull!;
-          createdColumnIds.add(newColumn.id);
-
-          // Copy widgets for this column
-          for (final sourceWidget in columnWithWidgets.widgets) {
-            final widgetResult = await widgetRepository.create(
-              CreateWidgetInput(
-                columnId: newColumn.id,
-                type: sourceWidget.type,
-                version: sourceWidget.version,
-                index: sourceWidget.index,
-                props: Map<String, dynamic>.from(sourceWidget.props),
-                style: sourceWidget.style,
-                isTemplate: sourceWidget.isTemplate,
-              ),
-            );
-            if (widgetResult.isFailure) {
-              await _rollback(
-                menuId: newMenu.id,
-                pageIds: createdPageIds,
-                containerIds: createdContainerIds,
-                columnIds: createdColumnIds,
-                widgetIds: createdWidgetIds,
-              );
-              return Failure(widgetResult.errorOrNull!);
-            }
-            final newWidget = widgetResult.valueOrNull!;
-            createdWidgetIds.add(newWidget.id);
-          }
+        if (copyResult.isFailure) {
+          return Failure(copyResult.errorOrNull!);
         }
       }
     }
 
     return Success(newMenu);
+  }
+
+  Future<Result<void, DomainError>> _copyContainerTree(
+    ContainerWithColumns containerWithColumns,
+    int newPageId,
+    int? parentContainerId,
+    int menuId,
+    List<int> createdContainerIds,
+    List<int> createdColumnIds,
+    List<int> createdWidgetIds,
+    List<int> createdPageIds,
+  ) async {
+    final sourceContainer = containerWithColumns.container;
+
+    final containerResult = await containerRepository.create(
+      CreateContainerInput(
+        pageId: newPageId,
+        index: sourceContainer.index,
+        direction: sourceContainer.layout?.direction ?? 'row',
+        name: sourceContainer.name,
+        parentContainerId: parentContainerId,
+        layout: sourceContainer.layout,
+        styleConfig: sourceContainer.styleConfig,
+      ),
+    );
+    if (containerResult.isFailure) {
+      await _rollback(
+        menuId: menuId,
+        pageIds: createdPageIds,
+        containerIds: createdContainerIds,
+        columnIds: createdColumnIds,
+        widgetIds: createdWidgetIds,
+      );
+      return Failure(containerResult.errorOrNull!);
+    }
+    final newContainer = containerResult.valueOrNull!;
+    createdContainerIds.add(newContainer.id);
+
+    // Copy columns for this container
+    for (final columnWithWidgets in containerWithColumns.columns) {
+      final sourceColumn = columnWithWidgets.column;
+
+      final columnResult = await columnRepository.create(
+        CreateColumnInput(
+          containerId: newContainer.id,
+          index: sourceColumn.index,
+          flex: sourceColumn.flex,
+          width: sourceColumn.width,
+          styleConfig: sourceColumn.styleConfig,
+          isDroppable: sourceColumn.isDroppable,
+        ),
+      );
+      if (columnResult.isFailure) {
+        await _rollback(
+          menuId: menuId,
+          pageIds: createdPageIds,
+          containerIds: createdContainerIds,
+          columnIds: createdColumnIds,
+          widgetIds: createdWidgetIds,
+        );
+        return Failure(columnResult.errorOrNull!);
+      }
+      final newColumn = columnResult.valueOrNull!;
+      createdColumnIds.add(newColumn.id);
+
+      // Copy widgets for this column
+      for (final sourceWidget in columnWithWidgets.widgets) {
+        final widgetResult = await widgetRepository.create(
+          CreateWidgetInput(
+            columnId: newColumn.id,
+            type: sourceWidget.type,
+            version: sourceWidget.version,
+            index: sourceWidget.index,
+            props: Map<String, dynamic>.from(sourceWidget.props),
+            style: sourceWidget.style,
+            isTemplate: sourceWidget.isTemplate,
+          ),
+        );
+        if (widgetResult.isFailure) {
+          await _rollback(
+            menuId: menuId,
+            pageIds: createdPageIds,
+            containerIds: createdContainerIds,
+            columnIds: createdColumnIds,
+            widgetIds: createdWidgetIds,
+          );
+          return Failure(widgetResult.errorOrNull!);
+        }
+        final newWidget = widgetResult.valueOrNull!;
+        createdWidgetIds.add(newWidget.id);
+      }
+    }
+
+    // Recursively copy child containers
+    for (final childContainer in containerWithColumns.children) {
+      final childResult = await _copyContainerTree(
+        childContainer,
+        newPageId,
+        newContainer.id,
+        menuId,
+        createdContainerIds,
+        createdColumnIds,
+        createdWidgetIds,
+        createdPageIds,
+      );
+      if (childResult.isFailure) {
+        return childResult;
+      }
+    }
+
+    return const Success(null);
   }
 
   Future<void> _rollback({

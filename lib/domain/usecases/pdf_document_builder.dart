@@ -202,7 +202,45 @@ class PdfDocumentBuilder {
 
     pw.Widget content;
 
-    if (containerData.columns.length <= 1) {
+    if (containerData.children.isNotEmpty) {
+      // Group container: render child containers
+      final childWidgets = containerData.children
+          .map(
+            (child) => _buildContainer(
+              child,
+              styleConfig,
+              displayOptions,
+              imageCache,
+              sectionFont,
+            ),
+          )
+          .toList();
+
+      final mainAxisAlignment = _resolveMainAxisAlignment(
+        containerData.container.layout?.mainAxisAlignment,
+      );
+      final direction = containerData.container.layout?.direction;
+
+      if (direction == 'row') {
+        content = pw.Container(
+          padding: padding,
+          child: pw.Row(
+            mainAxisAlignment: mainAxisAlignment,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: childWidgets.map((w) => pw.Expanded(child: w)).toList(),
+          ),
+        );
+      } else {
+        content = pw.Container(
+          padding: padding,
+          child: pw.Column(
+            mainAxisAlignment: mainAxisAlignment,
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            children: childWidgets,
+          ),
+        );
+      }
+    } else if (containerData.columns.length <= 1) {
       content = pw.Container(
         padding: padding,
         child: pw.Column(
@@ -292,6 +330,17 @@ class PdfDocumentBuilder {
       VerticalAlignment.center => pw.TableCellVerticalAlignment.middle,
       VerticalAlignment.bottom => pw.TableCellVerticalAlignment.bottom,
       _ => pw.TableCellVerticalAlignment.top,
+    };
+  }
+
+  pw.MainAxisAlignment _resolveMainAxisAlignment(String? value) {
+    return switch (value) {
+      'end' => pw.MainAxisAlignment.end,
+      'center' => pw.MainAxisAlignment.center,
+      'spaceBetween' => pw.MainAxisAlignment.spaceBetween,
+      'spaceAround' => pw.MainAxisAlignment.spaceAround,
+      'spaceEvenly' => pw.MainAxisAlignment.spaceEvenly,
+      _ => pw.MainAxisAlignment.start,
     };
   }
 

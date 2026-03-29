@@ -14,6 +14,7 @@ abstract class Container with _$Container {
     required int pageId,
     required int index,
     String? name,
+    int? parentContainerId,
     LayoutConfig? layout,
     StyleConfig? styleConfig,
     DateTime? dateCreated,
@@ -32,6 +33,7 @@ abstract class LayoutConfig with _$LayoutConfig {
   const factory LayoutConfig({
     String? direction,
     String? alignment,
+    String? mainAxisAlignment,
     double? spacing,
   }) = _LayoutConfig;
 
