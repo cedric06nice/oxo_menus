@@ -818,6 +818,114 @@ void main() {
       expect(find.byType(IntrinsicHeight), findsOneWidget);
     });
 
+    testWidgets(
+      'should render nested child containers in a Column for column direction',
+      (tester) async {
+        final containerData = ContainerWithColumns(
+          container: const entity.Container(
+            id: 1,
+            pageId: 1,
+            index: 0,
+            layout: entity.LayoutConfig(
+              direction: 'column',
+              mainAxisAlignment: 'center',
+            ),
+          ),
+          columns: const [],
+          children: [
+            ContainerWithColumns(
+              container: const entity.Container(
+                id: 2,
+                pageId: 1,
+                index: 0,
+                parentContainerId: 1,
+              ),
+              columns: const [],
+            ),
+            ContainerWithColumns(
+              container: const entity.Container(
+                id: 3,
+                pageId: 1,
+                index: 1,
+                parentContainerId: 1,
+              ),
+              columns: const [],
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: Scaffold(
+                body: ContainerCanvas(
+                  container: containerData,
+                  isEditable: false,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        // Should find 3 ContainerCanvas widgets (parent + 2 children)
+        expect(find.byType(ContainerCanvas), findsNWidgets(3));
+      },
+    );
+
+    testWidgets(
+      'should render nested child containers in a Row for row direction',
+      (tester) async {
+        final containerData = ContainerWithColumns(
+          container: const entity.Container(
+            id: 1,
+            pageId: 1,
+            index: 0,
+            layout: entity.LayoutConfig(
+              direction: 'row',
+              mainAxisAlignment: 'spaceBetween',
+            ),
+          ),
+          columns: const [],
+          children: [
+            ContainerWithColumns(
+              container: const entity.Container(
+                id: 2,
+                pageId: 1,
+                index: 0,
+                parentContainerId: 1,
+              ),
+              columns: const [],
+            ),
+            ContainerWithColumns(
+              container: const entity.Container(
+                id: 3,
+                pageId: 1,
+                index: 1,
+                parentContainerId: 1,
+              ),
+              columns: const [],
+            ),
+          ],
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            child: MaterialApp(
+              home: Scaffold(
+                body: ContainerCanvas(
+                  container: containerData,
+                  isEditable: false,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        // Should find 3 ContainerCanvas widgets
+        expect(find.byType(ContainerCanvas), findsNWidgets(3));
+      },
+    );
+
     testWidgets('should use SingleChildScrollView for page', (tester) async {
       // Arrange
       const pageData = PageWithContainers(

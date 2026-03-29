@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
@@ -55,13 +56,13 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
         if (isApple)
           CupertinoButton(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            onPressed: () => context.push('/admin/templates/create'),
+            onPressed: () => context.push(AppRoutes.adminTemplateCreate),
             child: const Icon(CupertinoIcons.add),
           )
         else
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => context.push('/admin/templates/create'),
+            onPressed: () => context.push(AppRoutes.adminTemplateCreate),
             tooltip: 'Create Template',
           ),
       ],
@@ -112,7 +113,7 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
       title: 'No templates found',
       subtitle: 'Create your first template to get started',
       actionLabel: 'Create Template',
-      onAction: () => context.push('/admin/templates/create'),
+      onAction: () => context.push(AppRoutes.adminTemplateCreate),
     );
   }
 
@@ -135,10 +136,12 @@ class _AdminTemplatesPageState extends ConsumerState<AdminTemplatesPage> {
                 children: templates.map((template) {
                   return TemplateCard(
                     template: template,
-                    onTap: () =>
-                        context.push('/admin/templates/${template.id}'),
-                    onEdit: () =>
-                        context.push('/admin/templates/${template.id}'),
+                    onTap: () => context.push(
+                      AppRoutes.adminTemplateEditor(template.id),
+                    ),
+                    onEdit: () => context.push(
+                      AppRoutes.adminTemplateEditor(template.id),
+                    ),
                     onDelete: () => _confirmDelete(template),
                   );
                 }).toList(),

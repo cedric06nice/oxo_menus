@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/status.dart';
@@ -175,7 +176,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
               padding: EdgeInsets.zero,
               onPressed: () {
                 Navigator.of(context).pop();
-                context.push('/admin/sizes');
+                context.push(AppRoutes.adminSizes);
               },
               child: const Text('Manage Page Sizes'),
             ),
@@ -322,7 +323,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              context.push('/admin/sizes');
+              context.push(AppRoutes.adminSizes);
             },
             child: const Text('Manage Page Sizes'),
           ),

@@ -7,8 +7,10 @@ import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
+import 'package:oxo_menus/domain/usecases/reorder_container_usecase.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader_provider.dart';
 
@@ -60,6 +62,7 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
         headerPage: headerPage,
         footerPage: footerPage,
         containers: tree.containers,
+        childContainers: tree.childContainers,
         columns: tree.columns,
         widgets: tree.widgets,
         isLoading: false,
@@ -72,6 +75,7 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
         headerPage: null,
         footerPage: null,
         containers: tree.containers,
+        childContainers: tree.childContainers,
         columns: tree.columns,
         widgets: tree.widgets,
         isLoading: false,
@@ -96,7 +100,41 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
         return c;
       }).toList();
     }
-    state = state.copyWith(containers: updated);
+    final updatedChildren = <int, List<entity.Container>>{};
+    for (final entry in state.childContainers.entries) {
+      updatedChildren[entry.key] = entry.value.map((c) {
+        if (c.id == containerId) return c.copyWith(styleConfig: style);
+        return c;
+      }).toList();
+    }
+    state = state.copyWith(
+      containers: updated,
+      childContainers: updatedChildren,
+    );
+  }
+
+  void updateContainerLayoutLocally(
+    int containerId,
+    entity.LayoutConfig layout,
+  ) {
+    final updated = <int, List<entity.Container>>{};
+    for (final entry in state.containers.entries) {
+      updated[entry.key] = entry.value.map((c) {
+        if (c.id == containerId) return c.copyWith(layout: layout);
+        return c;
+      }).toList();
+    }
+    final updatedChildren = <int, List<entity.Container>>{};
+    for (final entry in state.childContainers.entries) {
+      updatedChildren[entry.key] = entry.value.map((c) {
+        if (c.id == containerId) return c.copyWith(layout: layout);
+        return c;
+      }).toList();
+    }
+    state = state.copyWith(
+      containers: updated,
+      childContainers: updatedChildren,
+    );
   }
 
   void updateColumnStyleLocally(int columnId, StyleConfig style) {
@@ -212,6 +250,31 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
 
   bool get _hasSeparateHeaderFooter =>
       state.headerPage != null || state.footerPage != null;
+
+  // Container operations
+
+  Future<Result<void, DomainError>> reorderContainer(
+    int containerId,
+    ReorderDirection direction,
+  ) async {
+    final useCase = ref.read(reorderContainerUseCaseProvider);
+    final result = await useCase.execute(containerId, direction);
+    if (result.isSuccess) {
+      await loadTree(separateHeaderFooter: _hasSeparateHeaderFooter);
+    }
+    return result;
+  }
+
+  Future<Result<entity.Container, DomainError>> duplicateContainer(
+    int containerId,
+  ) async {
+    final useCase = ref.read(duplicateContainerUseCaseProvider);
+    final result = await useCase.execute(containerId);
+    if (result.isSuccess) {
+      await loadTree(separateHeaderFooter: _hasSeparateHeaderFooter);
+    }
+    return result;
+  }
 
   // Widget locking
 

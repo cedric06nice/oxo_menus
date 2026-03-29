@@ -74,6 +74,11 @@ void main() {
       columnRepository: mockColumnRepo,
       widgetRepository: mockWidgetRepo,
     );
+
+    // Default stub: containers have no children unless overridden
+    when(
+      () => mockContainerRepo.getAllForContainer(any()),
+    ).thenAnswer((_) async => const Success(<entity.Container>[]));
   });
 
   group('EditorTreeLoader', () {
@@ -265,6 +270,58 @@ void main() {
       expect(tree.containers, isEmpty);
       expect(tree.columns, isEmpty);
       expect(tree.widgets, isEmpty);
+    });
+
+    test('loads child containers recursively', () async {
+      const parentContainer = entity.Container(id: 20, pageId: 11, index: 0);
+      const childContainer = entity.Container(
+        id: 25,
+        pageId: 11,
+        index: 0,
+        parentContainerId: 20,
+      );
+      const childColumn = entity.Column(id: 35, containerId: 25, index: 0);
+
+      when(
+        () => mockMenuRepo.getById(1),
+      ).thenAnswer((_) async => Success(testMenu));
+      when(
+        () => mockPageRepo.getAllForMenu(1),
+      ).thenAnswer((_) async => Success(testPages));
+      when(() => mockContainerRepo.getAllForPage(any())).thenAnswer((
+        invocation,
+      ) async {
+        final pageId = invocation.positionalArguments[0] as int;
+        if (pageId == 11) return const Success([parentContainer]);
+        return const Success(<entity.Container>[]);
+      });
+      when(
+        () => mockContainerRepo.getAllForContainer(20),
+      ).thenAnswer((_) async => const Success([childContainer]));
+      when(
+        () => mockContainerRepo.getAllForContainer(25),
+      ).thenAnswer((_) async => const Success(<entity.Container>[]));
+      when(
+        () => mockColumnRepo.getAllForContainer(20),
+      ).thenAnswer((_) async => const Success(<entity.Column>[]));
+      when(
+        () => mockColumnRepo.getAllForContainer(25),
+      ).thenAnswer((_) async => const Success([childColumn]));
+      when(
+        () => mockWidgetRepo.getAllForColumn(35),
+      ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
+
+      final result = await loader.loadTree(1);
+
+      expect(result.isSuccess, isTrue);
+      final tree = result.valueOrNull!;
+      // Page 11 has parent container
+      expect(tree.containers[11], hasLength(1));
+      // Parent has child container
+      expect(tree.childContainers[20], hasLength(1));
+      expect(tree.childContainers[20]!.first.id, 25);
+      // Child container has columns
+      expect(tree.columns[25], hasLength(1));
     });
 
     test('continues loading when container fetch fails for one page', () async {

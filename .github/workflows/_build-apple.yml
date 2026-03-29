@@ -28,6 +28,8 @@ on:
         required: true
       asc_key_content:
         required: true
+      reset_url_base:
+        required: false
 
 jobs:
   build:
@@ -76,7 +78,11 @@ jobs:
             CLEAN_VERSION=$(echo "${{ inputs.build_version }}" | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+')
             VERSION_FLAG="--build-name=${CLEAN_VERSION}"
           fi
-          flutter build ${{ matrix.build_cmd }} $VERSION_FLAG --build-number=${{ inputs.build_number }} --dart-define=DIRECTUS_URL=${{ secrets.directus_url }}
+          RESET_FLAG=""
+          if [ -n "${{ secrets.reset_url_base }}" ]; then
+            RESET_FLAG="--dart-define=RESET_URL_BASE=${{ secrets.reset_url_base }}"
+          fi
+          flutter build ${{ matrix.build_cmd }} $VERSION_FLAG --build-number=${{ inputs.build_number }} --dart-define=DIRECTUS_URL=${{ secrets.directus_url }} $RESET_FLAG
 
       - name: Install CocoaPods dependencies
         run: bundle exec pod install

@@ -71,6 +71,25 @@ void main() {
     });
   });
 
+  group('SettingsPage reset password', () {
+    testWidgets('should show reset password tile', (tester) async {
+      await tester.pumpWidget(createWidgetUnderTest(user: adminUser));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reset Password'), findsOneWidget);
+      expect(find.byIcon(Icons.lock_reset), findsOneWidget);
+    });
+
+    testWidgets('should show reset password tile for regular user', (
+      tester,
+    ) async {
+      await tester.pumpWidget(createWidgetUnderTest(user: regularUser));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Reset Password'), findsOneWidget);
+    });
+  });
+
   group('SettingsPage debug toggle', () {
     testWidgets('should show debug section for admin user', (tester) async {
       await tester.pumpWidget(createWidgetUnderTest(user: adminUser));

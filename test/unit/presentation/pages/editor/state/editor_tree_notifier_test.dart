@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:oxo_menus/core/errors/domain_errors.dart' show ServerError;
+import 'package:oxo_menus/core/errors/domain_errors.dart'
+    show ServerError, ValidationError;
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
@@ -16,11 +17,14 @@ import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
+import 'package:oxo_menus/domain/usecases/duplicate_container_usecase.dart';
+import 'package:oxo_menus/domain/usecases/reorder_container_usecase.dart';
 import 'package:oxo_menus/presentation/widget_system/presentable_widget_definition.dart';
 import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_provider.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 
 class MockMenuRepository extends Mock implements MenuRepository {}
@@ -36,6 +40,12 @@ class MockWidgetRepository extends Mock implements WidgetRepository {}
 class MockPresentableWidgetRegistry extends Mock
     implements PresentableWidgetRegistry {}
 
+class MockReorderContainerUseCase extends Mock
+    implements ReorderContainerUseCase {}
+
+class MockDuplicateContainerUseCase extends Mock
+    implements DuplicateContainerUseCase {}
+
 class MockWidgetDefinition extends Mock
     implements PresentableWidgetDefinition {}
 
@@ -46,6 +56,8 @@ void main() {
   late MockColumnRepository mockColumnRepo;
   late MockWidgetRepository mockWidgetRepo;
   late MockPresentableWidgetRegistry mockPresentableWidgetRegistry;
+  late MockReorderContainerUseCase mockReorderContainerUseCase;
+  late MockDuplicateContainerUseCase mockDuplicateContainerUseCase;
 
   const menuId = 1;
 
@@ -83,6 +95,8 @@ void main() {
     mockColumnRepo = MockColumnRepository();
     mockWidgetRepo = MockWidgetRepository();
     mockPresentableWidgetRegistry = MockPresentableWidgetRegistry();
+    mockReorderContainerUseCase = MockReorderContainerUseCase();
+    mockDuplicateContainerUseCase = MockDuplicateContainerUseCase();
   });
 
   setUpAll(() {
@@ -107,6 +121,12 @@ void main() {
         columnRepositoryProvider.overrideWithValue(mockColumnRepo),
         widgetRepositoryProvider.overrideWithValue(mockWidgetRepo),
         widgetRegistryProvider.overrideWithValue(mockPresentableWidgetRegistry),
+        reorderContainerUseCaseProvider.overrideWithValue(
+          mockReorderContainerUseCase,
+        ),
+        duplicateContainerUseCaseProvider.overrideWithValue(
+          mockDuplicateContainerUseCase,
+        ),
       ],
     );
   }
@@ -121,6 +141,9 @@ void main() {
     when(
       () => mockContainerRepo.getAllForPage(any()),
     ).thenAnswer((_) async => const Success(testContainers));
+    when(
+      () => mockContainerRepo.getAllForContainer(any()),
+    ).thenAnswer((_) async => const Success(<entity.Container>[]));
     when(
       () => mockColumnRepo.getAllForContainer(any()),
     ).thenAnswer((_) async => const Success(testColumns));
@@ -682,6 +705,92 @@ void main() {
       await notifier.unlockWidget(40);
 
       verify(() => mockWidgetRepo.unlockEditing(40)).called(1);
+    });
+  });
+  group('EditorTreeNotifier - reorderContainer', () {
+    test('calls use case and reloads tree on success', () async {
+      stubSuccessfulTreeLoad();
+      final container = createContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(editorTreeProvider(menuId).notifier);
+      await notifier.loadTree();
+
+      when(
+        () => mockReorderContainerUseCase.execute(20, ReorderDirection.up),
+      ).thenAnswer((_) async => const Success(null));
+
+      final result = await notifier.reorderContainer(20, ReorderDirection.up);
+
+      expect(result.isSuccess, isTrue);
+      verify(
+        () => mockReorderContainerUseCase.execute(20, ReorderDirection.up),
+      ).called(1);
+      // loadTree called: once in setup + once after reorder = getById called twice
+      verify(() => mockMenuRepo.getById(menuId)).called(2);
+    });
+
+    test('does not reload tree on failure', () async {
+      stubSuccessfulTreeLoad();
+      final container = createContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(editorTreeProvider(menuId).notifier);
+      await notifier.loadTree();
+
+      when(
+        () => mockReorderContainerUseCase.execute(20, ReorderDirection.up),
+      ).thenAnswer(
+        (_) async =>
+            const Failure(ValidationError('Already at first position')),
+      );
+
+      final result = await notifier.reorderContainer(20, ReorderDirection.up);
+
+      expect(result.isFailure, isTrue);
+      // loadTree called only once (setup), not again after failure
+      verify(() => mockMenuRepo.getById(menuId)).called(1);
+    });
+  });
+
+  group('EditorTreeNotifier - duplicateContainer', () {
+    test('calls use case and reloads tree on success', () async {
+      stubSuccessfulTreeLoad();
+      final container = createContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(editorTreeProvider(menuId).notifier);
+      await notifier.loadTree();
+
+      when(() => mockDuplicateContainerUseCase.execute(20)).thenAnswer(
+        (_) async =>
+            const Success(entity.Container(id: 99, pageId: 10, index: 1)),
+      );
+
+      final result = await notifier.duplicateContainer(20);
+
+      expect(result.isSuccess, isTrue);
+      verify(() => mockDuplicateContainerUseCase.execute(20)).called(1);
+      // loadTree called twice: setup + after duplicate
+      verify(() => mockMenuRepo.getById(menuId)).called(2);
+    });
+
+    test('does not reload tree on failure', () async {
+      stubSuccessfulTreeLoad();
+      final container = createContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(editorTreeProvider(menuId).notifier);
+      await notifier.loadTree();
+
+      when(
+        () => mockDuplicateContainerUseCase.execute(20),
+      ).thenAnswer((_) async => const Failure(ServerError('Copy failed')));
+
+      final result = await notifier.duplicateContainer(20);
+
+      expect(result.isFailure, isTrue);
+      verify(() => mockMenuRepo.getById(menuId)).called(1);
     });
   });
 }

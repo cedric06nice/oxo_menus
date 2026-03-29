@@ -4,22 +4,22 @@ import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/image_file_info.dart';
-import 'package:oxo_menus/domain/repositories/file_repository.dart';
+import 'package:oxo_menus/domain/usecases/list_image_files_usecase.dart';
 import 'package:oxo_menus/presentation/providers/image_files/image_files_notifier.dart';
 import 'package:oxo_menus/presentation/providers/image_files/image_files_provider.dart';
 import 'package:oxo_menus/presentation/providers/image_files/image_files_state.dart';
-import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
-class MockFileRepository extends Mock implements FileRepository {}
+class MockListImageFilesUseCase extends Mock implements ListImageFilesUseCase {}
 
 void main() {
   late ProviderContainer container;
-  late MockFileRepository mockFileRepository;
+  late MockListImageFilesUseCase mockUseCase;
 
   setUp(() {
-    mockFileRepository = MockFileRepository();
+    mockUseCase = MockListImageFilesUseCase();
     container = ProviderContainer(
-      overrides: [fileRepositoryProvider.overrideWithValue(mockFileRepository)],
+      overrides: [listImageFilesUseCaseProvider.overrideWithValue(mockUseCase)],
     );
   });
 
@@ -47,7 +47,7 @@ void main() {
     group('loadImageFiles', () {
       test('should load image files successfully', () async {
         when(
-          () => mockFileRepository.listImageFiles(),
+          () => mockUseCase.execute(),
         ).thenAnswer((_) async => const Success([testFile1, testFile2]));
 
         await readNotifier().loadImageFiles();
@@ -58,7 +58,7 @@ void main() {
       });
 
       test('should set error message on failure', () async {
-        when(() => mockFileRepository.listImageFiles()).thenAnswer(
+        when(() => mockUseCase.execute()).thenAnswer(
           (_) async => const Failure(ServerError('Failed to load images')),
         );
 
@@ -71,7 +71,7 @@ void main() {
 
       test('should set isLoading while loading', () async {
         when(
-          () => mockFileRepository.listImageFiles(),
+          () => mockUseCase.execute(),
         ).thenAnswer((_) async => const Success([testFile1]));
 
         final future = readNotifier().loadImageFiles();

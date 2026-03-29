@@ -20,4 +20,19 @@ abstract class AuthRepository {
   ///
   /// Returns the user if session was restored successfully
   Future<Result<User, DomainError>> tryRestoreSession();
+
+  /// Request a password reset email for the given email address
+  ///
+  /// Optionally provide a [resetUrl] to redirect the user to a custom
+  /// reset page instead of the Directus default.
+  Future<Result<void, DomainError>> requestPasswordReset(
+    String email, {
+    String? resetUrl,
+  });
+
+  /// Confirm a password reset with the token received via email
+  Future<Result<void, DomainError>> confirmPasswordReset({
+    required String token,
+    required String password,
+  });
 }

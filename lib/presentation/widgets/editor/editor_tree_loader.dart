@@ -16,6 +16,7 @@ class EditorTree {
   final Menu menu;
   final List<entity.Page> pages;
   final Map<int, List<entity.Container>> containers;
+  final Map<int, List<entity.Container>> childContainers;
   final Map<int, List<entity.Column>> columns;
   final Map<int, List<WidgetInstance>> widgets;
 
@@ -23,6 +24,7 @@ class EditorTree {
     required this.menu,
     required this.pages,
     required this.containers,
+    this.childContainers = const {},
     required this.columns,
     required this.widgets,
   });
@@ -66,6 +68,7 @@ class EditorTreeLoader {
 
     // Load containers, columns, widgets
     final containers = <int, List<entity.Container>>{};
+    final childContainers = <int, List<entity.Container>>{};
     final columns = <int, List<entity.Column>>{};
     final widgets = <int, List<WidgetInstance>>{};
 
@@ -79,26 +82,12 @@ class EditorTreeLoader {
       containers[page.id] = pageContainers;
 
       for (final container in pageContainers) {
-        final columnsResult = await columnRepository.getAllForContainer(
-          container.id,
+        await _loadContainerContents(
+          container,
+          childContainers,
+          columns,
+          widgets,
         );
-        if (columnsResult.isFailure) continue;
-
-        final containerColumns = List<entity.Column>.from(
-          columnsResult.valueOrNull!,
-        )..sort((a, b) => a.index.compareTo(b.index));
-        columns[container.id] = containerColumns;
-
-        for (final column in containerColumns) {
-          final widgetsResult = await widgetRepository.getAllForColumn(
-            column.id,
-          );
-          if (widgetsResult.isFailure) continue;
-
-          widgets[column.id] = List<WidgetInstance>.from(
-            widgetsResult.valueOrNull!,
-          )..sort((a, b) => a.index.compareTo(b.index));
-        }
       }
     }
 
@@ -107,9 +96,59 @@ class EditorTreeLoader {
         menu: menu,
         pages: pages,
         containers: containers,
+        childContainers: childContainers,
         columns: columns,
         widgets: widgets,
       ),
     );
+  }
+
+  Future<void> _loadContainerContents(
+    entity.Container container,
+    Map<int, List<entity.Container>> childContainers,
+    Map<int, List<entity.Column>> columns,
+    Map<int, List<WidgetInstance>> widgets,
+  ) async {
+    // Load columns for this container
+    final columnsResult = await columnRepository.getAllForContainer(
+      container.id,
+    );
+    if (columnsResult.isSuccess) {
+      final containerColumns = List<entity.Column>.from(
+        columnsResult.valueOrNull!,
+      )..sort((a, b) => a.index.compareTo(b.index));
+      columns[container.id] = containerColumns;
+
+      for (final column in containerColumns) {
+        final widgetsResult = await widgetRepository.getAllForColumn(column.id);
+        if (widgetsResult.isFailure) continue;
+
+        widgets[column.id] = List<WidgetInstance>.from(
+          widgetsResult.valueOrNull!,
+        )..sort((a, b) => a.index.compareTo(b.index));
+      }
+    }
+
+    // Load child containers recursively
+    final childResult = await containerRepository.getAllForContainer(
+      container.id,
+    );
+    if (childResult.isSuccess) {
+      final children = List<entity.Container>.from(childResult.valueOrNull!)
+        ..sort((a, b) => a.index.compareTo(b.index));
+
+      if (children.isNotEmpty) {
+        childContainers[container.id] = children;
+
+        for (final child in children) {
+          await _loadContainerContents(
+            child,
+            childContainers,
+            columns,
+            widgets,
+          );
+        }
+      }
+    }
   }
 }

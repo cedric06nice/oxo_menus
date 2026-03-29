@@ -63,6 +63,7 @@ jobs:
       build_number: ${{ github.run_number }}
     secrets:
       directus_url: ${{ secrets.DIRECTUS_URL_PROD }}
+      reset_url_base: ${{ secrets.RESET_URL_BASE }}
       match_git_url: ${{ secrets.MATCH_GIT_URL }}
       match_git_basic_authorization: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
       match_password: ${{ secrets.MATCH_PASSWORD }}
@@ -80,6 +81,7 @@ jobs:
       retention_days: 90
     secrets:
       directus_url: ${{ secrets.DIRECTUS_URL_PROD }}
+      reset_url_base: ${{ secrets.RESET_URL_BASE }}
 
   release:
     name: GitHub Release

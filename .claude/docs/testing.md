@@ -6,7 +6,7 @@
 test/
 ├── helpers/                    # Shared utilities (test_image_data.dart)
 ├── integration/                # Directus integration tests
-├── unit/                       # 130 test files, mirrors lib/
+├── unit/                       # 145 test files, mirrors lib/
 │   ├── core/                   # Result, DomainError, router, URL resolver
 │   ├── data/
 │   │   ├── datasources/        # DirectusDataSource, WebSocket, SecureTokenStorage
@@ -17,7 +17,7 @@ test/
 │   │   ├── allergens/          # UkAllergen, AllergenInfo, formatter
 │   │   ├── entities/           # All entity tests (incl. lock fields)
 │   │   ├── repositories/       # Domain repo input validation
-│   │   ├── usecases/           # FetchMenuTree, DuplicateMenu
+│   │   ├── usecases/           # FetchMenuTree, DuplicateMenu, ListImageFiles, ListSizes, ListTemplates
 │   │   ├── widget_system/      # Definition, registry, migrator, context
 │   │   └── widgets/            # Props tests (dish, image, section, text, wine)
 │   ├── presentation/
@@ -25,15 +25,15 @@ test/
 │   │   ├── pages/              # Notifier + state tests
 │   │   ├── providers/          # Auth, menu_list, repos, usecases, widget_registry, connectivity
 │   │   ├── theme/              # AppTheme
-│   │   └── widgets/            # Widget definition + editor tests (all 5 types + CRUD helper)
+│   │   └── widgets/            # Widget definition + editor tests (all 8 types + CRUD helper)
 │   └── usecases/               # GeneratePdf, PdfDocumentBuilder, PdfStyleResolver
-└── widget/                     # 64 UI test files
+└── widget/                     # 72 UI test files
     ├── pages/                  # Page widget tests (all 10 pages incl. live sync + presence)
     ├── presentation/widgets/   # AllergenSelector, editor components, dialogs, presence bar
     └── widgets/                # Common widgets + type-specific render tests
 ```
 
-**Total:** 195 test files, 2023 test cases, 87.7% coverage
+**Total:** 218 test files, 2319 test cases, 88% coverage
 
 ## Commands
 

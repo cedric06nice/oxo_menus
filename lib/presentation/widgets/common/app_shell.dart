@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
@@ -82,33 +83,33 @@ class AppShell extends ConsumerWidget {
         icon: Icons.home_outlined,
         selectedIcon: Icons.home,
         label: 'Home',
-        route: '/home',
+        route: AppRoutes.home,
       ),
       const _NavDestination(
         icon: Icons.restaurant_menu_outlined,
         selectedIcon: Icons.restaurant_menu,
         label: 'Menus',
-        route: '/menus',
+        route: AppRoutes.menus,
       ),
       if (isAdmin)
         const _NavDestination(
           icon: Icons.dashboard_outlined,
           selectedIcon: Icons.dashboard,
           label: 'Templates',
-          route: '/admin/templates',
+          route: AppRoutes.adminTemplates,
         ),
       if (isAdmin)
         const _NavDestination(
           icon: Icons.straighten_outlined,
           selectedIcon: Icons.straighten,
           label: 'Sizes',
-          route: '/admin/sizes',
+          route: AppRoutes.adminSizes,
         ),
       const _NavDestination(
         icon: Icons.settings_outlined,
         selectedIcon: Icons.settings,
         label: 'Settings',
-        route: '/settings',
+        route: AppRoutes.settings,
       ),
     ];
   }

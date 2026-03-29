@@ -11,8 +11,13 @@ abstract class ContainerRepository {
   /// Create a new container
   Future<Result<Container, DomainError>> create(CreateContainerInput input);
 
-  /// Get all containers for a page
+  /// Get all top-level containers for a page (excludes nested children)
   Future<Result<List<Container>, DomainError>> getAllForPage(int pageId);
+
+  /// Get all child containers for a parent container
+  Future<Result<List<Container>, DomainError>> getAllForContainer(
+    int containerId,
+  );
 
   /// Get container by ID
   Future<Result<Container, DomainError>> getById(int id);
@@ -44,6 +49,7 @@ abstract class CreateContainerInput with _$CreateContainerInput {
     required int index,
     required String direction,
     String? name,
+    int? parentContainerId,
     LayoutConfig? layout,
     StyleConfig? styleConfig,
   }) = _CreateContainerInput;

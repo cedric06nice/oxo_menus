@@ -636,7 +636,7 @@ $PageCopyWith<$Res> get page {
 /// @nodoc
 mixin _$ContainerWithColumns {
 
- Container get container; List<ColumnWithWidgets> get columns;
+ Container get container; List<ColumnWithWidgets> get columns; List<ContainerWithColumns> get children;
 /// Create a copy of ContainerWithColumns
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -647,16 +647,16 @@ $ContainerWithColumnsCopyWith<ContainerWithColumns> get copyWith => _$ContainerW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ContainerWithColumns&&(identical(other.container, container) || other.container == container)&&const DeepCollectionEquality().equals(other.columns, columns));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ContainerWithColumns&&(identical(other.container, container) || other.container == container)&&const DeepCollectionEquality().equals(other.columns, columns)&&const DeepCollectionEquality().equals(other.children, children));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,container,const DeepCollectionEquality().hash(columns));
+int get hashCode => Object.hash(runtimeType,container,const DeepCollectionEquality().hash(columns),const DeepCollectionEquality().hash(children));
 
 @override
 String toString() {
-  return 'ContainerWithColumns(container: $container, columns: $columns)';
+  return 'ContainerWithColumns(container: $container, columns: $columns, children: $children)';
 }
 
 
@@ -667,7 +667,7 @@ abstract mixin class $ContainerWithColumnsCopyWith<$Res>  {
   factory $ContainerWithColumnsCopyWith(ContainerWithColumns value, $Res Function(ContainerWithColumns) _then) = _$ContainerWithColumnsCopyWithImpl;
 @useResult
 $Res call({
- Container container, List<ColumnWithWidgets> columns
+ Container container, List<ColumnWithWidgets> columns, List<ContainerWithColumns> children
 });
 
 
@@ -684,11 +684,12 @@ class _$ContainerWithColumnsCopyWithImpl<$Res>
 
 /// Create a copy of ContainerWithColumns
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? container = null,Object? columns = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? container = null,Object? columns = null,Object? children = null,}) {
   return _then(_self.copyWith(
 container: null == container ? _self.container : container // ignore: cast_nullable_to_non_nullable
 as Container,columns: null == columns ? _self.columns : columns // ignore: cast_nullable_to_non_nullable
-as List<ColumnWithWidgets>,
+as List<ColumnWithWidgets>,children: null == children ? _self.children : children // ignore: cast_nullable_to_non_nullable
+as List<ContainerWithColumns>,
   ));
 }
 /// Create a copy of ContainerWithColumns
@@ -782,10 +783,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Container container,  List<ColumnWithWidgets> columns)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Container container,  List<ColumnWithWidgets> columns,  List<ContainerWithColumns> children)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ContainerWithColumns() when $default != null:
-return $default(_that.container,_that.columns);case _:
+return $default(_that.container,_that.columns,_that.children);case _:
   return orElse();
 
 }
@@ -803,10 +804,10 @@ return $default(_that.container,_that.columns);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Container container,  List<ColumnWithWidgets> columns)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Container container,  List<ColumnWithWidgets> columns,  List<ContainerWithColumns> children)  $default,) {final _that = this;
 switch (_that) {
 case _ContainerWithColumns():
-return $default(_that.container,_that.columns);case _:
+return $default(_that.container,_that.columns,_that.children);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -823,10 +824,10 @@ return $default(_that.container,_that.columns);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Container container,  List<ColumnWithWidgets> columns)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Container container,  List<ColumnWithWidgets> columns,  List<ContainerWithColumns> children)?  $default,) {final _that = this;
 switch (_that) {
 case _ContainerWithColumns() when $default != null:
-return $default(_that.container,_that.columns);case _:
+return $default(_that.container,_that.columns,_that.children);case _:
   return null;
 
 }
@@ -838,7 +839,7 @@ return $default(_that.container,_that.columns);case _:
 
 
 class _ContainerWithColumns extends ContainerWithColumns {
-  const _ContainerWithColumns({required this.container, required final  List<ColumnWithWidgets> columns}): _columns = columns,super._();
+  const _ContainerWithColumns({required this.container, required final  List<ColumnWithWidgets> columns, final  List<ContainerWithColumns> children = const []}): _columns = columns,_children = children,super._();
   
 
 @override final  Container container;
@@ -847,6 +848,13 @@ class _ContainerWithColumns extends ContainerWithColumns {
   if (_columns is EqualUnmodifiableListView) return _columns;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_columns);
+}
+
+ final  List<ContainerWithColumns> _children;
+@override@JsonKey() List<ContainerWithColumns> get children {
+  if (_children is EqualUnmodifiableListView) return _children;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_children);
 }
 
 
@@ -860,16 +868,16 @@ _$ContainerWithColumnsCopyWith<_ContainerWithColumns> get copyWith => __$Contain
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ContainerWithColumns&&(identical(other.container, container) || other.container == container)&&const DeepCollectionEquality().equals(other._columns, _columns));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ContainerWithColumns&&(identical(other.container, container) || other.container == container)&&const DeepCollectionEquality().equals(other._columns, _columns)&&const DeepCollectionEquality().equals(other._children, _children));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,container,const DeepCollectionEquality().hash(_columns));
+int get hashCode => Object.hash(runtimeType,container,const DeepCollectionEquality().hash(_columns),const DeepCollectionEquality().hash(_children));
 
 @override
 String toString() {
-  return 'ContainerWithColumns(container: $container, columns: $columns)';
+  return 'ContainerWithColumns(container: $container, columns: $columns, children: $children)';
 }
 
 
@@ -880,7 +888,7 @@ abstract mixin class _$ContainerWithColumnsCopyWith<$Res> implements $ContainerW
   factory _$ContainerWithColumnsCopyWith(_ContainerWithColumns value, $Res Function(_ContainerWithColumns) _then) = __$ContainerWithColumnsCopyWithImpl;
 @override @useResult
 $Res call({
- Container container, List<ColumnWithWidgets> columns
+ Container container, List<ColumnWithWidgets> columns, List<ContainerWithColumns> children
 });
 
 
@@ -897,11 +905,12 @@ class __$ContainerWithColumnsCopyWithImpl<$Res>
 
 /// Create a copy of ContainerWithColumns
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? container = null,Object? columns = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? container = null,Object? columns = null,Object? children = null,}) {
   return _then(_ContainerWithColumns(
 container: null == container ? _self.container : container // ignore: cast_nullable_to_non_nullable
 as Container,columns: null == columns ? _self._columns : columns // ignore: cast_nullable_to_non_nullable
-as List<ColumnWithWidgets>,
+as List<ColumnWithWidgets>,children: null == children ? _self._children : children // ignore: cast_nullable_to_non_nullable
+as List<ContainerWithColumns>,
   ));
 }
 

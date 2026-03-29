@@ -24,22 +24,23 @@ class ContainerRepositoryImpl implements ContainerRepository {
         page: input.pageId,
         status: 'published',
         direction: input.direction,
+        parentContainer: input.parentContainerId,
       );
 
       if (input.name != null) {
         item.setValue(input.name, forKey: 'name');
       }
+
+      // Merge layout and styleConfig into a single style_json field
+      final styleJson = <String, dynamic>{};
       if (input.layout != null) {
-        item.setValue(
-          ContainerMapper.layoutConfigToJson(input.layout!),
-          forKey: 'layout_json',
-        );
+        styleJson.addAll(ContainerMapper.layoutConfigToJson(input.layout!));
       }
       if (input.styleConfig != null) {
-        item.setValue(
-          StyleConfigMapper.toJson(input.styleConfig!),
-          forKey: 'style_json',
-        );
+        styleJson.addAll(StyleConfigMapper.toJson(input.styleConfig!));
+      }
+      if (styleJson.isNotEmpty) {
+        item.setValue(styleJson, forKey: 'style_json');
       }
 
       final data = await dataSource.createItem<ContainerDto>(item);
@@ -59,6 +60,7 @@ class ContainerRepositoryImpl implements ContainerRepository {
       final data = await dataSource.getItems<ContainerDto>(
         filter: {
           'page': {'_eq': pageId},
+          'parent_container': {'_null': true},
         },
         fields: [
           'id',
@@ -69,6 +71,61 @@ class ContainerRepositoryImpl implements ContainerRepository {
           'index',
           'direction',
           'style_json',
+          'page',
+          'columns.id',
+          'columns.date_created',
+          'columns.date_updated',
+          'columns.user_created',
+          'columns.user_updated',
+          'columns.index',
+          'columns.width',
+          'columns.style_json',
+          'columns.widgets.id',
+          'columns.widgets.status',
+          'columns.widgets.date_created',
+          'columns.widgets.date_updated',
+          'columns.widgets.user_created',
+          'columns.widgets.user_updated',
+          'columns.widgets.index',
+          'columns.widgets.type_key',
+          'columns.widgets.version',
+          'columns.widgets.props_json',
+          'columns.widgets.style_json',
+        ],
+        sort: ['index'],
+      );
+
+      final containers = data
+          .map((json) => ContainerDto(json))
+          .map((dto) => ContainerMapper.toEntity(dto))
+          .toList();
+
+      return Success(containers);
+    } catch (e) {
+      return Failure(mapDirectusError(e));
+    }
+  }
+
+  @override
+  Future<Result<List<Container>, DomainError>> getAllForContainer(
+    int containerId,
+  ) async {
+    try {
+      final data = await dataSource.getItems<ContainerDto>(
+        filter: {
+          'parent_container': {'_eq': containerId},
+        },
+        fields: [
+          'id',
+          'date_created',
+          'date_updated',
+          'user_created',
+          'user_updated',
+          'index',
+          'direction',
+          'style_json',
+          'page',
+          'parent_container',
           'columns.id',
           'columns.date_created',
           'columns.date_updated',
@@ -117,6 +174,8 @@ class ContainerRepositoryImpl implements ContainerRepository {
           'index',
           'direction',
           'style_json',
+          'page',
+          'parent_container',
           'columns.id',
           'columns.date_created',
           'columns.date_updated',
@@ -163,17 +222,19 @@ class ContainerRepositoryImpl implements ContainerRepository {
       if (input.index != null) {
         item.setValue(input.index, forKey: 'index');
       }
-      if (input.layout != null) {
-        item.setValue(
-          ContainerMapper.layoutConfigToJson(input.layout!),
-          forKey: 'layout_json',
-        );
-      }
-      if (input.styleConfig != null) {
-        item.setValue(
-          StyleConfigMapper.toJson(input.styleConfig!),
-          forKey: 'style_json',
-        );
+
+      // Merge layout and styleConfig into a single style_json field
+      if (input.layout != null || input.styleConfig != null) {
+        final existingStyle = Map<String, dynamic>.from(item.styleJson);
+        if (input.layout != null) {
+          existingStyle.addAll(
+            ContainerMapper.layoutConfigToJson(input.layout!),
+          );
+        }
+        if (input.styleConfig != null) {
+          existingStyle.addAll(StyleConfigMapper.toJson(input.styleConfig!));
+        }
+        item.setValue(existingStyle, forKey: 'style_json');
       }
 
       final data = await dataSource.updateItem<ContainerDto>(item);

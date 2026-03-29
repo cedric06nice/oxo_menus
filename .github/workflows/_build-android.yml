@@ -20,6 +20,8 @@ on:
     secrets:
       directus_url:
         required: true
+      reset_url_base:
+        required: false
 
 jobs:
   build:
@@ -43,7 +45,11 @@ jobs:
           if [ -n "${{ inputs.build_version }}" ]; then
             VERSION_FLAG="--build-name=${{ inputs.build_version }}"
           fi
-          flutter build apk --release $VERSION_FLAG --build-number=${{ inputs.build_number }} --dart-define=DIRECTUS_URL=${{ secrets.directus_url }}
+          RESET_FLAG=""
+          if [ -n "${{ secrets.reset_url_base }}" ]; then
+            RESET_FLAG="--dart-define=RESET_URL_BASE=${{ secrets.reset_url_base }}"
+          fi
+          flutter build apk --release $VERSION_FLAG --build-number=${{ inputs.build_number }} --dart-define=DIRECTUS_URL=${{ secrets.directus_url }} $RESET_FLAG
 
       - uses: actions/upload-artifact@v5
         with:

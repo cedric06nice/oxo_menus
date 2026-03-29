@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Container {
 
- int get id; int get pageId; int get index; String? get name; LayoutConfig? get layout; StyleConfig? get styleConfig; DateTime? get dateCreated; DateTime? get dateUpdated;
+ int get id; int get pageId; int get index; String? get name; int? get parentContainerId; LayoutConfig? get layout; StyleConfig? get styleConfig; DateTime? get dateCreated; DateTime? get dateUpdated;
 /// Create a copy of Container
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ContainerCopyWith<Container> get copyWith => _$ContainerCopyWithImpl<Container>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Container&&(identical(other.id, id) || other.id == id)&&(identical(other.pageId, pageId) || other.pageId == pageId)&&(identical(other.index, index) || other.index == index)&&(identical(other.name, name) || other.name == name)&&(identical(other.layout, layout) || other.layout == layout)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Container&&(identical(other.id, id) || other.id == id)&&(identical(other.pageId, pageId) || other.pageId == pageId)&&(identical(other.index, index) || other.index == index)&&(identical(other.name, name) || other.name == name)&&(identical(other.parentContainerId, parentContainerId) || other.parentContainerId == parentContainerId)&&(identical(other.layout, layout) || other.layout == layout)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,pageId,index,name,layout,styleConfig,dateCreated,dateUpdated);
+int get hashCode => Object.hash(runtimeType,id,pageId,index,name,parentContainerId,layout,styleConfig,dateCreated,dateUpdated);
 
 @override
 String toString() {
-  return 'Container(id: $id, pageId: $pageId, index: $index, name: $name, layout: $layout, styleConfig: $styleConfig, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
+  return 'Container(id: $id, pageId: $pageId, index: $index, name: $name, parentContainerId: $parentContainerId, layout: $layout, styleConfig: $styleConfig, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ContainerCopyWith<$Res>  {
   factory $ContainerCopyWith(Container value, $Res Function(Container) _then) = _$ContainerCopyWithImpl;
 @useResult
 $Res call({
- int id, int pageId, int index, String? name, LayoutConfig? layout, StyleConfig? styleConfig, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int pageId, int index, String? name, int? parentContainerId, LayoutConfig? layout, StyleConfig? styleConfig, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -65,13 +65,14 @@ class _$ContainerCopyWithImpl<$Res>
 
 /// Create a copy of Container
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? pageId = null,Object? index = null,Object? name = freezed,Object? layout = freezed,Object? styleConfig = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? pageId = null,Object? index = null,Object? name = freezed,Object? parentContainerId = freezed,Object? layout = freezed,Object? styleConfig = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,pageId: null == pageId ? _self.pageId : pageId // ignore: cast_nullable_to_non_nullable
 as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String?,layout: freezed == layout ? _self.layout : layout // ignore: cast_nullable_to_non_nullable
+as String?,parentContainerId: freezed == parentContainerId ? _self.parentContainerId : parentContainerId // ignore: cast_nullable_to_non_nullable
+as int?,layout: freezed == layout ? _self.layout : layout // ignore: cast_nullable_to_non_nullable
 as LayoutConfig?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
 as StyleConfig?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
 as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
@@ -184,10 +185,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int pageId,  int index,  String? name,  LayoutConfig? layout,  StyleConfig? styleConfig,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int id,  int pageId,  int index,  String? name,  int? parentContainerId,  LayoutConfig? layout,  StyleConfig? styleConfig,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Container() when $default != null:
-return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.styleConfig,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.pageId,_that.index,_that.name,_that.parentContainerId,_that.layout,_that.styleConfig,_that.dateCreated,_that.dateUpdated);case _:
   return orElse();
 
 }
@@ -205,10 +206,10 @@ return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int pageId,  int index,  String? name,  LayoutConfig? layout,  StyleConfig? styleConfig,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int id,  int pageId,  int index,  String? name,  int? parentContainerId,  LayoutConfig? layout,  StyleConfig? styleConfig,  DateTime? dateCreated,  DateTime? dateUpdated)  $default,) {final _that = this;
 switch (_that) {
 case _Container():
-return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.styleConfig,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.pageId,_that.index,_that.name,_that.parentContainerId,_that.layout,_that.styleConfig,_that.dateCreated,_that.dateUpdated);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -225,10 +226,10 @@ return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int pageId,  int index,  String? name,  LayoutConfig? layout,  StyleConfig? styleConfig,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int id,  int pageId,  int index,  String? name,  int? parentContainerId,  LayoutConfig? layout,  StyleConfig? styleConfig,  DateTime? dateCreated,  DateTime? dateUpdated)?  $default,) {final _that = this;
 switch (_that) {
 case _Container() when $default != null:
-return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.styleConfig,_that.dateCreated,_that.dateUpdated);case _:
+return $default(_that.id,_that.pageId,_that.index,_that.name,_that.parentContainerId,_that.layout,_that.styleConfig,_that.dateCreated,_that.dateUpdated);case _:
   return null;
 
 }
@@ -240,13 +241,14 @@ return $default(_that.id,_that.pageId,_that.index,_that.name,_that.layout,_that.
 @JsonSerializable()
 
 class _Container extends Container {
-  const _Container({required this.id, required this.pageId, required this.index, this.name, this.layout, this.styleConfig, this.dateCreated, this.dateUpdated}): super._();
+  const _Container({required this.id, required this.pageId, required this.index, this.name, this.parentContainerId, this.layout, this.styleConfig, this.dateCreated, this.dateUpdated}): super._();
   factory _Container.fromJson(Map<String, dynamic> json) => _$ContainerFromJson(json);
 
 @override final  int id;
 @override final  int pageId;
 @override final  int index;
 @override final  String? name;
+@override final  int? parentContainerId;
 @override final  LayoutConfig? layout;
 @override final  StyleConfig? styleConfig;
 @override final  DateTime? dateCreated;
@@ -265,16 +267,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Container&&(identical(other.id, id) || other.id == id)&&(identical(other.pageId, pageId) || other.pageId == pageId)&&(identical(other.index, index) || other.index == index)&&(identical(other.name, name) || other.name == name)&&(identical(other.layout, layout) || other.layout == layout)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Container&&(identical(other.id, id) || other.id == id)&&(identical(other.pageId, pageId) || other.pageId == pageId)&&(identical(other.index, index) || other.index == index)&&(identical(other.name, name) || other.name == name)&&(identical(other.parentContainerId, parentContainerId) || other.parentContainerId == parentContainerId)&&(identical(other.layout, layout) || other.layout == layout)&&(identical(other.styleConfig, styleConfig) || other.styleConfig == styleConfig)&&(identical(other.dateCreated, dateCreated) || other.dateCreated == dateCreated)&&(identical(other.dateUpdated, dateUpdated) || other.dateUpdated == dateUpdated));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,pageId,index,name,layout,styleConfig,dateCreated,dateUpdated);
+int get hashCode => Object.hash(runtimeType,id,pageId,index,name,parentContainerId,layout,styleConfig,dateCreated,dateUpdated);
 
 @override
 String toString() {
-  return 'Container(id: $id, pageId: $pageId, index: $index, name: $name, layout: $layout, styleConfig: $styleConfig, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
+  return 'Container(id: $id, pageId: $pageId, index: $index, name: $name, parentContainerId: $parentContainerId, layout: $layout, styleConfig: $styleConfig, dateCreated: $dateCreated, dateUpdated: $dateUpdated)';
 }
 
 
@@ -285,7 +287,7 @@ abstract mixin class _$ContainerCopyWith<$Res> implements $ContainerCopyWith<$Re
   factory _$ContainerCopyWith(_Container value, $Res Function(_Container) _then) = __$ContainerCopyWithImpl;
 @override @useResult
 $Res call({
- int id, int pageId, int index, String? name, LayoutConfig? layout, StyleConfig? styleConfig, DateTime? dateCreated, DateTime? dateUpdated
+ int id, int pageId, int index, String? name, int? parentContainerId, LayoutConfig? layout, StyleConfig? styleConfig, DateTime? dateCreated, DateTime? dateUpdated
 });
 
 
@@ -302,13 +304,14 @@ class __$ContainerCopyWithImpl<$Res>
 
 /// Create a copy of Container
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? pageId = null,Object? index = null,Object? name = freezed,Object? layout = freezed,Object? styleConfig = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? pageId = null,Object? index = null,Object? name = freezed,Object? parentContainerId = freezed,Object? layout = freezed,Object? styleConfig = freezed,Object? dateCreated = freezed,Object? dateUpdated = freezed,}) {
   return _then(_Container(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as int,pageId: null == pageId ? _self.pageId : pageId // ignore: cast_nullable_to_non_nullable
 as int,index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String?,layout: freezed == layout ? _self.layout : layout // ignore: cast_nullable_to_non_nullable
+as String?,parentContainerId: freezed == parentContainerId ? _self.parentContainerId : parentContainerId // ignore: cast_nullable_to_non_nullable
+as int?,layout: freezed == layout ? _self.layout : layout // ignore: cast_nullable_to_non_nullable
 as LayoutConfig?,styleConfig: freezed == styleConfig ? _self.styleConfig : styleConfig // ignore: cast_nullable_to_non_nullable
 as StyleConfig?,dateCreated: freezed == dateCreated ? _self.dateCreated : dateCreated // ignore: cast_nullable_to_non_nullable
 as DateTime?,dateUpdated: freezed == dateUpdated ? _self.dateUpdated : dateUpdated // ignore: cast_nullable_to_non_nullable
@@ -347,7 +350,7 @@ $StyleConfigCopyWith<$Res>? get styleConfig {
 /// @nodoc
 mixin _$LayoutConfig {
 
- String? get direction; String? get alignment; double? get spacing;
+ String? get direction; String? get alignment; String? get mainAxisAlignment; double? get spacing;
 /// Create a copy of LayoutConfig
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -360,16 +363,16 @@ $LayoutConfigCopyWith<LayoutConfig> get copyWith => _$LayoutConfigCopyWithImpl<L
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LayoutConfig&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.alignment, alignment) || other.alignment == alignment)&&(identical(other.spacing, spacing) || other.spacing == spacing));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LayoutConfig&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.alignment, alignment) || other.alignment == alignment)&&(identical(other.mainAxisAlignment, mainAxisAlignment) || other.mainAxisAlignment == mainAxisAlignment)&&(identical(other.spacing, spacing) || other.spacing == spacing));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,direction,alignment,spacing);
+int get hashCode => Object.hash(runtimeType,direction,alignment,mainAxisAlignment,spacing);
 
 @override
 String toString() {
-  return 'LayoutConfig(direction: $direction, alignment: $alignment, spacing: $spacing)';
+  return 'LayoutConfig(direction: $direction, alignment: $alignment, mainAxisAlignment: $mainAxisAlignment, spacing: $spacing)';
 }
 
 
@@ -380,7 +383,7 @@ abstract mixin class $LayoutConfigCopyWith<$Res>  {
   factory $LayoutConfigCopyWith(LayoutConfig value, $Res Function(LayoutConfig) _then) = _$LayoutConfigCopyWithImpl;
 @useResult
 $Res call({
- String? direction, String? alignment, double? spacing
+ String? direction, String? alignment, String? mainAxisAlignment, double? spacing
 });
 
 
@@ -397,10 +400,11 @@ class _$LayoutConfigCopyWithImpl<$Res>
 
 /// Create a copy of LayoutConfig
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? direction = freezed,Object? alignment = freezed,Object? spacing = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? direction = freezed,Object? alignment = freezed,Object? mainAxisAlignment = freezed,Object? spacing = freezed,}) {
   return _then(_self.copyWith(
 direction: freezed == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
 as String?,alignment: freezed == alignment ? _self.alignment : alignment // ignore: cast_nullable_to_non_nullable
+as String?,mainAxisAlignment: freezed == mainAxisAlignment ? _self.mainAxisAlignment : mainAxisAlignment // ignore: cast_nullable_to_non_nullable
 as String?,spacing: freezed == spacing ? _self.spacing : spacing // ignore: cast_nullable_to_non_nullable
 as double?,
   ));
@@ -487,10 +491,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? direction,  String? alignment,  double? spacing)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? direction,  String? alignment,  String? mainAxisAlignment,  double? spacing)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LayoutConfig() when $default != null:
-return $default(_that.direction,_that.alignment,_that.spacing);case _:
+return $default(_that.direction,_that.alignment,_that.mainAxisAlignment,_that.spacing);case _:
   return orElse();
 
 }
@@ -508,10 +512,10 @@ return $default(_that.direction,_that.alignment,_that.spacing);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? direction,  String? alignment,  double? spacing)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? direction,  String? alignment,  String? mainAxisAlignment,  double? spacing)  $default,) {final _that = this;
 switch (_that) {
 case _LayoutConfig():
-return $default(_that.direction,_that.alignment,_that.spacing);case _:
+return $default(_that.direction,_that.alignment,_that.mainAxisAlignment,_that.spacing);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -528,10 +532,10 @@ return $default(_that.direction,_that.alignment,_that.spacing);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? direction,  String? alignment,  double? spacing)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? direction,  String? alignment,  String? mainAxisAlignment,  double? spacing)?  $default,) {final _that = this;
 switch (_that) {
 case _LayoutConfig() when $default != null:
-return $default(_that.direction,_that.alignment,_that.spacing);case _:
+return $default(_that.direction,_that.alignment,_that.mainAxisAlignment,_that.spacing);case _:
   return null;
 
 }
@@ -543,11 +547,12 @@ return $default(_that.direction,_that.alignment,_that.spacing);case _:
 @JsonSerializable()
 
 class _LayoutConfig extends LayoutConfig {
-  const _LayoutConfig({this.direction, this.alignment, this.spacing}): super._();
+  const _LayoutConfig({this.direction, this.alignment, this.mainAxisAlignment, this.spacing}): super._();
   factory _LayoutConfig.fromJson(Map<String, dynamic> json) => _$LayoutConfigFromJson(json);
 
 @override final  String? direction;
 @override final  String? alignment;
+@override final  String? mainAxisAlignment;
 @override final  double? spacing;
 
 /// Create a copy of LayoutConfig
@@ -563,16 +568,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LayoutConfig&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.alignment, alignment) || other.alignment == alignment)&&(identical(other.spacing, spacing) || other.spacing == spacing));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LayoutConfig&&(identical(other.direction, direction) || other.direction == direction)&&(identical(other.alignment, alignment) || other.alignment == alignment)&&(identical(other.mainAxisAlignment, mainAxisAlignment) || other.mainAxisAlignment == mainAxisAlignment)&&(identical(other.spacing, spacing) || other.spacing == spacing));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,direction,alignment,spacing);
+int get hashCode => Object.hash(runtimeType,direction,alignment,mainAxisAlignment,spacing);
 
 @override
 String toString() {
-  return 'LayoutConfig(direction: $direction, alignment: $alignment, spacing: $spacing)';
+  return 'LayoutConfig(direction: $direction, alignment: $alignment, mainAxisAlignment: $mainAxisAlignment, spacing: $spacing)';
 }
 
 
@@ -583,7 +588,7 @@ abstract mixin class _$LayoutConfigCopyWith<$Res> implements $LayoutConfigCopyWi
   factory _$LayoutConfigCopyWith(_LayoutConfig value, $Res Function(_LayoutConfig) _then) = __$LayoutConfigCopyWithImpl;
 @override @useResult
 $Res call({
- String? direction, String? alignment, double? spacing
+ String? direction, String? alignment, String? mainAxisAlignment, double? spacing
 });
 
 
@@ -600,10 +605,11 @@ class __$LayoutConfigCopyWithImpl<$Res>
 
 /// Create a copy of LayoutConfig
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? direction = freezed,Object? alignment = freezed,Object? spacing = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? direction = freezed,Object? alignment = freezed,Object? mainAxisAlignment = freezed,Object? spacing = freezed,}) {
   return _then(_LayoutConfig(
 direction: freezed == direction ? _self.direction : direction // ignore: cast_nullable_to_non_nullable
 as String?,alignment: freezed == alignment ? _self.alignment : alignment // ignore: cast_nullable_to_non_nullable
+as String?,mainAxisAlignment: freezed == mainAxisAlignment ? _self.mainAxisAlignment : mainAxisAlignment // ignore: cast_nullable_to_non_nullable
 as String?,spacing: freezed == spacing ? _self.spacing : spacing // ignore: cast_nullable_to_non_nullable
 as double?,
   ));

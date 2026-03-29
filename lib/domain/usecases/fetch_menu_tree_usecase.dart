@@ -93,12 +93,30 @@ class FetchMenuTreeUseCase {
   }
 
   Future<ContainerWithColumns> _buildContainerTree(Container container) async {
-    final result = await columnRepository.getAllForContainer(container.id);
-    if (result.isFailure) throw result.errorOrNull!;
-    final columns = List<Column>.from(result.valueOrNull!)
+    final columnResult = await columnRepository.getAllForContainer(
+      container.id,
+    );
+    if (columnResult.isFailure) throw columnResult.errorOrNull!;
+    final columns = List<Column>.from(columnResult.valueOrNull!)
       ..sort((a, b) => a.index.compareTo(b.index));
     final withWidgets = await Future.wait(columns.map(_buildColumnTree));
-    return ContainerWithColumns(container: container, columns: withWidgets);
+
+    // Fetch child containers recursively
+    final childResult = await containerRepository.getAllForContainer(
+      container.id,
+    );
+    if (childResult.isFailure) throw childResult.errorOrNull!;
+    final childContainers = List<Container>.from(childResult.valueOrNull!)
+      ..sort((a, b) => a.index.compareTo(b.index));
+    final withChildren = await Future.wait(
+      childContainers.map(_buildContainerTree),
+    );
+
+    return ContainerWithColumns(
+      container: container,
+      columns: withWidgets,
+      children: withChildren,
+    );
   }
 
   Future<ColumnWithWidgets> _buildColumnTree(Column column) async {
@@ -142,6 +160,7 @@ abstract class ContainerWithColumns with _$ContainerWithColumns {
   const factory ContainerWithColumns({
     required Container container,
     required List<ColumnWithWidgets> columns,
+    @Default([]) List<ContainerWithColumns> children,
   }) = _ContainerWithColumns;
 }
 

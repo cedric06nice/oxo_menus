@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
@@ -95,7 +96,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       builder: (_) => const PdfDisplayOptionsDialog(),
     );
     if (options != null && mounted) {
-      context.push('/menus/pdf/${widget.menuId}', extra: options);
+      context.push(AppRoutes.menuPdf(widget.menuId), extra: options);
     }
   }
 
@@ -309,6 +310,26 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
     MenuCollaborationState collabState,
   ) {
     final columns = treeState.columns[container.id] ?? [];
+    final childContainers = treeState.childContainers[container.id] ?? [];
+
+    if (childContainers.isNotEmpty) {
+      // Group container: render child containers
+      final direction = container.layout?.direction;
+      final childWidgets = childContainers
+          .map((child) => _buildContainerCard(child, treeState, collabState))
+          .toList();
+
+      if (direction == 'row') {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: childWidgets.map((w) => Expanded(child: w)).toList(),
+        );
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: childWidgets,
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

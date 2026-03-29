@@ -124,6 +124,9 @@ void main() {
       () => mockContainerRepository.getAllForPage(1),
     ).thenAnswer((_) async => Success([testContainer]));
     when(
+      () => mockContainerRepository.getAllForContainer(any()),
+    ).thenAnswer((_) async => const Success(<entity.Container>[]));
+    when(
       () => mockColumnRepository.getAllForContainer(1),
     ).thenAnswer((_) async => Success([testColumn]));
     when(

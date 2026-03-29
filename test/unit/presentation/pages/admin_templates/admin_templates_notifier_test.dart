@@ -7,16 +7,21 @@ import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/domain/usecases/list_templates_usecase.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_notifier.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
 class MockMenuRepository extends Mock implements MenuRepository {}
+
+class MockListTemplatesUseCase extends Mock implements ListTemplatesUseCase {}
 
 void main() {
   late ProviderContainer container;
   late MockMenuRepository mockMenuRepository;
+  late MockListTemplatesUseCase mockListTemplatesUseCase;
 
   final allMenus = [
     const Menu(
@@ -48,8 +53,14 @@ void main() {
 
   setUp(() {
     mockMenuRepository = MockMenuRepository();
+    mockListTemplatesUseCase = MockListTemplatesUseCase();
     container = ProviderContainer(
-      overrides: [menuRepositoryProvider.overrideWithValue(mockMenuRepository)],
+      overrides: [
+        menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+        listTemplatesUseCaseProvider.overrideWithValue(
+          mockListTemplatesUseCase,
+        ),
+      ],
     );
   });
 
@@ -71,7 +82,7 @@ void main() {
     group('loadTemplates', () {
       test('should load all menus including those with areas', () async {
         when(
-          () => mockMenuRepository.listAll(onlyPublished: false),
+          () => mockListTemplatesUseCase.execute(statusFilter: 'all'),
         ).thenAnswer((_) async => Success(allMenus));
 
         await readNotifier().loadTemplates();
@@ -83,8 +94,17 @@ void main() {
 
       test('should apply status filter when loading', () async {
         when(
-          () => mockMenuRepository.listAll(onlyPublished: false),
-        ).thenAnswer((_) async => Success(allMenus));
+          () => mockListTemplatesUseCase.execute(statusFilter: 'draft'),
+        ).thenAnswer(
+          (_) async => const Success([
+            Menu(
+              id: 1,
+              name: 'Template 1',
+              status: Status.draft,
+              version: '1.0.0',
+            ),
+          ]),
+        );
 
         await readNotifier().loadTemplates(statusFilter: 'draft');
 
@@ -95,7 +115,7 @@ void main() {
 
       test('should return all menus when filter is "all"', () async {
         when(
-          () => mockMenuRepository.listAll(onlyPublished: false),
+          () => mockListTemplatesUseCase.execute(statusFilter: 'all'),
         ).thenAnswer((_) async => Success(allMenus));
 
         await readNotifier().loadTemplates(statusFilter: 'all');
@@ -104,7 +124,9 @@ void main() {
       });
 
       test('should set error message on failure', () async {
-        when(() => mockMenuRepository.listAll(onlyPublished: false)).thenAnswer(
+        when(
+          () => mockListTemplatesUseCase.execute(statusFilter: 'all'),
+        ).thenAnswer(
           (_) async => const Failure(ServerError('Failed to fetch templates')),
         );
 
@@ -119,8 +141,24 @@ void main() {
         'should preserve existing status filter when not specified',
         () async {
           when(
-            () => mockMenuRepository.listAll(onlyPublished: false),
-          ).thenAnswer((_) async => Success(allMenus));
+            () => mockListTemplatesUseCase.execute(statusFilter: 'published'),
+          ).thenAnswer(
+            (_) async => const Success([
+              Menu(
+                id: 2,
+                name: 'Template 2',
+                status: Status.published,
+                version: '1.0.0',
+              ),
+              Menu(
+                id: 4,
+                name: 'Dining Menu',
+                status: Status.published,
+                version: '1.0.0',
+                area: Area(id: 1, name: 'Dining'),
+              ),
+            ]),
+          );
 
           // Set a filter first
           await readNotifier().loadTemplates(statusFilter: 'published');
@@ -137,7 +175,7 @@ void main() {
       test('should remove template from state on success', () async {
         // First load templates
         when(
-          () => mockMenuRepository.listAll(onlyPublished: false),
+          () => mockListTemplatesUseCase.execute(statusFilter: 'all'),
         ).thenAnswer((_) async => Success(allMenus));
         await readNotifier().loadTemplates();
         expect(readState().templates, hasLength(4));
@@ -168,7 +206,7 @@ void main() {
       test('should clear error message', () async {
         // Trigger an error
         when(
-          () => mockMenuRepository.listAll(onlyPublished: false),
+          () => mockListTemplatesUseCase.execute(statusFilter: 'all'),
         ).thenAnswer((_) async => const Failure(ServerError('Some error')));
         await readNotifier().loadTemplates();
         expect(readState().errorMessage, isNotNull);

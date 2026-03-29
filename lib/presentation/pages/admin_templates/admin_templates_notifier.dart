@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
 /// Notifier for managing admin templates list state
 class AdminTemplatesNotifier extends Notifier<AdminTemplatesState> {
@@ -10,29 +11,19 @@ class AdminTemplatesNotifier extends Notifier<AdminTemplatesState> {
 
   /// Load templates from repository with optional status filter
   Future<void> loadTemplates({String? statusFilter}) async {
+    final effectiveFilter = statusFilter ?? state.statusFilter;
     state = state.copyWith(
       isLoading: true,
       errorMessage: null,
-      statusFilter: statusFilter ?? state.statusFilter,
+      statusFilter: effectiveFilter,
     );
 
-    // Fetch all menus (not just published)
     final result = await ref
-        .read(menuRepositoryProvider)
-        .listAll(onlyPublished: false);
+        .read(listTemplatesUseCaseProvider)
+        .execute(statusFilter: effectiveFilter);
 
     result.fold(
-      onSuccess: (menus) {
-        // Filter templates based on status filter
-        var templates = menus;
-
-        // Apply status filter if not 'all'
-        if (state.statusFilter != 'all') {
-          templates = templates
-              .where((m) => m.status.name == state.statusFilter)
-              .toList();
-        }
-
+      onSuccess: (templates) {
         state = state.copyWith(templates: templates, isLoading: false);
       },
       onFailure: (error) {

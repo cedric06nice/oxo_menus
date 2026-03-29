@@ -404,6 +404,18 @@ void main() {
       expect(find.text('Invalid credentials'), findsNothing);
     });
 
+    testWidgets('should display forgot password link', (tester) async {
+      when(
+        () => mockAuthRepository.tryRestoreSession(),
+      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('forgot_password_link')), findsOneWidget);
+      expect(find.text('Forgot password?'), findsOneWidget);
+    });
+
     testWidgets('should not use Form widget for validation', (tester) async {
       when(
         () => mockAuthRepository.tryRestoreSession(),

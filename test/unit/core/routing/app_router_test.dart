@@ -81,6 +81,9 @@ void main() {
       () => mockContainerRepository.getAllForPage(any()),
     ).thenAnswer((_) async => const Success([]));
     when(
+      () => mockContainerRepository.getAllForContainer(any()),
+    ).thenAnswer((_) async => const Success([]));
+    when(
       () => mockColumnRepository.getAllForContainer(any()),
     ).thenAnswer((_) async => const Success([]));
     when(
@@ -551,6 +554,87 @@ void main() {
       // Should show admin page
       expect(find.text('No templates found'), findsOneWidget);
     });
+  });
+
+  group('AppRouter - Password Reset Routes', () {
+    testWidgets(
+      'should allow unauthenticated users to access /forgot-password',
+      (tester) async {
+        when(
+          () => mockAuthRepository.tryRestoreSession(),
+        ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+        late GoRouter router;
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authRepositoryProvider.overrideWithValue(mockAuthRepository),
+              menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+              duplicateMenuUseCaseProvider.overrideWithValue(
+                mockDuplicateMenuUseCase,
+              ),
+            ],
+            child: Consumer(
+              builder: (context, ref, _) {
+                router = ref.watch(appRouterProvider);
+                return MaterialApp.router(routerConfig: router);
+              },
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // Navigate to forgot password
+        router.go('/forgot-password');
+        await tester.pumpAndSettle();
+
+        // Should show forgot password page, not redirect to login
+        expect(find.text('Forgot Password'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'should allow unauthenticated users to access /reset-password',
+      (tester) async {
+        when(
+          () => mockAuthRepository.tryRestoreSession(),
+        ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+
+        late GoRouter router;
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              authRepositoryProvider.overrideWithValue(mockAuthRepository),
+              menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+              duplicateMenuUseCaseProvider.overrideWithValue(
+                mockDuplicateMenuUseCase,
+              ),
+            ],
+            child: Consumer(
+              builder: (context, ref, _) {
+                router = ref.watch(appRouterProvider);
+                return MaterialApp.router(routerConfig: router);
+              },
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        // Navigate to reset password with token
+        router.go('/reset-password?token=abc123');
+        await tester.pumpAndSettle();
+
+        // Should show reset password page, not redirect to login
+        // Page has heading + button both with "Reset Password" text
+        expect(find.text('Reset Password'), findsAtLeast(1));
+        // Should NOT be on login page
+        expect(find.byKey(const Key('login_button')), findsNothing);
+      },
+    );
   });
 
   group('AppRouter - Deep Linking', () {

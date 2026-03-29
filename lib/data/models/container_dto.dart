@@ -14,6 +14,18 @@ class ContainerDto extends DirectusItem {
   Map<String, dynamic> get styleJson =>
       Map<String, dynamic>.from(getValue(forKey: "style_json") ?? const {});
 
+  int? get parentContainerId {
+    final raw = getValue(forKey: "parent_container");
+    if (raw == null) return null;
+    if (raw is int) return raw;
+    if (raw is Map<String, dynamic>) {
+      final id = raw['id'];
+      if (id is int) return id;
+      if (id is String) return int.tryParse(id);
+    }
+    return null;
+  }
+
   PageDto? get page {
     final raw = getValue(forKey: "page");
     if (raw == null) return null;
@@ -53,6 +65,7 @@ class ContainerDto extends DirectusItem {
     String? direction,
     Map<String, dynamic>? styleJson,
     int? page,
+    int? parentContainer,
     List<int>? columns,
   }) : super.newItem() {
     setValue(index, forKey: "index");
@@ -60,6 +73,7 @@ class ContainerDto extends DirectusItem {
     setValue(direction, forKey: "direction");
     setValue(styleJson, forKey: "style_json");
     setValue(page, forKey: "page");
+    setValue(parentContainer, forKey: "parent_container");
     setValue(columns, forKey: "columns");
   }
 

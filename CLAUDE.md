@@ -12,6 +12,7 @@ Clean Architecture: `core/` → `domain/` → `data/` → `presentation/`
 - **core/types/result.dart** — sealed `Result<T, E>` (Success | Failure), railway-oriented error handling
 - **core/errors/domain_errors.dart** — sealed `DomainError` hierarchy (InvalidCredentials, TokenExpired, Unauthorized, Network, NetworkUnavailable, NotFound, Validation, Server, Unknown, RateLimit)
 - **core/routing/app_router.dart** — GoRouter with auth guards, 11 routes
+- **core/routing/app_routes.dart** — centralized route path constants (`AppRoutes`)
 - **core/utils/directus_url_resolver.dart** — environment-aware URL resolution (dart-define → web hostname → localhost)
 - Repositories return `Result<T, DomainError>`, never throw
 
@@ -26,6 +27,7 @@ Menu → Page → Container → Column → WidgetInstance
 - `FetchMenuTreeUseCase` builds `MenuTree` with nested freezed value objects: `PageWithContainers`, `ContainerWithColumns`, `ColumnWithWidgets`
 - `GeneratePdfUseCase` renders `MenuTree` to PDF client-side (`pdf` package), runs in background isolate
 - `DuplicateMenuUseCase` deep-copies menu with all children, rollback on failure
+- `ListTemplatesUseCase` / `ListSizesUseCase` / `ListImageFilesUseCase` — domain use cases with status filtering
 
 ## Widget System
 
@@ -37,7 +39,7 @@ Plugin architecture in `domain/widget_system/`:
 - `WidgetRenderer` — dynamic dispatch via `renderDynamic()`
 - `WidgetContext` — runtime editing state (isEditable, onUpdate, onDelete, displayOptions)
 
-Widget types: `dish`, `section`, `text`, `wine`, `image`
+Widget types: `dish`, `dish_to_share`, `image`, `section`, `set_menu_dish`, `set_menu_title`, `text`, `wine`
 
 - Props in `domain/widgets/{type}/{type}_props.dart`
 - Definitions in `presentation/widgets/{type}_widget/{type}_widget_definition.dart`
@@ -67,7 +69,7 @@ Riverpod with manual `Provider` declarations (not riverpod_generator):
 
 - `repositories_provider.dart` — all repo providers watch `directusDataSourceProvider`
 - `usecases_provider.dart` — use case providers
-- `widget_registry_provider.dart` — registers all 5 widget types
+- `widget_registry_provider.dart` — registers all 8 widget types
 - `auth_provider.dart` — `AuthNotifier` + `isAdminProvider` (single source of truth for admin check)
 - Page-level state: freezed state classes + `Notifier` (e.g., `admin_templates_*`, `admin_sizes_*`, `menu_list_*`, `editor_tree_*`, `menu_collaboration_*`)
 
@@ -90,9 +92,10 @@ flutter pub run build_runner build --delete-conflicting-outputs
 
 ## Routing
 
-`go_router` — routes in `core/routing/app_router.dart`
+`go_router` — routes in `core/routing/app_router.dart`, constants in `core/routing/app_routes.dart`
 
 - Auth-guarded redirect (unauthenticated → `/login`, non-admin blocked from `/admin/*`)
+- All route paths use `AppRoutes` constants (no hardcoded strings)
 - Web uses `context.go()` for deep-linking, native uses `context.push()`
 
 ## Pages
@@ -108,7 +111,7 @@ flutter test test/widget/       # widget only
 ```
 
 - Structure mirrors `lib/`: `test/unit/`, `test/widget/`, `test/integration/`
-- 195 test files (130 unit, 64 widget, 1 integration), 2023 test cases
+- 218 test files (145 unit, 72 widget, 1 integration), 2319 test cases
 - Mocking: `mocktail`
 - CI enforces 75% coverage, `dart format`, `flutter analyze --fatal-infos`
 

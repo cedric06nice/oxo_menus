@@ -77,6 +77,11 @@ void main() {
     testPresentableWidgetRegistry.register(imageWidgetDefinition);
     testPresentableWidgetRegistry.register(sectionWidgetDefinition);
     testPresentableWidgetRegistry.register(textWidgetDefinition);
+
+    // Default stub for nested container loading
+    when(
+      () => mockContainerRepository.getAllForContainer(any()),
+    ).thenAnswer((_) async => const Success(<entity.Container>[]));
   });
 
   setUpAll(() {

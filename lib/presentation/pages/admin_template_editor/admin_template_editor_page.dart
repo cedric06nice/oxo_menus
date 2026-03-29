@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
+import 'package:oxo_menus/domain/usecases/reorder_container_usecase.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
@@ -107,7 +109,7 @@ class _AdminTemplateEditorPageState
   }
 
   Future<void> _showPdf() async {
-    context.push('/menus/pdf/${widget.menuId}');
+    context.push(AppRoutes.menuPdf(widget.menuId));
   }
 
   void _showDisplayOptionsDialog() {
@@ -173,6 +175,11 @@ class _AdminTemplateEditorPageState
             if (c.id == selection.id) return c.styleConfig;
           }
         }
+        for (final entry in treeState.childContainers.entries) {
+          for (final c in entry.value) {
+            if (c.id == selection.id) return c.styleConfig;
+          }
+        }
         return null;
       case EditorElementType.column:
         for (final entry in treeState.columns.entries) {
@@ -182,6 +189,23 @@ class _AdminTemplateEditorPageState
         }
         return null;
     }
+  }
+
+  entity.LayoutConfig? _resolveContainerLayout(
+    int containerId,
+    EditorTreeState treeState,
+  ) {
+    for (final entry in treeState.containers.entries) {
+      for (final c in entry.value) {
+        if (c.id == containerId) return c.layout;
+      }
+    }
+    for (final entry in treeState.childContainers.entries) {
+      for (final c in entry.value) {
+        if (c.id == containerId) return c.layout;
+      }
+    }
+    return null;
   }
 
   // ===== Selection =====
@@ -368,7 +392,7 @@ class _AdminTemplateEditorPageState
         ),
         IconButton(
           key: const Key('page_size_button'),
-          onPressed: () => context.push('/admin/sizes'),
+          onPressed: () => context.push(AppRoutes.adminSizes),
           icon: const Icon(Icons.straighten),
           tooltip: 'Manage Page Sizes',
         ),
@@ -472,6 +496,7 @@ class _AdminTemplateEditorPageState
     final style = _resolveStyle(sel);
     bool? isDroppable;
     ValueChanged<bool>? onDroppableChanged;
+    entity.LayoutConfig? layoutConfig;
 
     if (sel.type == EditorElementType.column) {
       for (final entry in treeState.columns.entries) {
@@ -485,6 +510,10 @@ class _AdminTemplateEditorPageState
           }
         }
       }
+    }
+
+    if (sel.type == EditorElementType.container) {
+      layoutConfig = _resolveContainerLayout(sel.id, treeState);
     }
 
     final selectionNotifier = ref.read(editorSelectionProvider.notifier);
@@ -508,6 +537,12 @@ class _AdminTemplateEditorPageState
           : null,
       onPageSizePressed: sel.type == EditorElementType.menu
           ? _showPageSizeDialog
+          : null,
+      layoutConfig: layoutConfig,
+      onLayoutChanged: sel.type == EditorElementType.container
+          ? (layout) => ref
+                .read(templateEditorProvider(widget.menuId).notifier)
+                .updateContainerLayout(sel.id, layout)
           : null,
     );
   }
@@ -709,7 +744,11 @@ class _AdminTemplateEditorPageState
               ],
             ),
             ...containers.map(
-              (container) => _buildContainerCard(container, treeState),
+              (container) => _buildContainerCard(
+                container,
+                treeState,
+                siblings: containers,
+              ),
             ),
             const SizedBox(height: 8),
             TextButton.icon(
@@ -732,9 +771,12 @@ class _AdminTemplateEditorPageState
 
   Widget _buildContainerCard(
     entity.Container container,
-    EditorTreeState treeState,
-  ) {
+    EditorTreeState treeState, {
+    List<entity.Container> siblings = const [],
+  }) {
     final columns = treeState.columns[container.id] ?? [];
+    final childContainers = treeState.childContainers[container.id] ?? [];
+    final isGroup = childContainers.isNotEmpty;
     final theme = Theme.of(context);
     final currentSel = ref.watch(editorSelectionProvider).selection;
     final isSelected =
@@ -743,6 +785,9 @@ class _AdminTemplateEditorPageState
     final templateNotifier = ref.read(
       templateEditorProvider(widget.menuId).notifier,
     );
+    final treeNotifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    final isFirst = siblings.isEmpty || siblings.first.id == container.id;
+    final isLast = siblings.isEmpty || siblings.last.id == container.id;
 
     return GestureDetector(
       key: Key('selectable_container_${container.id}'),
@@ -770,13 +815,65 @@ class _AdminTemplateEditorPageState
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton(
-                    key: Key('add_column_${container.id}'),
-                    icon: const Icon(Icons.view_column, size: 20),
-                    onPressed: () => templateNotifier.addColumn(
-                      container.id,
-                      (treeState.columns[container.id] ?? []).length,
+                    key: Key('container_move_up_${container.id}'),
+                    icon: const Icon(Icons.arrow_upward, size: 20),
+                    onPressed: isFirst
+                        ? null
+                        : () => treeNotifier.reorderContainer(
+                            container.id,
+                            ReorderDirection.up,
+                          ),
+                    tooltip: 'Move up',
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.all(4),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    key: Key('container_move_down_${container.id}'),
+                    icon: const Icon(Icons.arrow_downward, size: 20),
+                    onPressed: isLast
+                        ? null
+                        : () => treeNotifier.reorderContainer(
+                            container.id,
+                            ReorderDirection.down,
+                          ),
+                    tooltip: 'Move down',
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.all(4),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    key: Key('container_duplicate_${container.id}'),
+                    icon: const Icon(Icons.copy, size: 20),
+                    onPressed: () =>
+                        treeNotifier.duplicateContainer(container.id),
+                    tooltip: 'Duplicate',
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.all(4),
+                  ),
+                  const SizedBox(width: 4),
+                  if (!isGroup) ...[
+                    IconButton(
+                      key: Key('add_column_${container.id}'),
+                      icon: const Icon(Icons.view_column, size: 20),
+                      onPressed: () => templateNotifier.addColumn(
+                        container.id,
+                        (treeState.columns[container.id] ?? []).length,
+                      ),
+                      tooltip: 'Add Column',
+                      constraints: const BoxConstraints(),
+                      padding: const EdgeInsets.all(4),
                     ),
-                    tooltip: 'Add Column',
+                    const SizedBox(width: 4),
+                  ],
+                  IconButton(
+                    key: Key('add_child_container_${container.id}'),
+                    icon: const Icon(Icons.dashboard, size: 20),
+                    onPressed: () => templateNotifier.addChildContainer(
+                      container.id,
+                      childContainers.length,
+                    ),
+                    tooltip: 'Add Child Container',
                     constraints: const BoxConstraints(),
                     padding: const EdgeInsets.all(4),
                   ),
@@ -797,7 +894,17 @@ class _AdminTemplateEditorPageState
                 ],
               ),
               const SizedBox(height: 8),
-              if (columns.isNotEmpty)
+              // Group container: show child containers
+              if (isGroup)
+                ...childContainers.map(
+                  (child) => _buildContainerCard(
+                    child,
+                    treeState,
+                    siblings: childContainers,
+                  ),
+                ),
+              // Leaf container: show columns
+              if (!isGroup && columns.isNotEmpty)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: columns

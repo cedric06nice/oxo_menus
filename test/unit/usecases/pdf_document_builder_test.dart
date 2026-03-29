@@ -897,5 +897,429 @@ void main() {
         expect(bytes[1], 0x50);
       },
     );
+
+    test(
+      'should produce valid PDF with nested containers and mainAxisAlignment',
+      () async {
+        final menuTree = MenuTree(
+          menu: const Menu(
+            id: 1,
+            name: 'Nested Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: const entity.Page(
+                id: 1,
+                menuId: 1,
+                name: 'Page 1',
+                index: 0,
+              ),
+              containers: [
+                ContainerWithColumns(
+                  container: const entity.Container(
+                    id: 1,
+                    pageId: 1,
+                    index: 0,
+                    layout: entity.LayoutConfig(
+                      direction: 'column',
+                      mainAxisAlignment: 'spaceBetween',
+                    ),
+                  ),
+                  columns: const [],
+                  children: [
+                    ContainerWithColumns(
+                      container: const entity.Container(
+                        id: 2,
+                        pageId: 1,
+                        index: 0,
+                        parentContainerId: 1,
+                      ),
+                      columns: [
+                        ColumnWithWidgets(
+                          column: const entity.Column(
+                            id: 1,
+                            containerId: 2,
+                            index: 0,
+                          ),
+                          widgets: const [
+                            WidgetInstance(
+                              id: 1,
+                              columnId: 1,
+                              type: 'text',
+                              version: '1.0.0',
+                              index: 0,
+                              props: {'text': 'Child 1'},
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    ContainerWithColumns(
+                      container: const entity.Container(
+                        id: 3,
+                        pageId: 1,
+                        index: 1,
+                        parentContainerId: 1,
+                      ),
+                      columns: [
+                        ColumnWithWidgets(
+                          column: const entity.Column(
+                            id: 2,
+                            containerId: 3,
+                            index: 0,
+                          ),
+                          widgets: const [
+                            WidgetInstance(
+                              id: 2,
+                              columnId: 2,
+                              type: 'text',
+                              version: '1.0.0',
+                              index: 0,
+                              props: {'text': 'Child 2'},
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+        expect(bytes[0], 0x25); // %PDF
+        expect(bytes[1], 0x50);
+      },
+    );
+
+    test(
+      'should produce valid PDF with row-direction nested containers',
+      () async {
+        final menuTree = MenuTree(
+          menu: const Menu(
+            id: 1,
+            name: 'Row Nested Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: const entity.Page(
+                id: 1,
+                menuId: 1,
+                name: 'Page 1',
+                index: 0,
+              ),
+              containers: [
+                ContainerWithColumns(
+                  container: const entity.Container(
+                    id: 1,
+                    pageId: 1,
+                    index: 0,
+                    layout: entity.LayoutConfig(
+                      direction: 'row',
+                      mainAxisAlignment: 'center',
+                    ),
+                  ),
+                  columns: const [],
+                  children: [
+                    ContainerWithColumns(
+                      container: const entity.Container(
+                        id: 2,
+                        pageId: 1,
+                        index: 0,
+                        parentContainerId: 1,
+                      ),
+                      columns: [
+                        ColumnWithWidgets(
+                          column: const entity.Column(
+                            id: 1,
+                            containerId: 2,
+                            index: 0,
+                          ),
+                          widgets: const [
+                            WidgetInstance(
+                              id: 1,
+                              columnId: 1,
+                              type: 'text',
+                              version: '1.0.0',
+                              index: 0,
+                              props: {'text': 'Left'},
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    ContainerWithColumns(
+                      container: const entity.Container(
+                        id: 3,
+                        pageId: 1,
+                        index: 1,
+                        parentContainerId: 1,
+                      ),
+                      columns: [
+                        ColumnWithWidgets(
+                          column: const entity.Column(
+                            id: 2,
+                            containerId: 3,
+                            index: 0,
+                          ),
+                          widgets: const [
+                            WidgetInstance(
+                              id: 2,
+                              columnId: 2,
+                              type: 'text',
+                              version: '1.0.0',
+                              index: 0,
+                              props: {'text': 'Right'},
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+        expect(bytes[0], 0x25); // %PDF
+        expect(bytes[1], 0x50);
+      },
+    );
+
+    test(
+      'should produce valid PDF with column spaceEvenly alignment',
+      () async {
+        final menuTree = MenuTree(
+          menu: const Menu(
+            id: 1,
+            name: 'SpaceEvenly Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: const entity.Page(
+                id: 1,
+                menuId: 1,
+                name: 'Page 1',
+                index: 0,
+              ),
+              containers: [
+                ContainerWithColumns(
+                  container: const entity.Container(
+                    id: 1,
+                    pageId: 1,
+                    index: 0,
+                    layout: entity.LayoutConfig(
+                      direction: 'column',
+                      mainAxisAlignment: 'spaceEvenly',
+                    ),
+                  ),
+                  columns: const [],
+                  children: [
+                    ContainerWithColumns(
+                      container: const entity.Container(
+                        id: 2,
+                        pageId: 1,
+                        index: 0,
+                        parentContainerId: 1,
+                      ),
+                      columns: [
+                        ColumnWithWidgets(
+                          column: const entity.Column(
+                            id: 1,
+                            containerId: 2,
+                            index: 0,
+                          ),
+                          widgets: const [
+                            WidgetInstance(
+                              id: 1,
+                              columnId: 1,
+                              type: 'text',
+                              version: '1.0.0',
+                              index: 0,
+                              props: {'text': 'Top'},
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    ContainerWithColumns(
+                      container: const entity.Container(
+                        id: 3,
+                        pageId: 1,
+                        index: 1,
+                        parentContainerId: 1,
+                      ),
+                      columns: [
+                        ColumnWithWidgets(
+                          column: const entity.Column(
+                            id: 2,
+                            containerId: 3,
+                            index: 0,
+                          ),
+                          widgets: const [
+                            WidgetInstance(
+                              id: 2,
+                              columnId: 2,
+                              type: 'text',
+                              version: '1.0.0',
+                              index: 0,
+                              props: {'text': 'Bottom'},
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+        expect(bytes[0], 0x25); // %PDF
+        expect(bytes[1], 0x50);
+      },
+    );
+
+    test(
+      'should produce valid PDF with column spaceAround alignment',
+      () async {
+        final menuTree = MenuTree(
+          menu: const Menu(
+            id: 1,
+            name: 'SpaceAround Menu',
+            status: Status.published,
+            version: '1.0.0',
+          ),
+          pages: [
+            PageWithContainers(
+              page: const entity.Page(
+                id: 1,
+                menuId: 1,
+                name: 'Page 1',
+                index: 0,
+              ),
+              containers: [
+                ContainerWithColumns(
+                  container: const entity.Container(
+                    id: 1,
+                    pageId: 1,
+                    index: 0,
+                    layout: entity.LayoutConfig(
+                      direction: 'column',
+                      mainAxisAlignment: 'spaceAround',
+                    ),
+                  ),
+                  columns: const [],
+                  children: [
+                    ContainerWithColumns(
+                      container: const entity.Container(
+                        id: 2,
+                        pageId: 1,
+                        index: 0,
+                        parentContainerId: 1,
+                      ),
+                      columns: [
+                        ColumnWithWidgets(
+                          column: const entity.Column(
+                            id: 1,
+                            containerId: 2,
+                            index: 0,
+                          ),
+                          widgets: const [
+                            WidgetInstance(
+                              id: 1,
+                              columnId: 1,
+                              type: 'text',
+                              version: '1.0.0',
+                              index: 0,
+                              props: {'text': 'Top'},
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    ContainerWithColumns(
+                      container: const entity.Container(
+                        id: 3,
+                        pageId: 1,
+                        index: 1,
+                        parentContainerId: 1,
+                      ),
+                      columns: [
+                        ColumnWithWidgets(
+                          column: const entity.Column(
+                            id: 2,
+                            containerId: 3,
+                            index: 0,
+                          ),
+                          widgets: const [
+                            WidgetInstance(
+                              id: 2,
+                              columnId: 2,
+                              type: 'text',
+                              version: '1.0.0',
+                              index: 0,
+                              props: {'text': 'Bottom'},
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+
+        final bytes = await builder.buildDocument(
+          menuTree: menuTree,
+          baseFontData: baseFontData,
+          boldFontData: boldFontData,
+          sectionFontData: sectionFontData,
+          imageCache: {},
+        );
+
+        expect(bytes, isNotEmpty);
+        expect(bytes[0], 0x25); // %PDF
+        expect(bytes[1], 0x50);
+      },
+    );
   });
 }

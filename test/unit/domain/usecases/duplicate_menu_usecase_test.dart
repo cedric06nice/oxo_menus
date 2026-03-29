@@ -546,5 +546,106 @@ void main() {
         expect(capturedWidget.isTemplate, false);
       },
     );
+
+    test('should recursively duplicate nested child containers', () async {
+      // Source tree with a parent container that has a child container
+      const sourceMenu = Menu(
+        id: 1,
+        name: 'Nested Menu',
+        status: Status.published,
+        version: '1.0.0',
+      );
+      const parentContainer = Container(id: 10, pageId: 1, index: 0);
+      const childContainer = Container(
+        id: 20,
+        pageId: 1,
+        index: 0,
+        parentContainerId: 10,
+      );
+      const childColumn = Column(id: 30, containerId: 20, index: 0);
+
+      final tree = MenuTree(
+        menu: sourceMenu,
+        pages: [
+          PageWithContainers(
+            page: const Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+            containers: [
+              ContainerWithColumns(
+                container: parentContainer,
+                columns: const [],
+                children: [
+                  ContainerWithColumns(
+                    container: childContainer,
+                    columns: [
+                      ColumnWithWidgets(column: childColumn, widgets: const []),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      const newMenu = Menu(
+        id: 100,
+        name: 'Nested Menu (copy)',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const newPage = Page(id: 200, menuId: 100, name: 'Page 1', index: 0);
+      const newParentContainer = Container(id: 300, pageId: 200, index: 0);
+      const newChildContainer = Container(
+        id: 301,
+        pageId: 200,
+        index: 0,
+        parentContainerId: 300,
+      );
+      const newColumn = Column(id: 400, containerId: 301, index: 0);
+
+      when(
+        () => mockFetchMenuTreeUseCase.execute(1),
+      ).thenAnswer((_) async => Success(tree));
+      when(
+        () => mockSizeRepository.getAll(),
+      ).thenAnswer((_) async => const Success([]));
+      when(
+        () => mockMenuRepository.create(any()),
+      ).thenAnswer((_) async => const Success(newMenu));
+      when(
+        () => mockPageRepository.create(any()),
+      ).thenAnswer((_) async => const Success(newPage));
+      when(() => mockContainerRepository.create(any())).thenAnswer((
+        invocation,
+      ) async {
+        final input = invocation.positionalArguments[0] as CreateContainerInput;
+        if (input.parentContainerId != null) {
+          return const Success(newChildContainer);
+        }
+        return const Success(newParentContainer);
+      });
+      when(
+        () => mockColumnRepository.create(any()),
+      ).thenAnswer((_) async => const Success(newColumn));
+
+      final result = await useCase.execute(1);
+
+      expect(result.isSuccess, true);
+
+      // Verify 2 containers were created: parent + child
+      final capturedContainers = verify(
+        () => mockContainerRepository.create(captureAny()),
+      ).captured;
+      expect(capturedContainers.length, 2);
+
+      // First call: parent (no parentContainerId)
+      final parentInput = capturedContainers[0] as CreateContainerInput;
+      expect(parentInput.parentContainerId, isNull);
+      expect(parentInput.pageId, 200);
+
+      // Second call: child (with parentContainerId = new parent's id)
+      final childInput = capturedContainers[1] as CreateContainerInput;
+      expect(childInput.parentContainerId, 300);
+    });
   });
 }

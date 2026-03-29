@@ -1,8 +1,13 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/domain/usecases/duplicate_container_usecase.dart';
 import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
+import 'package:oxo_menus/domain/usecases/reorder_container_usecase.dart';
 import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
+import 'package:oxo_menus/domain/usecases/list_image_files_usecase.dart';
+import 'package:oxo_menus/domain/usecases/list_sizes_usecase.dart';
+import 'package:oxo_menus/domain/usecases/list_templates_usecase.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
 /// Fetch menu tree use case provider
@@ -50,10 +55,49 @@ final generatePdfUseCaseProvider = Provider<GeneratePdfUseCase>((ref) {
   );
 });
 
+/// List image files use case provider
+final listImageFilesUseCaseProvider = Provider<ListImageFilesUseCase>((ref) {
+  return ListImageFilesUseCase(
+    fileRepository: ref.watch(fileRepositoryProvider),
+  );
+});
+
+/// List sizes use case provider
+final listSizesUseCaseProvider = Provider<ListSizesUseCase>((ref) {
+  return ListSizesUseCase(sizeRepository: ref.watch(sizeRepositoryProvider));
+});
+
+/// List templates use case provider
+final listTemplatesUseCaseProvider = Provider<ListTemplatesUseCase>((ref) {
+  return ListTemplatesUseCase(
+    menuRepository: ref.watch(menuRepositoryProvider),
+  );
+});
+
 /// Duplicate menu use case provider
 ///
 /// Provides the DuplicateMenuUseCase for duplicating menus with all their
 /// pages, containers, columns, and widgets.
+/// Reorder container use case provider
+final reorderContainerUseCaseProvider = Provider<ReorderContainerUseCase>((
+  ref,
+) {
+  return ReorderContainerUseCase(
+    containerRepository: ref.watch(containerRepositoryProvider),
+  );
+});
+
+/// Duplicate container use case provider
+final duplicateContainerUseCaseProvider = Provider<DuplicateContainerUseCase>((
+  ref,
+) {
+  return DuplicateContainerUseCase(
+    containerRepository: ref.watch(containerRepositoryProvider),
+    columnRepository: ref.watch(columnRepositoryProvider),
+    widgetRepository: ref.watch(widgetRepositoryProvider),
+  );
+});
+
 final duplicateMenuUseCaseProvider = Provider<DuplicateMenuUseCase>((ref) {
   return DuplicateMenuUseCase(
     fetchMenuTreeUseCase: ref.watch(fetchMenuTreeUseCaseProvider),

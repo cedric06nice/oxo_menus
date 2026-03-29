@@ -11,6 +11,7 @@ _Container _$ContainerFromJson(Map<String, dynamic> json) => _Container(
   pageId: (json['pageId'] as num).toInt(),
   index: (json['index'] as num).toInt(),
   name: json['name'] as String?,
+  parentContainerId: (json['parentContainerId'] as num?)?.toInt(),
   layout: json['layout'] == null
       ? null
       : LayoutConfig.fromJson(json['layout'] as Map<String, dynamic>),
@@ -31,6 +32,7 @@ Map<String, dynamic> _$ContainerToJson(_Container instance) =>
       'pageId': instance.pageId,
       'index': instance.index,
       'name': instance.name,
+      'parentContainerId': instance.parentContainerId,
       'layout': instance.layout,
       'styleConfig': instance.styleConfig,
       'dateCreated': instance.dateCreated?.toIso8601String(),
@@ -41,6 +43,7 @@ _LayoutConfig _$LayoutConfigFromJson(Map<String, dynamic> json) =>
     _LayoutConfig(
       direction: json['direction'] as String?,
       alignment: json['alignment'] as String?,
+      mainAxisAlignment: json['mainAxisAlignment'] as String?,
       spacing: (json['spacing'] as num?)?.toDouble(),
     );
 
@@ -48,5 +51,6 @@ Map<String, dynamic> _$LayoutConfigToJson(_LayoutConfig instance) =>
     <String, dynamic>{
       'direction': instance.direction,
       'alignment': instance.alignment,
+      'mainAxisAlignment': instance.mainAxisAlignment,
       'spacing': instance.spacing,
     };

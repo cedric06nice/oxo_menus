@@ -6,6 +6,7 @@ import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/models/container_dto.dart';
 import 'package:oxo_menus/data/repositories/container_repository_impl.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
+import 'package:oxo_menus/domain/entities/container.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 
@@ -94,6 +95,107 @@ void main() {
         expect(dto.styleJson['borderType'], 'plain_thin');
       });
 
+      test(
+        'should pass parentContainerId when creating child container',
+        () async {
+          const childInput = CreateContainerInput(
+            pageId: 1,
+            index: 0,
+            direction: 'row',
+            parentContainerId: 5,
+          );
+
+          when(() => mockDataSource.createItem<ContainerDto>(any())).thenAnswer(
+            (_) async => {
+              'id': 3,
+              'page': 1,
+              'index': 0,
+              'status': 'published',
+              'parent_container': 5,
+            },
+          );
+
+          final result = await repository.create(childInput);
+
+          expect(result.isSuccess, true);
+
+          final captured = verify(
+            () => mockDataSource.createItem<ContainerDto>(captureAny()),
+          ).captured;
+          final dto = captured.first as ContainerDto;
+          expect(dto.parentContainerId, 5);
+        },
+      );
+
+      test('should store layout in style_json, not layout_json', () async {
+        const inputWithLayout = CreateContainerInput(
+          pageId: 1,
+          index: 0,
+          direction: 'row',
+          layout: LayoutConfig(
+            direction: 'row',
+            mainAxisAlignment: 'spaceBetween',
+          ),
+        );
+
+        when(() => mockDataSource.createItem<ContainerDto>(any())).thenAnswer(
+          (_) async => {
+            'id': 4,
+            'page': 1,
+            'index': 0,
+            'status': 'published',
+            'style_json': {
+              'direction': 'row',
+              'mainAxisAlignment': 'spaceBetween',
+            },
+          },
+        );
+
+        await repository.create(inputWithLayout);
+
+        final captured = verify(
+          () => mockDataSource.createItem<ContainerDto>(captureAny()),
+        ).captured;
+        final dto = captured.first as ContainerDto;
+        expect(dto.styleJson['mainAxisAlignment'], 'spaceBetween');
+        expect(dto.styleJson['direction'], 'row');
+      });
+
+      test(
+        'should merge layout and styleConfig into style_json on create',
+        () async {
+          const inputWithBoth = CreateContainerInput(
+            pageId: 1,
+            index: 0,
+            direction: 'row',
+            layout: LayoutConfig(mainAxisAlignment: 'spaceEvenly'),
+            styleConfig: StyleConfig(marginTop: 10.0),
+          );
+
+          when(() => mockDataSource.createItem<ContainerDto>(any())).thenAnswer(
+            (_) async => {
+              'id': 5,
+              'page': 1,
+              'index': 0,
+              'status': 'published',
+              'style_json': {
+                'mainAxisAlignment': 'spaceEvenly',
+                'marginTop': 10.0,
+              },
+            },
+          );
+
+          await repository.create(inputWithBoth);
+
+          final captured = verify(
+            () => mockDataSource.createItem<ContainerDto>(captureAny()),
+          ).captured;
+          final dto = captured.first as ContainerDto;
+          expect(dto.styleJson['mainAxisAlignment'], 'spaceEvenly');
+          expect(dto.styleJson['marginTop'], 10.0);
+        },
+      );
+
       test('should return ValidationError when creation fails', () async {
         // Arrange
         when(() => mockDataSource.createItem<ContainerDto>(any())).thenThrow(
@@ -150,6 +252,29 @@ void main() {
         expect(captured[0], isNotNull);
       });
 
+      test('should filter to only top-level containers', () async {
+        when(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => containersJson);
+
+        await repository.getAllForPage(pageId);
+
+        final captured = verify(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: captureAny(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
+
+        final filter = captured[0] as Map<String, dynamic>;
+        expect(filter['parent_container'], {'_null': true});
+      });
+
       test('should return empty list when no containers found', () async {
         // Arrange
         when(
@@ -166,6 +291,81 @@ void main() {
         // Assert
         expect(result.isSuccess, true);
         expect(result.valueOrNull!.length, 0);
+      });
+    });
+
+    group('getAllForContainer', () {
+      const parentId = 1;
+      final childJson = [
+        {
+          'id': 10,
+          'page': 1,
+          'index': 0,
+          'status': 'published',
+          'parent_container': parentId,
+        },
+        {
+          'id': 11,
+          'page': 1,
+          'index': 1,
+          'status': 'published',
+          'parent_container': parentId,
+        },
+      ];
+
+      test('should return child containers for parent', () async {
+        when(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => childJson);
+
+        final result = await repository.getAllForContainer(parentId);
+
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull!.length, 2);
+        expect(result.valueOrNull![0].id, 10);
+        expect(result.valueOrNull![1].id, 11);
+      });
+
+      test('should filter by parent_container', () async {
+        when(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => childJson);
+
+        await repository.getAllForContainer(parentId);
+
+        final captured = verify(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: captureAny(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
+
+        final filter = captured[0] as Map<String, dynamic>;
+        expect(filter['parent_container'], {'_eq': parentId});
+      });
+
+      test('should return empty list when no children', () async {
+        when(
+          () => mockDataSource.getItems<ContainerDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => []);
+
+        final result = await repository.getAllForContainer(parentId);
+
+        expect(result.isSuccess, true);
+        expect(result.valueOrNull!, isEmpty);
       });
     });
 
@@ -210,6 +410,29 @@ void main() {
             fields: any(named: 'fields'),
           ),
         ).called(1);
+      });
+
+      test('should request page and parent_container fields', () async {
+        when(
+          () => mockDataSource.getItem<ContainerDto>(
+            containerId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => containerJson);
+
+        await repository.getById(containerId);
+
+        final captured =
+            verify(
+                  () => mockDataSource.getItem<ContainerDto>(
+                    containerId,
+                    fields: captureAny(named: 'fields'),
+                  ),
+                ).captured.first
+                as List<String>;
+
+        expect(captured, contains('page'));
+        expect(captured, contains('parent_container'));
       });
 
       test(
@@ -309,6 +532,58 @@ void main() {
           expect(dto.styleJson['borderType'], 'drop_shadow');
         },
       );
+
+      test('should store layout in style_json on update', () async {
+        const inputWithLayout = UpdateContainerInput(
+          id: 1,
+          layout: LayoutConfig(mainAxisAlignment: 'center'),
+        );
+
+        when(
+          () => mockDataSource.getItem<ContainerDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.updateItem<ContainerDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
+
+        await repository.update(inputWithLayout);
+
+        final captured = verify(
+          () => mockDataSource.updateItem<ContainerDto>(captureAny()),
+        ).captured;
+        final dto = captured.first as ContainerDto;
+        expect(dto.styleJson['mainAxisAlignment'], 'center');
+      });
+
+      test('should merge layout into existing style_json on update', () async {
+        const inputWithBoth = UpdateContainerInput(
+          id: 1,
+          layout: LayoutConfig(mainAxisAlignment: 'spaceBetween'),
+          styleConfig: StyleConfig(paddingLeft: 5.0),
+        );
+
+        when(
+          () => mockDataSource.getItem<ContainerDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.updateItem<ContainerDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
+
+        await repository.update(inputWithBoth);
+
+        final captured = verify(
+          () => mockDataSource.updateItem<ContainerDto>(captureAny()),
+        ).captured;
+        final dto = captured.first as ContainerDto;
+        expect(dto.styleJson['mainAxisAlignment'], 'spaceBetween');
+        expect(dto.styleJson['paddingLeft'], 5.0);
+      });
 
       test(
         'should return NotFoundError when container does not exist',
