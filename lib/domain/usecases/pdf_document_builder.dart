@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:oxo_menus/domain/allergens/allergen_formatter.dart';
@@ -51,8 +50,6 @@ class PdfDocumentBuilder {
     final displayOptions = menuTree.menu.displayOptions;
     final pageFormat = _resolver.resolvePageFormat(menuTree.menu.pageSize);
     final pageMargins = _resolver.resolveContentMargins(styleConfig);
-    final availableWidth = pageFormat.width - pageMargins.horizontal;
-
     for (final pageData in menuTree.pages) {
       pdf.addPage(
         pw.Page(
@@ -65,7 +62,6 @@ class PdfDocumentBuilder {
             styleConfig,
             displayOptions,
             imageCache,
-            availableWidth,
             sectionFont,
           ),
         ),
@@ -82,7 +78,6 @@ class PdfDocumentBuilder {
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
-    double availableWidth,
     pw.Font sectionFont,
   ) {
     final contentChildren = <pw.Widget>[];
@@ -134,47 +129,29 @@ class PdfDocumentBuilder {
     final padding = styleConfig != null
         ? _resolver.resolveContentPadding(styleConfig)
         : pw.EdgeInsets.zero;
-    final borderInset = _resolver.resolveBorderHorizontalInset(styleConfig);
-
-    final innerWidth = math.max(
-      0.0,
-      availableWidth - margin.horizontal - borderInset - padding.horizontal,
-    );
-
-    pw.Widget scalableContent;
-    if (contentChildren.isNotEmpty) {
-      scalableContent = pw.FittedBox(
-        fit: pw.BoxFit.scaleDown,
-        alignment: pw.Alignment.topLeft,
-        child: pw.ConstrainedBox(
-          constraints: pw.BoxConstraints(
-            minWidth: innerWidth,
-            maxWidth: innerWidth,
-            minHeight: 0.1,
-          ),
-          child: pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
-            mainAxisSize: pw.MainAxisSize.min,
-            children: contentChildren,
-          ),
-        ),
-      );
-    } else {
-      scalableContent = pw.SizedBox();
-    }
+    final hasFlexContent = contentChildren.any((w) => w is pw.Expanded);
+    final needsMaxSize = footerChildren.isNotEmpty || hasFlexContent;
 
     pw.Widget innerLayout;
-    if (footerChildren.isNotEmpty) {
+    if (needsMaxSize) {
       innerLayout = pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.stretch,
         mainAxisSize: pw.MainAxisSize.max,
         children: [
-          pw.Expanded(child: scalableContent),
+          ...contentChildren,
+          // Push footer to bottom only when no content container already
+          // uses Expanded (space-distributing containers fill the gap)
+          if (footerChildren.isNotEmpty && !hasFlexContent)
+            pw.Expanded(child: pw.SizedBox()),
           ...footerChildren,
         ],
       );
     } else {
-      innerLayout = scalableContent;
+      innerLayout = pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+        mainAxisSize: pw.MainAxisSize.min,
+        children: contentChildren,
+      );
     }
 
     final content = pw.Container(padding: padding, child: innerLayout);
@@ -201,6 +178,8 @@ class PdfDocumentBuilder {
         : pw.EdgeInsets.zero;
 
     pw.Widget content;
+
+    bool needsExpanded = false;
 
     if (containerData.children.isNotEmpty) {
       // Group container: render child containers
@@ -231,10 +210,14 @@ class PdfDocumentBuilder {
           ),
         );
       } else {
+        needsExpanded = _isSpaceDistributing(mainAxisAlignment);
         content = pw.Container(
           padding: padding,
           child: pw.Column(
             mainAxisAlignment: mainAxisAlignment,
+            mainAxisSize: needsExpanded
+                ? pw.MainAxisSize.max
+                : pw.MainAxisSize.min,
             crossAxisAlignment: pw.CrossAxisAlignment.stretch,
             children: childWidgets,
           ),
@@ -272,7 +255,8 @@ class PdfDocumentBuilder {
 
     final borderedContent = _resolver.wrapWithBorder(content, containerStyle);
 
-    return pw.Container(margin: margin, child: borderedContent);
+    final result = pw.Container(margin: margin, child: borderedContent);
+    return needsExpanded ? pw.Expanded(child: result) : result;
   }
 
   pw.Widget _buildColumnsAsGrid(
@@ -342,6 +326,12 @@ class PdfDocumentBuilder {
       'spaceEvenly' => pw.MainAxisAlignment.spaceEvenly,
       _ => pw.MainAxisAlignment.start,
     };
+  }
+
+  bool _isSpaceDistributing(pw.MainAxisAlignment alignment) {
+    return alignment == pw.MainAxisAlignment.spaceBetween ||
+        alignment == pw.MainAxisAlignment.spaceAround ||
+        alignment == pw.MainAxisAlignment.spaceEvenly;
   }
 
   pw.Widget _wrapCellWithColumnStyle(pw.Widget child, StyleConfig? style) {

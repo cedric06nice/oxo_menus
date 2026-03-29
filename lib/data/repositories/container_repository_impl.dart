@@ -30,17 +30,17 @@ class ContainerRepositoryImpl implements ContainerRepository {
       if (input.name != null) {
         item.setValue(input.name, forKey: 'name');
       }
+
+      // Merge layout and styleConfig into a single style_json field
+      final styleJson = <String, dynamic>{};
       if (input.layout != null) {
-        item.setValue(
-          ContainerMapper.layoutConfigToJson(input.layout!),
-          forKey: 'layout_json',
-        );
+        styleJson.addAll(ContainerMapper.layoutConfigToJson(input.layout!));
       }
       if (input.styleConfig != null) {
-        item.setValue(
-          StyleConfigMapper.toJson(input.styleConfig!),
-          forKey: 'style_json',
-        );
+        styleJson.addAll(StyleConfigMapper.toJson(input.styleConfig!));
+      }
+      if (styleJson.isNotEmpty) {
+        item.setValue(styleJson, forKey: 'style_json');
       }
 
       final data = await dataSource.createItem<ContainerDto>(item);
@@ -174,6 +174,8 @@ class ContainerRepositoryImpl implements ContainerRepository {
           'index',
           'direction',
           'style_json',
+          'page',
+          'parent_container',
           'columns.id',
           'columns.date_created',
           'columns.date_updated',
@@ -220,17 +222,19 @@ class ContainerRepositoryImpl implements ContainerRepository {
       if (input.index != null) {
         item.setValue(input.index, forKey: 'index');
       }
-      if (input.layout != null) {
-        item.setValue(
-          ContainerMapper.layoutConfigToJson(input.layout!),
-          forKey: 'layout_json',
-        );
-      }
-      if (input.styleConfig != null) {
-        item.setValue(
-          StyleConfigMapper.toJson(input.styleConfig!),
-          forKey: 'style_json',
-        );
+
+      // Merge layout and styleConfig into a single style_json field
+      if (input.layout != null || input.styleConfig != null) {
+        final existingStyle = Map<String, dynamic>.from(item.styleJson);
+        if (input.layout != null) {
+          existingStyle.addAll(
+            ContainerMapper.layoutConfigToJson(input.layout!),
+          );
+        }
+        if (input.styleConfig != null) {
+          existingStyle.addAll(StyleConfigMapper.toJson(input.styleConfig!));
+        }
+        item.setValue(existingStyle, forKey: 'style_json');
       }
 
       final data = await dataSource.updateItem<ContainerDto>(item);

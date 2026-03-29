@@ -6,6 +6,7 @@ import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
+import 'package:oxo_menus/domain/usecases/reorder_container_usecase.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/presentation/helpers/snackbar_helper.dart';
@@ -743,7 +744,11 @@ class _AdminTemplateEditorPageState
               ],
             ),
             ...containers.map(
-              (container) => _buildContainerCard(container, treeState),
+              (container) => _buildContainerCard(
+                container,
+                treeState,
+                siblings: containers,
+              ),
             ),
             const SizedBox(height: 8),
             TextButton.icon(
@@ -766,8 +771,9 @@ class _AdminTemplateEditorPageState
 
   Widget _buildContainerCard(
     entity.Container container,
-    EditorTreeState treeState,
-  ) {
+    EditorTreeState treeState, {
+    List<entity.Container> siblings = const [],
+  }) {
     final columns = treeState.columns[container.id] ?? [];
     final childContainers = treeState.childContainers[container.id] ?? [];
     final isGroup = childContainers.isNotEmpty;
@@ -779,6 +785,9 @@ class _AdminTemplateEditorPageState
     final templateNotifier = ref.read(
       templateEditorProvider(widget.menuId).notifier,
     );
+    final treeNotifier = ref.read(editorTreeProvider(widget.menuId).notifier);
+    final isFirst = siblings.isEmpty || siblings.first.id == container.id;
+    final isLast = siblings.isEmpty || siblings.last.id == container.id;
 
     return GestureDetector(
       key: Key('selectable_container_${container.id}'),
@@ -805,6 +814,44 @@ class _AdminTemplateEditorPageState
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  IconButton(
+                    key: Key('container_move_up_${container.id}'),
+                    icon: const Icon(Icons.arrow_upward, size: 20),
+                    onPressed: isFirst
+                        ? null
+                        : () => treeNotifier.reorderContainer(
+                            container.id,
+                            ReorderDirection.up,
+                          ),
+                    tooltip: 'Move up',
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.all(4),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    key: Key('container_move_down_${container.id}'),
+                    icon: const Icon(Icons.arrow_downward, size: 20),
+                    onPressed: isLast
+                        ? null
+                        : () => treeNotifier.reorderContainer(
+                            container.id,
+                            ReorderDirection.down,
+                          ),
+                    tooltip: 'Move down',
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.all(4),
+                  ),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    key: Key('container_duplicate_${container.id}'),
+                    icon: const Icon(Icons.copy, size: 20),
+                    onPressed: () =>
+                        treeNotifier.duplicateContainer(container.id),
+                    tooltip: 'Duplicate',
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.all(4),
+                  ),
+                  const SizedBox(width: 4),
                   if (!isGroup) ...[
                     IconButton(
                       key: Key('add_column_${container.id}'),
@@ -850,7 +897,11 @@ class _AdminTemplateEditorPageState
               // Group container: show child containers
               if (isGroup)
                 ...childContainers.map(
-                  (child) => _buildContainerCard(child, treeState),
+                  (child) => _buildContainerCard(
+                    child,
+                    treeState,
+                    siblings: childContainers,
+                  ),
                 ),
               // Leaf container: show columns
               if (!isGroup && columns.isNotEmpty)
