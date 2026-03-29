@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
@@ -100,11 +101,11 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   }
 
   void _handleMenuTap(Menu menu) {
-    context.push('/menus/${menu.id}');
+    context.push(AppRoutes.menuEditor(menu.id));
   }
 
   void _editTemplate(Menu menu) {
-    context.push('/admin/templates/${menu.id}');
+    context.push(AppRoutes.adminTemplateEditor(menu.id));
   }
 
   void _handleCreateTemplate() {
@@ -125,7 +126,7 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
               .createMenu(input);
 
           if (createdMenu != null && mounted) {
-            context.push('/admin/templates/${createdMenu.id}');
+            context.push(AppRoutes.adminTemplateEditor(createdMenu.id));
           }
         },
       ),

@@ -7,6 +7,7 @@ import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/presentation/providers/menu_settings/menu_settings_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
 class MenuSettingsNotifier extends Notifier<MenuSettingsState> {
   @override
@@ -14,7 +15,7 @@ class MenuSettingsNotifier extends Notifier<MenuSettingsState> {
 
   Future<void> loadSizes() async {
     state = state.copyWith(isLoadingSizes: true, errorMessage: null);
-    final result = await ref.read(sizeRepositoryProvider).getAll();
+    final result = await ref.read(listSizesUseCaseProvider).execute();
     result.fold(
       onSuccess: (sizes) {
         state = state.copyWith(sizes: sizes, isLoadingSizes: false);

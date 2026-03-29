@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
@@ -102,7 +103,7 @@ class _AdminTemplateCreatorPageState
 
     result.fold(
       onSuccess: (menu) {
-        context.go('/admin/templates/${menu.id}');
+        context.go(AppRoutes.adminTemplateEditor(menu.id));
       },
       onFailure: (error) {
         setState(() => _isSaving = false);
@@ -216,7 +217,7 @@ class _AdminTemplateCreatorPageState
           ),
           const SizedBox(height: 8),
           TextButton(
-            onPressed: () => context.push('/admin/sizes'),
+            onPressed: () => context.push(AppRoutes.adminSizes),
             child: const Text('Manage Page Sizes'),
           ),
         ],

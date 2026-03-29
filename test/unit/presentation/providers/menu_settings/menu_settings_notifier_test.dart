@@ -10,32 +10,33 @@ import 'package:oxo_menus/domain/entities/size.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/area_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/domain/repositories/size_repository.dart';
+import 'package:oxo_menus/domain/usecases/list_sizes_usecase.dart';
 import 'package:oxo_menus/presentation/providers/menu_settings/menu_settings_notifier.dart';
 import 'package:oxo_menus/presentation/providers/menu_settings/menu_settings_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_settings/menu_settings_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
 class MockMenuRepository extends Mock implements MenuRepository {}
 
-class MockSizeRepository extends Mock implements SizeRepository {}
+class MockListSizesUseCase extends Mock implements ListSizesUseCase {}
 
 class MockAreaRepository extends Mock implements AreaRepository {}
 
 void main() {
   late ProviderContainer container;
   late MockMenuRepository mockMenuRepository;
-  late MockSizeRepository mockSizeRepository;
+  late MockListSizesUseCase mockListSizesUseCase;
   late MockAreaRepository mockAreaRepository;
 
   setUp(() {
     mockMenuRepository = MockMenuRepository();
-    mockSizeRepository = MockSizeRepository();
+    mockListSizesUseCase = MockListSizesUseCase();
     mockAreaRepository = MockAreaRepository();
     container = ProviderContainer(
       overrides: [
         menuRepositoryProvider.overrideWithValue(mockMenuRepository),
-        sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+        listSizesUseCaseProvider.overrideWithValue(mockListSizesUseCase),
         areaRepositoryProvider.overrideWithValue(mockAreaRepository),
       ],
     );
@@ -97,7 +98,7 @@ void main() {
     group('loadSizes', () {
       test('should load sizes successfully', () async {
         when(
-          () => mockSizeRepository.getAll(),
+          () => mockListSizesUseCase.execute(),
         ).thenAnswer((_) async => const Success([testSize, testSize2]));
 
         await readNotifier().loadSizes();
@@ -108,7 +109,7 @@ void main() {
       });
 
       test('should set error message on failure', () async {
-        when(() => mockSizeRepository.getAll()).thenAnswer(
+        when(() => mockListSizesUseCase.execute()).thenAnswer(
           (_) async => const Failure(ServerError('Failed to load sizes')),
         );
 
@@ -121,7 +122,7 @@ void main() {
 
       test('should set isLoading while loading', () async {
         when(
-          () => mockSizeRepository.getAll(),
+          () => mockListSizesUseCase.execute(),
         ).thenAnswer((_) async => const Success([testSize]));
 
         final future = readNotifier().loadSizes();

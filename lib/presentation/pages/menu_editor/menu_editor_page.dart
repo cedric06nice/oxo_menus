@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
@@ -95,7 +96,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       builder: (_) => const PdfDisplayOptionsDialog(),
     );
     if (options != null && mounted) {
-      context.push('/menus/pdf/${widget.menuId}', extra: options);
+      context.push(AppRoutes.menuPdf(widget.menuId), extra: options);
     }
   }
 

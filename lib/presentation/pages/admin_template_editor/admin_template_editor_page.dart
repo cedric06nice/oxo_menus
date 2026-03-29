@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
@@ -107,7 +108,7 @@ class _AdminTemplateEditorPageState
   }
 
   Future<void> _showPdf() async {
-    context.push('/menus/pdf/${widget.menuId}');
+    context.push(AppRoutes.menuPdf(widget.menuId));
   }
 
   void _showDisplayOptionsDialog() {
@@ -390,7 +391,7 @@ class _AdminTemplateEditorPageState
         ),
         IconButton(
           key: const Key('page_size_button'),
-          onPressed: () => context.push('/admin/sizes'),
+          onPressed: () => context.push(AppRoutes.adminSizes),
           icon: const Icon(Icons.straighten),
           tooltip: 'Manage Page Sizes',
         ),

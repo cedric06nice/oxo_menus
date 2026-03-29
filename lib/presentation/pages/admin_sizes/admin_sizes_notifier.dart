@@ -3,6 +3,7 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
 /// Notifier for managing admin sizes list state
 class AdminSizesNotifier extends Notifier<AdminSizesState> {
@@ -11,25 +12,20 @@ class AdminSizesNotifier extends Notifier<AdminSizesState> {
 
   /// Load sizes from repository with optional status filter
   Future<void> loadSizes({String? statusFilter}) async {
+    final effectiveFilter = statusFilter ?? state.statusFilter;
     state = state.copyWith(
       isLoading: true,
       errorMessage: null,
-      statusFilter: statusFilter ?? state.statusFilter,
+      statusFilter: effectiveFilter,
     );
 
-    final result = await ref.read(sizeRepositoryProvider).getAll();
+    final result = await ref
+        .read(listSizesUseCaseProvider)
+        .execute(statusFilter: effectiveFilter);
 
     result.fold(
       onSuccess: (sizes) {
-        var filtered = sizes;
-
-        if (state.statusFilter != 'all') {
-          filtered = sizes
-              .where((s) => s.status.name == state.statusFilter)
-              .toList();
-        }
-
-        state = state.copyWith(sizes: filtered, isLoading: false);
+        state = state.copyWith(sizes: sizes, isLoading: false);
       },
       onFailure: (error) {
         state = state.copyWith(isLoading: false, errorMessage: error.message);

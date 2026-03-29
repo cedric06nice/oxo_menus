@@ -6,21 +6,30 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/size.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
+import 'package:oxo_menus/domain/usecases/list_sizes_usecase.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_notifier.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
 class MockSizeRepository extends Mock implements SizeRepository {}
+
+class MockListSizesUseCase extends Mock implements ListSizesUseCase {}
 
 void main() {
   late ProviderContainer container;
   late MockSizeRepository mockRepository;
+  late MockListSizesUseCase mockListSizesUseCase;
 
   setUp(() {
     mockRepository = MockSizeRepository();
+    mockListSizesUseCase = MockListSizesUseCase();
     container = ProviderContainer(
-      overrides: [sizeRepositoryProvider.overrideWithValue(mockRepository)],
+      overrides: [
+        sizeRepositoryProvider.overrideWithValue(mockRepository),
+        listSizesUseCaseProvider.overrideWithValue(mockListSizesUseCase),
+      ],
     );
   });
 
@@ -69,7 +78,7 @@ void main() {
     group('loadSizes', () {
       test('should load sizes successfully', () async {
         when(
-          () => mockRepository.getAll(),
+          () => mockListSizesUseCase.execute(statusFilter: 'all'),
         ).thenAnswer((_) async => const Success([testSize, testSize2]));
 
         await readNotifier().loadSizes();
@@ -81,8 +90,8 @@ void main() {
 
       test('should filter sizes by status', () async {
         when(
-          () => mockRepository.getAll(),
-        ).thenAnswer((_) async => const Success([testSize, testSize2]));
+          () => mockListSizesUseCase.execute(statusFilter: 'published'),
+        ).thenAnswer((_) async => const Success([testSize]));
 
         await readNotifier().loadSizes(statusFilter: 'published');
 
@@ -93,7 +102,7 @@ void main() {
 
       test('should show all sizes when filter is all', () async {
         when(
-          () => mockRepository.getAll(),
+          () => mockListSizesUseCase.execute(statusFilter: 'all'),
         ).thenAnswer((_) async => const Success([testSize, testSize2]));
 
         await readNotifier().loadSizes(statusFilter: 'all');
@@ -103,7 +112,7 @@ void main() {
 
       test('should set error message on failure', () async {
         when(
-          () => mockRepository.getAll(),
+          () => mockListSizesUseCase.execute(statusFilter: 'all'),
         ).thenAnswer((_) async => const Failure(ServerError('Server error')));
 
         await readNotifier().loadSizes();
@@ -117,7 +126,7 @@ void main() {
       test('should create size and add to list', () async {
         // First load existing sizes
         when(
-          () => mockRepository.getAll(),
+          () => mockListSizesUseCase.execute(statusFilter: 'all'),
         ).thenAnswer((_) async => const Success([testSize]));
         await readNotifier().loadSizes();
 
@@ -169,7 +178,7 @@ void main() {
     group('updateSize', () {
       test('should update size in list', () async {
         when(
-          () => mockRepository.getAll(),
+          () => mockListSizesUseCase.execute(statusFilter: 'all'),
         ).thenAnswer((_) async => const Success([testSize]));
         await readNotifier().loadSizes();
 
@@ -207,7 +216,7 @@ void main() {
     group('deleteSize', () {
       test('should remove size from list', () async {
         when(
-          () => mockRepository.getAll(),
+          () => mockListSizesUseCase.execute(statusFilter: 'all'),
         ).thenAnswer((_) async => const Success([testSize, testSize2]));
         await readNotifier().loadSizes();
         expect(readState().sizes, hasLength(2));
@@ -236,7 +245,7 @@ void main() {
     group('clearError', () {
       test('should clear error message', () async {
         when(
-          () => mockRepository.getAll(),
+          () => mockListSizesUseCase.execute(statusFilter: 'all'),
         ).thenAnswer((_) async => const Failure(ServerError('Error')));
         await readNotifier().loadSizes();
         expect(readState().errorMessage, isNotNull);

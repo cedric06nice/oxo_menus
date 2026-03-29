@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
@@ -63,7 +64,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final authListenable = ref.watch(authListenableProvider);
 
   return GoRouter(
-    initialLocation: '/splash',
+    initialLocation: AppRoutes.splash,
     refreshListenable: authListenable,
     redirect: (context, state) {
       final authState = ref.read(authProvider);
@@ -85,33 +86,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         orElse: () => false,
       );
 
-      final isGoingToSplash = state.matchedLocation == '/splash';
-      final isGoingToLogin = state.matchedLocation == '/login';
+      final isGoingToSplash = state.matchedLocation == AppRoutes.splash;
+      final isGoingToLogin = state.matchedLocation == AppRoutes.login;
       final isGoingToAdminRoute = state.matchedLocation.startsWith('/admin');
 
       // If loading, stay on or go to splash
       if (isLoading) {
-        return isGoingToSplash ? null : '/splash';
+        return isGoingToSplash ? null : AppRoutes.splash;
       }
 
       // If on splash and not loading, redirect based on auth status
       if (isGoingToSplash) {
-        return isAuthenticated ? '/home' : '/login';
+        return isAuthenticated ? AppRoutes.home : AppRoutes.login;
       }
 
       // If not authenticated and not going to login, redirect to login
       if (!isAuthenticated && !isGoingToLogin) {
-        return '/login';
+        return AppRoutes.login;
       }
 
       // If authenticated and going to login, redirect to home
       if (isAuthenticated && isGoingToLogin) {
-        return '/home';
+        return AppRoutes.home;
       }
 
       // If not admin and going to admin route, redirect to home
       if (isGoingToAdminRoute && !isAdmin) {
-        return '/home';
+        return AppRoutes.home;
       }
 
       // No redirect needed
@@ -119,12 +120,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(
-        path: '/splash',
+        path: AppRoutes.splash,
         name: 'splash',
         builder: (context, state) => const _SplashScreen(),
       ),
       GoRoute(
-        path: '/login',
+        path: AppRoutes.login,
         name: 'login',
         builder: (context, state) => const LoginPage(),
       ),
@@ -133,17 +134,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) => AppShell(child: child),
         routes: [
           GoRoute(
-            path: '/home',
+            path: AppRoutes.home,
             name: 'home',
             builder: (context, state) => const HomePage(),
           ),
           GoRoute(
-            path: '/settings',
+            path: AppRoutes.settings,
             name: 'settings',
             builder: (context, state) => const SettingsPage(),
           ),
           GoRoute(
-            path: '/menus',
+            path: AppRoutes.menus,
             name: 'menus',
             builder: (context, state) => const MenuListPage(),
             routes: [
@@ -170,12 +171,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
           GoRoute(
-            path: '/admin/sizes',
+            path: AppRoutes.adminSizes,
             name: 'admin-sizes',
             builder: (context, state) => const AdminSizesPage(),
           ),
           GoRoute(
-            path: '/admin/templates',
+            path: AppRoutes.adminTemplates,
             name: 'admin-templates',
             builder: (context, state) => const AdminTemplatesPage(),
             routes: [

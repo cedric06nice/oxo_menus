@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/presentation/pages/home/home_helpers.dart';
 import 'package:oxo_menus/presentation/pages/home/widgets/quick_action_card.dart';
 import 'package:oxo_menus/presentation/pages/home/widgets/welcome_card.dart';
@@ -46,7 +47,7 @@ class HomePage extends ConsumerWidget {
                           icon: Icons.restaurant_menu,
                           title: 'OXO Menus',
                           subtitle: 'Browse and manage menus',
-                          onTap: () => context.go('/menus'),
+                          onTap: () => context.go(AppRoutes.menus),
                         ),
                       ),
                       if (isAdmin)
@@ -56,7 +57,7 @@ class HomePage extends ConsumerWidget {
                             icon: Icons.dashboard,
                             title: 'Manage Templates',
                             subtitle: 'Edit and organise templates',
-                            onTap: () => context.go('/admin/templates'),
+                            onTap: () => context.go(AppRoutes.adminTemplates),
                           ),
                         ),
                       if (isAdmin)
@@ -66,7 +67,8 @@ class HomePage extends ConsumerWidget {
                             icon: Icons.add_box,
                             title: 'Create Template',
                             subtitle: 'Start a new template',
-                            onTap: () => context.go('/admin/templates/create'),
+                            onTap: () =>
+                                context.go(AppRoutes.adminTemplateCreate),
                           ),
                         ),
                     ],
