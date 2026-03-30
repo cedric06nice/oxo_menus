@@ -104,7 +104,8 @@ platform :mac do
       platform: "macos",
       additional_cert_types: ["mac_installer_distribution"],
       api_key: options[:api_key],
-      readonly: is_ci,
+      readonly: false,
+      force: true,
       git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
     )
   end

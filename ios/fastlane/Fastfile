@@ -90,7 +90,8 @@ platform :ios do
     match(
       type: "appstore",
       api_key: options[:api_key],
-      readonly: is_ci,
+      readonly: false,
+      force: true,
       git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"]
     )
   end
