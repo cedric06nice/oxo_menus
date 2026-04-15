@@ -58,7 +58,7 @@ services:
       PUBLIC_URL: https://${DOMAIN_API_PROD:-api.your-app.example.com}
       CORS_ENABLED: "true"
       CORS_ORIGIN: "https://${DOMAIN_FLUTTER_PROD:-your-app.example.com}"
-      PASSWORD_RESET_URL_ALLOW_LIST: "https://${DOMAIN_FLUTTER_PROD:-your-app.example.com}"
+      PASSWORD_RESET_URL_ALLOW_LIST: "https://${DOMAIN_FLUTTER_PROD:-your-app.example.com}/reset-password"
       WEBSOCKETS_ENABLED: "true"
       DB_CLIENT: pg
       DB_HOST: postgres-prod
@@ -149,7 +149,7 @@ services:
       PUBLIC_URL: https://${DOMAIN_API_DEV:-api.your-app-dev.example.com}
       CORS_ENABLED: "true"
       CORS_ORIGIN: "regex:^https://(pr-\\d+\\.)?${DOMAIN_FLUTTER_PROD}$$"
-      PASSWORD_RESET_URL_ALLOW_LIST: "https://${DOMAIN_FLUTTER_PROD:-your-app.example.com}"
+      PASSWORD_RESET_URL_ALLOW_LIST: "https://${DOMAIN_FLUTTER_PROD:-your-app.example.com}/reset-password"
       WEBSOCKETS_ENABLED: "true"
       DB_CLIENT: pg
       DB_HOST: postgres-dev
