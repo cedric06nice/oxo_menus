@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/entities/widget_type_config.dart';
+import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
 import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/editor/widget_palette.dart';
@@ -71,7 +73,7 @@ void main() {
             home: Scaffold(
               body: WidgetPalette(
                 registry: registry,
-                allowedWidgetTypes: const ['dish'],
+                allowedWidgets: const [WidgetTypeConfig(type: 'dish')],
               ),
             ),
           ),
@@ -88,10 +90,7 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: WidgetPalette(
-                registry: registry,
-                allowedWidgetTypes: const [],
-              ),
+              body: WidgetPalette(registry: registry, allowedWidgets: const []),
             ),
           ),
         );
@@ -125,8 +124,11 @@ void main() {
             home: Scaffold(
               body: WidgetPalette(
                 registry: registry,
-                allowedWidgetTypes: const ['dish', 'text'],
-                onAllowedTypesChanged: (_) {},
+                allowedWidgets: const [
+                  WidgetTypeConfig(type: 'dish'),
+                  WidgetTypeConfig(type: 'text'),
+                ],
+                onAllowedWidgetsChanged: (_) {},
               ),
             ),
           ),
@@ -149,8 +151,8 @@ void main() {
             home: Scaffold(
               body: WidgetPalette(
                 registry: registry,
-                allowedWidgetTypes: const ['dish'],
-                onAllowedTypesChanged: (_) {},
+                allowedWidgets: const [WidgetTypeConfig(type: 'dish')],
+                onAllowedWidgetsChanged: (_) {},
               ),
             ),
           ),
@@ -186,8 +188,8 @@ void main() {
             home: Scaffold(
               body: WidgetPalette(
                 registry: registry,
-                allowedWidgetTypes: const [],
-                onAllowedTypesChanged: (_) {},
+                allowedWidgets: const [],
+                onAllowedWidgetsChanged: (_) {},
               ),
             ),
           ),
@@ -211,15 +213,18 @@ void main() {
       testWidgets('tapping checkbox calls onAllowedTypesChanged', (
         WidgetTester tester,
       ) async {
-        List<String>? updatedTypes;
+        List<WidgetTypeConfig>? updatedTypes;
 
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
               body: WidgetPalette(
                 registry: registry,
-                allowedWidgetTypes: const ['dish', 'text'],
-                onAllowedTypesChanged: (types) {
+                allowedWidgets: const [
+                  WidgetTypeConfig(type: 'dish'),
+                  WidgetTypeConfig(type: 'text'),
+                ],
+                onAllowedWidgetsChanged: (types) {
                   updatedTypes = types;
                 },
               ),
@@ -234,23 +239,25 @@ void main() {
         await tester.pump();
 
         expect(updatedTypes, isNotNull);
-        expect(updatedTypes, contains('dish'));
-        expect(updatedTypes, contains('text'));
-        expect(updatedTypes, contains('section'));
+        final section = updatedTypes!.firstWhere((c) => c.type == 'section');
+        expect(section.enabled, isTrue);
       });
 
-      testWidgets('unchecking a type removes it from list', (
+      testWidgets('unchecking a type flips its enabled flag to false', (
         WidgetTester tester,
       ) async {
-        List<String>? updatedTypes;
+        List<WidgetTypeConfig>? updatedTypes;
 
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
               body: WidgetPalette(
                 registry: registry,
-                allowedWidgetTypes: const ['dish', 'text'],
-                onAllowedTypesChanged: (types) {
+                allowedWidgets: const [
+                  WidgetTypeConfig(type: 'dish'),
+                  WidgetTypeConfig(type: 'text'),
+                ],
+                onAllowedWidgetsChanged: (types) {
                   updatedTypes = types;
                 },
               ),
@@ -258,26 +265,30 @@ void main() {
           ),
         );
 
-        // Tap the dish checkbox (currently checked) to remove it
         await tester.tap(find.byKey(const Key('allowed_type_checkbox_dish')));
         await tester.pump();
 
         expect(updatedTypes, isNotNull);
-        expect(updatedTypes, ['text']);
+        final dish = updatedTypes!.firstWhere((c) => c.type == 'dish');
+        expect(dish.enabled, isFalse);
+        // text remains enabled
+        final text = updatedTypes!.firstWhere((c) => c.type == 'text');
+        expect(text.enabled, isTrue);
       });
 
       testWidgets(
-        'unchecking a type when all allowed (empty list) produces list of remaining types',
+        'unchecking a type when all allowed (empty list) flips only that '
+        'type\'s enabled flag',
         (WidgetTester tester) async {
-          List<String>? updatedTypes;
+          List<WidgetTypeConfig>? updatedTypes;
 
           await tester.pumpWidget(
             MaterialApp(
               home: Scaffold(
                 body: WidgetPalette(
                   registry: registry,
-                  allowedWidgetTypes: const [],
-                  onAllowedTypesChanged: (types) {
+                  allowedWidgets: const [],
+                  onAllowedWidgetsChanged: (types) {
                     updatedTypes = types;
                   },
                 ),
@@ -285,16 +296,16 @@ void main() {
             ),
           );
 
-          // All are checked (empty list = all allowed)
-          // Tap dish to uncheck it
           await tester.tap(find.byKey(const Key('allowed_type_checkbox_dish')));
           await tester.pump();
 
-          // Should produce a list with all types EXCEPT dish
           expect(updatedTypes, isNotNull);
-          expect(updatedTypes, isNot(contains('dish')));
-          expect(updatedTypes, contains('section'));
-          expect(updatedTypes, contains('text'));
+          final dish = updatedTypes!.firstWhere((c) => c.type == 'dish');
+          expect(dish.enabled, isFalse);
+          final section = updatedTypes!.firstWhere((c) => c.type == 'section');
+          expect(section.enabled, isTrue);
+          final text = updatedTypes!.firstWhere((c) => c.type == 'text');
+          expect(text.enabled, isTrue);
         },
       );
 
@@ -306,7 +317,7 @@ void main() {
             home: Scaffold(
               body: WidgetPalette(
                 registry: registry,
-                allowedWidgetTypes: const ['dish'],
+                allowedWidgets: const [WidgetTypeConfig(type: 'dish')],
               ),
             ),
           ),
@@ -314,6 +325,109 @@ void main() {
 
         expect(find.byType(Checkbox), findsNothing);
       });
+
+      testWidgets(
+        'shows alignment selector for each enabled type with Justified for '
+        'price-bearing types',
+        (WidgetTester tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: WidgetPalette(
+                  registry: registry,
+                  allowedWidgets: const [
+                    WidgetTypeConfig(type: 'dish'),
+                    WidgetTypeConfig(type: 'section'),
+                  ],
+                  onAllowedWidgetsChanged: (_) {},
+                ),
+              ),
+            ),
+          );
+
+          // Alignment selector is always shown in admin mode — admins can
+          // configure alignment even for disabled types. Section hides the
+          // Justified option since it has no price line.
+          expect(
+            find.byKey(const Key('alignment_selector_dish')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const Key('alignment_selector_section')),
+            findsOneWidget,
+          );
+          expect(
+            find.byKey(const Key('alignment_selector_text')),
+            findsOneWidget,
+          );
+        },
+      );
+
+      testWidgets(
+        'stale justified alignment on non-price types is sanitised when '
+        'the list is emitted',
+        (WidgetTester tester) async {
+          List<WidgetTypeConfig>? captured;
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: WidgetPalette(
+                  registry: registry,
+                  // Section has stale justified (non-price-line type).
+                  allowedWidgets: const [
+                    WidgetTypeConfig(type: 'dish'),
+                    WidgetTypeConfig(
+                      type: 'section',
+                      alignment: WidgetAlignment.justified,
+                    ),
+                  ],
+                  onAllowedWidgetsChanged: (configs) => captured = configs,
+                ),
+              ),
+            ),
+          );
+
+          // Toggle an unrelated dish checkbox — the emitted list must still
+          // scrub the stale justified from section.
+          await tester.tap(find.byKey(const Key('allowed_type_checkbox_dish')));
+          await tester.pump();
+
+          expect(captured, isNotNull);
+          final section = captured!.firstWhere((c) => c.type == 'section');
+          expect(section.alignment, isNot(WidgetAlignment.justified));
+        },
+      );
+
+      testWidgets(
+        'changing alignment fires onAllowedWidgetsChanged with new config',
+        (WidgetTester tester) async {
+          List<WidgetTypeConfig>? captured;
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: WidgetPalette(
+                  registry: registry,
+                  allowedWidgets: const [WidgetTypeConfig(type: 'dish')],
+                  onAllowedWidgetsChanged: (configs) => captured = configs,
+                ),
+              ),
+            ),
+          );
+
+          // Tap the Center icon inside the dish selector.
+          final centerIcon = find.descendant(
+            of: find.byKey(const Key('alignment_selector_dish')),
+            matching: find.byIcon(Icons.format_align_center),
+          );
+          expect(centerIcon, findsOneWidget);
+          await tester.tap(centerIcon);
+          await tester.pump();
+
+          expect(captured, isNotNull);
+          final dish = captured!.firstWhere((c) => c.type == 'dish');
+          expect(dish.alignment, WidgetAlignment.center);
+        },
+      );
     });
 
     testWidgets(
@@ -608,8 +722,11 @@ void main() {
           home: Scaffold(
             body: WidgetPalette(
               registry: registry,
-              allowedWidgetTypes: const ['dish', 'text'],
-              onAllowedTypesChanged: (_) {},
+              allowedWidgets: const [
+                WidgetTypeConfig(type: 'dish'),
+                WidgetTypeConfig(type: 'text'),
+              ],
+              onAllowedWidgetsChanged: (_) {},
             ),
           ),
         ),
@@ -628,8 +745,11 @@ void main() {
           home: Scaffold(
             body: WidgetPalette(
               registry: registry,
-              allowedWidgetTypes: const ['dish', 'text'],
-              onAllowedTypesChanged: (_) {},
+              allowedWidgets: const [
+                WidgetTypeConfig(type: 'dish'),
+                WidgetTypeConfig(type: 'text'),
+              ],
+              onAllowedWidgetsChanged: (_) {},
             ),
           ),
         ),

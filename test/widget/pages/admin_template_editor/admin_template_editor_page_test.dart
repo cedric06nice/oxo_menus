@@ -11,6 +11,7 @@ import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/entities/widget_type_config.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
@@ -1822,7 +1823,10 @@ void main() {
         name: 'Test Template',
         status: Status.draft,
         version: '1.0.0',
-        allowedWidgetTypes: ['dish', 'text'],
+        allowedWidgets: [
+          WidgetTypeConfig(type: 'dish'),
+          WidgetTypeConfig(type: 'text'),
+        ],
       );
 
       when(
@@ -1866,7 +1870,7 @@ void main() {
           name: 'Test Template',
           status: Status.draft,
           version: '1.0.0',
-          allowedWidgetTypes: ['dish'],
+          allowedWidgets: [WidgetTypeConfig(type: 'dish')],
         );
 
         when(
@@ -1876,8 +1880,14 @@ void main() {
           () => mockPageRepository.getAllForMenu(menuId),
         ).thenAnswer((_) async => const Success([]));
         when(() => mockMenuRepository.update(any())).thenAnswer(
-          (_) async =>
-              Success(menu.copyWith(allowedWidgetTypes: ['dish', 'section'])),
+          (_) async => Success(
+            menu.copyWith(
+              allowedWidgets: const [
+                WidgetTypeConfig(type: 'dish'),
+                WidgetTypeConfig(type: 'section'),
+              ],
+            ),
+          ),
         );
 
         // Act
@@ -1897,8 +1907,10 @@ void main() {
                 ).captured.single
                 as UpdateMenuInput;
         expect(captured.id, menuId);
-        expect(captured.allowedWidgetTypes, contains('dish'));
-        expect(captured.allowedWidgetTypes, contains('section'));
+        final section = captured.allowedWidgets!.firstWhere(
+          (c) => c.type == 'section',
+        );
+        expect(section.enabled, isTrue);
       },
     );
   });

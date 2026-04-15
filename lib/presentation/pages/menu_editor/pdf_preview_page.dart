@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
+import 'package:oxo_menus/presentation/providers/allowed_widgets_provider.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/presentation/utils/platform_detection.dart';
 import 'package:oxo_menus/presentation/utils/pdf_filename.dart';
@@ -90,11 +91,16 @@ class PdfPreviewPage extends ConsumerWidget {
 
     final menuTree = menuTreeResult.valueOrNull!;
 
-    final effectiveTree = displayOptions != null
-        ? menuTree.copyWith(
-            menu: menuTree.menu.copyWith(displayOptions: displayOptions),
-          )
-        : menuTree;
+    // Merge live alignment state (admin may have configured alignment during
+    // this session before schema roundtrip preserves it).
+    final liveAllowedWidgets = ref.read(allowedWidgetsProvider);
+    final mergedMenu = menuTree.menu.copyWith(
+      displayOptions: displayOptions ?? menuTree.menu.displayOptions,
+      allowedWidgets: liveAllowedWidgets.isNotEmpty
+          ? liveAllowedWidgets
+          : menuTree.menu.allowedWidgets,
+    );
+    final effectiveTree = menuTree.copyWith(menu: mergedMenu);
 
     final pdfResult = await ref
         .read(generatePdfUseCaseProvider)

@@ -6,6 +6,7 @@ import 'package:oxo_menus/domain/entities/container.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/entities/widget_type_config.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
@@ -259,16 +260,28 @@ class TemplateEditorNotifier extends Notifier<TemplateEditorState> {
     }
   }
 
-  Future<void> updateAllowedWidgetTypes(List<String> types) async {
+  Future<void> updateAllowedWidgets(List<WidgetTypeConfig> configs) async {
+    final treeNotifier = ref.read(editorTreeProvider(menuId).notifier);
+    final currentMenu = ref.read(editorTreeProvider(menuId)).menu;
+    if (currentMenu == null) return;
+
+    // Optimistic write so the palette reflects the change immediately.
+    final previousConfigs = currentMenu.allowedWidgets;
+    treeNotifier.updateMenuLocally(
+      currentMenu.copyWith(allowedWidgets: configs),
+    );
+
     final result = await ref
         .read(menuRepositoryProvider)
-        .update(UpdateMenuInput(id: menuId, allowedWidgetTypes: types));
-    if (result.isSuccess) {
-      final currentMenu = ref.read(editorTreeProvider(menuId)).menu;
-      if (currentMenu != null) {
-        ref
-            .read(editorTreeProvider(menuId).notifier)
-            .updateMenuLocally(currentMenu.copyWith(allowedWidgetTypes: types));
+        .update(UpdateMenuInput(id: menuId, allowedWidgets: configs));
+    if (result.isFailure) {
+      // Revert on failure — read the latest menu so any concurrent edits are
+      // preserved apart from the allowedWidgets slice we wrote.
+      final latest = ref.read(editorTreeProvider(menuId)).menu;
+      if (latest != null) {
+        treeNotifier.updateMenuLocally(
+          latest.copyWith(allowedWidgets: previousConfigs),
+        );
       }
     }
   }

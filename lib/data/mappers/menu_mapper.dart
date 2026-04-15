@@ -31,7 +31,7 @@ class MenuMapper {
       displayOptions: dto.displayOptionsJson.isNotEmpty
           ? DisplayOptionsMapper.fromJson(dto.displayOptionsJson)
           : null,
-      allowedWidgetTypes: dto.allowedWidgetTypes,
+      allowedWidgets: dto.allowedWidgets,
     );
   }
 
@@ -110,8 +110,10 @@ class MenuMapper {
         input.displayOptions!,
       );
     }
-    if (input.allowedWidgetTypes != null) {
-      map['allowed_widget_types'] = input.allowedWidgetTypes;
+    if (input.allowedWidgets != null) {
+      map['allowed_widgets'] = input.allowedWidgets!
+          .map((c) => c.toJson())
+          .toList();
     }
 
     return map;
@@ -145,8 +147,10 @@ class MenuMapper {
         input.displayOptions!,
       );
     }
-    if (input.allowedWidgetTypes != null) {
-      map['allowed_widget_types'] = input.allowedWidgetTypes;
+    if (input.allowedWidgets != null) {
+      map['allowed_widgets'] = input.allowedWidgets!
+          .map((c) => c.toJson())
+          .toList();
     }
 
     return map;

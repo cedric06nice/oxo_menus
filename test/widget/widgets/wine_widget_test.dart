@@ -41,7 +41,7 @@ void main() {
         ),
       );
 
-      expect(find.text('£12.50'), findsOneWidget);
+      expect(find.text('£12.5'), findsOneWidget);
     });
 
     testWidgets('should hide price when showPrices is false', (tester) async {

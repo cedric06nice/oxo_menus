@@ -17,6 +17,7 @@ import 'package:oxo_menus/presentation/pages/menu_editor/state/menu_collaboratio
 import 'package:oxo_menus/presentation/providers/app_lifecycle_provider.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
+import 'package:oxo_menus/presentation/providers/allowed_widgets_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_settings/menu_settings_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
@@ -66,6 +67,9 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
         ref
             .read(menuDisplayOptionsProvider.notifier)
             .set(next.menu?.displayOptions);
+        ref
+            .read(allowedWidgetsProvider.notifier)
+            .set(next.menu?.allowedWidgets ?? const []);
       }
     });
   }
@@ -213,7 +217,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
                       WidgetPalette(
                         axis: Axis.horizontal,
                         registry: registry,
-                        allowedWidgetTypes: menu?.allowedWidgetTypes,
+                        allowedWidgets: menu?.allowedWidgets,
                       ),
                       Expanded(
                         child: _buildCanvas(pages, treeState, collabState),
@@ -236,7 +240,7 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
                       ),
                       child: WidgetPalette(
                         registry: registry,
-                        allowedWidgetTypes: menu?.allowedWidgetTypes,
+                        allowedWidgets: menu?.allowedWidgets,
                       ),
                     ),
                     Expanded(

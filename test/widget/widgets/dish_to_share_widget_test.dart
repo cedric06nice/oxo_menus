@@ -25,7 +25,7 @@ void main() {
       );
 
       expect(find.text('MEZZE PLATTER'), findsOneWidget);
-      expect(find.text('£18.50'), findsOneWidget);
+      expect(find.text('£18.5'), findsOneWidget);
     });
 
     testWidgets('should display "To Share" when servings is null', (

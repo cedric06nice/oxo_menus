@@ -3,6 +3,7 @@ import 'package:oxo_menus/data/models/area_dto.dart';
 import 'package:oxo_menus/data/models/page_dto.dart';
 import 'package:oxo_menus/data/models/size_dto.dart';
 import 'package:oxo_menus/data/models/version_dto.dart';
+import 'package:oxo_menus/domain/entities/widget_type_config.dart';
 
 @DirectusCollection()
 @CollectionMetadata(endpointName: "menu")
@@ -15,8 +16,25 @@ class MenuDto extends DirectusItem {
   String? get userUpdated => getValue(forKey: "user_updated");
   Map<String, dynamic> get styleJson =>
       Map<String, dynamic>.from(getValue(forKey: "style_json") ?? const {});
-  List<String> get allowedWidgetTypes =>
-      List<String>.from(getValue(forKey: "allowed_widget_types") ?? const []);
+
+  /// Reads the new `allowed_widgets` JSON list when present, falling back to
+  /// the legacy `allowed_widget_types` string list (mapped to configs with
+  /// default `start` alignment) for menus created before Stage 3.
+  List<WidgetTypeConfig> get allowedWidgets {
+    final raw =
+        getValue(forKey: "allowed_widgets") ??
+        getValue(forKey: "allowed_widget_types");
+    if (raw is! List) return const [];
+    final result = <WidgetTypeConfig>[];
+    for (final item in raw) {
+      if (item is String) {
+        result.add(WidgetTypeConfig(type: item));
+      } else if (item is Map) {
+        result.add(WidgetTypeConfig.fromJson(Map<String, dynamic>.from(item)));
+      }
+    }
+    return result;
+  }
 
   Map<String, dynamic> get displayOptionsJson => Map<String, dynamic>.from(
     getValue(forKey: "display_options_json") ?? const {},

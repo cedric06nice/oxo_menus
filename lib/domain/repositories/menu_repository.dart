@@ -4,6 +4,7 @@ import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/entities/widget_type_config.dart';
 
 part 'menu_repository.freezed.dart';
 
@@ -41,7 +42,7 @@ abstract class CreateMenuInput with _$CreateMenuInput {
     int? sizeId,
     int? areaId,
     MenuDisplayOptions? displayOptions,
-    List<String>? allowedWidgetTypes,
+    List<WidgetTypeConfig>? allowedWidgets,
   }) = _CreateMenuInput;
 }
 
@@ -59,6 +60,6 @@ abstract class UpdateMenuInput with _$UpdateMenuInput {
     int? sizeId,
     int? areaId,
     MenuDisplayOptions? displayOptions,
-    List<String>? allowedWidgetTypes,
+    List<WidgetTypeConfig>? allowedWidgets,
   }) = _UpdateMenuInput;
 }
