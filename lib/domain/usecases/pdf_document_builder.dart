@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:oxo_menus/domain/allergens/allergen_formatter.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
@@ -13,18 +11,62 @@ import 'package:oxo_menus/domain/widgets/set_menu_dish/set_menu_dish_props.dart'
 import 'package:oxo_menus/domain/widgets/set_menu_title/set_menu_title_props.dart';
 import 'package:oxo_menus/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/domain/widgets/section/section_props.dart';
+import 'package:oxo_menus/domain/widgets/shared/price_formatter.dart';
+import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
 import 'package:oxo_menus/domain/widgets/text/text_props.dart';
 import 'package:oxo_menus/domain/widgets/wine/wine_props.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+
+typedef _AlignmentLookup = WidgetAlignment Function(String type);
+
+/// Maps a [WidgetAlignment] to PDF column/text alignment values.
+pw.CrossAxisAlignment _pdfCrossAxis(WidgetAlignment a) => switch (a) {
+  WidgetAlignment.start => pw.CrossAxisAlignment.start,
+  WidgetAlignment.center => pw.CrossAxisAlignment.center,
+  WidgetAlignment.end => pw.CrossAxisAlignment.end,
+  WidgetAlignment.justified => pw.CrossAxisAlignment.stretch,
+};
+
+pw.TextAlign _pdfTextAlign(WidgetAlignment a) => switch (a) {
+  WidgetAlignment.start || WidgetAlignment.justified => pw.TextAlign.left,
+  WidgetAlignment.center => pw.TextAlign.center,
+  WidgetAlignment.end => pw.TextAlign.right,
+};
+
+/// Two-cell PDF price row that anchors decimal points on the same x.
+pw.Widget _pdfPriceCell(double price, pw.TextStyle style, double baseFontSize) {
+  final parts = formatPriceParts(price);
+  return pw.Row(
+    mainAxisSize: pw.MainAxisSize.min,
+    crossAxisAlignment: pw.CrossAxisAlignment.end,
+    children: [
+      pw.SizedBox(
+        width: baseFontSize * 2.8,
+        child: pw.Text(
+          parts.integer,
+          textAlign: pw.TextAlign.right,
+          style: style,
+        ),
+      ),
+      pw.SizedBox(
+        width: baseFontSize * 1.5,
+        child: pw.Text(
+          parts.decimal,
+          textAlign: pw.TextAlign.left,
+          style: style,
+        ),
+      ),
+    ],
+  );
+}
 
 /// Builds a PDF document from a MenuTree.
 ///
 /// This class is isolate-safe: it holds only a const [PdfStyleResolver]
 /// and accepts all data (fonts, images, menu tree) as parameters.
 class PdfDocumentBuilder {
-  static final _trailingZeros = RegExp(r'\.?0+$');
-
   final PdfStyleResolver _resolver;
 
   const PdfDocumentBuilder({
@@ -50,6 +92,7 @@ class PdfDocumentBuilder {
     final displayOptions = menuTree.menu.displayOptions;
     final pageFormat = _resolver.resolvePageFormat(menuTree.menu.pageSize);
     final pageMargins = _resolver.resolveContentMargins(styleConfig);
+    final alignmentFor = menuTree.menu.alignmentFor;
     for (final pageData in menuTree.pages) {
       pdf.addPage(
         pw.Page(
@@ -63,6 +106,7 @@ class PdfDocumentBuilder {
             displayOptions,
             imageCache,
             sectionFont,
+            alignmentFor,
           ),
         ),
       );
@@ -79,6 +123,7 @@ class PdfDocumentBuilder {
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
     pw.Font sectionFont,
+    _AlignmentLookup alignmentFor,
   ) {
     final contentChildren = <pw.Widget>[];
 
@@ -91,6 +136,7 @@ class PdfDocumentBuilder {
             displayOptions,
             imageCache,
             sectionFont,
+            alignmentFor,
           );
         }),
       );
@@ -104,6 +150,7 @@ class PdfDocumentBuilder {
           displayOptions,
           imageCache,
           sectionFont,
+          alignmentFor,
         );
       }),
     );
@@ -118,6 +165,7 @@ class PdfDocumentBuilder {
             displayOptions,
             imageCache,
             sectionFont,
+            alignmentFor,
           );
         }),
       );
@@ -166,6 +214,7 @@ class PdfDocumentBuilder {
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
     pw.Font sectionFont,
+    _AlignmentLookup alignmentFor,
   ) {
     final containerStyle = containerData.container.styleConfig;
 
@@ -191,6 +240,7 @@ class PdfDocumentBuilder {
               displayOptions,
               imageCache,
               sectionFont,
+              alignmentFor,
             ),
           )
           .toList();
@@ -236,6 +286,7 @@ class PdfDocumentBuilder {
                 displayOptions,
                 imageCache,
                 sectionFont,
+                alignmentFor,
               ),
           ],
         ),
@@ -249,6 +300,7 @@ class PdfDocumentBuilder {
           displayOptions,
           imageCache,
           sectionFont,
+          alignmentFor,
         ),
       );
     }
@@ -265,6 +317,7 @@ class PdfDocumentBuilder {
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
     pw.Font sectionFont,
+    _AlignmentLookup alignmentFor,
   ) {
     final maxWidgetCount = columns.fold<int>(
       0,
@@ -290,6 +343,7 @@ class PdfDocumentBuilder {
             displayOptions,
             imageCache,
             sectionFont,
+            alignmentFor,
           );
         } else {
           cell = pw.SizedBox();
@@ -352,6 +406,7 @@ class PdfDocumentBuilder {
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
     pw.Font sectionFont,
+    _AlignmentLookup alignmentFor,
   ) {
     final columnStyle = columnData.column.styleConfig;
 
@@ -374,6 +429,7 @@ class PdfDocumentBuilder {
             displayOptions,
             imageCache,
             sectionFont,
+            alignmentFor,
           );
         }).toList(),
       ),
@@ -390,20 +446,27 @@ class PdfDocumentBuilder {
     MenuDisplayOptions? displayOptions,
     Map<String, Uint8List> imageCache,
     pw.Font sectionFont,
+    _AlignmentLookup alignmentFor,
   ) {
+    final alignment = alignmentFor(widget.type);
     switch (widget.type) {
       case 'dish':
-        return _buildDishWidget(widget, styleConfig, displayOptions);
+        return _buildDishWidget(widget, styleConfig, displayOptions, alignment);
       case 'text':
         return _buildTextWidget(widget, styleConfig);
       case 'section':
-        return _buildSectionWidget(widget, styleConfig, sectionFont);
+        return _buildSectionWidget(widget, styleConfig, sectionFont, alignment);
       case 'image':
         return _buildImageWidget(widget, styleConfig, imageCache);
       case 'wine':
-        return _buildWineWidget(widget, styleConfig, displayOptions);
+        return _buildWineWidget(widget, styleConfig, displayOptions, alignment);
       case 'dish_to_share':
-        return _buildDishToShareWidget(widget, styleConfig, displayOptions);
+        return _buildDishToShareWidget(
+          widget,
+          styleConfig,
+          displayOptions,
+          alignment,
+        );
       case 'set_menu_dish':
         return _buildSetMenuDishWidget(widget, styleConfig, displayOptions);
       case 'set_menu_title':
@@ -422,52 +485,85 @@ class PdfDocumentBuilder {
     WidgetInstance widget,
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
+    WidgetAlignment alignment,
   ) {
     final props = DishProps.fromJson(widget.props);
     final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
     final showPrice = displayOptions?.showPrices ?? true;
     final showAllergens = displayOptions?.showAllergens ?? true;
+    final textAlign = _pdfTextAlign(alignment);
+
+    final nameStyle = pw.TextStyle(
+      fontSize: baseFontSize,
+      letterSpacing: 0.55,
+      fontWeight: pw.FontWeight.bold,
+    );
+    final dietaryStyle = pw.TextStyle(
+      fontSize: baseFontSize - 3,
+      letterSpacing: 0.4,
+      fontStyle: pw.FontStyle.normal,
+    );
+    final priceStyle = pw.TextStyle(
+      fontSize: baseFontSize - 2,
+      letterSpacing: -0.33,
+      fontWeight: pw.FontWeight.bold,
+    );
+
+    pw.Widget header;
+    if (alignment == WidgetAlignment.justified && showPrice) {
+      header = pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
+        children: [
+          pw.Expanded(
+            child: pw.Text(
+              props.dietary?.abbreviation != null
+                  ? '${props.name}  ${props.dietary!.abbreviation}'
+                  : props.name,
+              textAlign: pw.TextAlign.left,
+              style: nameStyle,
+            ),
+          ),
+          _pdfPriceCell(props.price, priceStyle, baseFontSize),
+        ],
+      );
+    } else {
+      final wrapAlign = switch (alignment) {
+        WidgetAlignment.center => pw.WrapAlignment.center,
+        WidgetAlignment.end => pw.WrapAlignment.end,
+        _ => pw.WrapAlignment.start,
+      };
+      header = pw.Wrap(
+        alignment: wrapAlign,
+        crossAxisAlignment: pw.WrapCrossAlignment.end,
+        children: [
+          pw.Text(props.name, textAlign: textAlign, style: nameStyle),
+          pw.Text(
+            props.dietary?.abbreviation != null
+                ? '  ${props.dietary!.abbreviation}'
+                : '',
+            textAlign: textAlign,
+            style: dietaryStyle,
+          ),
+          if (showPrice)
+            pw.Text(
+              '  ${formatPrice(props.price).replaceFirst('£', '')}',
+              textAlign: textAlign,
+              style: priceStyle,
+            ),
+        ],
+      );
+    }
 
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 8),
       child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        crossAxisAlignment: _pdfCrossAxis(alignment),
         children: [
-          pw.Wrap(
-            crossAxisAlignment: pw.WrapCrossAlignment.end,
-            children: [
-              pw.Text(
-                props.name,
-                style: pw.TextStyle(
-                  fontSize: baseFontSize,
-                  letterSpacing: 0.55,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.Text(
-                props.dietary?.abbreviation != null
-                    ? '  ${props.dietary!.abbreviation}'
-                    : '',
-                style: pw.TextStyle(
-                  fontSize: baseFontSize - 3,
-                  letterSpacing: 0.4,
-                  fontStyle: pw.FontStyle.normal,
-                ),
-              ),
-              if (showPrice)
-                pw.Text(
-                  '  ${props.price.toStringAsFixed(2).replaceAll(_trailingZeros, '')}',
-                  style: pw.TextStyle(
-                    fontSize: baseFontSize - 2,
-                    letterSpacing: -0.33,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-            ],
-          ),
+          header,
           if (props.description != null && props.description!.isNotEmpty ||
               showAllergens && props.calories != null)
             pw.RichText(
+              textAlign: textAlign,
               text: pw.TextSpan(
                 children: [
                   if (props.description != null &&
@@ -502,6 +598,7 @@ class PdfDocumentBuilder {
                 padding: const pw.EdgeInsets.only(top: 4),
                 child: pw.Text(
                   formattedAllergens,
+                  textAlign: textAlign,
                   style: pw.TextStyle(
                     fontSize: baseFontSize - 3,
                     letterSpacing: 0.6,
@@ -520,59 +617,92 @@ class PdfDocumentBuilder {
     WidgetInstance widget,
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
+    WidgetAlignment alignment,
   ) {
     final props = WineProps.fromJson(widget.props);
     final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
     final showPrice = displayOptions?.showPrices ?? true;
     final showAllergens = displayOptions?.showAllergens ?? true;
+    final textAlign = _pdfTextAlign(alignment);
+
+    final nameStyle = pw.TextStyle(
+      fontSize: baseFontSize,
+      letterSpacing: 0.55,
+      fontWeight: pw.FontWeight.bold,
+    );
+    final priceStyle = pw.TextStyle(
+      fontSize: baseFontSize - 2,
+      letterSpacing: -0.33,
+      fontWeight: pw.FontWeight.bold,
+    );
+
+    pw.Widget header;
+    if (alignment == WidgetAlignment.justified && showPrice) {
+      final nameText = StringBuffer(props.name);
+      if (props.vintage != null) nameText.write('  ${props.vintage}');
+      if (props.dietary?.abbreviation != null) {
+        nameText.write('  ${props.dietary!.abbreviation}');
+      }
+      header = pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
+        children: [
+          pw.Expanded(
+            child: pw.Text(
+              nameText.toString(),
+              textAlign: pw.TextAlign.left,
+              style: nameStyle,
+            ),
+          ),
+          _pdfPriceCell(props.price, priceStyle, baseFontSize),
+        ],
+      );
+    } else {
+      final wrapAlign = switch (alignment) {
+        WidgetAlignment.center => pw.WrapAlignment.center,
+        WidgetAlignment.end => pw.WrapAlignment.end,
+        _ => pw.WrapAlignment.start,
+      };
+      header = pw.Wrap(
+        alignment: wrapAlign,
+        crossAxisAlignment: pw.WrapCrossAlignment.end,
+        children: [
+          pw.Text(props.name, textAlign: textAlign, style: nameStyle),
+          if (props.vintage != null)
+            pw.Text(
+              '  ${props.vintage}',
+              textAlign: textAlign,
+              style: pw.TextStyle(
+                fontSize: baseFontSize - 2,
+                letterSpacing: 0.4,
+              ),
+            ),
+          pw.Text(
+            props.dietary?.abbreviation != null
+                ? '  ${props.dietary!.abbreviation}'
+                : '',
+            textAlign: textAlign,
+            style: pw.TextStyle(fontSize: baseFontSize - 3, letterSpacing: 0.4),
+          ),
+          if (showPrice)
+            pw.Text(
+              '  ${formatPrice(props.price).replaceFirst('£', '')}',
+              textAlign: textAlign,
+              style: priceStyle,
+            ),
+        ],
+      );
+    }
 
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 8),
       child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        crossAxisAlignment: _pdfCrossAxis(alignment),
         children: [
-          pw.Wrap(
-            crossAxisAlignment: pw.WrapCrossAlignment.end,
-            children: [
-              pw.Text(
-                props.name,
-                style: pw.TextStyle(
-                  fontSize: baseFontSize,
-                  letterSpacing: 0.55,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              if (props.vintage != null)
-                pw.Text(
-                  '  ${props.vintage.toString()}',
-                  style: pw.TextStyle(
-                    fontSize: baseFontSize - 2,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-              pw.Text(
-                props.dietary?.abbreviation != null
-                    ? '  ${props.dietary!.abbreviation}'
-                    : '',
-                style: pw.TextStyle(
-                  fontSize: baseFontSize - 3,
-                  letterSpacing: 0.4,
-                ),
-              ),
-              if (showPrice)
-                pw.Text(
-                  '  ${props.price.toStringAsFixed(2).replaceAll(_trailingZeros, '')}',
-                  style: pw.TextStyle(
-                    fontSize: baseFontSize - 2,
-                    letterSpacing: -0.33,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-            ],
-          ),
+          header,
           if (props.description != null && props.description!.isNotEmpty)
             pw.Text(
               props.description!,
+              textAlign: textAlign,
               style: pw.TextStyle(fontSize: baseFontSize, letterSpacing: -0.2),
             ),
           if (showAllergens && props.containsSulphites)
@@ -580,6 +710,7 @@ class PdfDocumentBuilder {
               padding: const pw.EdgeInsets.only(top: 4),
               child: pw.Text(
                 'SULPHITES',
+                textAlign: textAlign,
                 style: pw.TextStyle(
                   fontSize: baseFontSize - 3,
                   letterSpacing: 0.6,
@@ -636,18 +767,23 @@ class PdfDocumentBuilder {
     WidgetInstance widget,
     StyleConfig? styleConfig,
     pw.Font sectionFont,
+    WidgetAlignment alignment,
   ) {
     final props = SectionProps.fromJson(widget.props);
     final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
 
+    // Section has no price line, so justified falls back to start (mirrors the
+    // Flutter-side SectionWidget).
+    final effective = alignment.isJustified ? WidgetAlignment.start : alignment;
     final title = props.uppercase ? props.title.toUpperCase() : props.title;
 
     return pw.Container(
       child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        crossAxisAlignment: _pdfCrossAxis(effective),
         children: [
           pw.Text(
             title,
+            textAlign: _pdfTextAlign(effective),
             style: pw.TextStyle(
               font: sectionFont,
               fontSize: baseFontSize + 2,
@@ -663,6 +799,14 @@ class PdfDocumentBuilder {
       ),
     );
   }
+
+  @visibleForTesting
+  pw.Widget debugBuildSection(
+    WidgetInstance widget,
+    StyleConfig? styleConfig,
+    pw.Font sectionFont,
+    WidgetAlignment alignment,
+  ) => _buildSectionWidget(widget, styleConfig, sectionFont, alignment);
 
   pw.Widget _buildImageWidget(
     WidgetInstance widget,
@@ -755,60 +899,92 @@ class PdfDocumentBuilder {
     WidgetInstance widget,
     StyleConfig? styleConfig,
     MenuDisplayOptions? displayOptions,
+    WidgetAlignment alignment,
   ) {
     final props = DishToShareProps.fromJson(widget.props);
     final baseFontSize = _resolver.resolveBaseFontSize(styleConfig);
     final showPrice = displayOptions?.showPrices ?? true;
     final showAllergens = displayOptions?.showAllergens ?? true;
+    final textAlign = _pdfTextAlign(alignment);
+
+    final nameStyle = pw.TextStyle(
+      fontSize: baseFontSize,
+      letterSpacing: 0.55,
+      fontWeight: pw.FontWeight.bold,
+    );
+    final priceStyle = pw.TextStyle(
+      fontSize: baseFontSize - 2,
+      letterSpacing: -0.33,
+      fontWeight: pw.FontWeight.bold,
+    );
+
+    pw.Widget header;
+    if (alignment == WidgetAlignment.justified && showPrice) {
+      final nameText = StringBuffer(props.name);
+      if (props.dietary?.abbreviation != null) {
+        nameText.write('  ${props.dietary!.abbreviation}');
+      }
+      nameText.write('  ${props.sharingText}');
+      header = pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.end,
+        children: [
+          pw.Expanded(
+            child: pw.Text(
+              nameText.toString(),
+              textAlign: pw.TextAlign.left,
+              style: nameStyle,
+            ),
+          ),
+          _pdfPriceCell(props.price, priceStyle, baseFontSize),
+        ],
+      );
+    } else {
+      final wrapAlign = switch (alignment) {
+        WidgetAlignment.center => pw.WrapAlignment.center,
+        WidgetAlignment.end => pw.WrapAlignment.end,
+        _ => pw.WrapAlignment.start,
+      };
+      header = pw.Wrap(
+        alignment: wrapAlign,
+        crossAxisAlignment: pw.WrapCrossAlignment.end,
+        children: [
+          pw.Text(props.name, textAlign: textAlign, style: nameStyle),
+          pw.Text(
+            props.dietary?.abbreviation != null
+                ? '  ${props.dietary!.abbreviation}'
+                : '',
+            textAlign: textAlign,
+            style: pw.TextStyle(
+              fontSize: baseFontSize - 3,
+              letterSpacing: 0.4,
+              fontStyle: pw.FontStyle.normal,
+            ),
+          ),
+          if (showPrice)
+            pw.Text(
+              '  ${formatPrice(props.price).replaceFirst('£', '')}',
+              textAlign: textAlign,
+              style: priceStyle,
+            ),
+          pw.Text(
+            '  ${props.sharingText}',
+            textAlign: textAlign,
+            style: priceStyle,
+          ),
+        ],
+      );
+    }
 
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 8),
       child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        crossAxisAlignment: _pdfCrossAxis(alignment),
         children: [
-          pw.Wrap(
-            crossAxisAlignment: pw.WrapCrossAlignment.end,
-            children: [
-              pw.Text(
-                props.name,
-                style: pw.TextStyle(
-                  fontSize: baseFontSize,
-                  letterSpacing: 0.55,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.Text(
-                props.dietary?.abbreviation != null
-                    ? '  ${props.dietary!.abbreviation}'
-                    : '',
-                style: pw.TextStyle(
-                  fontSize: baseFontSize - 3,
-                  letterSpacing: 0.4,
-                  fontStyle: pw.FontStyle.normal,
-                ),
-              ),
-              if (showPrice)
-                pw.Text(
-                  '  ${props.price.toStringAsFixed(2).replaceAll(_trailingZeros, '')}',
-                  style: pw.TextStyle(
-                    fontSize: baseFontSize - 2,
-                    letterSpacing: -0.33,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-              pw.Text(
-                '  ${props.sharingText}',
-                style: pw.TextStyle(
-                  fontSize: baseFontSize - 2,
-                  letterSpacing: -0.33,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+          header,
           if (props.description != null && props.description!.isNotEmpty ||
               showAllergens && props.calories != null)
             pw.RichText(
+              textAlign: textAlign,
               text: pw.TextSpan(
                 children: [
                   if (props.description != null &&
@@ -843,6 +1019,7 @@ class PdfDocumentBuilder {
                 padding: const pw.EdgeInsets.only(top: 4),
                 child: pw.Text(
                   formattedAllergens,
+                  textAlign: textAlign,
                   style: pw.TextStyle(
                     fontSize: baseFontSize - 3,
                     letterSpacing: 0.6,

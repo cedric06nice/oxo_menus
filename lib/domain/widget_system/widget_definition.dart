@@ -1,4 +1,5 @@
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
+import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
 
 /// Context provided to widgets during rendering
 ///
@@ -23,6 +24,9 @@ class WidgetContext {
   /// Menu-level display options
   final MenuDisplayOptions? displayOptions;
 
+  /// Template-level alignment applied to this widget's content.
+  final WidgetAlignment alignment;
+
   const WidgetContext({
     required this.isEditable,
     this.onUpdate,
@@ -30,6 +34,7 @@ class WidgetContext {
     this.onEditStarted,
     this.onEditEnded,
     this.displayOptions,
+    this.alignment = WidgetAlignment.start,
   });
 }
 

@@ -3,6 +3,8 @@ import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/entities/widget_type_config.dart';
+import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
 
 void main() {
   group('Menu Entity', () {
@@ -109,42 +111,97 @@ void main() {
       expect(menu.allowedWidgetTypes, <String>[]);
     });
 
-    test('should store allowedWidgetTypes', () {
+    test('should store allowedWidgets and expose allowedWidgetTypes', () {
       const menu = Menu(
         id: 1,
         name: 'Test Menu',
         status: Status.draft,
         version: '1.0.0',
-        allowedWidgetTypes: ['dish', 'text'],
+        allowedWidgets: [
+          WidgetTypeConfig(type: 'dish'),
+          WidgetTypeConfig(type: 'text'),
+        ],
       );
 
-      expect(menu.allowedWidgetTypes, ['dish', 'text']);
+      expect(menu.allowedWidgets, hasLength(2));
+      expect(menu.allowedWidgetTypes, {'dish', 'text'});
     });
 
-    test('should serialize allowedWidgetTypes to JSON', () {
+    test('allowedWidgetTypes excludes disabled configs but alignmentFor '
+        'still returns their alignment', () {
       const menu = Menu(
         id: 1,
         name: 'Test Menu',
         status: Status.draft,
         version: '1.0.0',
-        allowedWidgetTypes: ['dish', 'section'],
+        allowedWidgets: [
+          WidgetTypeConfig(type: 'dish'),
+          WidgetTypeConfig(
+            type: 'section',
+            alignment: WidgetAlignment.center,
+            enabled: false,
+          ),
+        ],
+      );
+
+      expect(menu.allowedWidgetTypes, {'dish'});
+      expect(menu.alignmentFor('section'), WidgetAlignment.center);
+    });
+
+    test('alignmentFor returns configured alignment or start fallback', () {
+      const menu = Menu(
+        id: 1,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+        allowedWidgets: [
+          WidgetTypeConfig(type: 'dish', alignment: WidgetAlignment.justified),
+        ],
+      );
+
+      expect(menu.alignmentFor('dish'), WidgetAlignment.justified);
+      expect(menu.alignmentFor('text'), WidgetAlignment.start);
+    });
+
+    test('should serialize allowedWidgets to JSON', () {
+      const menu = Menu(
+        id: 1,
+        name: 'Test Menu',
+        status: Status.draft,
+        version: '1.0.0',
+        allowedWidgets: [
+          WidgetTypeConfig(type: 'dish'),
+          WidgetTypeConfig(type: 'section'),
+        ],
       );
 
       final json = menu.toJson();
-      expect(json['allowedWidgetTypes'], ['dish', 'section']);
+      expect(json['allowedWidgets'], isA<List>());
+      // Without explicitToJson on Menu, nested values stay as freezed objects
+      // in the in-memory map; round-trip via JSON encoding when needed.
+      final first = (json['allowedWidgets'] as List).first;
+      final type = first is Map
+          ? first['type']
+          : (first as WidgetTypeConfig).type;
+      expect(type, 'dish');
     });
 
-    test('should deserialize allowedWidgetTypes from JSON', () {
+    test('should deserialize allowedWidgets from JSON', () {
       final json = {
         'id': 1,
         'name': 'Test Menu',
         'status': 'draft',
         'version': '1.0.0',
-        'allowedWidgetTypes': ['dish', 'text'],
+        'allowedWidgets': [
+          {'type': 'dish', 'alignment': 'center'},
+          {'type': 'text'},
+        ],
       };
 
       final menu = Menu.fromJson(json);
-      expect(menu.allowedWidgetTypes, ['dish', 'text']);
+      expect(menu.allowedWidgets, hasLength(2));
+      expect(menu.allowedWidgets[0].alignment, WidgetAlignment.center);
+      expect(menu.allowedWidgets[1].alignment, WidgetAlignment.start);
     });
 
     test('should not be equal with different values', () {

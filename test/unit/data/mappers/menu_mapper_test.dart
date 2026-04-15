@@ -6,7 +6,9 @@ import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/entities/widget_type_config.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
 
 void main() {
   group('MenuMapper', () {
@@ -249,35 +251,44 @@ void main() {
       });
     });
 
-    group('CreateMenuInput allowedWidgetTypes', () {
-      test('should hold allowedWidgetTypes', () {
+    group('CreateMenuInput allowedWidgets', () {
+      test('should hold allowedWidgets', () {
         const input = CreateMenuInput(
           name: 'Menu',
           version: '1.0.0',
-          allowedWidgetTypes: ['dish', 'text'],
+          allowedWidgets: [
+            WidgetTypeConfig(type: 'dish'),
+            WidgetTypeConfig(type: 'text'),
+          ],
         );
 
-        expect(input.allowedWidgetTypes, ['dish', 'text']);
+        expect(input.allowedWidgets?.map((c) => c.type).toList(), [
+          'dish',
+          'text',
+        ]);
       });
 
-      test('should default allowedWidgetTypes to null', () {
+      test('should default allowedWidgets to null', () {
         const input = CreateMenuInput(name: 'Menu', version: '1.0.0');
 
-        expect(input.allowedWidgetTypes, isNull);
+        expect(input.allowedWidgets, isNull);
       });
     });
 
-    group('UpdateMenuInput allowedWidgetTypes', () {
-      test('should hold allowedWidgetTypes', () {
-        const input = UpdateMenuInput(id: 1, allowedWidgetTypes: ['section']);
+    group('UpdateMenuInput allowedWidgets', () {
+      test('should hold allowedWidgets', () {
+        const input = UpdateMenuInput(
+          id: 1,
+          allowedWidgets: [WidgetTypeConfig(type: 'section')],
+        );
 
-        expect(input.allowedWidgetTypes, ['section']);
+        expect(input.allowedWidgets?.first.type, 'section');
       });
 
-      test('should default allowedWidgetTypes to null', () {
+      test('should default allowedWidgets to null', () {
         const input = UpdateMenuInput(id: 1);
 
-        expect(input.allowedWidgetTypes, isNull);
+        expect(input.allowedWidgets, isNull);
       });
     });
 
@@ -353,8 +364,9 @@ void main() {
       });
     });
 
-    group('allowedWidgetTypes mapping', () {
-      test('toEntity - maps allowed_widget_types list to entity field', () {
+    group('allowedWidgets mapping', () {
+      test('toEntity - maps legacy allowed_widget_types strings with default '
+          'start alignment', () {
         final dto = MenuDto({
           'id': 1,
           'status': 'draft',
@@ -365,10 +377,34 @@ void main() {
 
         final entity = MenuMapper.toEntity(dto);
 
-        expect(entity.allowedWidgetTypes, ['dish', 'text']);
+        expect(entity.allowedWidgets, hasLength(2));
+        expect(entity.allowedWidgets[0].type, 'dish');
+        expect(entity.allowedWidgets[0].alignment, WidgetAlignment.start);
+        expect(entity.allowedWidgets[1].type, 'text');
+        expect(entity.allowedWidgets[1].alignment, WidgetAlignment.start);
+        expect(entity.allowedWidgetTypes, {'dish', 'text'});
       });
 
-      test('toEntity - maps null allowed_widget_types to empty list', () {
+      test('toEntity - maps new allowed_widgets JSON with alignment', () {
+        final dto = MenuDto({
+          'id': 1,
+          'status': 'draft',
+          'name': 'Menu',
+          'version': '1.0.0',
+          'allowed_widgets': [
+            {'type': 'dish', 'alignment': 'justified'},
+            {'type': 'section', 'alignment': 'center'},
+          ],
+        });
+
+        final entity = MenuMapper.toEntity(dto);
+
+        expect(entity.allowedWidgets, hasLength(2));
+        expect(entity.allowedWidgets[0].alignment, WidgetAlignment.justified);
+        expect(entity.allowedWidgets[1].alignment, WidgetAlignment.center);
+      });
+
+      test('toEntity - maps null allowed_widgets to empty list', () {
         final dto = MenuDto({
           'id': 1,
           'status': 'draft',
@@ -378,43 +414,62 @@ void main() {
 
         final entity = MenuMapper.toEntity(dto);
 
-        expect(entity.allowedWidgetTypes, <String>[]);
+        expect(entity.allowedWidgets, <WidgetTypeConfig>[]);
       });
 
-      test('toCreateDto - includes allowed_widget_types when non-null', () {
+      test('toCreateDto - serialises allowed_widgets as JSON list', () {
         const input = CreateMenuInput(
           name: 'Menu',
           version: '1.0.0',
-          allowedWidgetTypes: ['dish', 'section'],
+          allowedWidgets: [
+            WidgetTypeConfig(
+              type: 'dish',
+              alignment: WidgetAlignment.justified,
+            ),
+            WidgetTypeConfig(type: 'section'),
+          ],
         );
 
         final dto = MenuMapper.toCreateDto(input);
 
-        expect(dto['allowed_widget_types'], ['dish', 'section']);
+        expect(dto['allowed_widgets'], isA<List>());
+        expect((dto['allowed_widgets'] as List).first, {
+          'type': 'dish',
+          'alignment': 'justified',
+          'enabled': true,
+        });
       });
 
-      test('toCreateDto - omits allowed_widget_types when null', () {
+      test('toCreateDto - omits allowed_widgets when null', () {
         const input = CreateMenuInput(name: 'Menu', version: '1.0.0');
 
         final dto = MenuMapper.toCreateDto(input);
 
-        expect(dto.containsKey('allowed_widget_types'), false);
+        expect(dto.containsKey('allowed_widgets'), false);
       });
 
-      test('toUpdateDto - includes allowed_widget_types when non-null', () {
-        const input = UpdateMenuInput(id: 1, allowedWidgetTypes: ['text']);
+      test('toUpdateDto - serialises allowed_widgets as JSON list', () {
+        const input = UpdateMenuInput(
+          id: 1,
+          allowedWidgets: [WidgetTypeConfig(type: 'text')],
+        );
 
         final dto = MenuMapper.toUpdateDto(input);
 
-        expect(dto['allowed_widget_types'], ['text']);
+        expect(dto['allowed_widgets'], isA<List>());
+        expect((dto['allowed_widgets'] as List).first, {
+          'type': 'text',
+          'alignment': 'start',
+          'enabled': true,
+        });
       });
 
-      test('toUpdateDto - omits allowed_widget_types when null', () {
+      test('toUpdateDto - omits allowed_widgets when null', () {
         const input = UpdateMenuInput(id: 1, name: 'Updated');
 
         final dto = MenuMapper.toUpdateDto(input);
 
-        expect(dto.containsKey('allowed_widget_types'), false);
+        expect(dto.containsKey('allowed_widgets'), false);
       });
 
       test('toUpdateDto - includes sizeId as integer when provided', () {

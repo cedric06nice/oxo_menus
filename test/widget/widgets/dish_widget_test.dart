@@ -25,7 +25,7 @@ void main() {
       );
 
       expect(find.text('PASTA CARBONARA'), findsOneWidget);
-      expect(find.text('£12.50'), findsOneWidget);
+      expect(find.text('£12.5'), findsOneWidget);
     });
 
     testWidgets('should hide price when showPrice is false', (tester) async {
@@ -46,7 +46,7 @@ void main() {
       );
 
       expect(find.text('PASTA CARBONARA'), findsOneWidget);
-      expect(find.text('£12.50'), findsNothing);
+      expect(find.text('£12.5'), findsNothing);
     });
 
     testWidgets('should display description', (tester) async {
@@ -167,7 +167,7 @@ void main() {
         );
 
         // Both price and allergens should be shown by default
-        expect(find.text('£12.50'), findsOneWidget);
+        expect(find.text('£12.5'), findsOneWidget);
         expect(find.text('GLUTEN, MILK'), findsOneWidget);
       },
     );

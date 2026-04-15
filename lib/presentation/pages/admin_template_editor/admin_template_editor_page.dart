@@ -19,6 +19,7 @@ import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_state.dart
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
+import 'package:oxo_menus/presentation/providers/allowed_widgets_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
@@ -70,6 +71,9 @@ class _AdminTemplateEditorPageState
         ref
             .read(menuDisplayOptionsProvider.notifier)
             .set(next.menu?.displayOptions);
+        ref
+            .read(allowedWidgetsProvider.notifier)
+            .set(next.menu?.allowedWidgets ?? const []);
       }
     });
   }
@@ -438,7 +442,7 @@ class _AdminTemplateEditorPageState
                   WidgetPalette(
                     axis: Axis.horizontal,
                     registry: registry,
-                    allowedWidgetTypes: menu?.allowedWidgetTypes,
+                    allowedWidgets: menu?.allowedWidgets,
                   ),
                   Expanded(child: _buildCanvas(treeState)),
                 ],
@@ -462,9 +466,9 @@ class _AdminTemplateEditorPageState
                       Expanded(
                         child: WidgetPalette(
                           registry: registry,
-                          allowedWidgetTypes: menu?.allowedWidgetTypes,
-                          onAllowedTypesChanged: (types) =>
-                              templateNotifier.updateAllowedWidgetTypes(types),
+                          allowedWidgets: menu?.allowedWidgets,
+                          onAllowedWidgetsChanged: (configs) =>
+                              templateNotifier.updateAllowedWidgets(configs),
                         ),
                       ),
                       if (currentSelection != null) ...[

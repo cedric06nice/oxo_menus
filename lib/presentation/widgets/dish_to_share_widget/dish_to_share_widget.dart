@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/allergens/allergen_formatter.dart';
 import 'package:oxo_menus/domain/widgets/dish_to_share/dish_to_share_props.dart';
+import 'package:oxo_menus/domain/widgets/shared/price_formatter.dart';
+import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/presentation/helpers/edit_dialog_helper.dart';
+import 'package:oxo_menus/presentation/widgets/common/price_cell.dart';
 import 'dish_to_share_edit_dialog.dart';
 
 /// Widget that displays a shared dish with name, price, sharing text,
@@ -20,6 +23,13 @@ class DishToShareWidget extends StatelessWidget {
   @override
   Widget build(BuildContext buildContext) {
     final colorScheme = Theme.of(buildContext).colorScheme;
+    final alignment = context.alignment;
+    final showPrice = context.displayOptions?.showPrices ?? true;
+    final showAllergens = context.displayOptions?.showAllergens ?? true;
+    final textAlign = alignment.textAlign;
+
+    const nameStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
+    const priceStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
 
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
@@ -28,32 +38,32 @@ class DishToShareWidget extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: alignment.crossAxis,
             children: [
-              // Dish name
-              Text(
-                props.displayName,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              if (alignment.isJustified) ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Expanded(child: Text(props.displayName, style: nameStyle)),
+                    if (showPrice)
+                      PriceCell(price: props.price, style: priceStyle),
+                  ],
                 ),
-              ),
-
-              // Price
-              if (context.displayOptions?.showPrices ?? true)
-                Text(
-                  '£${props.price.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+              ] else ...[
+                Text(props.displayName, textAlign: textAlign, style: nameStyle),
+                if (showPrice)
+                  Text(
+                    formatPrice(props.price),
+                    textAlign: textAlign,
+                    style: priceStyle,
                   ),
-                ),
-
-              // Sharing text
+              ],
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
                   props.sharingText,
+                  textAlign: textAlign,
                   style: TextStyle(
                     fontSize: 14,
                     fontStyle: FontStyle.italic,
@@ -61,27 +71,25 @@ class DishToShareWidget extends StatelessWidget {
                   ),
                 ),
               ),
-
-              // Description
               if (props.description != null &&
                   props.description!.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
                   props.description!,
+                  textAlign: textAlign,
                   style: TextStyle(
                     fontSize: 14,
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
-
-              // Calories and Allergens
-              if (context.displayOptions?.showAllergens ?? true) ...[
+              if (showAllergens) ...[
                 if (props.calories != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       '${props.calories} KCAL',
+                      textAlign: textAlign,
                       style: TextStyle(
                         fontSize: 12,
                         color: colorScheme.onSurfaceVariant,
@@ -101,6 +109,7 @@ class DishToShareWidget extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         formattedAllergens,
+                        textAlign: textAlign,
                         style: TextStyle(
                           fontSize: 12,
                           fontStyle: FontStyle.italic,

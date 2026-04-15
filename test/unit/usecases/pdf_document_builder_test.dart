@@ -7,8 +7,11 @@ import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
+import 'package:oxo_menus/domain/entities/widget_type_config.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/pdf_document_builder.dart';
+import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -1321,5 +1324,108 @@ void main() {
         expect(bytes[1], 0x50);
       },
     );
+
+    group('section widget alignment', () {
+      const sectionWidget = WidgetInstance(
+        id: 1,
+        columnId: 1,
+        type: 'section',
+        version: '1.0.0',
+        index: 0,
+        props: {'title': 'Starters', 'uppercase': true, 'showDivider': true},
+      );
+
+      pw.Column columnForAlignment(WidgetAlignment alignment) {
+        final sectionFont = pw.Font.ttf(sectionFontData);
+        final widget = builder.debugBuildSection(
+          sectionWidget,
+          null,
+          sectionFont,
+          alignment,
+        );
+        final container = widget as pw.Container;
+        return container.child as pw.Column;
+      }
+
+      test('start alignment maps to start cross-axis and left text', () {
+        final column = columnForAlignment(WidgetAlignment.start);
+        expect(column.crossAxisAlignment, pw.CrossAxisAlignment.start);
+        final title = column.children.first as pw.Text;
+        expect(title.textAlign, pw.TextAlign.left);
+      });
+
+      test('center alignment maps to center cross-axis and center text', () {
+        final column = columnForAlignment(WidgetAlignment.center);
+        expect(column.crossAxisAlignment, pw.CrossAxisAlignment.center);
+        final title = column.children.first as pw.Text;
+        expect(title.textAlign, pw.TextAlign.center);
+      });
+
+      test('end alignment maps to end cross-axis and right text', () {
+        final column = columnForAlignment(WidgetAlignment.end);
+        expect(column.crossAxisAlignment, pw.CrossAxisAlignment.end);
+        final title = column.children.first as pw.Text;
+        expect(title.textAlign, pw.TextAlign.right);
+      });
+
+      test('justified degrades to start for sections (no price line)', () {
+        final column = columnForAlignment(WidgetAlignment.justified);
+        expect(column.crossAxisAlignment, pw.CrossAxisAlignment.start);
+        final title = column.children.first as pw.Text;
+        expect(title.textAlign, pw.TextAlign.left);
+      });
+
+      test(
+        'buildDocument honours center alignment configured via allowedWidgets',
+        () async {
+          final menuTree = MenuTree(
+            menu: Menu(
+              id: 1,
+              name: 'Aligned Menu',
+              status: Status.published,
+              version: '1.0.0',
+              allowedWidgets: const [
+                WidgetTypeConfig(
+                  type: 'section',
+                  alignment: WidgetAlignment.center,
+                ),
+              ],
+            ),
+            pages: const [
+              PageWithContainers(
+                page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
+                containers: [
+                  ContainerWithColumns(
+                    container: entity.Container(id: 1, pageId: 1, index: 0),
+                    columns: [
+                      ColumnWithWidgets(
+                        column: entity.Column(
+                          id: 1,
+                          containerId: 1,
+                          index: 0,
+                          flex: 1,
+                        ),
+                        widgets: [sectionWidget],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+
+          final bytes = await builder.buildDocument(
+            menuTree: menuTree,
+            baseFontData: baseFontData,
+            boldFontData: boldFontData,
+            sectionFontData: sectionFontData,
+            imageCache: {},
+          );
+
+          expect(bytes, isNotEmpty);
+          expect(bytes[0], 0x25); // %PDF
+        },
+      );
+    });
   });
 }

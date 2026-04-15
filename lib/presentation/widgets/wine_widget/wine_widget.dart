@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:oxo_menus/domain/widgets/shared/price_formatter.dart';
+import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
 import 'package:oxo_menus/domain/widgets/wine/wine_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/presentation/helpers/edit_dialog_helper.dart';
+import 'package:oxo_menus/presentation/widgets/common/price_cell.dart';
 import 'wine_edit_dialog.dart';
 
 class WineWidget extends StatelessWidget {
@@ -13,6 +16,13 @@ class WineWidget extends StatelessWidget {
   @override
   Widget build(BuildContext buildContext) {
     final colorScheme = Theme.of(buildContext).colorScheme;
+    final alignment = context.alignment;
+    final showPrice = context.displayOptions?.showPrices ?? true;
+    final showAllergens = context.displayOptions?.showAllergens ?? true;
+    final textAlign = alignment.textAlign;
+
+    const nameStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
+    const priceStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
 
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
@@ -21,59 +31,56 @@ class WineWidget extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: alignment.crossAxis,
             children: [
-              // Wine name
-              Text(
-                props.displayName,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              if (alignment.isJustified) ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Expanded(child: Text(props.displayName, style: nameStyle)),
+                    if (showPrice)
+                      PriceCell(price: props.price, style: priceStyle),
+                  ],
                 ),
-              ),
-
-              // Price
-              if (context.displayOptions?.showPrices ?? true)
-                Text(
-                  '£${props.price.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+              ] else ...[
+                Text(props.displayName, textAlign: textAlign, style: nameStyle),
+                if (showPrice)
+                  Text(
+                    formatPrice(props.price),
+                    textAlign: textAlign,
+                    style: priceStyle,
                   ),
-                ),
-
-              // Vintage
+              ],
               if (props.vintage != null) ...[
                 const SizedBox(height: 4),
                 Text(
                   'Vintage: ${props.vintage}',
+                  textAlign: textAlign,
                   style: TextStyle(
                     fontSize: 14,
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
-
-              // Description
               if (props.description != null &&
                   props.description!.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
                   props.description!,
+                  textAlign: textAlign,
                   style: TextStyle(
                     fontSize: 14,
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
-
-              // Allergens
-              if (props.containsSulphites &&
-                  (context.displayOptions?.showAllergens ?? true))
+              if (props.containsSulphites && showAllergens)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     'SULPHITES',
+                    textAlign: textAlign,
                     style: TextStyle(
                       fontSize: 12,
                       fontStyle: FontStyle.italic,

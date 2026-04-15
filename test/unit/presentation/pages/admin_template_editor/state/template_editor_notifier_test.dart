@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
@@ -8,6 +11,8 @@ import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
+import 'package:oxo_menus/domain/entities/widget_type_config.dart';
+import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
@@ -404,10 +409,80 @@ void main() {
 
       await container
           .read(templateEditorProvider(menuId).notifier)
-          .updateAllowedWidgetTypes(['dish', 'text']);
+          .updateAllowedWidgets(const [
+            WidgetTypeConfig(type: 'dish'),
+            WidgetTypeConfig(type: 'text'),
+          ]);
 
       final treeState = container.read(editorTreeProvider(menuId));
-      expect(treeState.menu?.allowedWidgetTypes, ['dish', 'text']);
+      expect(treeState.menu?.allowedWidgetTypes, {'dish', 'text'});
+    });
+
+    test(
+      'updateAllowedWidgets applies state optimistically before repo completes',
+      () async {
+        stubSuccessfulTreeLoad();
+        final completer = Completer<Result<Menu, DomainError>>();
+        when(
+          () => mockMenuRepo.update(any()),
+        ).thenAnswer((_) => completer.future);
+
+        final container = createContainer();
+        addTearDown(container.dispose);
+
+        await container
+            .read(editorTreeProvider(menuId).notifier)
+            .loadTree(separateHeaderFooter: true);
+
+        const newConfigs = [
+          WidgetTypeConfig(type: 'dish', alignment: WidgetAlignment.center),
+        ];
+
+        // Fire-and-forget — don't await yet so we can inspect mid-flight state.
+        final future = container
+            .read(templateEditorProvider(menuId).notifier)
+            .updateAllowedWidgets(newConfigs);
+
+        // Let the notifier run its synchronous optimistic write.
+        await Future<void>.delayed(Duration.zero);
+
+        final midState = container.read(editorTreeProvider(menuId));
+        expect(midState.menu?.allowedWidgets, newConfigs);
+
+        completer.complete(Success(testMenu));
+        await future;
+      },
+    );
+
+    test('updateAllowedWidgets rolls back on repo failure', () async {
+      stubSuccessfulTreeLoad();
+      final initialConfigs = [
+        const WidgetTypeConfig(type: 'dish', alignment: WidgetAlignment.end),
+      ];
+      // Seed tree with an initial allowedWidgets list so rollback has a target.
+      final seededMenu = testMenu.copyWith(allowedWidgets: initialConfigs);
+      when(
+        () => mockMenuRepo.getById(menuId),
+      ).thenAnswer((_) async => Success(seededMenu));
+      when(
+        () => mockMenuRepo.update(any()),
+      ).thenAnswer((_) async => const Failure(ServerError('nope')));
+
+      final container = createContainer();
+      addTearDown(container.dispose);
+
+      await container
+          .read(editorTreeProvider(menuId).notifier)
+          .loadTree(separateHeaderFooter: true);
+
+      await container
+          .read(templateEditorProvider(menuId).notifier)
+          .updateAllowedWidgets(const [
+            WidgetTypeConfig(type: 'dish', alignment: WidgetAlignment.center),
+          ]);
+
+      final treeState = container.read(editorTreeProvider(menuId));
+      expect(treeState.menu?.allowedWidgets, initialConfigs);
     });
 
     test('updateColumnDroppable updates column locally', () async {

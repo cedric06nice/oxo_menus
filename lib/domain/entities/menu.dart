@@ -4,6 +4,8 @@ import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
+import 'package:oxo_menus/domain/entities/widget_type_config.dart';
+import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
 
 part 'menu.freezed.dart';
 part 'menu.g.dart';
@@ -26,10 +28,24 @@ abstract class Menu with _$Menu {
     PageSize? pageSize,
     Area? area,
     MenuDisplayOptions? displayOptions,
-    @Default([]) List<String> allowedWidgetTypes,
+    @Default([]) List<WidgetTypeConfig> allowedWidgets,
   }) = _Menu;
 
   factory Menu.fromJson(Map<String, dynamic> json) => _$MenuFromJson(json);
+
+  /// Set of widget type strings currently enabled for regular users.
+  /// Alignment may be configured for types that aren't enabled.
+  Set<String> get allowedWidgetTypes =>
+      allowedWidgets.where((c) => c.enabled).map((c) => c.type).toSet();
+
+  /// Looks up the configured alignment for a given widget type.
+  /// Returns [WidgetAlignment.start] when the type isn't in the allow-list.
+  WidgetAlignment alignmentFor(String type) {
+    for (final config in allowedWidgets) {
+      if (config.type == type) return config.alignment;
+    }
+    return WidgetAlignment.start;
+  }
 }
 
 /// Style configuration for a menu

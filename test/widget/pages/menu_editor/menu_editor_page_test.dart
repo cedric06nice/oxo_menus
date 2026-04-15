@@ -12,6 +12,7 @@ import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/entities/widget_type_config.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
@@ -1405,7 +1406,7 @@ void main() {
         name: 'Test Menu',
         status: Status.draft,
         version: '1.0.0',
-        allowedWidgetTypes: ['dish'],
+        allowedWidgets: [WidgetTypeConfig(type: 'dish')],
       );
       final pages = [
         const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
@@ -1483,7 +1484,7 @@ void main() {
         name: 'Test Menu',
         status: Status.draft,
         version: '1.0.0',
-        allowedWidgetTypes: ['dish'],
+        allowedWidgets: [WidgetTypeConfig(type: 'dish')],
       );
       final pages = [
         const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
@@ -1650,7 +1651,7 @@ void main() {
         name: 'Test Menu',
         status: Status.draft,
         version: '1.0.0',
-        allowedWidgetTypes: ['dish'],
+        allowedWidgets: [WidgetTypeConfig(type: 'dish')],
       );
 
       when(
@@ -1681,7 +1682,7 @@ void main() {
         name: 'Test Menu',
         status: Status.draft,
         version: '1.0.0',
-        allowedWidgetTypes: [],
+        allowedWidgets: [],
       );
 
       when(

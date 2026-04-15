@@ -7,6 +7,7 @@ import 'package:oxo_menus/data/models/menu_dto.dart';
 import 'package:oxo_menus/data/repositories/menu_repository_impl.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
 
 class MockDirectusDataSource extends Mock implements DirectusDataSource {}
 
@@ -117,7 +118,55 @@ void main() {
 
         // Assert
         expect(result.isSuccess, true);
-        expect(result.valueOrNull!.allowedWidgetTypes, ['dish', 'text']);
+        expect(result.valueOrNull!.allowedWidgetTypes, {'dish', 'text'});
+      });
+
+      test('should request allowed_widgets in fields', () async {
+        when(
+          () => mockDataSource.getItem<MenuDto>(
+            menuId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => menuJson);
+
+        await repository.getById(menuId);
+
+        final captured =
+            verify(
+                  () => mockDataSource.getItem<MenuDto>(
+                    menuId,
+                    fields: captureAny(named: 'fields'),
+                  ),
+                ).captured.single
+                as List<String>;
+
+        expect(captured, contains('allowed_widgets'));
+      });
+
+      test('should map allowed_widgets with alignment from response', () async {
+        final jsonWithAllowed = {
+          ...menuJson,
+          'allowed_widgets': [
+            {'type': 'dish', 'alignment': 'center', 'enabled': true},
+            {'type': 'text', 'alignment': 'end', 'enabled': true},
+          ],
+        };
+        when(
+          () => mockDataSource.getItem<MenuDto>(
+            menuId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => jsonWithAllowed);
+
+        final result = await repository.getById(menuId);
+
+        expect(result.isSuccess, true);
+        final configs = result.valueOrNull!.allowedWidgets;
+        expect(configs.length, 2);
+        expect(configs[0].type, 'dish');
+        expect(configs[0].alignment, WidgetAlignment.center);
+        expect(configs[1].type, 'text');
+        expect(configs[1].alignment, WidgetAlignment.end);
       });
 
       test('should return NotFoundError when menu does not exist', () async {
