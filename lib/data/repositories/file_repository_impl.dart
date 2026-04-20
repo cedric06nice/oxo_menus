@@ -27,6 +27,20 @@ class FileRepositoryImpl implements FileRepository {
   }
 
   @override
+  Future<Result<String, DomainError>> replace(
+    String fileId,
+    Uint8List bytes,
+    String filename,
+  ) async {
+    try {
+      final returnedId = await dataSource.replaceFile(fileId, bytes, filename);
+      return Success(returnedId);
+    } catch (e) {
+      return Failure(mapDirectusError(e));
+    }
+  }
+
+  @override
   Future<Result<List<ImageFileInfo>, DomainError>> listImageFiles() async {
     try {
       final data = await dataSource.listFiles(

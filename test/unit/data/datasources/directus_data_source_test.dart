@@ -255,6 +255,91 @@ void main() {
       });
     });
 
+    group('replaceFile', () {
+      test(
+        'sends a PATCH multipart request to /files/:id with Bearer auth and returns the file ID',
+        () async {
+          when(() => mockApiManager.accessToken).thenReturn('test-token');
+
+          final responseBody = json.encode({
+            'data': {'id': 'file-123'},
+          });
+          http.MultipartRequest? captured;
+          when(() => mockHttpClient.send(any())).thenAnswer((invocation) async {
+            captured =
+                invocation.positionalArguments.first as http.MultipartRequest;
+            return http.StreamedResponse(
+              Stream.value(utf8.encode(responseBody)),
+              200,
+            );
+          });
+
+          final fileId = await dataSource.replaceFile(
+            'file-123',
+            Uint8List.fromList([9, 8, 7]),
+            'SampleRestaurantMenu.pdf',
+          );
+
+          expect(fileId, 'file-123');
+          expect(captured, isNotNull);
+          expect(captured!.method, 'PATCH');
+          expect(
+            captured!.url.toString(),
+            'http://localhost:8055/files/file-123',
+          );
+          expect(captured!.headers['Authorization'], 'Bearer test-token');
+          expect(captured!.files.single.filename, 'SampleRestaurantMenu.pdf');
+        },
+      );
+
+      test(
+        'throws NOT_AUTHENTICATED when no access token is available',
+        () async {
+          when(() => mockApiManager.accessToken).thenReturn(null);
+
+          expect(
+            () => dataSource.replaceFile(
+              'file-123',
+              Uint8List.fromList([1]),
+              'name.pdf',
+            ),
+            throwsA(
+              isA<DirectusException>().having(
+                (e) => e.code,
+                'code',
+                'NOT_AUTHENTICATED',
+              ),
+            ),
+          );
+        },
+      );
+
+      test('throws UPLOAD_FAILED on non-2xx response', () async {
+        when(() => mockApiManager.accessToken).thenReturn('test-token');
+        when(() => mockHttpClient.send(any())).thenAnswer(
+          (_) async => http.StreamedResponse(
+            Stream.value(utf8.encode('{"errors":[]}')),
+            500,
+          ),
+        );
+
+        expect(
+          () => dataSource.replaceFile(
+            'file-123',
+            Uint8List.fromList([1]),
+            'name.pdf',
+          ),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'UPLOAD_FAILED',
+            ),
+          ),
+        );
+      });
+    });
+
     group('downloadFileBytes', () {
       test('delegates to apiManager.sendRequestToEndpoint', () async {
         // Arrange

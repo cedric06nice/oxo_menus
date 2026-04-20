@@ -15,11 +15,34 @@ import 'package:oxo_menus/domain/widgets/shared/price_formatter.dart';
 import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
 import 'package:oxo_menus/domain/widgets/text/text_props.dart';
 import 'package:oxo_menus/domain/widgets/wine/wine_props.dart';
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 typedef _AlignmentLookup = WidgetAlignment Function(String type);
+
+/// Returns the list of menu trees to render (in order) for an exportable
+/// menu bundle: every tree with [MenuDisplayOptions.showAllergens] = false
+/// first, then every tree with showAllergens = true. Other options flow from
+/// [base]. Each tree's `menu.displayOptions` is rewritten to match so that
+/// downstream rendering picks up the correct flags.
+List<MenuTree> composeBundleRenderOrder({
+  required List<MenuTree> trees,
+  required MenuDisplayOptions base,
+}) {
+  MenuTree withOptions(MenuTree t, MenuDisplayOptions opts) =>
+      t.copyWith(menu: t.menu.copyWith(displayOptions: opts));
+
+  final withoutAllergens = base.copyWith(showAllergens: false);
+  final withAllergens = base.copyWith(showAllergens: true);
+
+  return [
+    for (final t in trees) withOptions(t, withoutAllergens),
+    for (final t in trees) withOptions(t, withAllergens),
+  ];
+}
 
 /// Maps a [WidgetAlignment] to PDF column/text alignment values.
 pw.CrossAxisAlignment _pdfCrossAxis(WidgetAlignment a) => switch (a) {
@@ -84,6 +107,7 @@ class PdfDocumentBuilder {
     required ByteData boldFontData,
     required ByteData sectionFontData,
     required Map<String, Uint8List> imageCache,
+    String? watermarkText,
   }) async {
     final theme = pw.ThemeData.withFont(
       base: pw.Font.ttf(baseFontData),
@@ -92,31 +116,118 @@ class PdfDocumentBuilder {
     final sectionFont = pw.Font.ttf(sectionFontData);
     final pdf = pw.Document(theme: theme, version: PdfVersion.pdf_1_5);
 
-    final styleConfig = menuTree.menu.styleConfig;
-    final displayOptions = menuTree.menu.displayOptions;
-    final pageFormat = _resolver.resolvePageFormat(menuTree.menu.pageSize);
-    final pageMargins = _resolver.resolveContentMargins(styleConfig);
-    final alignmentFor = menuTree.menu.alignmentFor;
-    for (final pageData in menuTree.pages) {
-      pdf.addPage(
-        pw.Page(
-          pageFormat: pageFormat,
-          margin: pageMargins,
-          build: (context) => _buildPageWithHeaderFooter(
-            pageData,
-            menuTree.headerPage,
-            menuTree.footerPage,
-            styleConfig,
-            displayOptions,
-            imageCache,
-            sectionFont,
-            alignmentFor,
-          ),
-        ),
+    _addTreePages(
+      pdf: pdf,
+      tree: menuTree,
+      sectionFont: sectionFont,
+      imageCache: imageCache,
+      watermarkText: watermarkText,
+    );
+
+    return await pdf.save();
+  }
+
+  /// Build a PDF document composed of N menus — first every menu rendered
+  /// without allergens, then every menu rendered with allergens. Every page
+  /// carries the diagonal [watermarkText] overlay.
+  Future<Uint8List> buildBundleDocument({
+    required List<MenuTree> trees,
+    required MenuDisplayOptions baseOptions,
+    required ByteData baseFontData,
+    required ByteData boldFontData,
+    required ByteData sectionFontData,
+    required Map<String, Uint8List> imageCache,
+    required String watermarkText,
+  }) async {
+    final theme = pw.ThemeData.withFont(
+      base: pw.Font.ttf(baseFontData),
+      bold: pw.Font.ttf(boldFontData),
+    );
+    final sectionFont = pw.Font.ttf(sectionFontData);
+    final pdf = pw.Document(theme: theme, version: PdfVersion.pdf_1_5);
+
+    final orderedTrees = composeBundleRenderOrder(
+      trees: trees,
+      base: baseOptions,
+    );
+
+    for (final tree in orderedTrees) {
+      _addTreePages(
+        pdf: pdf,
+        tree: tree,
+        sectionFont: sectionFont,
+        imageCache: imageCache,
+        watermarkText: watermarkText,
       );
     }
 
     return await pdf.save();
+  }
+
+  void _addTreePages({
+    required pw.Document pdf,
+    required MenuTree tree,
+    required pw.Font sectionFont,
+    required Map<String, Uint8List> imageCache,
+    String? watermarkText,
+  }) {
+    final styleConfig = tree.menu.styleConfig;
+    final displayOptions = tree.menu.displayOptions;
+    final pageFormat = _resolver.resolvePageFormat(tree.menu.pageSize);
+    final pageMargins = _resolver.resolveContentMargins(styleConfig);
+    final alignmentFor = tree.menu.alignmentFor;
+    for (final pageData in tree.pages) {
+      pdf.addPage(
+        pw.Page(
+          pageFormat: pageFormat,
+          margin: pageMargins,
+          build: (context) {
+            final page = _buildPageWithHeaderFooter(
+              pageData,
+              tree.headerPage,
+              tree.footerPage,
+              styleConfig,
+              displayOptions,
+              imageCache,
+              sectionFont,
+              alignmentFor,
+            );
+            return watermarkText == null
+                ? page
+                : _wrapWithWatermark(page, watermarkText);
+          },
+        ),
+      );
+    }
+  }
+
+  pw.Widget _wrapWithWatermark(pw.Widget page, String text) {
+    return pw.Stack(
+      fit: pw.StackFit.expand,
+      children: [
+        page,
+        pw.Positioned.fill(
+          child: pw.Center(
+            child: pw.Opacity(
+              opacity: 0.22,
+              child: pw.Transform.rotate(
+                angle: math.pi / 4,
+                child: pw.Text(
+                  text,
+                  textAlign: pw.TextAlign.center,
+                  style: pw.TextStyle(
+                    fontSize: 96,
+                    color: PdfColors.grey300,
+                    fontWeight: pw.FontWeight.bold,
+                    letterSpacing: 8,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   pw.Widget _buildPageWithHeaderFooter(

@@ -71,6 +71,17 @@ class HomePage extends ConsumerWidget {
                                 context.go(AppRoutes.adminTemplateCreate),
                           ),
                         ),
+                      if (isAdmin)
+                        SizedBox(
+                          width: 200,
+                          child: QuickActionCard(
+                            icon: Icons.picture_as_pdf,
+                            title: 'Exportable Menus',
+                            subtitle: 'Compose public PDF bundles',
+                            onTap: () =>
+                                context.go(AppRoutes.adminExportableMenus),
+                          ),
+                        ),
                     ],
                   ),
                 ],

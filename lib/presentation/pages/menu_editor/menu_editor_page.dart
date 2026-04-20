@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +22,7 @@ import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/allowed_widgets_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/presentation/providers/menu_settings/menu_settings_provider.dart';
+import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_error_state.dart';
 import 'package:oxo_menus/presentation/widgets/common/adaptive_loading_indicator.dart';
@@ -100,8 +103,39 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       builder: (_) => const PdfDisplayOptionsDialog(),
     );
     if (options != null && mounted) {
+      // Re-publish every exportable bundle that includes this menu in the
+      // background so the admin isn't blocked from previewing. Outcomes are
+      // surfaced via SnackBar so any failure is visible instead of silent.
+      _publishBundlesInBackground();
       context.push(AppRoutes.menuPdf(widget.menuId), extra: options);
     }
+  }
+
+  void _publishBundlesInBackground() {
+    final useCase = ref.read(publishBundlesForMenuUseCaseProvider);
+    unawaited(
+      useCase.execute(widget.menuId).then((results) {
+        if (!mounted) return;
+        if (results.isEmpty) return;
+        final failures = results.where((r) => r.isFailure).toList();
+        if (failures.isEmpty) {
+          showThemedSnackBar(
+            context,
+            'Published ${results.length} exportable menu PDF'
+            '${results.length == 1 ? '' : 's'}',
+          );
+        } else {
+          final firstMessage =
+              failures.first.errorOrNull?.message ?? 'Unknown error';
+          showThemedSnackBar(
+            context,
+            'Failed to publish ${failures.length} exportable menu PDF'
+            '${failures.length == 1 ? '' : 's'}: $firstMessage',
+            isError: true,
+          );
+        }
+      }),
+    );
   }
 
   Future<void> _saveMenu() async {

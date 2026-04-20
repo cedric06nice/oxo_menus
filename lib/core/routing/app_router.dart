@@ -5,6 +5,7 @@ import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
+import 'package:oxo_menus/presentation/pages/admin_exportable_menus/admin_exportable_menus_page.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_page.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_creator/admin_template_creator_page.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/admin_template_editor_page.dart';
@@ -191,6 +192,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.adminSizes,
             name: 'admin-sizes',
             builder: (context, state) => const AdminSizesPage(),
+          ),
+          GoRoute(
+            path: AppRoutes.adminExportableMenus,
+            name: 'admin-exportable-menus',
+            builder: (context, state) => const AdminExportableMenusPage(),
           ),
           GoRoute(
             path: AppRoutes.adminTemplates,

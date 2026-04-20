@@ -8,6 +8,16 @@ abstract class FileRepository {
   /// Upload a file to Directus and return the file ID
   Future<Result<String, DomainError>> upload(Uint8List bytes, String filename);
 
+  /// Replace the bytes of an existing Directus file while keeping its ID.
+  ///
+  /// The [filename] is used as the `filename_download` so browsers save the
+  /// file under a human-readable name. Returns the same [fileId] on success.
+  Future<Result<String, DomainError>> replace(
+    String fileId,
+    Uint8List bytes,
+    String filename,
+  );
+
   /// List all image files from Directus
   Future<Result<List<ImageFileInfo>, DomainError>> listImageFiles();
 

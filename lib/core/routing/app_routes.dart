@@ -11,6 +11,7 @@ abstract final class AppRoutes {
   static const adminSizes = '/admin/sizes';
   static const adminTemplates = '/admin/templates';
   static const adminTemplateCreate = '/admin/templates/create';
+  static const adminExportableMenus = '/admin/exportable_menus';
   static const forgotPassword = '/forgot-password';
   static const resetPassword = '/reset-password';
 

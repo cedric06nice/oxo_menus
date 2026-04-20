@@ -82,6 +82,43 @@ void main() {
       );
     });
 
+    group('replace', () {
+      test(
+        'should call dataSource.replaceFile and return the file ID on success',
+        () async {
+          final bytes = Uint8List.fromList([9, 8, 7]);
+          const fileId = 'file-xyz';
+          const filename = 'SampleRestaurantMenu.pdf';
+
+          when(
+            () => mockDataSource.replaceFile(fileId, bytes, filename),
+          ).thenAnswer((_) async => fileId);
+
+          final result = await repository.replace(fileId, bytes, filename);
+
+          expect(result, isA<Success<String, DomainError>>());
+          expect((result as Success).value, fileId);
+          verify(
+            () => mockDataSource.replaceFile(fileId, bytes, filename),
+          ).called(1);
+        },
+      );
+
+      test('should return Failure when dataSource throws', () async {
+        final bytes = Uint8List.fromList([9, 8, 7]);
+        const fileId = 'file-xyz';
+        const filename = 'SampleRestaurantMenu.pdf';
+
+        when(
+          () => mockDataSource.replaceFile(fileId, bytes, filename),
+        ).thenThrow(Exception('replace failed'));
+
+        final result = await repository.replace(fileId, bytes, filename);
+
+        expect(result, isA<Failure<String, DomainError>>());
+      });
+    });
+
     group('listImageFiles', () {
       test(
         'should call dataSource.listFiles with image filter and return ImageFileInfo list',

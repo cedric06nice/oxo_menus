@@ -394,6 +394,65 @@ class DirectusDataSource {
     }
   }
 
+  /// Replace the bytes of an existing Directus file (PATCH /files/:id)
+  ///
+  /// Keeps the same file UUID (so the public URL `$baseUrl/assets/$fileId`
+  /// stays stable). The [filename] is sent as the multipart filename so
+  /// Directus updates `filename_download` on the file row, meaning the
+  /// user-facing download name matches whatever the admin chose.
+  Future<String> replaceFile(
+    String fileId,
+    Uint8List bytes,
+    String filename,
+  ) async {
+    final accessToken = currentAccessToken;
+
+    if (accessToken == null || accessToken.isEmpty) {
+      throw DirectusException(
+        code: 'NOT_AUTHENTICATED',
+        message: 'No access token available',
+      );
+    }
+
+    final request = http.MultipartRequest(
+      'PATCH',
+      Uri.parse('$_baseUrl/files/$fileId'),
+    );
+
+    request.headers['Authorization'] = 'Bearer $accessToken';
+    request.files.add(
+      http.MultipartFile.fromBytes('file', bytes, filename: filename),
+    );
+
+    final streamedResponse = await _httpClient.send(request);
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = json.decode(response.body) as Map<String, dynamic>;
+      final fileData = data['data'] as Map<String, dynamic>?;
+      final returnedId = fileData?['id'] as String?;
+
+      if (returnedId != null) {
+        return returnedId;
+      } else {
+        throw DirectusException(
+          code: 'UPLOAD_FAILED',
+          message: 'File replaced but no ID returned',
+        );
+      }
+    } else if (response.statusCode == 401) {
+      throw DirectusException(
+        code: 'NOT_AUTHENTICATED',
+        message: 'Authentication required',
+      );
+    } else {
+      throw DirectusException(
+        code: 'UPLOAD_FAILED',
+        message: 'Failed to replace file: ${response.statusCode}',
+      );
+    }
+  }
+
   /// List files from Directus
   Future<List<Map<String, dynamic>>> listFiles({
     Map<String, dynamic>? filter,

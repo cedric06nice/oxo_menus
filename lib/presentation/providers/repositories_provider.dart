@@ -12,6 +12,7 @@ import 'package:oxo_menus/data/repositories/connectivity_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/column_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/container_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/file_repository_impl.dart';
+import 'package:oxo_menus/data/repositories/menu_bundle_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/menu_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/page_repository_impl.dart';
 import 'package:oxo_menus/data/repositories/size_repository_impl.dart';
@@ -28,6 +29,7 @@ import 'package:oxo_menus/domain/repositories/presence_repository.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/repositories/file_repository.dart';
+import 'package:oxo_menus/domain/repositories/menu_bundle_repository.dart';
 import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
@@ -126,6 +128,15 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 final sizeRepositoryProvider = Provider<SizeRepository>((ref) {
   final dataSource = ref.watch(directusDataSourceProvider);
   return SizeRepositoryImpl(dataSource: dataSource);
+});
+
+/// Menu bundle repository provider
+///
+/// Provides the MenuBundleRepository implementation used by the admin
+/// "Exportable menus" feature and the publish-bundles hook.
+final menuBundleRepositoryProvider = Provider<MenuBundleRepository>((ref) {
+  final dataSource = ref.watch(directusDataSourceProvider);
+  return MenuBundleRepositoryImpl(dataSource: dataSource);
 });
 
 /// File repository provider
