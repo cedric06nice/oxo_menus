@@ -11,6 +11,7 @@ import 'package:oxo_menus/domain/usecases/create_menu_bundle_usecase.dart';
 import 'package:oxo_menus/domain/usecases/delete_menu_bundle_usecase.dart';
 import 'package:oxo_menus/domain/usecases/list_menu_bundles_usecase.dart';
 import 'package:oxo_menus/domain/usecases/list_templates_usecase.dart';
+import 'package:oxo_menus/domain/usecases/publish_menu_bundle_usecase.dart';
 import 'package:oxo_menus/domain/usecases/update_menu_bundle_usecase.dart';
 import 'package:oxo_menus/presentation/pages/admin_exportable_menus/admin_exportable_menus_notifier.dart';
 import 'package:oxo_menus/presentation/pages/admin_exportable_menus/admin_exportable_menus_provider.dart';
@@ -31,6 +32,9 @@ class MockUpdateMenuBundleUseCase extends Mock
 class MockDeleteMenuBundleUseCase extends Mock
     implements DeleteMenuBundleUseCase {}
 
+class MockPublishMenuBundleUseCase extends Mock
+    implements PublishMenuBundleUseCase {}
+
 void main() {
   late ProviderContainer container;
   late MockListMenuBundlesUseCase listBundles;
@@ -38,6 +42,7 @@ void main() {
   late MockCreateMenuBundleUseCase createUseCase;
   late MockUpdateMenuBundleUseCase updateUseCase;
   late MockDeleteMenuBundleUseCase deleteUseCase;
+  late MockPublishMenuBundleUseCase publishUseCase;
 
   const menu1 = Menu(
     id: 10,
@@ -65,6 +70,7 @@ void main() {
     createUseCase = MockCreateMenuBundleUseCase();
     updateUseCase = MockUpdateMenuBundleUseCase();
     deleteUseCase = MockDeleteMenuBundleUseCase();
+    publishUseCase = MockPublishMenuBundleUseCase();
     container = ProviderContainer(
       overrides: [
         listMenuBundlesUseCaseProvider.overrideWithValue(listBundles),
@@ -72,6 +78,7 @@ void main() {
         createMenuBundleUseCaseProvider.overrideWithValue(createUseCase),
         updateMenuBundleUseCaseProvider.overrideWithValue(updateUseCase),
         deleteMenuBundleUseCaseProvider.overrideWithValue(deleteUseCase),
+        publishMenuBundleUseCaseProvider.overrideWithValue(publishUseCase),
       ],
     );
   });
@@ -125,58 +132,87 @@ void main() {
     });
 
     group('create', () {
-      test('appends the new bundle to state on success', () async {
-        when(
-          () => listBundles.execute(),
-        ).thenAnswer((_) async => const Success([b1]));
-        when(
-          () => listTemplates.execute(statusFilter: 'all'),
-        ).thenAnswer((_) async => const Success([menu1]));
-        await notifier().load();
+      test(
+        'appends the new bundle to state and returns it on success',
+        () async {
+          when(
+            () => listBundles.execute(),
+          ).thenAnswer((_) async => const Success([b1]));
+          when(
+            () => listTemplates.execute(statusFilter: 'all'),
+          ).thenAnswer((_) async => const Success([menu1]));
+          await notifier().load();
 
-        when(
-          () => createUseCase.execute(any()),
-        ).thenAnswer((_) async => const Success(b2));
+          when(
+            () => createUseCase.execute(any()),
+          ).thenAnswer((_) async => const Success(b2));
 
-        await notifier().create(
-          const CreateMenuBundleInput(name: 'B', menuIds: [10, 20]),
-        );
+          final result = await notifier().create(
+            const CreateMenuBundleInput(name: 'B', menuIds: [10, 20]),
+          );
 
-        expect(state().bundles, [b1, b2]);
-      });
+          expect(result, b2);
+          expect(state().bundles, [b1, b2]);
+        },
+      );
 
-      test('sets errorMessage on failure', () async {
+      test('returns null and sets errorMessage on failure', () async {
         when(() => createUseCase.execute(any())).thenAnswer(
           (_) async =>
               const Failure<MenuBundle, DomainError>(ServerError('nope')),
         );
 
-        await notifier().create(const CreateMenuBundleInput(name: 'X'));
+        final result = await notifier().create(
+          const CreateMenuBundleInput(name: 'X'),
+        );
 
+        expect(result, isNull);
         expect(state().errorMessage, 'nope');
       });
     });
 
     group('update', () {
-      test('replaces the matching bundle in state on success', () async {
-        when(
-          () => listBundles.execute(),
-        ).thenAnswer((_) async => const Success([b1, b2]));
-        when(
-          () => listTemplates.execute(statusFilter: 'all'),
-        ).thenAnswer((_) async => const Success([menu1]));
-        await notifier().load();
+      test(
+        'replaces the matching bundle in state and returns it on success',
+        () async {
+          when(
+            () => listBundles.execute(),
+          ).thenAnswer((_) async => const Success([b1, b2]));
+          when(
+            () => listTemplates.execute(statusFilter: 'all'),
+          ).thenAnswer((_) async => const Success([menu1]));
+          await notifier().load();
 
-        const renamed = MenuBundle(id: 2, name: 'B renamed', menuIds: [10, 20]);
-        when(
-          () => updateUseCase.execute(any()),
-        ).thenAnswer((_) async => const Success(renamed));
+          const renamed = MenuBundle(
+            id: 2,
+            name: 'B renamed',
+            menuIds: [10, 20],
+          );
+          when(
+            () => updateUseCase.execute(any()),
+          ).thenAnswer((_) async => const Success(renamed));
 
-        await notifier().update(
-          const UpdateMenuBundleInput(id: 2, name: 'B renamed'),
+          final result = await notifier().update(
+            const UpdateMenuBundleInput(id: 2, name: 'B renamed'),
+          );
+
+          expect(result, renamed);
+          expect(state().bundles, [b1, renamed]);
+        },
+      );
+
+      test('returns null and sets errorMessage on failure', () async {
+        when(() => updateUseCase.execute(any())).thenAnswer(
+          (_) async =>
+              const Failure<MenuBundle, DomainError>(ServerError('boom')),
         );
 
-        expect(state().bundles, [b1, renamed]);
+        final result = await notifier().update(
+          const UpdateMenuBundleInput(id: 99, name: 'X'),
+        );
+
+        expect(result, isNull);
+        expect(state().errorMessage, 'boom');
       });
     });
 
@@ -198,6 +234,62 @@ void main() {
 
         expect(state().bundles, [b2]);
       });
+    });
+
+    group('publish', () {
+      test(
+        'replaces the matching bundle in state with the published one (including pdfFileId)',
+        () async {
+          when(
+            () => listBundles.execute(),
+          ).thenAnswer((_) async => const Success([b1, b2]));
+          when(
+            () => listTemplates.execute(statusFilter: 'all'),
+          ).thenAnswer((_) async => const Success([menu1, menu2]));
+          await notifier().load();
+
+          const published = MenuBundle(
+            id: 2,
+            name: 'B',
+            menuIds: [10, 20],
+            pdfFileId: 'file-uuid-42',
+          );
+          when(
+            () => publishUseCase.execute(2),
+          ).thenAnswer((_) async => const Success(published));
+
+          final result = await notifier().publish(2);
+
+          expect(result.isSuccess, true);
+          expect(result.valueOrNull, published);
+          expect(state().bundles, [b1, published]);
+        },
+      );
+
+      test(
+        'returns failure and sets errorMessage on publish failure',
+        () async {
+          when(
+            () => listBundles.execute(),
+          ).thenAnswer((_) async => const Success([b1]));
+          when(
+            () => listTemplates.execute(statusFilter: 'all'),
+          ).thenAnswer((_) async => const Success([menu1]));
+          await notifier().load();
+
+          when(() => publishUseCase.execute(1)).thenAnswer(
+            (_) async =>
+                const Failure<MenuBundle, DomainError>(ServerError('pdf fail')),
+          );
+
+          final result = await notifier().publish(1);
+
+          expect(result.isFailure, true);
+          expect(state().errorMessage, 'pdf fail');
+          // Existing bundle in state is unchanged.
+          expect(state().bundles, [b1]);
+        },
+      );
     });
   });
 }

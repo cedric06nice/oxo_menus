@@ -13,9 +13,9 @@ class MenuBundleCreateEditResult {
 
 /// Create / edit dialog for a menu bundle.
 ///
-/// Fields: a name (used as the PDF download filename) and a per-menu toggle
-/// list built from the set of available menus. At least one menu must be
-/// toggled on for the Save button to enable.
+/// Fields: a name (used as the PDF download filename) and an ordered list of
+/// included menus. The selected list order drives PDF page order. Admins add
+/// menus from the "Available" section and reorder them with up/down controls.
 class MenuBundleCreateEditDialog extends StatefulWidget {
   final MenuBundle? existingBundle;
   final List<Menu> availableMenus;
@@ -36,7 +36,7 @@ class MenuBundleCreateEditDialog extends StatefulWidget {
 class _MenuBundleCreateEditDialogState
     extends State<MenuBundleCreateEditDialog> {
   late final TextEditingController _nameController;
-  late final Set<int> _selectedMenuIds;
+  late final List<int> _selectedMenuIds;
 
   bool get _isEditMode => widget.existingBundle != null;
 
@@ -46,7 +46,7 @@ class _MenuBundleCreateEditDialogState
     _nameController = TextEditingController(
       text: widget.existingBundle?.name ?? '',
     );
-    _selectedMenuIds = {...?widget.existingBundle?.menuIds};
+    _selectedMenuIds = [...?widget.existingBundle?.menuIds];
     _nameController.addListener(() => setState(() {}));
   }
 
@@ -61,13 +61,27 @@ class _MenuBundleCreateEditDialogState
     return name.isNotEmpty && _selectedMenuIds.isNotEmpty;
   }
 
-  void _toggleMenu(int menuId, bool? value) {
+  void _addMenu(int menuId) {
+    setState(() => _selectedMenuIds.add(menuId));
+  }
+
+  void _removeMenu(int menuId) {
+    setState(() => _selectedMenuIds.remove(menuId));
+  }
+
+  void _moveUp(int index) {
+    if (index <= 0) return;
     setState(() {
-      if (value ?? false) {
-        _selectedMenuIds.add(menuId);
-      } else {
-        _selectedMenuIds.remove(menuId);
-      }
+      final id = _selectedMenuIds.removeAt(index);
+      _selectedMenuIds.insert(index - 1, id);
+    });
+  }
+
+  void _moveDown(int index) {
+    if (index >= _selectedMenuIds.length - 1) return;
+    setState(() {
+      final id = _selectedMenuIds.removeAt(index);
+      _selectedMenuIds.insert(index + 1, id);
     });
   }
 
@@ -75,11 +89,22 @@ class _MenuBundleCreateEditDialogState
     widget.onSave(
       MenuBundleCreateEditResult(
         name: _nameController.text.trim(),
-        menuIds: _selectedMenuIds.toList(),
+        menuIds: List.of(_selectedMenuIds),
       ),
     );
     Navigator.of(context).pop();
   }
+
+  Menu? _menuById(int id) {
+    for (final menu in widget.availableMenus) {
+      if (menu.id == id) return menu;
+    }
+    return null;
+  }
+
+  List<Menu> get _availableUnselected => widget.availableMenus
+      .where((m) => !_selectedMenuIds.contains(m.id))
+      .toList();
 
   @override
   Widget build(BuildContext context) {
@@ -118,25 +143,72 @@ class _MenuBundleCreateEditDialogState
                 ),
               ],
             ),
-            CupertinoFormSection.insetGrouped(
-              header: const Text('INCLUDED MENUS'),
-              children: widget.availableMenus.map((menu) {
-                return CupertinoListTile(
-                  title: Text(menu.name),
-                  trailing: CupertinoSwitch(
-                    value: _selectedMenuIds.contains(menu.id),
-                    onChanged: (v) => _toggleMenu(menu.id, v),
-                  ),
-                );
-              }).toList(),
-            ),
+            if (_selectedMenuIds.isNotEmpty)
+              CupertinoFormSection.insetGrouped(
+                header: const Text('SELECTED MENUS (PDF ORDER)'),
+                children: [
+                  for (var i = 0; i < _selectedMenuIds.length; i++)
+                    _buildCupertinoSelectedRow(i),
+                ],
+              ),
+            if (_availableUnselected.isNotEmpty)
+              CupertinoFormSection.insetGrouped(
+                header: const Text('AVAILABLE MENUS'),
+                children: _availableUnselected
+                    .map(_buildCupertinoAvailableRow)
+                    .toList(),
+              ),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildCupertinoSelectedRow(int index) {
+    final id = _selectedMenuIds[index];
+    final menu = _menuById(id);
+    final isFirst = index == 0;
+    final isLast = index == _selectedMenuIds.length - 1;
+    return CupertinoListTile(
+      key: Key('bundle_selected_slot_$index'),
+      leading: Text('${index + 1}.'),
+      title: Text(menu?.name ?? 'Menu $id'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: isFirst ? null : () => _moveUp(index),
+            child: const Icon(CupertinoIcons.arrow_up),
+          ),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: isLast ? null : () => _moveDown(index),
+            child: const Icon(CupertinoIcons.arrow_down),
+          ),
+          CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () => _removeMenu(id),
+            child: const Icon(CupertinoIcons.clear),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCupertinoAvailableRow(Menu menu) {
+    return CupertinoListTile(
+      title: Text(menu.name),
+      trailing: CupertinoButton(
+        padding: EdgeInsets.zero,
+        onPressed: () => _addMenu(menu.id),
+        child: const Icon(CupertinoIcons.add),
+      ),
+    );
+  }
+
   Widget _buildMaterialDialog(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return AlertDialog(
       title: Text(_isEditMode ? 'Edit Bundle' : 'Create Bundle'),
       content: SizedBox(
@@ -155,20 +227,28 @@ class _MenuBundleCreateEditDialogState
                 autofocus: !_isEditMode,
               ),
               const SizedBox(height: 16),
-              Text(
-                'Included menus',
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
+              Text('Selected menus (PDF order)', style: textTheme.titleSmall),
               const SizedBox(height: 4),
-              ...widget.availableMenus.map((menu) {
-                return CheckboxListTile(
-                  key: Key('bundle_menu_toggle_${menu.id}'),
-                  value: _selectedMenuIds.contains(menu.id),
-                  onChanged: (v) => _toggleMenu(menu.id, v),
-                  title: Text(menu.name),
-                  controlAffinity: ListTileControlAffinity.leading,
-                );
-              }),
+              if (_selectedMenuIds.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'No menus selected yet. Add menus from the list below.',
+                  ),
+                )
+              else
+                for (var i = 0; i < _selectedMenuIds.length; i++)
+                  _buildMaterialSelectedRow(i),
+              const SizedBox(height: 16),
+              Text('Available menus', style: textTheme.titleSmall),
+              const SizedBox(height: 4),
+              if (_availableUnselected.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('All menus are already in this bundle.'),
+                )
+              else
+                ..._availableUnselected.map(_buildMaterialAvailableRow),
             ],
           ),
         ),
@@ -184,6 +264,55 @@ class _MenuBundleCreateEditDialogState
           child: const Text('Save'),
         ),
       ],
+    );
+  }
+
+  Widget _buildMaterialSelectedRow(int index) {
+    final id = _selectedMenuIds[index];
+    final menu = _menuById(id);
+    final isFirst = index == 0;
+    final isLast = index == _selectedMenuIds.length - 1;
+    return ListTile(
+      key: Key('bundle_selected_slot_$index'),
+      dense: true,
+      leading: Text('${index + 1}.'),
+      title: Text(menu?.name ?? 'Menu $id'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            key: Key('bundle_move_up_$id'),
+            icon: const Icon(Icons.arrow_upward),
+            tooltip: 'Move up',
+            onPressed: isFirst ? null : () => _moveUp(index),
+          ),
+          IconButton(
+            key: Key('bundle_move_down_$id'),
+            icon: const Icon(Icons.arrow_downward),
+            tooltip: 'Move down',
+            onPressed: isLast ? null : () => _moveDown(index),
+          ),
+          IconButton(
+            key: Key('bundle_remove_$id'),
+            icon: const Icon(Icons.close),
+            tooltip: 'Remove',
+            onPressed: () => _removeMenu(id),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMaterialAvailableRow(Menu menu) {
+    return ListTile(
+      dense: true,
+      title: Text(menu.name),
+      trailing: IconButton(
+        key: Key('bundle_add_${menu.id}'),
+        icon: const Icon(Icons.add),
+        tooltip: 'Add to bundle',
+        onPressed: () => _addMenu(menu.id),
+      ),
     );
   }
 }

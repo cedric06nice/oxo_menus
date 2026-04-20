@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/domain/entities/menu_bundle.dart';
 import 'package:oxo_menus/domain/repositories/menu_bundle_repository.dart';
@@ -115,8 +118,8 @@ class _AdminExportableMenusPageState
       context,
       MenuBundleCreateEditDialog(
         availableMenus: availableMenus,
-        onSave: (result) {
-          ref
+        onSave: (result) async {
+          final created = await ref
               .read(adminExportableMenusProvider.notifier)
               .create(
                 CreateMenuBundleInput(
@@ -124,6 +127,9 @@ class _AdminExportableMenusPageState
                   menuIds: result.menuIds,
                 ),
               );
+          if (created != null) {
+            _publishInBackground(created.id);
+          }
         },
       ),
     );
@@ -138,8 +144,8 @@ class _AdminExportableMenusPageState
       MenuBundleCreateEditDialog(
         existingBundle: bundle,
         availableMenus: availableMenus,
-        onSave: (result) {
-          ref
+        onSave: (result) async {
+          final updated = await ref
               .read(adminExportableMenusProvider.notifier)
               .update(
                 UpdateMenuBundleInput(
@@ -148,8 +154,33 @@ class _AdminExportableMenusPageState
                   menuIds: result.menuIds,
                 ),
               );
+          if (updated != null) {
+            _publishInBackground(updated.id);
+          }
         },
       ),
+    );
+  }
+
+  /// Regenerate the bundle PDF after a save. Runs in background so the admin
+  /// isn't blocked; outcome is surfaced via SnackBar.
+  void _publishInBackground(int bundleId) {
+    if (!mounted) return;
+    showThemedSnackBar(context, 'Publishing bundle PDF...');
+    unawaited(
+      ref.read(adminExportableMenusProvider.notifier).publish(bundleId).then((
+        result,
+      ) {
+        if (!mounted) return;
+        result.fold(
+          onSuccess: (_) => showThemedSnackBar(context, 'Bundle PDF published'),
+          onFailure: (error) => showThemedSnackBar(
+            context,
+            'Failed to publish bundle PDF: ${error.message}',
+            isError: true,
+          ),
+        );
+      }),
     );
   }
 

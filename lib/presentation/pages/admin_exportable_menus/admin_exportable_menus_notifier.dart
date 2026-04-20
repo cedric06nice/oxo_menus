@@ -10,7 +10,8 @@ import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 /// Notifier driving the admin exportable menus page.
 ///
 /// Loads existing bundles in parallel with the list of available menus
-/// (used by the create/edit dialog toggle list), and exposes CRUD operations.
+/// (used by the create/edit dialog toggle list), and exposes CRUD + publish
+/// operations.
 class AdminExportableMenusNotifier extends Notifier<AdminExportableMenusState> {
   @override
   AdminExportableMenusState build() => const AdminExportableMenusState();
@@ -50,36 +51,42 @@ class AdminExportableMenusNotifier extends Notifier<AdminExportableMenusState> {
     );
   }
 
-  /// Create a new bundle.
-  Future<void> create(CreateMenuBundleInput input) async {
+  /// Create a new bundle. Returns the created bundle on success, null on
+  /// failure (in which case [state.errorMessage] is set).
+  Future<MenuBundle?> create(CreateMenuBundleInput input) async {
     final result = await ref
         .read(createMenuBundleUseCaseProvider)
         .execute(input);
-    result.fold(
+    return result.fold(
       onSuccess: (bundle) {
         state = state.copyWith(bundles: [...state.bundles, bundle]);
+        return bundle;
       },
       onFailure: (error) {
         state = state.copyWith(errorMessage: error.message);
+        return null;
       },
     );
   }
 
-  /// Update an existing bundle in place.
-  Future<void> update(UpdateMenuBundleInput input) async {
+  /// Update an existing bundle in place. Returns the updated bundle on
+  /// success, null on failure.
+  Future<MenuBundle?> update(UpdateMenuBundleInput input) async {
     final result = await ref
         .read(updateMenuBundleUseCaseProvider)
         .execute(input);
-    result.fold(
+    return result.fold(
       onSuccess: (updated) {
         state = state.copyWith(
           bundles: state.bundles
               .map((b) => b.id == updated.id ? updated : b)
               .toList(),
         );
+        return updated;
       },
       onFailure: (error) {
         state = state.copyWith(errorMessage: error.message);
+        return null;
       },
     );
   }
@@ -97,6 +104,31 @@ class AdminExportableMenusNotifier extends Notifier<AdminExportableMenusState> {
         state = state.copyWith(errorMessage: error.message);
       },
     );
+  }
+
+  /// Publish (regenerate) the PDF for a bundle and refresh its state entry.
+  ///
+  /// On success, the bundle in state is replaced with the published one, so
+  /// any newly-minted [MenuBundle.pdfFileId] appears in the list immediately.
+  /// On failure, the error message is surfaced via state.errorMessage. The
+  /// raw [Result] is returned so callers can show tailored UI feedback.
+  Future<Result<MenuBundle, DomainError>> publish(int bundleId) async {
+    final result = await ref
+        .read(publishMenuBundleUseCaseProvider)
+        .execute(bundleId);
+    result.fold(
+      onSuccess: (published) {
+        state = state.copyWith(
+          bundles: state.bundles
+              .map((b) => b.id == published.id ? published : b)
+              .toList(),
+        );
+      },
+      onFailure: (error) {
+        state = state.copyWith(errorMessage: error.message);
+      },
+    );
+    return result;
   }
 
   /// Clear the error banner.
