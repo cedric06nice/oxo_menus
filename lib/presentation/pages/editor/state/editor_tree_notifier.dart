@@ -207,6 +207,27 @@ class EditorTreeNotifier extends Notifier<EditorTreeState> {
     return result;
   }
 
+  Future<Result<WidgetInstance, DomainError>> updateWidgetLockForEdition(
+    int widgetId,
+    bool locked,
+  ) async {
+    final result = await ref
+        .read(widgetRepositoryProvider)
+        .update(UpdateWidgetInput(id: widgetId, lockedForEdition: locked));
+
+    if (result.isSuccess) {
+      final updated = <int, List<WidgetInstance>>{};
+      for (final entry in state.widgets.entries) {
+        updated[entry.key] = entry.value.map((w) {
+          if (w.id == widgetId) return w.copyWith(lockedForEdition: locked);
+          return w;
+        }).toList();
+      }
+      state = state.copyWith(widgets: updated);
+    }
+    return result;
+  }
+
   Future<Result<void, DomainError>> deleteWidget(int widgetId) async {
     // Optimistic removal: update state immediately so the Dismissible
     // animation doesn't conflict with the widget still being in the tree.

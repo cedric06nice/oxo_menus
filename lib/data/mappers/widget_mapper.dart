@@ -19,6 +19,7 @@ class WidgetMapper {
           ? _mapStyleJsonToWidgetStyle(dto.styleJson)
           : null,
       isTemplate: dto.isTemplate,
+      lockedForEdition: dto.lockedForEdition,
       dateCreated: dto.dateCreated,
       dateUpdated: dto.dateUpdated,
       editingBy: dto.editingBy,
@@ -39,6 +40,7 @@ class WidgetMapper {
           ? widgetStyleToJson(entity.style!)
           : null,
       'is_template': entity.isTemplate,
+      'locked_for_edition': entity.lockedForEdition,
       'date_created': entity.dateCreated,
       'date_updated': entity.dateUpdated,
       'editing_by': entity.editingBy,

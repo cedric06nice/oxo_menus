@@ -151,6 +151,7 @@ class DuplicateContainerUseCase {
             props: Map<String, dynamic>.from(sourceWidget.props),
             style: sourceWidget.style,
             isTemplate: sourceWidget.isTemplate,
+            lockedForEdition: sourceWidget.lockedForEdition,
           ),
         );
         if (widgetResult.isFailure) {

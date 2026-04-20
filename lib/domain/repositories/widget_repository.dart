@@ -54,6 +54,7 @@ abstract class CreateWidgetInput with _$CreateWidgetInput {
     required Map<String, dynamic> props,
     WidgetStyle? style,
     @Default(false) bool isTemplate,
+    @Default(false) bool lockedForEdition,
   }) = _CreateWidgetInput;
 }
 
@@ -69,5 +70,6 @@ abstract class UpdateWidgetInput with _$UpdateWidgetInput {
     int? index,
     Map<String, dynamic>? props,
     WidgetStyle? style,
+    bool? lockedForEdition,
   }) = _UpdateWidgetInput;
 }

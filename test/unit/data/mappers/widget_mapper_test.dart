@@ -73,6 +73,41 @@ void main() {
         expect(entity.isTemplate, false);
       });
 
+      test('should map locked_for_edition true to lockedForEdition true', () {
+        // Arrange
+        final dto = WidgetDto({
+          'id': 8,
+          'column': 10,
+          'type_key': 'text',
+          'version': '1.0.0',
+          'index': 0,
+          'locked_for_edition': true,
+        });
+
+        // Act
+        final entity = WidgetMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.lockedForEdition, true);
+      });
+
+      test('should default lockedForEdition to false when field absent', () {
+        // Arrange
+        final dto = WidgetDto({
+          'id': 9,
+          'column': 11,
+          'type_key': 'text',
+          'version': '1.0.0',
+          'index': 0,
+        });
+
+        // Act
+        final entity = WidgetMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.lockedForEdition, false);
+      });
+
       test('should convert WidgetDto with minimal fields', () {
         // Arrange
         final dto = WidgetDto({
@@ -133,6 +168,43 @@ void main() {
 
         // Assert
         expect(dto.isTemplate, false);
+      });
+
+      test('should map lockedForEdition true to locked_for_edition true', () {
+        // Arrange
+        const entity = WidgetInstance(
+          id: 10,
+          columnId: 12,
+          type: 'text',
+          version: '1.0.0',
+          index: 0,
+          props: {},
+          lockedForEdition: true,
+        );
+
+        // Act
+        final dto = WidgetMapper.toDto(entity);
+
+        // Assert
+        expect(dto.lockedForEdition, true);
+      });
+
+      test('should map lockedForEdition false to locked_for_edition false', () {
+        // Arrange
+        const entity = WidgetInstance(
+          id: 11,
+          columnId: 13,
+          type: 'text',
+          version: '1.0.0',
+          index: 0,
+          props: {},
+        );
+
+        // Act
+        final dto = WidgetMapper.toDto(entity);
+
+        // Assert
+        expect(dto.lockedForEdition, false);
       });
 
       test('should convert WidgetInstance with style to WidgetDto', () {

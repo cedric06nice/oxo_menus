@@ -18,6 +18,7 @@ _WidgetInstance _$WidgetInstanceFromJson(Map<String, dynamic> json) =>
           ? null
           : WidgetStyle.fromJson(json['style'] as Map<String, dynamic>),
       isTemplate: json['isTemplate'] as bool? ?? false,
+      lockedForEdition: json['lockedForEdition'] as bool? ?? false,
       dateCreated: json['dateCreated'] == null
           ? null
           : DateTime.parse(json['dateCreated'] as String),
@@ -40,6 +41,7 @@ Map<String, dynamic> _$WidgetInstanceToJson(_WidgetInstance instance) =>
       'props': instance.props,
       'style': instance.style,
       'isTemplate': instance.isTemplate,
+      'lockedForEdition': instance.lockedForEdition,
       'dateCreated': instance.dateCreated?.toIso8601String(),
       'dateUpdated': instance.dateUpdated?.toIso8601String(),
       'editingBy': instance.editingBy,

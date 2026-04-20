@@ -27,6 +27,7 @@ class WidgetRepositoryImpl implements WidgetRepository {
       item.setValue(input.columnId, forKey: 'column');
       item.setValue(input.props, forKey: 'props_json');
       item.setValue(input.isTemplate, forKey: 'is_template');
+      item.setValue(input.lockedForEdition, forKey: 'locked_for_edition');
 
       if (input.style != null) {
         item.setValue(
@@ -68,6 +69,7 @@ class WidgetRepositoryImpl implements WidgetRepository {
           'props_json',
           'style_json',
           'is_template',
+          'locked_for_edition',
           'editing_by',
           'editing_since',
         ],
@@ -103,6 +105,7 @@ class WidgetRepositoryImpl implements WidgetRepository {
           'props_json',
           'style_json',
           'is_template',
+          'locked_for_edition',
           'editing_by',
           'editing_since',
         ],
@@ -143,6 +146,9 @@ class WidgetRepositoryImpl implements WidgetRepository {
           WidgetMapper.widgetStyleToJson(input.style!),
           forKey: 'style_json',
         );
+      }
+      if (input.lockedForEdition != null) {
+        item.setValue(input.lockedForEdition, forKey: 'locked_for_edition');
       }
 
       final data = await dataSource.updateItem<WidgetDto>(item);

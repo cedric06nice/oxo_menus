@@ -17,6 +17,7 @@ abstract class WidgetInstance with _$WidgetInstance {
     required Map<String, dynamic> props,
     WidgetStyle? style,
     @Default(false) bool isTemplate,
+    @Default(false) bool lockedForEdition,
     DateTime? dateCreated,
     DateTime? dateUpdated,
     String? editingBy,

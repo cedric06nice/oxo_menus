@@ -1307,22 +1307,23 @@ void main() {
     }
 
     testWidgets(
-      'should render template widget as non-editable (no edit dialog on tap)',
+      'should render locked widget as non-editable (no edit dialog on tap)',
       (tester) async {
-        const templateWidget = WidgetInstance(
+        const lockedWidget = WidgetInstance(
           id: 1,
           columnId: 1,
           type: 'dish',
           version: '1.0.0',
           index: 0,
           isTemplate: true,
+          lockedForEdition: true,
           props: {'name': 'Template Dish', 'price': 10.0, 'allergens': []},
         );
 
-        await tester.pumpWidget(buildWithWidgets([templateWidget]));
+        await tester.pumpWidget(buildWithWidgets([lockedWidget]));
         await tester.pumpAndSettle();
 
-        // Template widget should be rendered
+        // Locked widget should be rendered
         expect(find.byType(WidgetRenderer), findsOneWidget);
 
         // Tap on the widget — no edit dialog should appear
@@ -1332,42 +1333,67 @@ void main() {
       },
     );
 
-    testWidgets('should not wrap template widget in LongPressDraggable', (
+    testWidgets('should not wrap locked widget in LongPressDraggable', (
       tester,
     ) async {
-      const templateWidget = WidgetInstance(
+      const lockedWidget = WidgetInstance(
         id: 1,
         columnId: 1,
         type: 'dish',
         version: '1.0.0',
         index: 0,
         isTemplate: true,
+        lockedForEdition: true,
         props: {'name': 'Template Dish', 'price': 10.0, 'allergens': []},
       );
 
-      await tester.pumpWidget(buildWithWidgets([templateWidget]));
+      await tester.pumpWidget(buildWithWidgets([lockedWidget]));
       await tester.pumpAndSettle();
 
-      // Template widget should NOT have a LongPressDraggable wrapper
+      // Locked widget should NOT have a LongPressDraggable wrapper
       expect(find.byKey(const Key('widget_1')), findsNothing);
     });
 
-    testWidgets('should show lock icon on template widget', (tester) async {
-      const templateWidget = WidgetInstance(
+    testWidgets('should show lock icon on locked widget', (tester) async {
+      const lockedWidget = WidgetInstance(
         id: 1,
         columnId: 1,
         type: 'dish',
         version: '1.0.0',
         index: 0,
         isTemplate: true,
+        lockedForEdition: true,
         props: {'name': 'Template Dish', 'price': 10.0, 'allergens': []},
       );
 
-      await tester.pumpWidget(buildWithWidgets([templateWidget]));
+      await tester.pumpWidget(buildWithWidgets([lockedWidget]));
       await tester.pumpAndSettle();
 
       // Should show a lock icon
       expect(find.byIcon(Icons.lock), findsOneWidget);
+    });
+
+    testWidgets('template widget without lockedForEdition is fully editable', (
+      tester,
+    ) async {
+      const templateWidget = WidgetInstance(
+        id: 3,
+        columnId: 1,
+        type: 'dish',
+        version: '1.0.0',
+        index: 0,
+        isTemplate: true,
+        props: {'name': 'Template Dish', 'price': 10.0, 'allergens': []},
+      );
+
+      await tester.pumpWidget(buildWithWidgets([templateWidget]));
+      await tester.pumpAndSettle();
+
+      // Template widget without lock should have LongPressDraggable wrapper
+      expect(find.byKey(const Key('widget_3')), findsOneWidget);
+
+      // No lock icon
+      expect(find.byIcon(Icons.lock), findsNothing);
     });
 
     testWidgets('should keep regular widget fully editable and draggable', (

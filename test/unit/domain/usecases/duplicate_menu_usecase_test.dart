@@ -544,8 +544,114 @@ void main() {
         expect(capturedWidget.type, 'dish');
         expect(capturedWidget.props, {'name': 'Pasta'});
         expect(capturedWidget.isTemplate, false);
+        expect(capturedWidget.lockedForEdition, false);
       },
     );
+
+    test('should preserve lockedForEdition when duplicating widgets', () async {
+      // Arrange
+      const sourceMenu = Menu(
+        id: 1,
+        name: 'Summer Menu',
+        status: Status.published,
+        version: '1.0.0',
+      );
+      const page = Page(
+        id: 10,
+        menuId: 1,
+        name: 'Page 1',
+        index: 0,
+        type: PageType.content,
+      );
+      final menuTree = MenuTree(
+        menu: sourceMenu,
+        pages: [
+          PageWithContainers(
+            page: page,
+            containers: [
+              ContainerWithColumns(
+                container: const Container(id: 100, pageId: 10, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: const Column(id: 1000, containerId: 100, index: 0),
+                    widgets: const [
+                      WidgetInstance(
+                        id: 10000,
+                        columnId: 1000,
+                        type: 'dish',
+                        version: '1.0.0',
+                        index: 0,
+                        props: {'name': 'Pasta'},
+                        isTemplate: true,
+                        lockedForEdition: true,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      const newMenu = Menu(
+        id: 2,
+        name: 'Summer Menu (copy)',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+      const newPage = Page(
+        id: 20,
+        menuId: 2,
+        name: 'Page 1',
+        index: 0,
+        type: PageType.content,
+      );
+      const newContainer = Container(id: 200, pageId: 20, index: 0);
+      const newColumn = Column(id: 2000, containerId: 200, index: 0);
+      const newWidget = WidgetInstance(
+        id: 20000,
+        columnId: 2000,
+        type: 'dish',
+        version: '1.0.0',
+        index: 0,
+        props: {'name': 'Pasta'},
+        isTemplate: true,
+        lockedForEdition: true,
+      );
+
+      when(
+        () => mockFetchMenuTreeUseCase.execute(1),
+      ).thenAnswer((_) async => Success(menuTree));
+      when(
+        () => mockMenuRepository.create(any()),
+      ).thenAnswer((_) async => const Success(newMenu));
+      when(
+        () => mockPageRepository.create(any()),
+      ).thenAnswer((_) async => const Success(newPage));
+      when(
+        () => mockContainerRepository.create(any()),
+      ).thenAnswer((_) async => const Success(newContainer));
+      when(
+        () => mockColumnRepository.create(any()),
+      ).thenAnswer((_) async => const Success(newColumn));
+      when(
+        () => mockWidgetRepository.create(any()),
+      ).thenAnswer((_) async => const Success(newWidget));
+
+      // Act
+      final result = await useCase.execute(1);
+
+      // Assert
+      expect(result.isSuccess, true);
+      final capturedWidget =
+          verify(
+                () => mockWidgetRepository.create(captureAny()),
+              ).captured.single
+              as CreateWidgetInput;
+      expect(capturedWidget.isTemplate, true);
+      expect(capturedWidget.lockedForEdition, true);
+    });
 
     test('should recursively duplicate nested child containers', () async {
       // Source tree with a parent container that has a child container

@@ -85,6 +85,31 @@ void main() {
         expect(result.isFailure, true);
         expect(result.errorOrNull, isA<ValidationError>());
       });
+
+      test('should send locked_for_edition from input', () async {
+        // Arrange
+        const lockedInput = CreateWidgetInput(
+          columnId: 1,
+          type: 'dish',
+          version: '1.0.0',
+          index: 0,
+          props: {'name': 'Pasta'},
+          lockedForEdition: true,
+        );
+        when(
+          () => mockDataSource.createItem<WidgetDto>(any()),
+        ).thenAnswer((_) async => createdJson);
+
+        // Act
+        await repository.create(lockedInput);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.createItem<WidgetDto>(captureAny()),
+        ).captured;
+        final dto = captured.single as WidgetDto;
+        expect(dto.getValue(forKey: 'locked_for_edition'), true);
+      });
     });
 
     group('getAllForColumn', () {
@@ -164,6 +189,32 @@ void main() {
         final fields = captured[0] as List<String>;
         expect(fields, contains('editing_by'));
         expect(fields, contains('editing_since'));
+      });
+
+      test('should request locked_for_edition field', () async {
+        // Arrange
+        when(
+          () => mockDataSource.getItems<WidgetDto>(
+            filter: any(named: 'filter'),
+            fields: any(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).thenAnswer((_) async => widgetsJson);
+
+        // Act
+        await repository.getAllForColumn(columnId);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.getItems<WidgetDto>(
+            filter: any(named: 'filter'),
+            fields: captureAny(named: 'fields'),
+            sort: any(named: 'sort'),
+          ),
+        ).captured;
+
+        final fields = captured[0] as List<String>;
+        expect(fields, contains('locked_for_edition'));
       });
 
       test('should return empty list when no widgets found', () async {
@@ -259,6 +310,30 @@ void main() {
         expect(fields, contains('editing_since'));
       });
 
+      test('should request locked_for_edition field', () async {
+        // Arrange
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            widgetId,
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => widgetJson);
+
+        // Act
+        await repository.getById(widgetId);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.getItem<WidgetDto>(
+            widgetId,
+            fields: captureAny(named: 'fields'),
+          ),
+        ).captured;
+
+        final fields = captured[0] as List<String>;
+        expect(fields, contains('locked_for_edition'));
+      });
+
       test('should return NotFoundError when widget does not exist', () async {
         // Arrange
         when(
@@ -343,6 +418,55 @@ void main() {
         // Assert
         expect(result.isFailure, true);
         expect(result.errorOrNull, isA<NotFoundError>());
+      });
+
+      test('should send locked_for_edition when provided', () async {
+        // Arrange
+        const lockedInput = UpdateWidgetInput(id: 1, lockedForEdition: true);
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.updateItem<WidgetDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
+
+        // Act
+        await repository.update(lockedInput);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.updateItem<WidgetDto>(captureAny()),
+        ).captured;
+        final dto = captured.single as WidgetDto;
+        expect(dto.getValue(forKey: 'locked_for_edition'), true);
+      });
+
+      test('should not touch locked_for_edition when not provided', () async {
+        // Arrange - props-only update, no lock change
+        when(
+          () => mockDataSource.getItem<WidgetDto>(
+            any(),
+            fields: any(named: 'fields'),
+          ),
+        ).thenAnswer((_) async => existingJson);
+        when(
+          () => mockDataSource.updateItem<WidgetDto>(any()),
+        ).thenAnswer((_) async => updatedJson);
+
+        // Act
+        await repository.update(input);
+
+        // Assert
+        final captured = verify(
+          () => mockDataSource.updateItem<WidgetDto>(captureAny()),
+        ).captured;
+        final dto = captured.single as WidgetDto;
+        // existingJson has no locked_for_edition field, so it should
+        // remain absent (or unchanged) after the update.
+        expect(dto.getValue(forKey: 'locked_for_edition'), isNull);
       });
     });
 

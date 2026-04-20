@@ -9,6 +9,7 @@ class WidgetDto extends DirectusItem {
   String get version => getValue(forKey: "version");
   String? get status => getValue(forKey: "status");
   bool get isTemplate => getValue(forKey: "is_template") ?? false;
+  bool get lockedForEdition => getValue(forKey: "locked_for_edition") ?? false;
   DateTime? get dateCreated => getOptionalDateTime(forKey: "date_created");
   DateTime? get dateUpdated => getOptionalDateTime(forKey: "date_updated");
   String? get userUpdated => getValue(forKey: "user_updated");

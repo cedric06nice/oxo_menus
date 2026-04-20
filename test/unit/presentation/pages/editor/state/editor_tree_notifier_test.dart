@@ -676,6 +676,45 @@ void main() {
 
       expect(result.isFailure, isTrue);
     });
+
+    test(
+      'updateWidgetLockForEdition sends lockedForEdition to repo and patches state',
+      () async {
+        stubSuccessfulTreeLoad();
+        final container = createContainer();
+        addTearDown(container.dispose);
+
+        final notifier = container.read(editorTreeProvider(menuId).notifier);
+        await notifier.loadTree();
+
+        when(() => mockWidgetRepo.update(any())).thenAnswer(
+          (_) async => const Success(
+            WidgetInstance(
+              id: 40,
+              columnId: 30,
+              type: 'text',
+              version: '1.0',
+              index: 0,
+              props: {'text': 'Hello'},
+              lockedForEdition: true,
+            ),
+          ),
+        );
+
+        await notifier.updateWidgetLockForEdition(40, true);
+
+        final captured = verify(
+          () => mockWidgetRepo.update(captureAny()),
+        ).captured;
+        final input = captured.single as UpdateWidgetInput;
+        expect(input.id, 40);
+        expect(input.lockedForEdition, true);
+
+        final state = container.read(editorTreeProvider(menuId));
+        final widget = state.widgets[30]!.firstWhere((w) => w.id == 40);
+        expect(widget.lockedForEdition, true);
+      },
+    );
   });
 
   group('EditorTreeNotifier - widget locking', () {

@@ -25,6 +25,9 @@ class DraggableWidgetItem extends StatelessWidget {
   final VoidCallback? onEditEnded;
   final Future<bool?> Function()? onConfirmDismiss;
   final ValueChanged<int>? onDismissed;
+  final bool showLockToggle;
+  final bool isLockedForEdition;
+  final ValueChanged<bool>? onLockToggle;
 
   const DraggableWidgetItem({
     super.key,
@@ -41,6 +44,9 @@ class DraggableWidgetItem extends StatelessWidget {
     this.onEditEnded,
     this.onConfirmDismiss,
     this.onDismissed,
+    this.showLockToggle = false,
+    this.isLockedForEdition = false,
+    this.onLockToggle,
   });
 
   /// Whether this widget is currently being edited by another user.
@@ -139,7 +145,7 @@ class DraggableWidgetItem extends StatelessWidget {
       ),
     );
 
-    return LongPressDraggable<WidgetDragData>(
+    final draggable = LongPressDraggable<WidgetDragData>(
       key: Key('widget_${widgetInstance.id}'),
       data: WidgetDragData.existing(widgetInstance, columnId),
       feedback: Material(
@@ -184,6 +190,37 @@ class DraggableWidgetItem extends StatelessWidget {
         ),
         child: widgetContent,
       ),
+    );
+
+    if (!showLockToggle) return draggable;
+
+    return Stack(
+      children: [
+        draggable,
+        Positioned(
+          top: 4,
+          right: 4,
+          child: IconButton(
+            key: Key('widget_lock_toggle_${widgetInstance.id}'),
+            icon: Icon(
+              isLockedForEdition
+                  ? (isApple ? CupertinoIcons.lock : Icons.lock)
+                  : (isApple ? CupertinoIcons.lock_open : Icons.lock_open),
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            tooltip: isLockedForEdition
+                ? 'Unlock for user edition'
+                : 'Lock for user edition',
+            visualDensity: VisualDensity.compact,
+            padding: const EdgeInsets.all(4),
+            constraints: const BoxConstraints(),
+            onPressed: onLockToggle == null
+                ? null
+                : () => onLockToggle!(!isLockedForEdition),
+          ),
+        ),
+      ],
     );
   }
 }

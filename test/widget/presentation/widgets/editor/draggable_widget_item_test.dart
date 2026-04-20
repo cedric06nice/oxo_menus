@@ -489,6 +489,95 @@ void main() {
       });
     });
 
+    group('lock toggle (admin)', () {
+      testWidgets('does not render the toggle when showLockToggle is false', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            child: DraggableWidgetItem(
+              widgetInstance: testWidget,
+              columnId: 1,
+              isEditable: true,
+              isLocked: false,
+            ),
+          ),
+        );
+
+        expect(find.byKey(const Key('widget_lock_toggle_42')), findsNothing);
+      });
+
+      testWidgets('renders an open padlock when unlocked', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            child: DraggableWidgetItem(
+              widgetInstance: testWidget,
+              columnId: 1,
+              isEditable: true,
+              isLocked: false,
+              showLockToggle: true,
+              isLockedForEdition: false,
+              onLockToggle: (_) {},
+            ),
+          ),
+        );
+
+        expect(find.byKey(const Key('widget_lock_toggle_42')), findsOneWidget);
+        expect(find.byIcon(Icons.lock_open), findsOneWidget);
+        expect(find.byIcon(Icons.lock), findsNothing);
+      });
+
+      testWidgets('renders a closed padlock when locked', (
+        WidgetTester tester,
+      ) async {
+        await tester.pumpWidget(
+          createTestWidget(
+            child: DraggableWidgetItem(
+              widgetInstance: testWidget,
+              columnId: 1,
+              isEditable: true,
+              isLocked: false,
+              showLockToggle: true,
+              isLockedForEdition: true,
+              onLockToggle: (_) {},
+            ),
+          ),
+        );
+
+        expect(find.byKey(const Key('widget_lock_toggle_42')), findsOneWidget);
+        expect(find.byIcon(Icons.lock), findsOneWidget);
+        expect(find.byIcon(Icons.lock_open), findsNothing);
+      });
+
+      testWidgets(
+        'tapping the toggle invokes onLockToggle with inverted value',
+        (WidgetTester tester) async {
+          final toggleValues = <bool>[];
+
+          await tester.pumpWidget(
+            createTestWidget(
+              child: DraggableWidgetItem(
+                widgetInstance: testWidget,
+                columnId: 1,
+                isEditable: true,
+                isLocked: false,
+                showLockToggle: true,
+                isLockedForEdition: false,
+                onLockToggle: toggleValues.add,
+              ),
+            ),
+          );
+
+          await tester.tap(find.byKey(const Key('widget_lock_toggle_42')));
+          await tester.pump();
+
+          expect(toggleValues, [true]);
+        },
+      );
+    });
+
     group('iOS icons', () {
       testWidgets('dismiss background uses CupertinoIcons.delete on iOS', (
         WidgetTester tester,

@@ -2972,4 +2972,143 @@ void main() {
       expect(button.tooltip, 'Area: Dining');
     });
   });
+
+  group('AdminTemplateEditorPage - Widget lock-for-edition toggle', () {
+    const menuId = 1;
+    const pageId = 1;
+    const containerId = 1;
+    const columnId = 1;
+    const widgetId = 42;
+    const menu = Menu(
+      id: menuId,
+      name: 'Test Template',
+      status: Status.draft,
+      version: '1.0.0',
+    );
+    final pages = [
+      const entity.Page(id: pageId, menuId: menuId, name: 'Page 1', index: 0),
+    ];
+    final containers = [
+      const entity.Container(id: containerId, pageId: pageId, index: 0),
+    ];
+    final columns = [
+      const entity.Column(
+        id: columnId,
+        containerId: containerId,
+        index: 0,
+        flex: 1,
+      ),
+    ];
+
+    void stubTreeWithSingleWidget({required bool locked}) {
+      final widgets = [
+        WidgetInstance(
+          id: widgetId,
+          columnId: columnId,
+          type: 'text',
+          version: '1.0.0',
+          index: 0,
+          props: const {
+            'text': 'Admin Text',
+            'align': 'left',
+            'bold': false,
+            'italic': false,
+          },
+          isTemplate: true,
+          lockedForEdition: locked,
+        ),
+      ];
+      when(
+        () => mockMenuRepository.getById(menuId),
+      ).thenAnswer((_) async => const Success(menu));
+      when(
+        () => mockPageRepository.getAllForMenu(menuId),
+      ).thenAnswer((_) async => Success(pages));
+      when(
+        () => mockContainerRepository.getAllForPage(pageId),
+      ).thenAnswer((_) async => Success(containers));
+      when(
+        () => mockColumnRepository.getAllForContainer(containerId),
+      ).thenAnswer((_) async => Success(columns));
+      when(
+        () => mockWidgetRepository.getAllForColumn(columnId),
+      ).thenAnswer((_) async => Success(widgets));
+    }
+
+    testWidgets('renders an open padlock for an unlocked template widget', (
+      tester,
+    ) async {
+      stubTreeWithSingleWidget(locked: false);
+
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('widget_lock_toggle_$widgetId')),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.lock_open), findsOneWidget);
+    });
+
+    testWidgets('renders a closed padlock for a locked template widget', (
+      tester,
+    ) async {
+      stubTreeWithSingleWidget(locked: true);
+
+      await tester.pumpWidget(createWidgetUnderTest(menuId));
+      await tester.pumpAndSettle();
+
+      // The toggle icon is closed; the existing in-card locked mode also
+      // draws a closed lock when isLocked: true — admin passes
+      // isLocked: false, so here only the toggle is a closed padlock.
+      expect(
+        find.byKey(const Key('widget_lock_toggle_$widgetId')),
+        findsOneWidget,
+      );
+      expect(find.byIcon(Icons.lock), findsOneWidget);
+    });
+
+    testWidgets(
+      'tapping the toggle sends UpdateWidgetInput(lockedForEdition: true)',
+      (tester) async {
+        stubTreeWithSingleWidget(locked: false);
+        when(() => mockWidgetRepository.update(any())).thenAnswer(
+          (_) async => const Success(
+            WidgetInstance(
+              id: widgetId,
+              columnId: columnId,
+              type: 'text',
+              version: '1.0.0',
+              index: 0,
+              props: {
+                'text': 'Admin Text',
+                'align': 'left',
+                'bold': false,
+                'italic': false,
+              },
+              isTemplate: true,
+              lockedForEdition: true,
+            ),
+          ),
+        );
+
+        await tester.pumpWidget(createWidgetUnderTest(menuId));
+        await tester.pumpAndSettle();
+
+        final toggleFinder = find.byKey(
+          const Key('widget_lock_toggle_$widgetId'),
+        );
+        final button = tester.widget<IconButton>(toggleFinder);
+        button.onPressed!();
+        await tester.pumpAndSettle();
+
+        final captured = verify(
+          () => mockWidgetRepository.update(captureAny()),
+        ).captured;
+        final input = captured.single as UpdateWidgetInput;
+        expect(input.id, widgetId);
+        expect(input.lockedForEdition, true);
+      },
+    );
+  });
 }

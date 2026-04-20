@@ -985,6 +985,11 @@ class _AdminTemplateEditorPageState
         columnId: columnId,
         isEditable: true,
         isLocked: false,
+        showLockToggle: true,
+        isLockedForEdition: widgetInstance.lockedForEdition,
+        onLockToggle: (locked) => ref
+            .read(editorTreeProvider(widget.menuId).notifier)
+            .updateWidgetLockForEdition(widgetInstance.id, locked),
         onUpdate: (props) => _handleWidgetUpdate(widgetInstance.id, props),
         onDelete: () => _handleWidgetDelete(widgetInstance.id),
         onConfirmDismiss: () => showDeleteConfirmation(context),

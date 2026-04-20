@@ -374,8 +374,8 @@ class _MenuEditorPageState extends ConsumerState<MenuEditorPage> {
       widgetItemBuilder: (widgetInstance, columnId) => DraggableWidgetItem(
         widgetInstance: widgetInstance,
         columnId: columnId,
-        isEditable: !widgetInstance.isTemplate,
-        isLocked: widgetInstance.isTemplate,
+        isEditable: !widgetInstance.lockedForEdition,
+        isLocked: widgetInstance.lockedForEdition,
         currentUserId: ref.read(currentUserProvider)?.id,
         editingUserName: collabNotifier
             .findEditingPresence(widgetInstance)
