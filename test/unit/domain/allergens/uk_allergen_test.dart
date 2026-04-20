@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/allergens/allergen_detail_options.dart';
 import 'package:oxo_menus/domain/allergens/uk_allergen.dart';
 
 void main() {
@@ -44,6 +45,32 @@ void main() {
       expect(UkAllergen.celery.detailsHint, isNull);
       expect(UkAllergen.eggs.detailsHint, isNull);
       expect(UkAllergen.milk.detailsHint, isNull);
+    });
+
+    group('detailOptions', () {
+      test('returns cereal dictionary for gluten', () {
+        expect(
+          UkAllergen.gluten.detailOptions,
+          AllergenDetailOptions.cerealOptions,
+        );
+      });
+
+      test('returns nut dictionary for nuts', () {
+        expect(UkAllergen.nuts.detailOptions, AllergenDetailOptions.nutOptions);
+      });
+
+      test('returns empty for allergens that do not support details', () {
+        for (final allergen in UkAllergen.values) {
+          if (allergen == UkAllergen.gluten || allergen == UkAllergen.nuts) {
+            continue;
+          }
+          expect(
+            allergen.detailOptions,
+            isEmpty,
+            reason: '${allergen.name} should have no detail options',
+          );
+        }
+      });
     });
 
     group('fromString', () {

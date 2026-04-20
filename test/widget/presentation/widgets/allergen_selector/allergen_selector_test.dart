@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/allergens/allergen_detail_options.dart';
 import 'package:oxo_menus/domain/allergens/allergen_info.dart';
 import 'package:oxo_menus/domain/allergens/uk_allergen.dart';
+import 'package:oxo_menus/presentation/widgets/allergen_selector/allergen_detail_chips.dart';
 import 'package:oxo_menus/presentation/widgets/allergen_selector/allergen_selector.dart';
 
 void main() {
@@ -141,7 +143,7 @@ void main() {
       expect(result!.first.mayContain, true);
     });
 
-    testWidgets('should show details field for gluten', (
+    testWidgets('should show cereal chips for gluten', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -159,7 +161,87 @@ void main() {
         ),
       );
 
-      expect(find.text('Specify details'), findsOneWidget);
+      expect(find.byType(AllergenDetailChips), findsOneWidget);
+      for (final cereal in AllergenDetailOptions.cerealOptions) {
+        expect(find.text(cereal), findsOneWidget);
+      }
+    });
+
+    testWidgets('should show nut chips for nuts', (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: AllergenSelector(
+                initialSelection: const [
+                  AllergenInfo(allergen: UkAllergen.nuts, mayContain: false),
+                ],
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(AllergenDetailChips), findsOneWidget);
+      for (final nut in AllergenDetailOptions.nutOptions) {
+        expect(find.text(nut), findsOneWidget);
+      }
+    });
+
+    testWidgets(
+      'tapping a cereal chip stores sorted lowercase details on the AllergenInfo',
+      (WidgetTester tester) async {
+        List<AllergenInfo>? result;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: AllergenSelector(
+                  initialSelection: const [
+                    AllergenInfo(
+                      allergen: UkAllergen.gluten,
+                      mayContain: false,
+                    ),
+                  ],
+                  onChanged: (selection) => result = selection,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('wheat'));
+        await tester.pump();
+        await tester.tap(find.text('barley'));
+        await tester.pump();
+
+        expect(result, isNotNull);
+        expect(result!.first.allergen, UkAllergen.gluten);
+        expect(result!.first.details, 'barley, wheat');
+      },
+    );
+
+    testWidgets('does not show details chips for allergens without details', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: AllergenSelector(
+                initialSelection: const [
+                  AllergenInfo(allergen: UkAllergen.celery, mayContain: false),
+                ],
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(AllergenDetailChips), findsNothing);
     });
 
     testWidgets('should render with initial selections', (
@@ -206,7 +288,7 @@ void main() {
       expect(find.byType(Checkbox), findsNothing);
     });
 
-    testWidgets('renders CupertinoTextField for details on iOS', (
+    testWidgets('renders AllergenDetailChips for details on iOS', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(
@@ -225,7 +307,8 @@ void main() {
         ),
       );
 
-      expect(find.byType(CupertinoTextField), findsOneWidget);
+      expect(find.byType(AllergenDetailChips), findsOneWidget);
+      expect(find.byType(CupertinoTextField), findsNothing);
     });
 
     testWidgets('selects allergen on iOS via CupertinoCheckbox', (

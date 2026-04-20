@@ -1,3 +1,5 @@
+import 'allergen_detail_options.dart';
+
 /// The 14 official UK allergens as defined by UK Food Standards Agency
 ///
 /// These are the allergens that must be declared on food labels and menus
@@ -91,6 +93,12 @@ enum UkAllergen {
   bool get supportsDetails {
     return this == UkAllergen.gluten || this == UkAllergen.nuts;
   }
+
+  /// Fixed dictionary of allowed detail values for this allergen.
+  ///
+  /// Returns a non-empty list only for allergens where `supportsDetails` is
+  /// true (gluten, nuts). Entries are lowercase and sorted alphabetically.
+  List<String> get detailOptions => AllergenDetailOptions.forAllergen(this);
 
   /// Hint text for the details field
   String? get detailsHint {

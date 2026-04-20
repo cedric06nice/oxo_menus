@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:oxo_menus/domain/allergens/allergen_info.dart';
 import 'package:oxo_menus/domain/allergens/uk_allergen.dart';
 import 'package:oxo_menus/presentation/utils/platform_detection.dart';
+import 'package:oxo_menus/presentation/widgets/allergen_selector/allergen_detail_chips.dart';
 
 /// Widget for selecting UK allergens with details and may-contain options
 ///
 /// Displays all 14 UK allergens as checkboxes. When an allergen is selected,
 /// shows a "may contain" sub-checkbox. For gluten and nuts, also shows a
-/// text field to specify details (e.g., which cereals or which nuts).
+/// chip-based multi-select backed by a fixed dictionary so details are
+/// consistent, typo-free, and stored in canonical sorted form.
 class AllergenSelector extends StatefulWidget {
   final List<AllergenInfo> initialSelection;
   final ValueChanged<List<AllergenInfo>> onChanged;
@@ -25,7 +27,6 @@ class AllergenSelector extends StatefulWidget {
 
 class _AllergenSelectorState extends State<AllergenSelector> {
   late Map<UkAllergen, AllergenInfo?> _selections;
-  late Map<UkAllergen, TextEditingController> _detailsControllers;
 
   @override
   void initState() {
@@ -34,29 +35,12 @@ class _AllergenSelectorState extends State<AllergenSelector> {
   }
 
   void _initializeSelections() {
-    _selections = {};
-    _detailsControllers = {};
-
-    for (final allergen in UkAllergen.values) {
-      final existing = widget.initialSelection
-          .where((a) => a.allergen == allergen)
-          .firstOrNull;
-      _selections[allergen] = existing;
-
-      if (allergen.supportsDetails) {
-        _detailsControllers[allergen] = TextEditingController(
-          text: existing?.details ?? '',
-        );
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    for (final controller in _detailsControllers.values) {
-      controller.dispose();
-    }
-    super.dispose();
+    _selections = {
+      for (final allergen in UkAllergen.values)
+        allergen: widget.initialSelection
+            .where((a) => a.allergen == allergen)
+            .firstOrNull,
+    };
   }
 
   void _notifyChange() {
@@ -144,7 +128,7 @@ class _AllergenSelectorState extends State<AllergenSelector> {
                 ),
                 if (allergen.supportsDetails) ...[
                   const SizedBox(height: 8),
-                  _buildDetailsField(allergen, info),
+                  _buildDetailsChips(allergen, info),
                 ],
               ],
             ),
@@ -209,7 +193,7 @@ class _AllergenSelectorState extends State<AllergenSelector> {
                     ),
                     if (allergen.supportsDetails) ...[
                       const SizedBox(height: 8),
-                      _buildDetailsField(allergen, info),
+                      _buildDetailsChips(allergen, info),
                     ],
                   ],
                 ),
@@ -225,16 +209,9 @@ class _AllergenSelectorState extends State<AllergenSelector> {
     final isSelected = _selections[allergen] != null;
     setState(() {
       if (!isSelected) {
-        _selections[allergen] = AllergenInfo(
-          allergen: allergen,
-          mayContain: false,
-          details: _detailsControllers[allergen]?.text.isEmpty == true
-              ? null
-              : _detailsControllers[allergen]?.text,
-        );
+        _selections[allergen] = AllergenInfo(allergen: allergen);
       } else {
         _selections[allergen] = null;
-        _detailsControllers[allergen]?.clear();
       }
     });
     _notifyChange();
@@ -250,38 +227,13 @@ class _AllergenSelectorState extends State<AllergenSelector> {
     return Checkbox(value: value, onChanged: onChanged);
   }
 
-  Widget _buildDetailsField(UkAllergen allergen, AllergenInfo? info) {
-    if (isApplePlatform(context)) {
-      return CupertinoTextField(
-        controller: _detailsControllers[allergen],
-        placeholder: allergen.detailsHint,
-        prefix: const Padding(
-          padding: EdgeInsets.only(left: 8),
-          child: Text('Specify details'),
-        ),
-        onChanged: (value) {
-          setState(() {
-            _selections[allergen] = info?.copyWith(
-              details: value.isEmpty ? null : value,
-            );
-          });
-          _notifyChange();
-        },
-      );
-    }
-    return TextField(
-      controller: _detailsControllers[allergen],
-      decoration: InputDecoration(
-        labelText: 'Specify details',
-        hintText: allergen.detailsHint,
-        isDense: true,
-        border: const OutlineInputBorder(),
-      ),
+  Widget _buildDetailsChips(UkAllergen allergen, AllergenInfo? info) {
+    return AllergenDetailChips(
+      options: allergen.detailOptions,
+      value: info?.details,
       onChanged: (value) {
         setState(() {
-          _selections[allergen] = info?.copyWith(
-            details: value.isEmpty ? null : value,
-          );
+          _selections[allergen] = info?.copyWith(details: value);
         });
         _notifyChange();
       },
