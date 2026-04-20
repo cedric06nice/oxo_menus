@@ -1,6 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/allergens/allergen_info.dart';
+import 'package:oxo_menus/domain/allergens/uk_allergen.dart';
 import 'package:oxo_menus/domain/widgets/shared/dietary_type.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
+import 'package:oxo_menus/domain/widgets/dish/price_variant.dart';
 
 void main() {
   group('DishProps', () {
@@ -10,7 +13,7 @@ void main() {
       expect(props.name, 'Pasta Carbonara');
       expect(props.price, 12.50);
       expect(props.description, isNull);
-      expect(props.allergens, isEmpty);
+      expect(props.allergenInfo, isEmpty);
       expect(props.dietary, isNull);
     });
 
@@ -19,14 +22,17 @@ void main() {
         name: 'Pasta Carbonara',
         price: 12.50,
         description: 'Classic Italian pasta',
-        allergens: ['Dairy', 'Gluten'],
+        allergenInfo: [
+          AllergenInfo(allergen: UkAllergen.milk),
+          AllergenInfo(allergen: UkAllergen.gluten),
+        ],
         dietary: DietaryType.vegetarian,
       );
 
       expect(props.name, 'Pasta Carbonara');
       expect(props.price, 12.50);
       expect(props.description, 'Classic Italian pasta');
-      expect(props.allergens, ['Dairy', 'Gluten']);
+      expect(props.allergenInfo, hasLength(2));
       expect(props.dietary, DietaryType.vegetarian);
     });
 
@@ -35,7 +41,7 @@ void main() {
         name: 'Pasta Carbonara',
         price: 12.50,
         description: 'Classic Italian pasta',
-        allergens: ['Dairy'],
+        allergenInfo: [AllergenInfo(allergen: UkAllergen.milk)],
         dietary: DietaryType.vegetarian,
       );
 
@@ -44,7 +50,8 @@ void main() {
       expect(json['name'], 'Pasta Carbonara');
       expect(json['price'], 12.50);
       expect(json['description'], 'Classic Italian pasta');
-      expect(json['allergens'], ['Dairy']);
+      expect(json['allergenInfo'], isA<List<dynamic>>());
+      expect((json['allergenInfo'] as List).length, 1);
       expect(json['dietary'], 'vegetarian');
     });
 
@@ -53,7 +60,10 @@ void main() {
         'name': 'Pasta Carbonara',
         'price': 12.50,
         'description': 'Classic Italian pasta',
-        'allergens': ['Dairy', 'Gluten'],
+        'allergenInfo': [
+          {'allergen': 'milk'},
+          {'allergen': 'gluten'},
+        ],
         'dietary': 'vegetarian',
       };
 
@@ -62,7 +72,8 @@ void main() {
       expect(props.name, 'Pasta Carbonara');
       expect(props.price, 12.50);
       expect(props.description, 'Classic Italian pasta');
-      expect(props.allergens, ['Dairy', 'Gluten']);
+      expect(props.allergenInfo, hasLength(2));
+      expect(props.allergenInfo.first.allergen, UkAllergen.milk);
       expect(props.dietary, DietaryType.vegetarian);
     });
 
@@ -74,27 +85,9 @@ void main() {
       expect(props.name, 'Simple Dish');
       expect(props.price, 10.0);
       expect(props.description, isNull);
-      expect(props.allergens, isEmpty);
+      expect(props.allergenInfo, isEmpty);
       expect(props.dietary, isNull);
     });
-
-    test(
-      'should deserialize from legacy JSON with showPrice/showAllergens (backward compatibility)',
-      () {
-        final json = {
-          'name': 'Pasta Carbonara',
-          'price': 12.50,
-          'showPrice': false,
-          'showAllergens': false,
-        };
-
-        // Should parse successfully, ignoring unknown fields
-        final props = DishProps.fromJson(json);
-
-        expect(props.name, 'Pasta Carbonara');
-        expect(props.price, 12.50);
-      },
-    );
 
     test('should support copyWith', () {
       const original = DishProps(name: 'Original', price: 10.0);
@@ -111,13 +104,13 @@ void main() {
       const props1 = DishProps(
         name: 'Pasta',
         price: 12.50,
-        allergens: ['Dairy'],
+        allergenInfo: [AllergenInfo(allergen: UkAllergen.milk)],
       );
 
       const props2 = DishProps(
         name: 'Pasta',
         price: 12.50,
-        allergens: ['Dairy'],
+        allergenInfo: [AllergenInfo(allergen: UkAllergen.milk)],
       );
 
       const props3 = DishProps(name: 'Pizza', price: 12.50);
@@ -130,13 +123,13 @@ void main() {
       final json = {
         'name': 'Dish',
         'price': 10.0,
-        'allergens': <String>[],
+        'allergenInfo': <Map<String, dynamic>>[],
         'dietary': null,
       };
 
       final props = DishProps.fromJson(json);
 
-      expect(props.allergens, isEmpty);
+      expect(props.allergenInfo, isEmpty);
       expect(props.dietary, isNull);
     });
 
@@ -166,7 +159,10 @@ void main() {
         name: 'Test Dish',
         price: 19.99,
         description: 'A test description',
-        allergens: ['Nuts', 'Soy'],
+        allergenInfo: [
+          AllergenInfo(allergen: UkAllergen.nuts),
+          AllergenInfo(allergen: UkAllergen.soya),
+        ],
       );
 
       final json = original.toJson();
@@ -253,6 +249,69 @@ void main() {
       test('should handle empty name with dietary', () {
         const props = DishProps(name: '', price: 0, dietary: DietaryType.vegan);
         expect(props.displayName, ' (Ve)');
+      });
+    });
+
+    group('priceVariants', () {
+      test('defaults to an empty list', () {
+        const props = DishProps(name: 'Pasta', price: 12.50);
+
+        expect(props.priceVariants, isEmpty);
+        expect(props.hasMultiplePrices, isFalse);
+      });
+
+      test('hasMultiplePrices is true when variants are set', () {
+        const props = DishProps(
+          name: 'Oysters',
+          price: 9.0,
+          priceVariants: [
+            PriceVariant(label: 'Per 3', price: 9.0),
+            PriceVariant(label: 'Per 6', price: 17.0),
+          ],
+        );
+
+        expect(props.hasMultiplePrices, isTrue);
+        expect(props.priceVariants.length, 2);
+      });
+
+      test('round-trips through JSON with variants', () {
+        const original = DishProps(
+          name: 'Oysters',
+          price: 9.0,
+          priceVariants: [
+            PriceVariant(label: 'Per 3', price: 9.0),
+            PriceVariant(label: 'Per 6', price: 17.0),
+            PriceVariant(label: 'Per 9', price: 24.0),
+          ],
+        );
+
+        final json = original.toJson();
+        final deserialized = DishProps.fromJson(json);
+
+        expect(json['priceVariants'], isA<List<dynamic>>());
+        expect((json['priceVariants'] as List).length, 3);
+        expect(deserialized, equals(original));
+      });
+
+      test('deserializes JSON without priceVariants as an empty list', () {
+        final json = {'name': 'Dish', 'price': 11.0};
+
+        final props = DishProps.fromJson(json);
+
+        expect(props.priceVariants, isEmpty);
+        expect(props.hasMultiplePrices, isFalse);
+      });
+
+      test('copyWith updates priceVariants independently', () {
+        const original = DishProps(name: 'Dish', price: 10.0);
+
+        final modified = original.copyWith(
+          priceVariants: const [PriceVariant(label: 'Large', price: 14.0)],
+        );
+
+        expect(original.priceVariants, isEmpty);
+        expect(modified.priceVariants.length, 1);
+        expect(modified.priceVariants.first.label, 'Large');
       });
     });
   });

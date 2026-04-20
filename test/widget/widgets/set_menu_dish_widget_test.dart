@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/allergens/allergen_info.dart';
+import 'package:oxo_menus/domain/allergens/uk_allergen.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/widgets/shared/dietary_type.dart';
 import 'package:oxo_menus/domain/widgets/set_menu_dish/set_menu_dish_props.dart';
@@ -147,7 +149,10 @@ void main() {
     testWidgets('should display allergens', (tester) async {
       const props = SetMenuDishProps(
         name: 'Soup',
-        allergens: ['Dairy', 'Gluten'],
+        allergenInfo: [
+          AllergenInfo(allergen: UkAllergen.milk),
+          AllergenInfo(allergen: UkAllergen.gluten),
+        ],
       );
 
       await tester.pumpWidget(
@@ -169,7 +174,10 @@ void main() {
     ) async {
       const props = SetMenuDishProps(
         name: 'Soup',
-        allergens: ['Dairy', 'Gluten'],
+        allergenInfo: [
+          AllergenInfo(allergen: UkAllergen.milk),
+          AllergenInfo(allergen: UkAllergen.gluten),
+        ],
       );
 
       await tester.pumpWidget(

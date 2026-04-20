@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/allergens/allergen_info.dart';
+import 'package:oxo_menus/domain/allergens/uk_allergen.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/widgets/shared/dietary_type.dart';
 import 'package:oxo_menus/domain/widgets/dish_to_share/dish_to_share_props.dart';
@@ -154,7 +156,10 @@ void main() {
       const props = DishToShareProps(
         name: 'Board',
         price: 20.00,
-        allergens: ['Dairy', 'Gluten'],
+        allergenInfo: [
+          AllergenInfo(allergen: UkAllergen.milk),
+          AllergenInfo(allergen: UkAllergen.gluten),
+        ],
       );
 
       await tester.pumpWidget(
@@ -177,7 +182,10 @@ void main() {
       const props = DishToShareProps(
         name: 'Board',
         price: 20.00,
-        allergens: ['Dairy', 'Gluten'],
+        allergenInfo: [
+          AllergenInfo(allergen: UkAllergen.milk),
+          AllergenInfo(allergen: UkAllergen.gluten),
+        ],
       );
 
       await tester.pumpWidget(

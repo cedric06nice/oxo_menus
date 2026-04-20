@@ -36,19 +36,23 @@ pw.TextAlign _pdfTextAlign(WidgetAlignment a) => switch (a) {
 };
 
 /// Two-cell PDF price row that anchors decimal points on the same x.
-pw.Widget _pdfPriceCell(double price, pw.TextStyle style, double baseFontSize) {
+pw.Widget _pdfPriceCell(
+  double price,
+  pw.TextStyle style,
+  double baseFontSize, {
+  bool showCurrency = true,
+}) {
   final parts = formatPriceParts(price);
+  final integer = showCurrency
+      ? parts.integer
+      : parts.integer.replaceFirst('£', '');
   return pw.Row(
     mainAxisSize: pw.MainAxisSize.min,
     crossAxisAlignment: pw.CrossAxisAlignment.end,
     children: [
       pw.SizedBox(
         width: baseFontSize * 2.8,
-        child: pw.Text(
-          parts.integer,
-          textAlign: pw.TextAlign.right,
-          style: style,
-        ),
+        child: pw.Text(integer, textAlign: pw.TextAlign.right, style: style),
       ),
       pw.SizedBox(
         width: baseFontSize * 1.5,
@@ -509,8 +513,31 @@ class PdfDocumentBuilder {
       fontWeight: pw.FontWeight.bold,
     );
 
+    final hasVariants = props.hasMultiplePrices;
+
     pw.Widget header;
-    if (alignment == WidgetAlignment.justified && showPrice) {
+    if (hasVariants) {
+      // Multi-price: name line alone, no inline price.
+      final wrapAlign = switch (alignment) {
+        WidgetAlignment.center => pw.WrapAlignment.center,
+        WidgetAlignment.end => pw.WrapAlignment.end,
+        _ => pw.WrapAlignment.start,
+      };
+      header = pw.Wrap(
+        alignment: wrapAlign,
+        crossAxisAlignment: pw.WrapCrossAlignment.end,
+        children: [
+          pw.Text(props.name, textAlign: textAlign, style: nameStyle),
+          pw.Text(
+            props.dietary?.abbreviation != null
+                ? '  ${props.dietary!.abbreviation}'
+                : '',
+            textAlign: textAlign,
+            style: dietaryStyle,
+          ),
+        ],
+      );
+    } else if (alignment == WidgetAlignment.justified && showPrice) {
       header = pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.end,
         children: [
@@ -560,6 +587,28 @@ class PdfDocumentBuilder {
         crossAxisAlignment: _pdfCrossAxis(alignment),
         children: [
           header,
+          if (hasVariants && showPrice)
+            for (final variant in props.priceVariants)
+              if (alignment == WidgetAlignment.justified)
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Expanded(
+                      child: pw.Text(
+                        variant.label,
+                        textAlign: pw.TextAlign.left,
+                        style: priceStyle,
+                      ),
+                    ),
+                    _pdfPriceCell(variant.price, priceStyle, baseFontSize),
+                  ],
+                )
+              else
+                pw.Text(
+                  '${variant.label}  ${formatPrice(variant.price).replaceFirst('£', '')}',
+                  textAlign: textAlign,
+                  style: priceStyle,
+                ),
           if (props.description != null && props.description!.isNotEmpty ||
               showAllergens && props.calories != null)
             pw.RichText(
@@ -589,7 +638,7 @@ class PdfDocumentBuilder {
           if (showAllergens) ...[
             () {
               final formattedAllergens = AllergenFormatter.formatForDisplay(
-                props.effectiveAllergenInfo,
+                props.allergenInfo,
               );
               if (formattedAllergens.isEmpty) {
                 return pw.SizedBox.shrink();
@@ -1010,7 +1059,7 @@ class PdfDocumentBuilder {
           if (showAllergens) ...[
             () {
               final formattedAllergens = AllergenFormatter.formatForDisplay(
-                props.effectiveAllergenInfo,
+                props.allergenInfo,
               );
               if (formattedAllergens.isEmpty) {
                 return pw.SizedBox.shrink();
@@ -1108,7 +1157,7 @@ class PdfDocumentBuilder {
           if (showAllergens) ...[
             () {
               final formattedAllergens = AllergenFormatter.formatForDisplay(
-                props.effectiveAllergenInfo,
+                props.allergenInfo,
               );
               if (formattedAllergens.isEmpty) {
                 return pw.SizedBox.shrink();

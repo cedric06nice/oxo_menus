@@ -45,7 +45,7 @@ class _SetMenuDishEditDialogState extends State<SetMenuDishEditDialog> {
       text: widget.props.supplementPrice.toString(),
     );
     _selectedDietary = widget.props.dietary;
-    _selectedAllergens = List.from(widget.props.effectiveAllergenInfo);
+    _selectedAllergens = List.from(widget.props.allergenInfo);
     _hasSupplement = widget.props.hasSupplement;
   }
 
@@ -239,7 +239,6 @@ class _SetMenuDishEditDialogState extends State<SetMenuDishEditDialog> {
           ? null
           : _descriptionController.text.trim(),
       calories: int.tryParse(_caloriesController.text),
-      allergens: const [],
       allergenInfo: _selectedAllergens,
       dietary: _selectedDietary,
       hasSupplement: _hasSupplement,

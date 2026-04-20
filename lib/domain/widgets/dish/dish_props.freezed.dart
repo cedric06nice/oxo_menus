@@ -15,15 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DishProps {
 
-/// The name of the dish
- String get name;/// The price of the dish
- double get price;/// Optional description of the dish
- String? get description;/// Optional calorie count (in KCAL)
- int? get calories;/// Legacy allergens field (for backward compatibility)
-/// @deprecated Use allergenInfo instead
- List<String> get allergens;/// Structured allergen information with UK allergen types
- List<AllergenInfo> get allergenInfo;/// Dietary type (Vegetarian or Vegan)
- DietaryType? get dietary;
+ String get name; double get price; String? get description; int? get calories; List<AllergenInfo> get allergenInfo; DietaryType? get dietary; List<PriceVariant> get priceVariants;
 /// Create a copy of DishProps
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -36,16 +28,16 @@ $DishPropsCopyWith<DishProps> get copyWith => _$DishPropsCopyWithImpl<DishProps>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DishProps&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.description, description) || other.description == description)&&(identical(other.calories, calories) || other.calories == calories)&&const DeepCollectionEquality().equals(other.allergens, allergens)&&const DeepCollectionEquality().equals(other.allergenInfo, allergenInfo)&&(identical(other.dietary, dietary) || other.dietary == dietary));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DishProps&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.description, description) || other.description == description)&&(identical(other.calories, calories) || other.calories == calories)&&const DeepCollectionEquality().equals(other.allergenInfo, allergenInfo)&&(identical(other.dietary, dietary) || other.dietary == dietary)&&const DeepCollectionEquality().equals(other.priceVariants, priceVariants));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,price,description,calories,const DeepCollectionEquality().hash(allergens),const DeepCollectionEquality().hash(allergenInfo),dietary);
+int get hashCode => Object.hash(runtimeType,name,price,description,calories,const DeepCollectionEquality().hash(allergenInfo),dietary,const DeepCollectionEquality().hash(priceVariants));
 
 @override
 String toString() {
-  return 'DishProps(name: $name, price: $price, description: $description, calories: $calories, allergens: $allergens, allergenInfo: $allergenInfo, dietary: $dietary)';
+  return 'DishProps(name: $name, price: $price, description: $description, calories: $calories, allergenInfo: $allergenInfo, dietary: $dietary, priceVariants: $priceVariants)';
 }
 
 
@@ -56,7 +48,7 @@ abstract mixin class $DishPropsCopyWith<$Res>  {
   factory $DishPropsCopyWith(DishProps value, $Res Function(DishProps) _then) = _$DishPropsCopyWithImpl;
 @useResult
 $Res call({
- String name, double price, String? description, int? calories, List<String> allergens, List<AllergenInfo> allergenInfo, DietaryType? dietary
+ String name, double price, String? description, int? calories, List<AllergenInfo> allergenInfo, DietaryType? dietary, List<PriceVariant> priceVariants
 });
 
 
@@ -73,16 +65,16 @@ class _$DishPropsCopyWithImpl<$Res>
 
 /// Create a copy of DishProps
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? price = null,Object? description = freezed,Object? calories = freezed,Object? allergens = null,Object? allergenInfo = null,Object? dietary = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? price = null,Object? description = freezed,Object? calories = freezed,Object? allergenInfo = null,Object? dietary = freezed,Object? priceVariants = null,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as double,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,calories: freezed == calories ? _self.calories : calories // ignore: cast_nullable_to_non_nullable
-as int?,allergens: null == allergens ? _self.allergens : allergens // ignore: cast_nullable_to_non_nullable
-as List<String>,allergenInfo: null == allergenInfo ? _self.allergenInfo : allergenInfo // ignore: cast_nullable_to_non_nullable
+as int?,allergenInfo: null == allergenInfo ? _self.allergenInfo : allergenInfo // ignore: cast_nullable_to_non_nullable
 as List<AllergenInfo>,dietary: freezed == dietary ? _self.dietary : dietary // ignore: cast_nullable_to_non_nullable
-as DietaryType?,
+as DietaryType?,priceVariants: null == priceVariants ? _self.priceVariants : priceVariants // ignore: cast_nullable_to_non_nullable
+as List<PriceVariant>,
   ));
 }
 
@@ -167,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  double price,  String? description,  int? calories,  List<String> allergens,  List<AllergenInfo> allergenInfo,  DietaryType? dietary)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  double price,  String? description,  int? calories,  List<AllergenInfo> allergenInfo,  DietaryType? dietary,  List<PriceVariant> priceVariants)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DishProps() when $default != null:
-return $default(_that.name,_that.price,_that.description,_that.calories,_that.allergens,_that.allergenInfo,_that.dietary);case _:
+return $default(_that.name,_that.price,_that.description,_that.calories,_that.allergenInfo,_that.dietary,_that.priceVariants);case _:
   return orElse();
 
 }
@@ -188,10 +180,10 @@ return $default(_that.name,_that.price,_that.description,_that.calories,_that.al
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  double price,  String? description,  int? calories,  List<String> allergens,  List<AllergenInfo> allergenInfo,  DietaryType? dietary)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  double price,  String? description,  int? calories,  List<AllergenInfo> allergenInfo,  DietaryType? dietary,  List<PriceVariant> priceVariants)  $default,) {final _that = this;
 switch (_that) {
 case _DishProps():
-return $default(_that.name,_that.price,_that.description,_that.calories,_that.allergens,_that.allergenInfo,_that.dietary);case _:
+return $default(_that.name,_that.price,_that.description,_that.calories,_that.allergenInfo,_that.dietary,_that.priceVariants);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -208,10 +200,10 @@ return $default(_that.name,_that.price,_that.description,_that.calories,_that.al
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  double price,  String? description,  int? calories,  List<String> allergens,  List<AllergenInfo> allergenInfo,  DietaryType? dietary)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  double price,  String? description,  int? calories,  List<AllergenInfo> allergenInfo,  DietaryType? dietary,  List<PriceVariant> priceVariants)?  $default,) {final _that = this;
 switch (_that) {
 case _DishProps() when $default != null:
-return $default(_that.name,_that.price,_that.description,_that.calories,_that.allergens,_that.allergenInfo,_that.dietary);case _:
+return $default(_that.name,_that.price,_that.description,_that.calories,_that.allergenInfo,_that.dietary,_that.priceVariants);case _:
   return null;
 
 }
@@ -223,39 +215,28 @@ return $default(_that.name,_that.price,_that.description,_that.calories,_that.al
 
 @JsonSerializable(explicitToJson: true)
 class _DishProps extends DishProps {
-  const _DishProps({required this.name, required this.price, this.description, this.calories, final  List<String> allergens = const [], final  List<AllergenInfo> allergenInfo = const [], this.dietary}): _allergens = allergens,_allergenInfo = allergenInfo,super._();
+  const _DishProps({required this.name, required this.price, this.description, this.calories, final  List<AllergenInfo> allergenInfo = const [], this.dietary, final  List<PriceVariant> priceVariants = const <PriceVariant>[]}): _allergenInfo = allergenInfo,_priceVariants = priceVariants,super._();
   factory _DishProps.fromJson(Map<String, dynamic> json) => _$DishPropsFromJson(json);
 
-/// The name of the dish
 @override final  String name;
-/// The price of the dish
 @override final  double price;
-/// Optional description of the dish
 @override final  String? description;
-/// Optional calorie count (in KCAL)
 @override final  int? calories;
-/// Legacy allergens field (for backward compatibility)
-/// @deprecated Use allergenInfo instead
- final  List<String> _allergens;
-/// Legacy allergens field (for backward compatibility)
-/// @deprecated Use allergenInfo instead
-@override@JsonKey() List<String> get allergens {
-  if (_allergens is EqualUnmodifiableListView) return _allergens;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_allergens);
-}
-
-/// Structured allergen information with UK allergen types
  final  List<AllergenInfo> _allergenInfo;
-/// Structured allergen information with UK allergen types
 @override@JsonKey() List<AllergenInfo> get allergenInfo {
   if (_allergenInfo is EqualUnmodifiableListView) return _allergenInfo;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_allergenInfo);
 }
 
-/// Dietary type (Vegetarian or Vegan)
 @override final  DietaryType? dietary;
+ final  List<PriceVariant> _priceVariants;
+@override@JsonKey() List<PriceVariant> get priceVariants {
+  if (_priceVariants is EqualUnmodifiableListView) return _priceVariants;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_priceVariants);
+}
+
 
 /// Create a copy of DishProps
 /// with the given fields replaced by the non-null parameter values.
@@ -270,16 +251,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DishProps&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.description, description) || other.description == description)&&(identical(other.calories, calories) || other.calories == calories)&&const DeepCollectionEquality().equals(other._allergens, _allergens)&&const DeepCollectionEquality().equals(other._allergenInfo, _allergenInfo)&&(identical(other.dietary, dietary) || other.dietary == dietary));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DishProps&&(identical(other.name, name) || other.name == name)&&(identical(other.price, price) || other.price == price)&&(identical(other.description, description) || other.description == description)&&(identical(other.calories, calories) || other.calories == calories)&&const DeepCollectionEquality().equals(other._allergenInfo, _allergenInfo)&&(identical(other.dietary, dietary) || other.dietary == dietary)&&const DeepCollectionEquality().equals(other._priceVariants, _priceVariants));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,price,description,calories,const DeepCollectionEquality().hash(_allergens),const DeepCollectionEquality().hash(_allergenInfo),dietary);
+int get hashCode => Object.hash(runtimeType,name,price,description,calories,const DeepCollectionEquality().hash(_allergenInfo),dietary,const DeepCollectionEquality().hash(_priceVariants));
 
 @override
 String toString() {
-  return 'DishProps(name: $name, price: $price, description: $description, calories: $calories, allergens: $allergens, allergenInfo: $allergenInfo, dietary: $dietary)';
+  return 'DishProps(name: $name, price: $price, description: $description, calories: $calories, allergenInfo: $allergenInfo, dietary: $dietary, priceVariants: $priceVariants)';
 }
 
 
@@ -290,7 +271,7 @@ abstract mixin class _$DishPropsCopyWith<$Res> implements $DishPropsCopyWith<$Re
   factory _$DishPropsCopyWith(_DishProps value, $Res Function(_DishProps) _then) = __$DishPropsCopyWithImpl;
 @override @useResult
 $Res call({
- String name, double price, String? description, int? calories, List<String> allergens, List<AllergenInfo> allergenInfo, DietaryType? dietary
+ String name, double price, String? description, int? calories, List<AllergenInfo> allergenInfo, DietaryType? dietary, List<PriceVariant> priceVariants
 });
 
 
@@ -307,16 +288,16 @@ class __$DishPropsCopyWithImpl<$Res>
 
 /// Create a copy of DishProps
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? price = null,Object? description = freezed,Object? calories = freezed,Object? allergens = null,Object? allergenInfo = null,Object? dietary = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? price = null,Object? description = freezed,Object? calories = freezed,Object? allergenInfo = null,Object? dietary = freezed,Object? priceVariants = null,}) {
   return _then(_DishProps(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,price: null == price ? _self.price : price // ignore: cast_nullable_to_non_nullable
 as double,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,calories: freezed == calories ? _self.calories : calories // ignore: cast_nullable_to_non_nullable
-as int?,allergens: null == allergens ? _self._allergens : allergens // ignore: cast_nullable_to_non_nullable
-as List<String>,allergenInfo: null == allergenInfo ? _self._allergenInfo : allergenInfo // ignore: cast_nullable_to_non_nullable
+as int?,allergenInfo: null == allergenInfo ? _self._allergenInfo : allergenInfo // ignore: cast_nullable_to_non_nullable
 as List<AllergenInfo>,dietary: freezed == dietary ? _self.dietary : dietary // ignore: cast_nullable_to_non_nullable
-as DietaryType?,
+as DietaryType?,priceVariants: null == priceVariants ? _self._priceVariants : priceVariants // ignore: cast_nullable_to_non_nullable
+as List<PriceVariant>,
   ));
 }
 

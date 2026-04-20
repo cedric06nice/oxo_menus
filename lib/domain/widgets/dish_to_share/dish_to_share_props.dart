@@ -19,7 +19,6 @@ abstract class DishToShareProps with _$DishToShareProps {
     required double price,
     String? description,
     int? calories,
-    @Default([]) List<String> allergens,
     @Default([]) List<AllergenInfo> allergenInfo,
     DietaryType? dietary,
     int? servings,
@@ -52,15 +51,6 @@ abstract class DishToShareProps with _$DishToShareProps {
   String get sharingText {
     final label = servingsLabel;
     return label.isEmpty ? 'To Share' : '$label To Share';
-  }
-
-  /// Get effective allergen info, migrating from legacy format if needed
-  List<AllergenInfo> get effectiveAllergenInfo {
-    if (allergenInfo.isNotEmpty) return allergenInfo;
-    return allergens
-        .map((s) => AllergenInfo.fromLegacyString(s))
-        .whereType<AllergenInfo>()
-        .toList();
   }
 
   /// Display name: uppercased dish name with optional dietary abbreviation

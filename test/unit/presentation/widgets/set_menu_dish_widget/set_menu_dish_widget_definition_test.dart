@@ -15,6 +15,10 @@ void main() {
       expect(setMenuDishWidgetDefinition.displayName, 'Set Menu Dish');
     });
 
+    test('has no migration function', () {
+      expect(setMenuDishWidgetDefinition.migrate, isNull);
+    });
+
     test('has default props with no supplement', () {
       final props = setMenuDishWidgetDefinition.defaultProps;
       expect(props.name, 'New Set Menu Dish');
@@ -33,46 +37,6 @@ void main() {
       expect(props.name, 'Lobster Thermidor');
       expect(props.hasSupplement, true);
       expect(props.supplementPrice, 7.5);
-    });
-
-    group('migration', () {
-      test('migrates legacy allergens to allergenInfo', () {
-        final json = {
-          'name': 'Dish',
-          'allergens': ['gluten', 'milk'],
-        };
-
-        final props = setMenuDishWidgetDefinition.migrate!(json);
-        expect(props.allergenInfo, hasLength(2));
-        expect(props.allergens, isEmpty);
-      });
-
-      test('migrates legacy dietary list to enum', () {
-        final json = {
-          'name': 'Dish',
-          'dietary': ['vegetarian'],
-        };
-
-        final props = setMenuDishWidgetDefinition.migrate!(json);
-        expect(props.dietary, isNotNull);
-      });
-
-      test('migrates empty dietary list to null', () {
-        final json = {'name': 'Dish', 'dietary': <String>[]};
-
-        final props = setMenuDishWidgetDefinition.migrate!(json);
-        expect(props.dietary, isNull);
-      });
-
-      test('prefers vegan over vegetarian in dietary migration', () {
-        final json = {
-          'name': 'Dish',
-          'dietary': ['vegetarian', 'vegan'],
-        };
-
-        final props = setMenuDishWidgetDefinition.migrate!(json);
-        expect(props.dietary!.name, 'vegan');
-      });
     });
   });
 }

@@ -26,6 +26,8 @@ class DishWidget extends StatelessWidget {
     const nameStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
     const priceStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
 
+    final hasVariants = props.hasMultiplePrices;
+
     return GestureDetector(
       onTap: context.isEditable ? () => _handleEdit(buildContext) : null,
       child: Card(
@@ -35,7 +37,28 @@ class DishWidget extends StatelessWidget {
           child: Column(
             crossAxisAlignment: alignment.crossAxis,
             children: [
-              if (alignment.isJustified) ...[
+              if (hasVariants) ...[
+                Text(props.displayName, textAlign: textAlign, style: nameStyle),
+                if (showPrice)
+                  for (final variant in props.priceVariants)
+                    if (alignment.isJustified)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Expanded(
+                            child: Text(variant.label, style: priceStyle),
+                          ),
+                          PriceCell(price: variant.price, style: priceStyle),
+                        ],
+                      )
+                    else
+                      Text(
+                        '${variant.label} — ${formatPrice(variant.price)}',
+                        textAlign: textAlign,
+                        style: priceStyle,
+                      ),
+              ] else if (alignment.isJustified) ...[
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
@@ -82,9 +105,7 @@ class DishWidget extends StatelessWidget {
                 Builder(
                   builder: (ctx) {
                     final formattedAllergens =
-                        AllergenFormatter.formatForDisplay(
-                          props.effectiveAllergenInfo,
-                        );
+                        AllergenFormatter.formatForDisplay(props.allergenInfo);
                     if (formattedAllergens.isEmpty) {
                       return const SizedBox.shrink();
                     }

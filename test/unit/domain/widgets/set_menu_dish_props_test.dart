@@ -13,7 +13,6 @@ void main() {
         expect(props.name, 'Beef Wellington');
         expect(props.description, isNull);
         expect(props.calories, isNull);
-        expect(props.allergens, isEmpty);
         expect(props.allergenInfo, isEmpty);
         expect(props.dietary, isNull);
         expect(props.hasSupplement, false);
@@ -150,32 +149,20 @@ void main() {
       });
     });
 
-    group('effectiveAllergenInfo', () {
-      test('returns allergenInfo when present', () {
+    group('allergenInfo', () {
+      test('stores structured allergens', () {
         const allergens = [
           AllergenInfo(allergen: UkAllergen.gluten),
           AllergenInfo(allergen: UkAllergen.milk),
         ];
         const props = SetMenuDishProps(name: 'Test', allergenInfo: allergens);
 
-        expect(props.effectiveAllergenInfo, allergens);
+        expect(props.allergenInfo, allergens);
       });
 
-      test('migrates from legacy allergens', () {
-        const props = SetMenuDishProps(
-          name: 'Test',
-          allergens: ['gluten', 'milk'],
-        );
-
-        final effective = props.effectiveAllergenInfo;
-        expect(effective, hasLength(2));
-        expect(effective[0].allergen, UkAllergen.gluten);
-        expect(effective[1].allergen, UkAllergen.milk);
-      });
-
-      test('returns empty list when no allergens', () {
+      test('defaults to empty list', () {
         const props = SetMenuDishProps(name: 'Test');
-        expect(props.effectiveAllergenInfo, isEmpty);
+        expect(props.allergenInfo, isEmpty);
       });
     });
 

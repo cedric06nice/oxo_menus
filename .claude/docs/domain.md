@@ -126,7 +126,7 @@ Runtime state: `isEditable`, `onUpdate`, `onDelete`, `onEditStarted?`, `onEditEn
 ## Widget Props (`lib/domain/widgets/`)
 
 ### DishProps
-`name`, `price` (£), `description?`, `calories?`, `allergens` (legacy List\<String\>), `allergenInfo` (List\<AllergenInfo\>), `dietary` (DietaryType?). `effectiveAllergenInfo` migrates legacy format. `displayName` → uppercase + dietary abbreviation.
+`name`, `price` (£), `description?`, `calories?`, `allergenInfo` (List\<AllergenInfo\>), `dietary` (DietaryType?). `displayName` → uppercase + dietary abbreviation.
 
 ### WineProps
 `name`, `price` (£), `description?`, `vintage?`, `dietary?`, `containsSulphites` (default: false). `displayName` → uppercase + dietary abbreviation.
@@ -158,7 +158,7 @@ Runtime state: `isEditable`, `onUpdate`, `onDelete`, `onEditStarted?`, `onEditEn
 14 FSA allergens: celery, gluten, crustaceans, eggs, fish, lupin, milk, molluscs, mustard, nuts, peanuts, sesame, soya, sulphites. Properties: `displayName`, `shortName` (CAPITALS), `supportsDetails` (gluten, nuts).
 
 ### AllergenInfo (freezed)
-`allergen`, `mayContain` (false), `details?`. Factory `fromLegacyString()` maps common strings (e.g., 'dairy'→milk, 'wheat'→gluten).
+`allergen`, `mayContain` (false), `details?`.
 
 ### AllergenFormatter
 `formatForDisplay()` → UK format: definite first (alphabetical, CAPS, details in brackets), then "MAY CONTAIN" group.

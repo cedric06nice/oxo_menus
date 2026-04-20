@@ -1427,5 +1427,65 @@ void main() {
         },
       );
     });
+
+    test('should produce valid PDF with multi-price dish widget', () async {
+      const menuTree = MenuTree(
+        menu: Menu(
+          id: 1,
+          name: 'Multi Price Menu',
+          status: Status.published,
+          version: '1.0.0',
+        ),
+        pages: [
+          PageWithContainers(
+            page: entity.Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 1, pageId: 1, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(
+                      id: 1,
+                      containerId: 1,
+                      index: 0,
+                      flex: 1,
+                    ),
+                    widgets: [
+                      WidgetInstance(
+                        id: 1,
+                        columnId: 1,
+                        type: 'dish',
+                        version: '5.0.0',
+                        index: 0,
+                        props: {
+                          'name': 'Oysters',
+                          'price': 9.0,
+                          'priceVariants': [
+                            {'label': 'Per 3', 'price': 9.0},
+                            {'label': 'Per 6', 'price': 17.0},
+                            {'label': 'Per 9', 'price': 24.0},
+                          ],
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      final bytes = await builder.buildDocument(
+        menuTree: menuTree,
+        baseFontData: baseFontData,
+        boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
+        imageCache: {},
+      );
+
+      expect(bytes, isNotEmpty);
+      expect(bytes[0], 0x25); // %PDF
+    });
   });
 }

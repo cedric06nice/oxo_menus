@@ -10,7 +10,6 @@ void main() {
     price: 18.50,
     description: 'Selection of dips and breads',
     calories: 650,
-    allergens: [],
     allergenInfo: [],
     servings: 2,
   );

@@ -18,7 +18,6 @@ abstract class SetMenuDishProps with _$SetMenuDishProps {
     required String name,
     String? description,
     int? calories,
-    @Default([]) List<String> allergens,
     @Default([]) List<AllergenInfo> allergenInfo,
     DietaryType? dietary,
     @Default(false) bool hasSupplement,
@@ -27,15 +26,6 @@ abstract class SetMenuDishProps with _$SetMenuDishProps {
 
   factory SetMenuDishProps.fromJson(Map<String, dynamic> json) =>
       _$SetMenuDishPropsFromJson(json);
-
-  /// Get effective allergen info, migrating from legacy format if needed
-  List<AllergenInfo> get effectiveAllergenInfo {
-    if (allergenInfo.isNotEmpty) return allergenInfo;
-    return allergens
-        .map((s) => AllergenInfo.fromLegacyString(s))
-        .whereType<AllergenInfo>()
-        .toList();
-  }
 
   /// Display name: uppercased dish name with optional dietary abbreviation
   String get displayName {

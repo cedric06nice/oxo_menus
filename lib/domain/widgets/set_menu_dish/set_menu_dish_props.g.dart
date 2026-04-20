@@ -11,11 +11,6 @@ _SetMenuDishProps _$SetMenuDishPropsFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       description: json['description'] as String?,
       calories: (json['calories'] as num?)?.toInt(),
-      allergens:
-          (json['allergens'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
       allergenInfo:
           (json['allergenInfo'] as List<dynamic>?)
               ?.map((e) => AllergenInfo.fromJson(e as Map<String, dynamic>))
@@ -31,7 +26,6 @@ Map<String, dynamic> _$SetMenuDishPropsToJson(_SetMenuDishProps instance) =>
       'name': instance.name,
       'description': instance.description,
       'calories': instance.calories,
-      'allergens': instance.allergens,
       'allergenInfo': instance.allergenInfo.map((e) => e.toJson()).toList(),
       'dietary': _$DietaryTypeEnumMap[instance.dietary],
       'hasSupplement': instance.hasSupplement,

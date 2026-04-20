@@ -14,7 +14,6 @@ void main() {
         expect(props.price, 18.50);
         expect(props.description, isNull);
         expect(props.calories, isNull);
-        expect(props.allergens, isEmpty);
         expect(props.allergenInfo, isEmpty);
         expect(props.dietary, isNull);
         expect(props.servings, isNull);
@@ -193,8 +192,8 @@ void main() {
       });
     });
 
-    group('effectiveAllergenInfo', () {
-      test('returns allergenInfo when present', () {
+    group('allergenInfo', () {
+      test('stores structured allergens', () {
         const allergens = [
           AllergenInfo(allergen: UkAllergen.gluten),
           AllergenInfo(allergen: UkAllergen.milk),
@@ -205,25 +204,12 @@ void main() {
           allergenInfo: allergens,
         );
 
-        expect(props.effectiveAllergenInfo, allergens);
+        expect(props.allergenInfo, allergens);
       });
 
-      test('migrates from legacy allergens', () {
-        const props = DishToShareProps(
-          name: 'Test',
-          price: 10.0,
-          allergens: ['gluten', 'milk'],
-        );
-
-        final effective = props.effectiveAllergenInfo;
-        expect(effective, hasLength(2));
-        expect(effective[0].allergen, UkAllergen.gluten);
-        expect(effective[1].allergen, UkAllergen.milk);
-      });
-
-      test('returns empty list when no allergens', () {
+      test('defaults to empty list', () {
         const props = DishToShareProps(name: 'Test', price: 10.0);
-        expect(props.effectiveAllergenInfo, isEmpty);
+        expect(props.allergenInfo, isEmpty);
       });
     });
 

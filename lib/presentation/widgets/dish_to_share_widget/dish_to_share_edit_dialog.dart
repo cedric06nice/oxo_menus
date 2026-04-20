@@ -48,7 +48,7 @@ class _DishToShareEditDialogState extends State<DishToShareEditDialog> {
       text: widget.props.servings?.toString() ?? '',
     );
     _selectedDietary = widget.props.dietary;
-    _selectedAllergens = List.from(widget.props.effectiveAllergenInfo);
+    _selectedAllergens = List.from(widget.props.allergenInfo);
   }
 
   @override
@@ -234,7 +234,6 @@ class _DishToShareEditDialogState extends State<DishToShareEditDialog> {
           ? null
           : _descriptionController.text.trim(),
       calories: int.tryParse(_caloriesController.text),
-      allergens: const [],
       allergenInfo: _selectedAllergens,
       dietary: _selectedDietary,
       servings: int.tryParse(_servingsController.text),

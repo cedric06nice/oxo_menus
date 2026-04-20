@@ -99,9 +99,7 @@ class DishToShareWidget extends StatelessWidget {
                 Builder(
                   builder: (ctx) {
                     final formattedAllergens =
-                        AllergenFormatter.formatForDisplay(
-                          props.effectiveAllergenInfo,
-                        );
+                        AllergenFormatter.formatForDisplay(props.allergenInfo);
                     if (formattedAllergens.isEmpty) {
                       return const SizedBox.shrink();
                     }

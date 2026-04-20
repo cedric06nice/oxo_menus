@@ -61,7 +61,7 @@ Widget types: `dish`, `dish_to_share`, `image`, `section`, `set_menu_dish`, `set
 
 ## Allergens
 
-UK FSA 14 allergens (`UkAllergen` enum). Legacy `List<String>` → `List<AllergenInfo>` migration via `DishProps.effectiveAllergenInfo`. `AllergenFormatter` handles UK-compliant display (e.g., `GLUTEN [wheat], MILK, MAY CONTAIN EGGS`).
+UK FSA 14 allergens (`UkAllergen` enum). Dishes carry `List<AllergenInfo>` (structured). `AllergenFormatter` handles UK-compliant display (e.g., `GLUTEN [wheat], MILK, MAY CONTAIN EGGS`).
 
 ## State Management
 

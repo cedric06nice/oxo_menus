@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/allergens/allergen_info.dart';
+import 'package:oxo_menus/domain/allergens/uk_allergen.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
@@ -47,7 +49,7 @@ void main() {
           price: 12.50,
           description: 'desc',
           calories: 350,
-          allergens: ['Dairy'],
+          allergenInfo: [AllergenInfo(allergen: UkAllergen.milk)],
         ),
       );
       expect(innerColumn(t).crossAxisAlignment, CrossAxisAlignment.start);
@@ -67,7 +69,7 @@ void main() {
           price: 12.50,
           description: 'desc',
           calories: 350,
-          allergens: ['Dairy'],
+          allergenInfo: [AllergenInfo(allergen: UkAllergen.milk)],
         ),
       );
       expect(innerColumn(t).crossAxisAlignment, CrossAxisAlignment.center);

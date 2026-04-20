@@ -15,6 +15,10 @@ void main() {
       expect(dishToShareWidgetDefinition.displayName, 'Dish To Share');
     });
 
+    test('has no migration function', () {
+      expect(dishToShareWidgetDefinition.migrate, isNull);
+    });
+
     test('has default props with null servings', () {
       final props = dishToShareWidgetDefinition.defaultProps;
       expect(props.name, 'New Dish To Share');
@@ -29,63 +33,6 @@ void main() {
       expect(props.name, 'Mezze Platter');
       expect(props.price, 18.50);
       expect(props.servings, 4);
-    });
-
-    group('migration', () {
-      test('handles missing servings by defaulting to null', () {
-        final json = {'name': 'Board', 'price': 20.0};
-
-        final props = dishToShareWidgetDefinition.migrate!(json);
-        expect(props.servings, isNull);
-      });
-
-      test('preserves existing servings', () {
-        final json = {'name': 'Board', 'price': 20.0, 'servings': 6};
-
-        final props = dishToShareWidgetDefinition.migrate!(json);
-        expect(props.servings, 6);
-      });
-
-      test('migrates legacy allergens to allergenInfo', () {
-        final json = {
-          'name': 'Board',
-          'price': 20.0,
-          'allergens': ['gluten', 'milk'],
-        };
-
-        final props = dishToShareWidgetDefinition.migrate!(json);
-        expect(props.allergenInfo, hasLength(2));
-        expect(props.allergens, isEmpty);
-      });
-
-      test('migrates legacy dietary list to enum', () {
-        final json = {
-          'name': 'Board',
-          'price': 20.0,
-          'dietary': ['vegetarian'],
-        };
-
-        final props = dishToShareWidgetDefinition.migrate!(json);
-        expect(props.dietary, isNotNull);
-      });
-
-      test('migrates empty dietary list to null', () {
-        final json = {'name': 'Board', 'price': 20.0, 'dietary': <String>[]};
-
-        final props = dishToShareWidgetDefinition.migrate!(json);
-        expect(props.dietary, isNull);
-      });
-
-      test('prefers vegan over vegetarian in dietary migration', () {
-        final json = {
-          'name': 'Board',
-          'price': 20.0,
-          'dietary': ['vegetarian', 'vegan'],
-        };
-
-        final props = dishToShareWidgetDefinition.migrate!(json);
-        expect(props.dietary!.name, 'vegan');
-      });
     });
   });
 }

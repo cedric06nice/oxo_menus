@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:oxo_menus/domain/allergens/allergen_info.dart';
+import 'package:oxo_menus/domain/allergens/uk_allergen.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
+import 'package:oxo_menus/domain/widgets/dish/price_variant.dart';
 import 'package:oxo_menus/domain/widgets/shared/dietary_type.dart';
+import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
 import 'package:oxo_menus/domain/widgets/dish/dish_props.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
+import 'package:oxo_menus/presentation/widgets/common/price_cell.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget.dart';
 
 void main() {
@@ -100,7 +105,10 @@ void main() {
       const props = DishProps(
         name: 'Pasta Carbonara',
         price: 12.50,
-        allergens: ['Dairy', 'Gluten'],
+        allergenInfo: [
+          AllergenInfo(allergen: UkAllergen.milk),
+          AllergenInfo(allergen: UkAllergen.gluten),
+        ],
       );
 
       await tester.pumpWidget(
@@ -125,7 +133,10 @@ void main() {
       const props = DishProps(
         name: 'Pasta Carbonara',
         price: 12.50,
-        allergens: ['Dairy', 'Gluten'],
+        allergenInfo: [
+          AllergenInfo(allergen: UkAllergen.milk),
+          AllergenInfo(allergen: UkAllergen.gluten),
+        ],
       );
 
       await tester.pumpWidget(
@@ -152,7 +163,10 @@ void main() {
         const props = DishProps(
           name: 'Pasta Carbonara',
           price: 12.50,
-          allergens: ['Dairy', 'Gluten'],
+          allergenInfo: [
+            AllergenInfo(allergen: UkAllergen.milk),
+            AllergenInfo(allergen: UkAllergen.gluten),
+          ],
         );
 
         await tester.pumpWidget(
@@ -205,7 +219,7 @@ void main() {
         const props = DishProps(
           name: 'Mixed Dish',
           price: 15.0,
-          allergens: ['Nuts'],
+          allergenInfo: [AllergenInfo(allergen: UkAllergen.nuts)],
           dietary: DietaryType.vegetarian,
         );
 
@@ -702,6 +716,94 @@ void main() {
 
         expect(capturedUpdate, isNotNull);
         expect(capturedUpdate!['calories'], isNull);
+      });
+    });
+
+    group('multi-price rendering', () {
+      const multiPriceProps = DishProps(
+        name: 'Oysters',
+        price: 9.0,
+        priceVariants: [
+          PriceVariant(label: 'Per 3', price: 9.0),
+          PriceVariant(label: 'Per 6', price: 17.0),
+          PriceVariant(label: 'Per 9', price: 24.0),
+        ],
+      );
+
+      testWidgets(
+        'non-justified: renders one text line per variant and suppresses single-price text',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(
+              home: Scaffold(
+                body: DishWidget(
+                  props: multiPriceProps,
+                  context: WidgetContext(
+                    isEditable: false,
+                    alignment: WidgetAlignment.start,
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          expect(find.text('OYSTERS'), findsOneWidget);
+          expect(find.text('Per 3 — £9'), findsOneWidget);
+          expect(find.text('Per 6 — £17'), findsOneWidget);
+          expect(find.text('Per 9 — £24'), findsOneWidget);
+          // No fallback single-price text should be rendered.
+          expect(find.text('£9'), findsNothing);
+        },
+      );
+
+      testWidgets(
+        'justified: renders a PriceCell per variant with its label alongside',
+        (tester) async {
+          await tester.pumpWidget(
+            const MaterialApp(
+              home: Scaffold(
+                body: DishWidget(
+                  props: multiPriceProps,
+                  context: WidgetContext(
+                    isEditable: false,
+                    alignment: WidgetAlignment.justified,
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          expect(find.byType(PriceCell), findsNWidgets(3));
+          expect(find.text('Per 3'), findsOneWidget);
+          expect(find.text('Per 6'), findsOneWidget);
+          expect(find.text('Per 9'), findsOneWidget);
+          // Name still appears without an inline PriceCell alongside it.
+          expect(find.text('OYSTERS'), findsOneWidget);
+        },
+      );
+
+      testWidgets('hides all variants when showPrices is false', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: DishWidget(
+                props: multiPriceProps,
+                context: WidgetContext(
+                  isEditable: false,
+                  alignment: WidgetAlignment.justified,
+                  displayOptions: MenuDisplayOptions(showPrices: false),
+                ),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.byType(PriceCell), findsNothing);
+        expect(find.text('Per 3 — £9'), findsNothing);
+        expect(find.text('Per 3'), findsNothing);
+        expect(find.text('OYSTERS'), findsOneWidget);
       });
     });
   });

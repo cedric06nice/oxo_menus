@@ -769,7 +769,6 @@ void main() {
       WidgetInstance makeDish({
         bool showPrice = true,
         bool showAllergens = true,
-        List<String> allergens = const [],
         DietaryType? dietary,
         int? calories,
       }) {
@@ -777,14 +776,13 @@ void main() {
           id: 1,
           columnId: 1,
           type: 'dish',
-          version: '3.0.0',
+          version: '1.0.0',
           index: 0,
           props: {
             'name': 'Test Dish',
             'price': 9.99,
             'showPrice': showPrice,
             'showAllergens': showAllergens,
-            'allergens': allergens,
             'dietary': dietary?.name,
             'calories': ?calories,
           },
@@ -860,7 +858,7 @@ void main() {
 
       test('should render dish with empty allergens and dietary', () async {
         final result = await useCase.execute(
-          menuWithStyleAndWidget(null, makeDish(allergens: [])),
+          menuWithStyleAndWidget(null, makeDish()),
         );
         expect(result.isSuccess, true);
       });
