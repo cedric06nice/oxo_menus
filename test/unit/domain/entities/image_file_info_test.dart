@@ -4,15 +4,18 @@ import 'package:oxo_menus/domain/entities/image_file_info.dart';
 void main() {
   group('ImageFileInfo', () {
     group('construction', () {
-      test('should create ImageFileInfo with only id when title and type are omitted', () {
-        // Arrange & Act
-        const info = ImageFileInfo(id: 'abc-123');
+      test(
+        'should create ImageFileInfo with only id when title and type are omitted',
+        () {
+          // Arrange & Act
+          const info = ImageFileInfo(id: 'abc-123');
 
-        // Assert
-        expect(info.id, 'abc-123');
-        expect(info.title, isNull);
-        expect(info.type, isNull);
-      });
+          // Assert
+          expect(info.id, 'abc-123');
+          expect(info.title, isNull);
+          expect(info.type, isNull);
+        },
+      );
 
       test('should store title when title is provided', () {
         // Arrange & Act
@@ -30,19 +33,22 @@ void main() {
         expect(info.type, 'image/jpeg');
       });
 
-      test('should store all fields when id, title and type are all provided', () {
-        // Arrange & Act
-        const info = ImageFileInfo(
-          id: 'abc-123',
-          title: 'photo.jpg',
-          type: 'image/jpeg',
-        );
+      test(
+        'should store all fields when id, title and type are all provided',
+        () {
+          // Arrange & Act
+          const info = ImageFileInfo(
+            id: 'abc-123',
+            title: 'photo.jpg',
+            type: 'image/jpeg',
+          );
 
-        // Assert
-        expect(info.id, 'abc-123');
-        expect(info.title, 'photo.jpg');
-        expect(info.type, 'image/jpeg');
-      });
+          // Assert
+          expect(info.id, 'abc-123');
+          expect(info.title, 'photo.jpg');
+          expect(info.type, 'image/jpeg');
+        },
+      );
 
       test('should accept an empty string as id', () {
         // Arrange & Act
@@ -125,16 +131,23 @@ void main() {
         expect(updated.id, 'abc-123');
       });
 
-      test('should preserve all fields when copyWith is called with no arguments', () {
-        // Arrange
-        const info = ImageFileInfo(id: 'abc-123', title: 'photo.jpg', type: 'image/jpeg');
+      test(
+        'should preserve all fields when copyWith is called with no arguments',
+        () {
+          // Arrange
+          const info = ImageFileInfo(
+            id: 'abc-123',
+            title: 'photo.jpg',
+            type: 'image/jpeg',
+          );
 
-        // Act
-        final copy = info.copyWith();
+          // Act
+          final copy = info.copyWith();
 
-        // Assert
-        expect(copy, equals(info));
-      });
+          // Assert
+          expect(copy, equals(info));
+        },
+      );
     });
 
     group('toString', () {
@@ -168,18 +181,25 @@ void main() {
         expect(json['type'], 'image/jpeg');
       });
 
-      test('should deserialize ImageFileInfo from JSON with correct field values', () {
-        // Arrange
-        final json = {'id': 'xyz-456', 'title': 'logo.png', 'type': 'image/png'};
+      test(
+        'should deserialize ImageFileInfo from JSON with correct field values',
+        () {
+          // Arrange
+          final json = {
+            'id': 'xyz-456',
+            'title': 'logo.png',
+            'type': 'image/png',
+          };
 
-        // Act
-        final info = ImageFileInfo.fromJson(json);
+          // Act
+          final info = ImageFileInfo.fromJson(json);
 
-        // Assert
-        expect(info.id, 'xyz-456');
-        expect(info.title, 'logo.png');
-        expect(info.type, 'image/png');
-      });
+          // Assert
+          expect(info.id, 'xyz-456');
+          expect(info.title, 'logo.png');
+          expect(info.type, 'image/png');
+        },
+      );
 
       test('should round-trip through JSON preserving equality', () {
         // Arrange

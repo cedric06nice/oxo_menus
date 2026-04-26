@@ -32,20 +32,19 @@ Map<String, dynamic> _widgetJson({
   bool isTemplate = false,
   bool lockedForEdition = false,
   String? editingBy,
-}) =>
-    {
-      'id': id,
-      'column': columnId,
-      'index': index,
-      'type_key': typeKey,
-      'version': version,
-      'props_json': props ?? {},
-      'status': 'published',
-      'style_json': ?styleJson,
-      'is_template': isTemplate,
-      'locked_for_edition': lockedForEdition,
-      'editing_by': ?editingBy,
-    };
+}) => {
+  'id': id,
+  'column': columnId,
+  'index': index,
+  'type_key': typeKey,
+  'version': version,
+  'props_json': props ?? {},
+  'status': 'published',
+  'style_json': ?styleJson,
+  'is_template': isTemplate,
+  'locked_for_edition': lockedForEdition,
+  'editing_by': ?editingBy,
+};
 
 // Minimal json for index-only operations (reorder helpers)
 Map<String, dynamic> _indexJson(int id, int index) => {
@@ -118,9 +117,12 @@ class _FakeDs implements DirectusDataSource {
     int? limit,
     int? offset,
   }) async {
-    getItemsCalls.add(
-      {'type': T, 'filter': filter, 'fields': fields, 'sort': sort},
-    );
+    getItemsCalls.add({
+      'type': T,
+      'filter': filter,
+      'fields': fields,
+      'sort': sort,
+    });
     return _consume<List<Map<String, dynamic>>>(_getItemsQ, 'getItems<$T>');
   }
 
@@ -331,22 +333,25 @@ void main() {
   // getAllForColumn
   // =========================================================================
   group('WidgetRepositoryImpl.getAllForColumn', () {
-    test('should return Success with list of WidgetInstance entities', () async {
-      // Arrange
-      fakeDs.queueGetItems([
-        _widgetJson(id: 1, columnId: 5, index: 0),
-        _widgetJson(id: 2, columnId: 5, index: 1),
-      ]);
+    test(
+      'should return Success with list of WidgetInstance entities',
+      () async {
+        // Arrange
+        fakeDs.queueGetItems([
+          _widgetJson(id: 1, columnId: 5, index: 0),
+          _widgetJson(id: 2, columnId: 5, index: 1),
+        ]);
 
-      // Act
-      final result = await repository.getAllForColumn(5);
+        // Act
+        final result = await repository.getAllForColumn(5);
 
-      // Assert
-      expect(result.isSuccess, isTrue);
-      expect(result.valueOrNull!.length, 2);
-      expect(result.valueOrNull![0].id, 1);
-      expect(result.valueOrNull![1].id, 2);
-    });
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull!.length, 2);
+        expect(result.valueOrNull![0].id, 1);
+        expect(result.valueOrNull![1].id, 2);
+      },
+    );
 
     test('should filter by column id', () async {
       // Arrange
@@ -383,8 +388,7 @@ void main() {
       await repository.getAllForColumn(1);
 
       // Assert
-      final fields =
-          fakeDs.getItemsCalls.single['fields'] as List<String>?;
+      final fields = fakeDs.getItemsCalls.single['fields'] as List<String>?;
       expect(fields, contains('editing_by'));
     });
 
@@ -396,8 +400,7 @@ void main() {
       await repository.getAllForColumn(1);
 
       // Assert
-      final fields =
-          fakeDs.getItemsCalls.single['fields'] as List<String>?;
+      final fields = fakeDs.getItemsCalls.single['fields'] as List<String>?;
       expect(fields, contains('editing_since'));
     });
 
@@ -409,22 +412,24 @@ void main() {
       await repository.getAllForColumn(1);
 
       // Assert
-      final fields =
-          fakeDs.getItemsCalls.single['fields'] as List<String>?;
+      final fields = fakeDs.getItemsCalls.single['fields'] as List<String>?;
       expect(fields, contains('locked_for_edition'));
     });
 
-    test('should return Success with empty list when no widgets found', () async {
-      // Arrange
-      fakeDs.queueGetItems([]);
+    test(
+      'should return Success with empty list when no widgets found',
+      () async {
+        // Arrange
+        fakeDs.queueGetItems([]);
 
-      // Act
-      final result = await repository.getAllForColumn(1);
+        // Act
+        final result = await repository.getAllForColumn(1);
 
-      // Assert
-      expect(result.isSuccess, isTrue);
-      expect(result.valueOrNull, isEmpty);
-    });
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull, isEmpty);
+      },
+    );
 
     test(
       'should return Failure(NotFoundError) when data source throws NOT_FOUND',
@@ -563,9 +568,7 @@ void main() {
   group('WidgetRepositoryImpl.update', () {
     test('should return Success with updated WidgetInstance entity', () async {
       // Arrange
-      fakeDs.queueGetItem(
-        _widgetJson(id: 1, props: {'name': 'Old'}),
-      );
+      fakeDs.queueGetItem(_widgetJson(id: 1, props: {'name': 'Old'}));
       fakeDs.queueUpdateItem(
         _widgetJson(id: 1, props: {'name': 'New', 'price': 14.0}),
       );
@@ -815,7 +818,9 @@ void main() {
         final updates = <int, int>{};
         for (final call in fakeDs.updateCalls) {
           final dto = call['item'] as WidgetDto;
-          final id = dto.id is int ? dto.id as int : int.parse(dto.id.toString());
+          final id = dto.id is int
+              ? dto.id as int
+              : int.parse(dto.id.toString());
           updates[id] = dto.index;
         }
         expect(updates[1], 2); // moved widget: 0→2
@@ -848,7 +853,9 @@ void main() {
         final updates = <int, int>{};
         for (final call in fakeDs.updateCalls) {
           final dto = call['item'] as WidgetDto;
-          final id = dto.id is int ? dto.id as int : int.parse(dto.id.toString());
+          final id = dto.id is int
+              ? dto.id as int
+              : int.parse(dto.id.toString());
           updates[id] = dto.index;
         }
         expect(updates[3], 0); // moved widget: 2→0
@@ -977,12 +984,33 @@ void main() {
         // Source column widgets (column 1)
         fakeDs.queueGetItems([
           _indexJson(1, 0), // the widget being moved (skipped in source loop)
-          {'id': 2, 'index': 1, 'column': 1, 'type_key': 'dish', 'version': '1.0.0', 'props_json': <String, dynamic>{}},
+          {
+            'id': 2,
+            'index': 1,
+            'column': 1,
+            'type_key': 'dish',
+            'version': '1.0.0',
+            'props_json': <String, dynamic>{},
+          },
         ]);
         // Target column widgets (column 2)
         fakeDs.queueGetItems([
-          {'id': 3, 'index': 0, 'column': 2, 'type_key': 'dish', 'version': '1.0.0', 'props_json': <String, dynamic>{}},
-          {'id': 4, 'index': 1, 'column': 2, 'type_key': 'dish', 'version': '1.0.0', 'props_json': <String, dynamic>{}},
+          {
+            'id': 3,
+            'index': 0,
+            'column': 2,
+            'type_key': 'dish',
+            'version': '1.0.0',
+            'props_json': <String, dynamic>{},
+          },
+          {
+            'id': 4,
+            'index': 1,
+            'column': 2,
+            'type_key': 'dish',
+            'version': '1.0.0',
+            'props_json': <String, dynamic>{},
+          },
         ]);
         // Updates (concurrent via Future.wait):
         //   widget 2: source column shift (index 1 > oldIndex 0), 1→0
@@ -1007,7 +1035,14 @@ void main() {
       // Source column
       fakeDs.queueGetItems([
         _indexJson(1, 0), // widget being moved (skipped)
-        {'id': 2, 'index': 1, 'column': 1, 'type_key': 'dish', 'version': '1.0.0', 'props_json': <String, dynamic>{}},
+        {
+          'id': 2,
+          'index': 1,
+          'column': 1,
+          'type_key': 'dish',
+          'version': '1.0.0',
+          'props_json': <String, dynamic>{},
+        },
       ]);
       // Target column (empty)
       fakeDs.queueGetItems([]);
@@ -1030,40 +1065,66 @@ void main() {
       expect(updates[2], 0); // widget 2 shifted from 1→0
     });
 
-    test('should shift target column widgets at and after insertion point', () async {
-      // Arrange: widget 5 at index 2 in column 3 → move to column 4 at index 0
-      // Target has widgets at 0 and 1; both should shift up
-      fakeDs.queueGetItem(_widgetJson(id: 5, columnId: 3, index: 2));
-      // Source column
-      fakeDs.queueGetItems([
-        _indexJson(5, 2), // widget being moved (skipped)
-        {'id': 6, 'index': 3, 'column': 3, 'type_key': 'dish', 'version': '1.0.0', 'props_json': <String, dynamic>{}},
-      ]);
-      // Target column
-      fakeDs.queueGetItems([
-        {'id': 7, 'index': 0, 'column': 4, 'type_key': 'dish', 'version': '1.0.0', 'props_json': <String, dynamic>{}},
-        {'id': 8, 'index': 1, 'column': 4, 'type_key': 'dish', 'version': '1.0.0', 'props_json': <String, dynamic>{}},
-      ]);
-      fakeDs.queueUpdateItem(_widgetJson(id: 7, index: 1));
-      fakeDs.queueUpdateItem(_widgetJson(id: 8, index: 2));
-      fakeDs.queueUpdateItem(_widgetJson(id: 5, columnId: 4, index: 0));
-      fakeDs.queueUpdateItem(_widgetJson(id: 6, index: 2));
+    test(
+      'should shift target column widgets at and after insertion point',
+      () async {
+        // Arrange: widget 5 at index 2 in column 3 → move to column 4 at index 0
+        // Target has widgets at 0 and 1; both should shift up
+        fakeDs.queueGetItem(_widgetJson(id: 5, columnId: 3, index: 2));
+        // Source column
+        fakeDs.queueGetItems([
+          _indexJson(5, 2), // widget being moved (skipped)
+          {
+            'id': 6,
+            'index': 3,
+            'column': 3,
+            'type_key': 'dish',
+            'version': '1.0.0',
+            'props_json': <String, dynamic>{},
+          },
+        ]);
+        // Target column
+        fakeDs.queueGetItems([
+          {
+            'id': 7,
+            'index': 0,
+            'column': 4,
+            'type_key': 'dish',
+            'version': '1.0.0',
+            'props_json': <String, dynamic>{},
+          },
+          {
+            'id': 8,
+            'index': 1,
+            'column': 4,
+            'type_key': 'dish',
+            'version': '1.0.0',
+            'props_json': <String, dynamic>{},
+          },
+        ]);
+        fakeDs.queueUpdateItem(_widgetJson(id: 7, index: 1));
+        fakeDs.queueUpdateItem(_widgetJson(id: 8, index: 2));
+        fakeDs.queueUpdateItem(_widgetJson(id: 5, columnId: 4, index: 0));
+        fakeDs.queueUpdateItem(_widgetJson(id: 6, index: 2));
 
-      // Act
-      final result = await repository.moveTo(5, 4, 0);
+        // Act
+        final result = await repository.moveTo(5, 4, 0);
 
-      // Assert
-      expect(result.isSuccess, isTrue);
+        // Assert
+        expect(result.isSuccess, isTrue);
 
-      final updates = <int, int>{};
-      for (final call in fakeDs.updateCalls) {
-        final dto = call['item'] as WidgetDto;
-        final id = dto.id is int ? dto.id as int : int.parse(dto.id.toString());
-        updates[id] = dto.index;
-      }
-      expect(updates[7], 1); // shifted: 0→1
-      expect(updates[8], 2); // shifted: 1→2
-    });
+        final updates = <int, int>{};
+        for (final call in fakeDs.updateCalls) {
+          final dto = call['item'] as WidgetDto;
+          final id = dto.id is int
+              ? dto.id as int
+              : int.parse(dto.id.toString());
+          updates[id] = dto.index;
+        }
+        expect(updates[7], 1); // shifted: 0→1
+        expect(updates[8], 2); // shifted: 1→2
+      },
+    );
 
     test('should not fetch source column when same as target column', () async {
       // Arrange: moving within same column (oldColumnId == newColumnId)

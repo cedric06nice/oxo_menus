@@ -53,7 +53,10 @@ void main() {
     });
 
     MenuTree buildEmptyTree({int menuId = 1, String menuName = 'Lunch'}) {
-      return MenuTree(menu: buildMenu(id: menuId, name: menuName), pages: []);
+      return MenuTree(
+        menu: buildMenu(id: menuId, name: menuName),
+        pages: [],
+      );
     }
 
     // -------------------------------------------------------------------------
@@ -61,20 +64,17 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('tree fetch failure', () {
-      test(
-        'should return Failure when fetchMenuTreeUseCase fails',
-        () async {
-          // Arrange
-          fetchMenuTree.stubExecute(failure(notFound()));
+      test('should return Failure when fetchMenuTreeUseCase fails', () async {
+        // Arrange
+        fetchMenuTree.stubExecute(failure(notFound()));
 
-          // Act
-          final result = await useCase.execute(1);
+        // Act
+        final result = await useCase.execute(1);
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<NotFoundError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -82,25 +82,22 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('size resolution failure', () {
-      test(
-        'should return Failure when sizeRepository.getAll fails',
-        () async {
-          // Arrange
-          final tree = MenuTree(
-            menu: buildMenu(id: 1, pageSize: buildPageSize()),
-            pages: [],
-          );
-          fetchMenuTree.stubExecute(Success(tree));
-          sizeRepo.whenGetAll(failure(network()));
+      test('should return Failure when sizeRepository.getAll fails', () async {
+        // Arrange
+        final tree = MenuTree(
+          menu: buildMenu(id: 1, pageSize: buildPageSize()),
+          pages: [],
+        );
+        fetchMenuTree.stubExecute(Success(tree));
+        sizeRepo.whenGetAll(failure(network()));
 
-          // Act
-          final result = await useCase.execute(1);
+        // Act
+        final result = await useCase.execute(1);
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<NetworkError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NetworkError>());
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -108,22 +105,19 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('menu creation failure', () {
-      test(
-        'should return Failure when menuRepository.create fails',
-        () async {
-          // Arrange
-          fetchMenuTree.stubExecute(Success(buildEmptyTree()));
-          sizeRepo.whenGetAll(success([]));
-          menuRepo.whenCreate(failure(server()));
+      test('should return Failure when menuRepository.create fails', () async {
+        // Arrange
+        fetchMenuTree.stubExecute(Success(buildEmptyTree()));
+        sizeRepo.whenGetAll(success([]));
+        menuRepo.whenCreate(failure(server()));
 
-          // Act
-          final result = await useCase.execute(1);
+        // Act
+        final result = await useCase.execute(1);
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<ServerError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<ServerError>());
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -171,7 +165,10 @@ void main() {
           await useCase.execute(1);
 
           // Assert
-          expect(menuRepo.createCalls.single.input.status, equals(Status.draft));
+          expect(
+            menuRepo.createCalls.single.input.status,
+            equals(Status.draft),
+          );
         },
       );
 
@@ -197,56 +194,49 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('page duplication', () {
-      test(
-        'should create page with the menuId of the new menu',
-        () async {
-          // Arrange
-          final sourcePage =
-              buildPage(id: 10, menuId: 1, type: PageType.content);
-          final tree = MenuTree(
-            menu: buildMenu(id: 1),
-            pages: [PageWithContainers(page: sourcePage, containers: [])],
-          );
-          fetchMenuTree.stubExecute(Success(tree));
-          sizeRepo.whenGetAll(success([]));
-          menuRepo.whenCreate(success(buildMenu(id: 55)));
-          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+      test('should create page with the menuId of the new menu', () async {
+        // Arrange
+        final sourcePage = buildPage(id: 10, menuId: 1, type: PageType.content);
+        final tree = MenuTree(
+          menu: buildMenu(id: 1),
+          pages: [PageWithContainers(page: sourcePage, containers: [])],
+        );
+        fetchMenuTree.stubExecute(Success(tree));
+        sizeRepo.whenGetAll(success([]));
+        menuRepo.whenCreate(success(buildMenu(id: 55)));
+        pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
 
-          // Act
-          final result = await useCase.execute(1);
+        // Act
+        final result = await useCase.execute(1);
 
-          // Assert
-          expect(result.isSuccess, isTrue);
-          expect(pageRepo.createCalls.single.input.menuId, equals(55));
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(pageRepo.createCalls.single.input.menuId, equals(55));
+      });
 
-      test(
-        'should preserve page index from source',
-        () async {
-          // Arrange
-          final sourcePage = buildPage(
-            id: 10,
-            menuId: 1,
-            index: 3,
-            type: PageType.content,
-          );
-          final tree = MenuTree(
-            menu: buildMenu(id: 1),
-            pages: [PageWithContainers(page: sourcePage, containers: [])],
-          );
-          fetchMenuTree.stubExecute(Success(tree));
-          sizeRepo.whenGetAll(success([]));
-          menuRepo.whenCreate(success(buildMenu(id: 55)));
-          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55, index: 3)));
+      test('should preserve page index from source', () async {
+        // Arrange
+        final sourcePage = buildPage(
+          id: 10,
+          menuId: 1,
+          index: 3,
+          type: PageType.content,
+        );
+        final tree = MenuTree(
+          menu: buildMenu(id: 1),
+          pages: [PageWithContainers(page: sourcePage, containers: [])],
+        );
+        fetchMenuTree.stubExecute(Success(tree));
+        sizeRepo.whenGetAll(success([]));
+        menuRepo.whenCreate(success(buildMenu(id: 55)));
+        pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55, index: 3)));
 
-          // Act
-          await useCase.execute(1);
+        // Act
+        await useCase.execute(1);
 
-          // Assert
-          expect(pageRepo.createCalls.single.input.index, equals(3));
-        },
-      );
+        // Assert
+        expect(pageRepo.createCalls.single.input.index, equals(3));
+      });
 
       test(
         'should copy header and footer pages alongside content pages',
@@ -289,42 +279,33 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('container duplication', () {
-      test(
-        'should create container with the pageId of the new page',
-        () async {
-          // Arrange
-          final sourceContainer =
-              buildContainer(id: 100, pageId: 10, index: 0);
-          final tree = MenuTree(
-            menu: buildMenu(id: 1),
-            pages: [
-              PageWithContainers(
-                page: buildPage(id: 10, menuId: 1, type: PageType.content),
-                containers: [
-                  ContainerWithColumns(
-                    container: sourceContainer,
-                    columns: [],
-                  ),
-                ],
-              ),
-            ],
-          );
-          fetchMenuTree.stubExecute(Success(tree));
-          sizeRepo.whenGetAll(success([]));
-          menuRepo.whenCreate(success(buildMenu(id: 55)));
-          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
-          containerRepo.whenCreate(
-            success(buildContainer(id: 200, pageId: 20)),
-          );
+      test('should create container with the pageId of the new page', () async {
+        // Arrange
+        final sourceContainer = buildContainer(id: 100, pageId: 10, index: 0);
+        final tree = MenuTree(
+          menu: buildMenu(id: 1),
+          pages: [
+            PageWithContainers(
+              page: buildPage(id: 10, menuId: 1, type: PageType.content),
+              containers: [
+                ContainerWithColumns(container: sourceContainer, columns: []),
+              ],
+            ),
+          ],
+        );
+        fetchMenuTree.stubExecute(Success(tree));
+        sizeRepo.whenGetAll(success([]));
+        menuRepo.whenCreate(success(buildMenu(id: 55)));
+        pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+        containerRepo.whenCreate(success(buildContainer(id: 200, pageId: 20)));
 
-          // Act
-          final result = await useCase.execute(1);
+        // Act
+        final result = await useCase.execute(1);
 
-          // Assert
-          expect(result.isSuccess, isTrue);
-          expect(containerRepo.createCalls.single.input.pageId, equals(20));
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(containerRepo.createCalls.single.input.pageId, equals(20));
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -332,49 +313,39 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('column duplication', () {
-      test(
-        'should create column linked to the new container id',
-        () async {
-          // Arrange
-          final sourceColumn = buildColumn(id: 200, containerId: 100);
-          final tree = MenuTree(
-            menu: buildMenu(id: 1),
-            pages: [
-              PageWithContainers(
-                page: buildPage(id: 10, menuId: 1, type: PageType.content),
-                containers: [
-                  ContainerWithColumns(
-                    container: buildContainer(id: 100, pageId: 10),
-                    columns: [
-                      ColumnWithWidgets(column: sourceColumn, widgets: []),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          );
-          fetchMenuTree.stubExecute(Success(tree));
-          sizeRepo.whenGetAll(success([]));
-          menuRepo.whenCreate(success(buildMenu(id: 55)));
-          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
-          containerRepo.whenCreate(
-            success(buildContainer(id: 300, pageId: 20)),
-          );
-          columnRepo.whenCreate(
-            success(buildColumn(id: 400, containerId: 300)),
-          );
+      test('should create column linked to the new container id', () async {
+        // Arrange
+        final sourceColumn = buildColumn(id: 200, containerId: 100);
+        final tree = MenuTree(
+          menu: buildMenu(id: 1),
+          pages: [
+            PageWithContainers(
+              page: buildPage(id: 10, menuId: 1, type: PageType.content),
+              containers: [
+                ContainerWithColumns(
+                  container: buildContainer(id: 100, pageId: 10),
+                  columns: [
+                    ColumnWithWidgets(column: sourceColumn, widgets: []),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+        fetchMenuTree.stubExecute(Success(tree));
+        sizeRepo.whenGetAll(success([]));
+        menuRepo.whenCreate(success(buildMenu(id: 55)));
+        pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+        containerRepo.whenCreate(success(buildContainer(id: 300, pageId: 20)));
+        columnRepo.whenCreate(success(buildColumn(id: 400, containerId: 300)));
 
-          // Act
-          final result = await useCase.execute(1);
+        // Act
+        final result = await useCase.execute(1);
 
-          // Assert
-          expect(result.isSuccess, isTrue);
-          expect(
-            columnRepo.createCalls.single.input.containerId,
-            equals(300),
-          );
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(columnRepo.createCalls.single.input.containerId, equals(300));
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -382,107 +353,93 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('widget duplication', () {
-      test(
-        'should create widget linked to the new column id',
-        () async {
-          // Arrange
-          final sourceWidget = buildWidgetInstance(
-            id: 300,
-            columnId: 200,
-            type: 'dish',
-          );
-          final tree = MenuTree(
-            menu: buildMenu(id: 1),
-            pages: [
-              PageWithContainers(
-                page: buildPage(id: 10, menuId: 1, type: PageType.content),
-                containers: [
-                  ContainerWithColumns(
-                    container: buildContainer(id: 100, pageId: 10),
-                    columns: [
-                      ColumnWithWidgets(
-                        column: buildColumn(id: 200, containerId: 100),
-                        widgets: [sourceWidget],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          );
-          fetchMenuTree.stubExecute(Success(tree));
-          sizeRepo.whenGetAll(success([]));
-          menuRepo.whenCreate(success(buildMenu(id: 55)));
-          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
-          containerRepo.whenCreate(
-            success(buildContainer(id: 200, pageId: 20)),
-          );
-          columnRepo.whenCreate(
-            success(buildColumn(id: 300, containerId: 200)),
-          );
-          widgetRepo.whenCreate(
-            success(buildWidgetInstance(id: 400, columnId: 300)),
-          );
+      test('should create widget linked to the new column id', () async {
+        // Arrange
+        final sourceWidget = buildWidgetInstance(
+          id: 300,
+          columnId: 200,
+          type: 'dish',
+        );
+        final tree = MenuTree(
+          menu: buildMenu(id: 1),
+          pages: [
+            PageWithContainers(
+              page: buildPage(id: 10, menuId: 1, type: PageType.content),
+              containers: [
+                ContainerWithColumns(
+                  container: buildContainer(id: 100, pageId: 10),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: buildColumn(id: 200, containerId: 100),
+                      widgets: [sourceWidget],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+        fetchMenuTree.stubExecute(Success(tree));
+        sizeRepo.whenGetAll(success([]));
+        menuRepo.whenCreate(success(buildMenu(id: 55)));
+        pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+        containerRepo.whenCreate(success(buildContainer(id: 200, pageId: 20)));
+        columnRepo.whenCreate(success(buildColumn(id: 300, containerId: 200)));
+        widgetRepo.whenCreate(
+          success(buildWidgetInstance(id: 400, columnId: 300)),
+        );
 
-          // Act
-          final result = await useCase.execute(1);
+        // Act
+        final result = await useCase.execute(1);
 
-          // Assert
-          expect(result.isSuccess, isTrue);
-          expect(widgetRepo.createCalls.single.input.columnId, equals(300));
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(widgetRepo.createCalls.single.input.columnId, equals(300));
+      });
 
-      test(
-        'should preserve widget type from source',
-        () async {
-          // Arrange
-          final sourceWidget = buildWidgetInstance(
-            id: 300,
-            columnId: 200,
-            type: 'wine',
-            index: 2,
-          );
-          final tree = MenuTree(
-            menu: buildMenu(id: 1),
-            pages: [
-              PageWithContainers(
-                page: buildPage(id: 10, menuId: 1, type: PageType.content),
-                containers: [
-                  ContainerWithColumns(
-                    container: buildContainer(id: 100, pageId: 10),
-                    columns: [
-                      ColumnWithWidgets(
-                        column: buildColumn(id: 200, containerId: 100),
-                        widgets: [sourceWidget],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          );
-          fetchMenuTree.stubExecute(Success(tree));
-          sizeRepo.whenGetAll(success([]));
-          menuRepo.whenCreate(success(buildMenu(id: 55)));
-          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
-          containerRepo.whenCreate(
-            success(buildContainer(id: 200, pageId: 20)),
-          );
-          columnRepo.whenCreate(
-            success(buildColumn(id: 300, containerId: 200)),
-          );
-          widgetRepo.whenCreate(
-            success(buildWidgetInstance(id: 400, columnId: 300)),
-          );
+      test('should preserve widget type from source', () async {
+        // Arrange
+        final sourceWidget = buildWidgetInstance(
+          id: 300,
+          columnId: 200,
+          type: 'wine',
+          index: 2,
+        );
+        final tree = MenuTree(
+          menu: buildMenu(id: 1),
+          pages: [
+            PageWithContainers(
+              page: buildPage(id: 10, menuId: 1, type: PageType.content),
+              containers: [
+                ContainerWithColumns(
+                  container: buildContainer(id: 100, pageId: 10),
+                  columns: [
+                    ColumnWithWidgets(
+                      column: buildColumn(id: 200, containerId: 100),
+                      widgets: [sourceWidget],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        );
+        fetchMenuTree.stubExecute(Success(tree));
+        sizeRepo.whenGetAll(success([]));
+        menuRepo.whenCreate(success(buildMenu(id: 55)));
+        pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+        containerRepo.whenCreate(success(buildContainer(id: 200, pageId: 20)));
+        columnRepo.whenCreate(success(buildColumn(id: 300, containerId: 200)));
+        widgetRepo.whenCreate(
+          success(buildWidgetInstance(id: 400, columnId: 300)),
+        );
 
-          // Act
-          await useCase.execute(1);
+        // Act
+        await useCase.execute(1);
 
-          // Assert
-          expect(widgetRepo.createCalls.single.input.type, equals('wine'));
-        },
-      );
+        // Assert
+        expect(widgetRepo.createCalls.single.input.type, equals('wine'));
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -515,7 +472,12 @@ void main() {
         () async {
           // Arrange
           final pageSize = buildPageSize(name: 'A4', width: 210, height: 297);
-          final matchingSize = buildSize(id: 7, name: 'A4', width: 210, height: 297);
+          final matchingSize = buildSize(
+            id: 7,
+            name: 'A4',
+            width: 210,
+            height: 297,
+          );
           final tree = MenuTree(
             menu: buildMenu(id: 1, pageSize: pageSize),
             pages: [],
@@ -536,7 +498,11 @@ void main() {
         'should pass null sizeId when no matching size exists in repository',
         () async {
           // Arrange
-          final pageSize = buildPageSize(name: 'Custom', width: 100, height: 200);
+          final pageSize = buildPageSize(
+            name: 'Custom',
+            width: 100,
+            height: 200,
+          );
           final tree = MenuTree(
             menu: buildMenu(id: 1, pageSize: pageSize),
             pages: [],

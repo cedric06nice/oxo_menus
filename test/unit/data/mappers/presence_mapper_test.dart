@@ -5,31 +5,34 @@ import 'package:oxo_menus/data/models/presence_dto.dart';
 void main() {
   group('PresenceMapper', () {
     group('toEntity', () {
-      test('should map all fields from a fully-populated DTO with expanded user map', () {
-        // Arrange
-        final dto = PresenceDto({
-          'id': '10',
-          'user': {
-            'id': 'user-abc-123',
-            'first_name': 'Alice',
-            'last_name': 'Smith',
-            'avatar': 'avatar-uuid',
-          },
-          'menu': 5,
-          'last_seen': '2025-04-01T12:00:00Z',
-        });
+      test(
+        'should map all fields from a fully-populated DTO with expanded user map',
+        () {
+          // Arrange
+          final dto = PresenceDto({
+            'id': '10',
+            'user': {
+              'id': 'user-abc-123',
+              'first_name': 'Alice',
+              'last_name': 'Smith',
+              'avatar': 'avatar-uuid',
+            },
+            'menu': 5,
+            'last_seen': '2025-04-01T12:00:00Z',
+          });
 
-        // Act
-        final entity = PresenceMapper.toEntity(dto);
+          // Act
+          final entity = PresenceMapper.toEntity(dto);
 
-        // Assert
-        expect(entity.id, 10);
-        expect(entity.userId, 'user-abc-123');
-        expect(entity.menuId, 5);
-        expect(entity.lastSeen, DateTime.parse('2025-04-01T12:00:00Z'));
-        expect(entity.userName, 'Alice Smith');
-        expect(entity.userAvatar, 'avatar-uuid');
-      });
+          // Assert
+          expect(entity.id, 10);
+          expect(entity.userId, 'user-abc-123');
+          expect(entity.menuId, 5);
+          expect(entity.lastSeen, DateTime.parse('2025-04-01T12:00:00Z'));
+          expect(entity.userName, 'Alice Smith');
+          expect(entity.userAvatar, 'avatar-uuid');
+        },
+      );
 
       test('should parse string id to int', () {
         // Arrange
@@ -83,7 +86,11 @@ void main() {
         // Arrange
         final dto = PresenceDto({
           'id': '1',
-          'user': {'id': 'expanded-user-id', 'first_name': 'Bob', 'last_name': 'Jones'},
+          'user': {
+            'id': 'expanded-user-id',
+            'first_name': 'Bob',
+            'last_name': 'Jones',
+          },
           'menu': 2,
           'last_seen': '2025-04-01T12:00:00Z',
         });
@@ -157,19 +164,22 @@ void main() {
         expect(entity.menuId, 0);
       });
 
-      test('should use a non-null DateTime when lastSeen is null (defaults to now)', () {
-        // Arrange
-        final before = DateTime.now().subtract(const Duration(seconds: 1));
-        final dto = PresenceDto({'id': '1', 'user': 'user-1', 'menu': 1});
+      test(
+        'should use a non-null DateTime when lastSeen is null (defaults to now)',
+        () {
+          // Arrange
+          final before = DateTime.now().subtract(const Duration(seconds: 1));
+          final dto = PresenceDto({'id': '1', 'user': 'user-1', 'menu': 1});
 
-        // Act
-        final entity = PresenceMapper.toEntity(dto);
-        final after = DateTime.now().add(const Duration(seconds: 1));
+          // Act
+          final entity = PresenceMapper.toEntity(dto);
+          final after = DateTime.now().add(const Duration(seconds: 1));
 
-        // Assert
-        expect(entity.lastSeen.isAfter(before), true);
-        expect(entity.lastSeen.isBefore(after), true);
-      });
+          // Assert
+          expect(entity.lastSeen.isAfter(before), true);
+          expect(entity.lastSeen.isBefore(after), true);
+        },
+      );
 
       test('should build userName from first_name and last_name', () {
         // Arrange
@@ -187,21 +197,24 @@ void main() {
         expect(entity.userName, 'Jane Doe');
       });
 
-      test('should build userName from first_name only when last_name is absent', () {
-        // Arrange
-        final dto = PresenceDto({
-          'id': '1',
-          'user': {'id': 'u1', 'first_name': 'Alice'},
-          'menu': 1,
-          'last_seen': '2025-04-01T12:00:00Z',
-        });
+      test(
+        'should build userName from first_name only when last_name is absent',
+        () {
+          // Arrange
+          final dto = PresenceDto({
+            'id': '1',
+            'user': {'id': 'u1', 'first_name': 'Alice'},
+            'menu': 1,
+            'last_seen': '2025-04-01T12:00:00Z',
+          });
 
-        // Act
-        final entity = PresenceMapper.toEntity(dto);
+          // Act
+          final entity = PresenceMapper.toEntity(dto);
 
-        // Assert
-        expect(entity.userName, 'Alice');
-      });
+          // Assert
+          expect(entity.userName, 'Alice');
+        },
+      );
 
       test('should map null userName when user map has no name fields', () {
         // Arrange

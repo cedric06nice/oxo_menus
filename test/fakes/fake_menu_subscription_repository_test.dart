@@ -91,59 +91,53 @@ void main() {
     // -----------------------------------------------------------------------
 
     group('stream delivery', () {
-      test(
-        'should deliver emitted event to a subscribed listener',
-        () async {
-          // Arrange
-          final stream = fake.subscribeToMenuChanges(10);
-          final event = WidgetChangedEvent(
-            eventType: 'create',
-            data: {'id': 1},
-            ids: null,
-          );
+      test('should deliver emitted event to a subscribed listener', () async {
+        // Arrange
+        final stream = fake.subscribeToMenuChanges(10);
+        final event = WidgetChangedEvent(
+          eventType: 'create',
+          data: {'id': 1},
+          ids: null,
+        );
 
-          // Act
-          final future = stream.first;
-          fake.emitChange(10, event);
+        // Act
+        final future = stream.first;
+        fake.emitChange(10, event);
 
-          // Assert
-          final received = await future;
-          expect(received, same(event));
-        },
-      );
+        // Assert
+        final received = await future;
+        expect(received, same(event));
+      });
 
-      test(
-        'should deliver multiple events in emission order',
-        () async {
-          // Arrange
-          final stream = fake.subscribeToMenuChanges(5);
-          final first = WidgetChangedEvent(
-            eventType: 'create',
-            data: {'id': 1},
-            ids: null,
-          );
-          final second = WidgetChangedEvent(
-            eventType: 'update',
-            data: {'id': 1},
-            ids: null,
-          );
-          final received = <MenuChangeEvent>[];
+      test('should deliver multiple events in emission order', () async {
+        // Arrange
+        final stream = fake.subscribeToMenuChanges(5);
+        final first = WidgetChangedEvent(
+          eventType: 'create',
+          data: {'id': 1},
+          ids: null,
+        );
+        final second = WidgetChangedEvent(
+          eventType: 'update',
+          data: {'id': 1},
+          ids: null,
+        );
+        final received = <MenuChangeEvent>[];
 
-          // Act
-          final subscription = stream.listen(received.add);
-          fake.emitChange(5, first);
-          fake.emitChange(5, second);
+        // Act
+        final subscription = stream.listen(received.add);
+        fake.emitChange(5, first);
+        fake.emitChange(5, second);
 
-          // Allow microtasks to propagate
-          await Future<void>.delayed(Duration.zero);
-          await subscription.cancel();
+        // Allow microtasks to propagate
+        await Future<void>.delayed(Duration.zero);
+        await subscription.cancel();
 
-          // Assert
-          expect(received, hasLength(2));
-          expect(received[0], same(first));
-          expect(received[1], same(second));
-        },
-      );
+        // Assert
+        expect(received, hasLength(2));
+        expect(received[0], same(first));
+        expect(received[1], same(second));
+      });
 
       test(
         'should not deliver events emitted for a different menuId',
@@ -154,11 +148,10 @@ void main() {
           final subscription = stream.listen(received.add);
 
           // Act — emit on menu 2, not menu 1
-          fake.emitChange(2, WidgetChangedEvent(
-            eventType: 'create',
-            data: {'id': 9},
-            ids: null,
-          ));
+          fake.emitChange(
+            2,
+            WidgetChangedEvent(eventType: 'create', data: {'id': 9}, ids: null),
+          );
           await Future<void>.delayed(Duration.zero);
           await subscription.cancel();
 
@@ -194,19 +187,16 @@ void main() {
         },
       );
 
-      test(
-        'should close the stream when closeStream is called',
-        () async {
-          // Arrange
-          final stream = fake.subscribeToMenuChanges(6);
+      test('should close the stream when closeStream is called', () async {
+        // Arrange
+        final stream = fake.subscribeToMenuChanges(6);
 
-          // Act / Assert — stream completes after close
-          final doneCompleter = stream.toList();
-          fake.closeStream(6);
-          final items = await doneCompleter;
-          expect(items, isEmpty);
-        },
-      );
+        // Act / Assert — stream completes after close
+        final doneCompleter = stream.toList();
+        fake.closeStream(6);
+        final items = await doneCompleter;
+        expect(items, isEmpty);
+      });
     });
   });
 }

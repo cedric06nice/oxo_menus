@@ -80,23 +80,38 @@ void main() {
       });
 
       test('should return plainThin when value is "plain_thin"', () {
-        expect(BorderTypeConverter.fromString('plain_thin'), BorderType.plainThin);
+        expect(
+          BorderTypeConverter.fromString('plain_thin'),
+          BorderType.plainThin,
+        );
       });
 
       test('should return plainThick when value is "plain_thick"', () {
-        expect(BorderTypeConverter.fromString('plain_thick'), BorderType.plainThick);
+        expect(
+          BorderTypeConverter.fromString('plain_thick'),
+          BorderType.plainThick,
+        );
       });
 
       test('should return doubleOffset when value is "double_offset"', () {
-        expect(BorderTypeConverter.fromString('double_offset'), BorderType.doubleOffset);
+        expect(
+          BorderTypeConverter.fromString('double_offset'),
+          BorderType.doubleOffset,
+        );
       });
 
       test('should return dropShadow when value is "drop_shadow"', () {
-        expect(BorderTypeConverter.fromString('drop_shadow'), BorderType.dropShadow);
+        expect(
+          BorderTypeConverter.fromString('drop_shadow'),
+          BorderType.dropShadow,
+        );
       });
 
       test('should return none when value is an unknown string', () {
-        expect(BorderTypeConverter.fromString('unknown_value'), BorderType.none);
+        expect(
+          BorderTypeConverter.fromString('unknown_value'),
+          BorderType.none,
+        );
       });
 
       test('should return none when value is an empty string', () {
@@ -110,30 +125,45 @@ void main() {
       });
 
       test('should return "plain_thin" for plainThin', () {
-        expect(BorderTypeConverter.toJsonString(BorderType.plainThin), 'plain_thin');
+        expect(
+          BorderTypeConverter.toJsonString(BorderType.plainThin),
+          'plain_thin',
+        );
       });
 
       test('should return "plain_thick" for plainThick', () {
-        expect(BorderTypeConverter.toJsonString(BorderType.plainThick), 'plain_thick');
+        expect(
+          BorderTypeConverter.toJsonString(BorderType.plainThick),
+          'plain_thick',
+        );
       });
 
       test('should return "double_offset" for doubleOffset', () {
-        expect(BorderTypeConverter.toJsonString(BorderType.doubleOffset), 'double_offset');
+        expect(
+          BorderTypeConverter.toJsonString(BorderType.doubleOffset),
+          'double_offset',
+        );
       });
 
       test('should return "drop_shadow" for dropShadow', () {
-        expect(BorderTypeConverter.toJsonString(BorderType.dropShadow), 'drop_shadow');
+        expect(
+          BorderTypeConverter.toJsonString(BorderType.dropShadow),
+          'drop_shadow',
+        );
       });
     });
 
     group('round-trip', () {
-      test('should round-trip every case through toJsonString then fromString', () {
-        for (final type in BorderType.values) {
-          final serialized = BorderTypeConverter.toJsonString(type);
-          final restored = BorderTypeConverter.fromString(serialized);
-          expect(restored, type);
-        }
-      });
+      test(
+        'should round-trip every case through toJsonString then fromString',
+        () {
+          for (final type in BorderType.values) {
+            final serialized = BorderTypeConverter.toJsonString(type);
+            final restored = BorderTypeConverter.fromString(serialized);
+            expect(restored, type);
+          }
+        },
+      );
     });
   });
 }

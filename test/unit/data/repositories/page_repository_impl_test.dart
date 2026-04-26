@@ -148,7 +148,10 @@ class _FakeDs implements DirectusDataSource {
     T newItem,
   ) async {
     createCalls.add({'type': T, 'item': newItem});
-    return _consume<Map<String, dynamic>>(_createItemResponses, 'createItem<$T>');
+    return _consume<Map<String, dynamic>>(
+      _createItemResponses,
+      'createItem<$T>',
+    );
   }
 
   @override
@@ -156,7 +159,10 @@ class _FakeDs implements DirectusDataSource {
     T itemToUpdate,
   ) async {
     updateCalls.add({'type': T, 'item': itemToUpdate});
-    return _consume<Map<String, dynamic>>(_updateItemResponses, 'updateItem<$T>');
+    return _consume<Map<String, dynamic>>(
+      _updateItemResponses,
+      'updateItem<$T>',
+    );
   }
 
   @override
@@ -171,11 +177,10 @@ class _FakeDs implements DirectusDataSource {
   // ---- noSuchMethod handles all other DirectusDataSource members ----
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      throw UnsupportedError(
-        '_FakeDs: unexpected call to '
-        '${invocation.memberName.toString().replaceAll('Symbol("', '').replaceAll('")', '')}',
-      );
+  dynamic noSuchMethod(Invocation invocation) => throw UnsupportedError(
+    '_FakeDs: unexpected call to '
+    '${invocation.memberName.toString().replaceAll('Symbol("', '').replaceAll('")', '')}',
+  );
 }
 
 class _OkSentinel {
@@ -204,24 +209,29 @@ void main() {
   // create
   // =========================================================================
   group('PageRepositoryImpl.create', () {
-    test('should return Success with mapped Page entity on happy path', () async {
-      // Arrange
-      fakeDs.queueCreateItem(_pageJson(id: 2, menuId: 1, index: 0));
-      const input = CreatePageInput(menuId: 1, name: 'P', index: 0);
+    test(
+      'should return Success with mapped Page entity on happy path',
+      () async {
+        // Arrange
+        fakeDs.queueCreateItem(_pageJson(id: 2, menuId: 1, index: 0));
+        const input = CreatePageInput(menuId: 1, name: 'P', index: 0);
 
-      // Act
-      final result = await repository.create(input);
+        // Act
+        final result = await repository.create(input);
 
-      // Assert
-      expect(result.isSuccess, isTrue);
-      expect(result.valueOrNull!.id, 2);
-      expect(result.valueOrNull!.menuId, 1);
-      expect(result.valueOrNull!.index, 0);
-    });
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull!.id, 2);
+        expect(result.valueOrNull!.menuId, 1);
+        expect(result.valueOrNull!.index, 0);
+      },
+    );
 
     test('should persist type=header in DTO sent to createItem', () async {
       // Arrange
-      fakeDs.queueCreateItem(_pageJson(id: 3, menuId: 1, index: 0, type: 'header'));
+      fakeDs.queueCreateItem(
+        _pageJson(id: 3, menuId: 1, index: 0, type: 'header'),
+      );
       const input = CreatePageInput(
         menuId: 1,
         name: 'H',
@@ -239,7 +249,9 @@ void main() {
 
     test('should persist type=footer in DTO sent to createItem', () async {
       // Arrange
-      fakeDs.queueCreateItem(_pageJson(id: 4, menuId: 1, index: 2, type: 'footer'));
+      fakeDs.queueCreateItem(
+        _pageJson(id: 4, menuId: 1, index: 2, type: 'footer'),
+      );
       const input = CreatePageInput(
         menuId: 1,
         name: 'F',
@@ -268,33 +280,42 @@ void main() {
       expect(sentDto.getValue(forKey: 'status'), 'draft');
     });
 
-    test('should return Failure(ValidationError) when data source throws INVALID_FOREIGN_KEY', () async {
-      // Arrange
-      fakeDs.queueCreateItemThrows(
-        DirectusException(code: 'INVALID_FOREIGN_KEY', message: 'Menu not found'),
-      );
-      const input = CreatePageInput(menuId: 99, name: 'P', index: 0);
+    test(
+      'should return Failure(ValidationError) when data source throws INVALID_FOREIGN_KEY',
+      () async {
+        // Arrange
+        fakeDs.queueCreateItemThrows(
+          DirectusException(
+            code: 'INVALID_FOREIGN_KEY',
+            message: 'Menu not found',
+          ),
+        );
+        const input = CreatePageInput(menuId: 99, name: 'P', index: 0);
 
-      // Act
-      final result = await repository.create(input);
+        // Act
+        final result = await repository.create(input);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<ValidationError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<ValidationError>());
+      },
+    );
 
-    test('should return Failure(UnknownError) when data source throws generic exception', () async {
-      // Arrange
-      fakeDs.queueCreateItemThrows(Exception('boom'));
-      const input = CreatePageInput(menuId: 1, name: 'P', index: 0);
+    test(
+      'should return Failure(UnknownError) when data source throws generic exception',
+      () async {
+        // Arrange
+        fakeDs.queueCreateItemThrows(Exception('boom'));
+        const input = CreatePageInput(menuId: 1, name: 'P', index: 0);
 
-      // Act
-      final result = await repository.create(input);
+        // Act
+        final result = await repository.create(input);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<UnknownError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<UnknownError>());
+      },
+    );
 
     test('should map returned entity name as Page {index}', () async {
       // Arrange — PageMapper generates name = "Page {index}"
@@ -379,46 +400,55 @@ void main() {
       expect(result.valueOrNull, isEmpty);
     });
 
-    test('should return Success with single-item list when one page exists', () async {
-      // Arrange
-      fakeDs.queueGetItems([_pageJson(id: 7, menuId: 3, index: 0)]);
+    test(
+      'should return Success with single-item list when one page exists',
+      () async {
+        // Arrange
+        fakeDs.queueGetItems([_pageJson(id: 7, menuId: 3, index: 0)]);
 
-      // Act
-      final result = await repository.getAllForMenu(3);
+        // Act
+        final result = await repository.getAllForMenu(3);
 
-      // Assert
-      expect(result.isSuccess, isTrue);
-      expect(result.valueOrNull!.length, 1);
-    });
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull!.length, 1);
+      },
+    );
 
-    test('should map header and content types correctly in list result', () async {
-      // Arrange
-      fakeDs.queueGetItems([
-        _pageJson(id: 1, menuId: 1, index: 0, type: 'header'),
-        _pageJson(id: 2, menuId: 1, index: 1, type: 'content'),
-      ]);
+    test(
+      'should map header and content types correctly in list result',
+      () async {
+        // Arrange
+        fakeDs.queueGetItems([
+          _pageJson(id: 1, menuId: 1, index: 0, type: 'header'),
+          _pageJson(id: 2, menuId: 1, index: 1, type: 'content'),
+        ]);
 
-      // Act
-      final result = await repository.getAllForMenu(1);
+        // Act
+        final result = await repository.getAllForMenu(1);
 
-      // Assert
-      expect(result.valueOrNull![0].type, PageType.header);
-      expect(result.valueOrNull![1].type, PageType.content);
-    });
+        // Assert
+        expect(result.valueOrNull![0].type, PageType.header);
+        expect(result.valueOrNull![1].type, PageType.content);
+      },
+    );
 
-    test('should return Failure(NotFoundError) when data source throws NOT_FOUND', () async {
-      // Arrange
-      fakeDs.queueGetItemsThrows(
-        DirectusException(code: 'NOT_FOUND', message: 'Menu not found'),
-      );
+    test(
+      'should return Failure(NotFoundError) when data source throws NOT_FOUND',
+      () async {
+        // Arrange
+        fakeDs.queueGetItemsThrows(
+          DirectusException(code: 'NOT_FOUND', message: 'Menu not found'),
+        );
 
-      // Act
-      final result = await repository.getAllForMenu(99);
+        // Act
+        final result = await repository.getAllForMenu(99);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<NotFoundError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      },
+    );
 
     test('should return Failure(UnknownError) on generic exception', () async {
       // Arrange
@@ -475,33 +505,39 @@ void main() {
       expect(fields, contains('containers.id'));
     });
 
-    test('should return Failure(NotFoundError) when data source throws NOT_FOUND', () async {
-      // Arrange
-      fakeDs.queueGetItemThrows(
-        DirectusException(code: 'NOT_FOUND', message: 'Page not found'),
-      );
+    test(
+      'should return Failure(NotFoundError) when data source throws NOT_FOUND',
+      () async {
+        // Arrange
+        fakeDs.queueGetItemThrows(
+          DirectusException(code: 'NOT_FOUND', message: 'Page not found'),
+        );
 
-      // Act
-      final result = await repository.getById(99);
+        // Act
+        final result = await repository.getById(99);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<NotFoundError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      },
+    );
 
-    test('should return Failure(UnauthorizedError) when data source throws FORBIDDEN', () async {
-      // Arrange
-      fakeDs.queueGetItemThrows(
-        DirectusException(code: 'FORBIDDEN', message: 'Access denied'),
-      );
+    test(
+      'should return Failure(UnauthorizedError) when data source throws FORBIDDEN',
+      () async {
+        // Arrange
+        fakeDs.queueGetItemThrows(
+          DirectusException(code: 'FORBIDDEN', message: 'Access denied'),
+        );
 
-      // Act
-      final result = await repository.getById(1);
+        // Act
+        final result = await repository.getById(1);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<UnauthorizedError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<UnauthorizedError>());
+      },
+    );
 
     test('should map unknown type string to PageType.content', () async {
       // Arrange — unmapped type strings default to content
@@ -540,19 +576,22 @@ void main() {
       expect(result.valueOrNull!.id, 1);
     });
 
-    test('should write new index value to DTO before updateItem is called', () async {
-      // Arrange
-      fakeDs.queueGetItem(_pageJson(id: 1, menuId: 1, index: 0));
-      fakeDs.queueUpdateItem(_pageJson(id: 1, menuId: 1, index: 5));
-      const input = UpdatePageInput(id: 1, index: 5);
+    test(
+      'should write new index value to DTO before updateItem is called',
+      () async {
+        // Arrange
+        fakeDs.queueGetItem(_pageJson(id: 1, menuId: 1, index: 0));
+        fakeDs.queueUpdateItem(_pageJson(id: 1, menuId: 1, index: 5));
+        const input = UpdatePageInput(id: 1, index: 5);
 
-      // Act
-      await repository.update(input);
+        // Act
+        await repository.update(input);
 
-      // Assert
-      final sentDto = fakeDs.updateCalls.single['item'] as PageDto;
-      expect(sentDto.getValue(forKey: 'index'), 5);
-    });
+        // Assert
+        final sentDto = fakeDs.updateCalls.single['item'] as PageDto;
+        expect(sentDto.getValue(forKey: 'index'), 5);
+      },
+    );
 
     test('should preserve existing index when input.index is null', () async {
       // Arrange — existing page has index 3; no index in update input
@@ -568,36 +607,42 @@ void main() {
       expect(sentDto.getValue(forKey: 'index'), 3);
     });
 
-    test('should return Failure(NotFoundError) when getItem throws NOT_FOUND', () async {
-      // Arrange
-      fakeDs.queueGetItemThrows(
-        DirectusException(code: 'NOT_FOUND', message: 'Page not found'),
-      );
-      const input = UpdatePageInput(id: 99, index: 1);
+    test(
+      'should return Failure(NotFoundError) when getItem throws NOT_FOUND',
+      () async {
+        // Arrange
+        fakeDs.queueGetItemThrows(
+          DirectusException(code: 'NOT_FOUND', message: 'Page not found'),
+        );
+        const input = UpdatePageInput(id: 99, index: 1);
 
-      // Act
-      final result = await repository.update(input);
+        // Act
+        final result = await repository.update(input);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<NotFoundError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      },
+    );
 
-    test('should return Failure(ServerError) when updateItem throws UPDATE_FAILED', () async {
-      // Arrange
-      fakeDs.queueGetItem(_pageJson(id: 1));
-      fakeDs.queueUpdateItemThrows(
-        DirectusException(code: 'UPDATE_FAILED', message: 'Write failed'),
-      );
-      const input = UpdatePageInput(id: 1, index: 2);
+    test(
+      'should return Failure(ServerError) when updateItem throws UPDATE_FAILED',
+      () async {
+        // Arrange
+        fakeDs.queueGetItem(_pageJson(id: 1));
+        fakeDs.queueUpdateItemThrows(
+          DirectusException(code: 'UPDATE_FAILED', message: 'Write failed'),
+        );
+        const input = UpdatePageInput(id: 1, index: 2);
 
-      // Act
-      final result = await repository.update(input);
+        // Act
+        final result = await repository.update(input);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<ServerError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<ServerError>());
+      },
+    );
   });
 
   // =========================================================================
@@ -626,19 +671,22 @@ void main() {
       expect(fakeDs.deletedIds.single, 77);
     });
 
-    test('should return Failure(NotFoundError) when data source throws NOT_FOUND', () async {
-      // Arrange
-      fakeDs.queueDeleteItemThrows(
-        DirectusException(code: 'NOT_FOUND', message: 'Page not found'),
-      );
+    test(
+      'should return Failure(NotFoundError) when data source throws NOT_FOUND',
+      () async {
+        // Arrange
+        fakeDs.queueDeleteItemThrows(
+          DirectusException(code: 'NOT_FOUND', message: 'Page not found'),
+        );
 
-      // Act
-      final result = await repository.delete(99);
+        // Act
+        final result = await repository.delete(99);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<NotFoundError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      },
+    );
 
     test('should return Failure(UnknownError) on generic exception', () async {
       // Arrange
@@ -669,18 +717,21 @@ void main() {
       expect(result.isSuccess, isTrue);
     });
 
-    test('should write the new index to the DTO before updateItem is called', () async {
-      // Arrange
-      fakeDs.queueGetItem(_pageJson(id: 1, index: 0));
-      fakeDs.queueUpdateItem(_pageJson(id: 1, index: 4));
+    test(
+      'should write the new index to the DTO before updateItem is called',
+      () async {
+        // Arrange
+        fakeDs.queueGetItem(_pageJson(id: 1, index: 0));
+        fakeDs.queueUpdateItem(_pageJson(id: 1, index: 4));
 
-      // Act
-      await repository.reorder(1, 4);
+        // Act
+        await repository.reorder(1, 4);
 
-      // Assert
-      final sentDto = fakeDs.updateCalls.single['item'] as PageDto;
-      expect(sentDto.getValue(forKey: 'index'), 4);
-    });
+        // Assert
+        final sentDto = fakeDs.updateCalls.single['item'] as PageDto;
+        expect(sentDto.getValue(forKey: 'index'), 4);
+      },
+    );
 
     test('should call updateItem exactly once', () async {
       // Arrange
@@ -694,19 +745,22 @@ void main() {
       expect(fakeDs.updateCalls.length, 1);
     });
 
-    test('should return Failure(NotFoundError) when getItem throws NOT_FOUND', () async {
-      // Arrange
-      fakeDs.queueGetItemThrows(
-        DirectusException(code: 'NOT_FOUND', message: 'Page not found'),
-      );
+    test(
+      'should return Failure(NotFoundError) when getItem throws NOT_FOUND',
+      () async {
+        // Arrange
+        fakeDs.queueGetItemThrows(
+          DirectusException(code: 'NOT_FOUND', message: 'Page not found'),
+        );
 
-      // Act
-      final result = await repository.reorder(99, 2);
+        // Act
+        final result = await repository.reorder(99, 2);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<NotFoundError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      },
+    );
 
     test('should return Failure when updateItem throws', () async {
       // Arrange

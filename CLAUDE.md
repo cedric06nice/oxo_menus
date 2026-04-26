@@ -166,3 +166,4 @@ Treat as a hard constraint. If TDD cannot be followed, state the conflict and as
 - Use cases: class with `execute()` method, injected repos via constructor
 - Providers: manual `final xxxProvider = Provider<Xxx>((ref) { ... });`
 - Currency: GBP (£)
+- NEVER add the message "Co-Authored-By: Claude" or any other co-authing message on git

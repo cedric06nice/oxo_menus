@@ -154,15 +154,13 @@ void main() {
     });
 
     group('displayTitle', () {
-      test(
-          'should return uppercased title when uppercase default is true', () {
+      test('should return uppercased title when uppercase default is true', () {
         const props = SetMenuTitleProps(title: 'Set Lunch Menu');
 
         expect(props.displayTitle, 'SET LUNCH MENU');
       });
 
-      test(
-          'should return original casing when uppercase is set to false', () {
+      test('should return original casing when uppercase is set to false', () {
         const props = SetMenuTitleProps(
           title: 'Set Lunch Menu',
           uppercase: false,
@@ -171,12 +169,14 @@ void main() {
         expect(props.displayTitle, 'Set Lunch Menu');
       });
 
-      test('should return empty string when title is empty and uppercase true',
-          () {
-        const props = SetMenuTitleProps(title: '');
+      test(
+        'should return empty string when title is empty and uppercase true',
+        () {
+          const props = SetMenuTitleProps(title: '');
 
-        expect(props.displayTitle, '');
-      });
+          expect(props.displayTitle, '');
+        },
+      );
     });
 
     group('formattedPrice1', () {
@@ -196,40 +196,43 @@ void main() {
       });
 
       test(
-          'should return label with whole-number GBP price when both are set',
-          () {
-        const props = SetMenuTitleProps(
-          title: 'Menu',
-          priceLabel1: '3 Courses',
-          price1: 45.0,
-        );
+        'should return label with whole-number GBP price when both are set',
+        () {
+          const props = SetMenuTitleProps(
+            title: 'Menu',
+            priceLabel1: '3 Courses',
+            price1: 45.0,
+          );
 
-        expect(props.formattedPrice1, '3 Courses  45');
-      });
-
-      test(
-          'should return label with fractional GBP price when price has decimal',
-          () {
-        const props = SetMenuTitleProps(
-          title: 'Menu',
-          priceLabel1: '2 Courses',
-          price1: 29.5,
-        );
-
-        expect(props.formattedPrice1, '2 Courses  29.5');
-      });
+          expect(props.formattedPrice1, '3 Courses  45');
+        },
+      );
 
       test(
-          'should strip trailing zeros from GBP price value in formattedPrice1',
-          () {
-        const props = SetMenuTitleProps(
-          title: 'Menu',
-          priceLabel1: '3 Courses',
-          price1: 45.00,
-        );
+        'should return label with fractional GBP price when price has decimal',
+        () {
+          const props = SetMenuTitleProps(
+            title: 'Menu',
+            priceLabel1: '2 Courses',
+            price1: 29.5,
+          );
 
-        expect(props.formattedPrice1, '3 Courses  45');
-      });
+          expect(props.formattedPrice1, '2 Courses  29.5');
+        },
+      );
+
+      test(
+        'should strip trailing zeros from GBP price value in formattedPrice1',
+        () {
+          const props = SetMenuTitleProps(
+            title: 'Menu',
+            priceLabel1: '3 Courses',
+            price1: 45.00,
+          );
+
+          expect(props.formattedPrice1, '3 Courses  45');
+        },
+      );
     });
 
     group('formattedPrice2', () {
@@ -249,28 +252,30 @@ void main() {
       });
 
       test(
-          'should return label with whole-number GBP price when both are set',
-          () {
-        const props = SetMenuTitleProps(
-          title: 'Menu',
-          priceLabel2: '4 Courses',
-          price2: 55.0,
-        );
+        'should return label with whole-number GBP price when both are set',
+        () {
+          const props = SetMenuTitleProps(
+            title: 'Menu',
+            priceLabel2: '4 Courses',
+            price2: 55.0,
+          );
 
-        expect(props.formattedPrice2, '4 Courses  55');
-      });
+          expect(props.formattedPrice2, '4 Courses  55');
+        },
+      );
 
       test(
-          'should return label with fractional GBP price when price2 has decimal',
-          () {
-        const props = SetMenuTitleProps(
-          title: 'Menu',
-          priceLabel2: '4 Courses',
-          price2: 55.50,
-        );
+        'should return label with fractional GBP price when price2 has decimal',
+        () {
+          const props = SetMenuTitleProps(
+            title: 'Menu',
+            priceLabel2: '4 Courses',
+            price2: 55.50,
+          );
 
-        expect(props.formattedPrice2, '4 Courses  55.5');
-      });
+          expect(props.formattedPrice2, '4 Courses  55.5');
+        },
+      );
     });
 
     group('formattedPrices', () {
@@ -287,127 +292,137 @@ void main() {
       });
 
       test(
-          'should return price1 string alone when no label and no price2 set',
-          () {
-        const props = SetMenuTitleProps(title: 'Menu', price1: 45.0);
+        'should return price1 string alone when no label and no price2 set',
+        () {
+          const props = SetMenuTitleProps(title: 'Menu', price1: 45.0);
 
-        expect(props.formattedPrices, '45');
-      });
-
-      test(
-          'should return price1 slash price2 when both prices set with no labels',
-          () {
-        const props = SetMenuTitleProps(
-          title: 'Menu',
-          price1: 45.0,
-          price2: 55.0,
-        );
-
-        expect(props.formattedPrices, '45 / 55');
-      });
+          expect(props.formattedPrices, '45');
+        },
+      );
 
       test(
-          'should return label plus price1 when only label1 and price1 are set',
-          () {
-        const props = SetMenuTitleProps(
-          title: 'Menu',
-          priceLabel1: '3 Courses',
-          price1: 45.0,
-        );
+        'should return price1 slash price2 when both prices set with no labels',
+        () {
+          const props = SetMenuTitleProps(
+            title: 'Menu',
+            price1: 45.0,
+            price2: 55.0,
+          );
 
-        expect(props.formattedPrices, '3 Courses 45');
-      });
-
-      test(
-          'should return both labelled lines when all four fields are set',
-          () {
-        const props = SetMenuTitleProps(
-          title: 'Menu',
-          priceLabel1: '3 Courses',
-          price1: 45.0,
-          priceLabel2: '4 Courses',
-          price2: 55.0,
-        );
-
-        expect(props.formattedPrices, '3 Courses 45 / 4 Courses 55');
-      });
+          expect(props.formattedPrices, '45 / 55');
+        },
+      );
 
       test(
-          'should strip trailing zeros from GBP price in formattedPrices', () {
+        'should return label plus price1 when only label1 and price1 are set',
+        () {
+          const props = SetMenuTitleProps(
+            title: 'Menu',
+            priceLabel1: '3 Courses',
+            price1: 45.0,
+          );
+
+          expect(props.formattedPrices, '3 Courses 45');
+        },
+      );
+
+      test(
+        'should return both labelled lines when all four fields are set',
+        () {
+          const props = SetMenuTitleProps(
+            title: 'Menu',
+            priceLabel1: '3 Courses',
+            price1: 45.0,
+            priceLabel2: '4 Courses',
+            price2: 55.0,
+          );
+
+          expect(props.formattedPrices, '3 Courses 45 / 4 Courses 55');
+        },
+      );
+
+      test('should strip trailing zeros from GBP price in formattedPrices', () {
         const props = SetMenuTitleProps(title: 'Menu', price1: 29.5);
 
         expect(props.formattedPrices, '29.5');
       });
 
       test(
-          'should preserve two-decimal GBP values like 29.75 in formattedPrices',
-          () {
-        const props = SetMenuTitleProps(title: 'Menu', price1: 29.75);
+        'should preserve two-decimal GBP values like 29.75 in formattedPrices',
+        () {
+          const props = SetMenuTitleProps(title: 'Menu', price1: 29.75);
 
-        expect(props.formattedPrices, '29.75');
-      });
+          expect(props.formattedPrices, '29.75');
+        },
+      );
 
       test(
-          'should return price1 only when price1 is set and price2 is null with no labels',
-          () {
-        const props = SetMenuTitleProps(title: 'Menu', price1: 40.0);
+        'should return price1 only when price1 is set and price2 is null with no labels',
+        () {
+          const props = SetMenuTitleProps(title: 'Menu', price1: 40.0);
 
-        expect(props.formattedPrices, '40');
-      });
+          expect(props.formattedPrices, '40');
+        },
+      );
     });
 
     group('JSON round-trip', () {
       test(
-          'should be equal to the original after toJson then fromJson with all fields',
-          () {
-        const original = SetMenuTitleProps(
-          title: 'Set Menu',
-          subtitle: 'Light bites',
-          priceLabel1: '2 Courses',
-          price1: 30.0,
-          priceLabel2: '3 Courses',
-          price2: 40.0,
-        );
+        'should be equal to the original after toJson then fromJson with all fields',
+        () {
+          const original = SetMenuTitleProps(
+            title: 'Set Menu',
+            subtitle: 'Light bites',
+            priceLabel1: '2 Courses',
+            price1: 30.0,
+            priceLabel2: '3 Courses',
+            price2: 40.0,
+          );
 
-        final json = original.toJson();
-        final restored = SetMenuTitleProps.fromJson(json);
+          final json = original.toJson();
+          final restored = SetMenuTitleProps.fromJson(json);
 
-        expect(restored, equals(original));
-      });
-
-      test('should be equal to the original after toJson then fromJson with only title',
-          () {
-        const original = SetMenuTitleProps(title: 'Set Menu');
-
-        final json = original.toJson();
-        final restored = SetMenuTitleProps.fromJson(json);
-
-        expect(restored, equals(original));
-      });
+          expect(restored, equals(original));
+        },
+      );
 
       test(
-          'should use default uppercase true when key is absent from JSON',
-          () {
-        final json = {'title': 'Menu'};
+        'should be equal to the original after toJson then fromJson with only title',
+        () {
+          const original = SetMenuTitleProps(title: 'Set Menu');
 
-        final props = SetMenuTitleProps.fromJson(json);
+          final json = original.toJson();
+          final restored = SetMenuTitleProps.fromJson(json);
 
-        expect(props.uppercase, isTrue);
-      });
+          expect(restored, equals(original));
+        },
+      );
 
       test(
-          'should use null defaults for all optional keys absent from JSON',
-          () {
-        final json = {'title': 'Menu'};
+        'should use default uppercase true when key is absent from JSON',
+        () {
+          final json = {'title': 'Menu'};
 
-        final props = SetMenuTitleProps.fromJson(json);
+          final props = SetMenuTitleProps.fromJson(json);
 
-        expect(props.subtitle, isNull);
-        expect(props.priceLabel1, isNull);
-        expect(props.price1, isNull);
-        expect(props.priceLabel2, isNull);
-        expect(props.price2, isNull);
-      });
+          expect(props.uppercase, isTrue);
+        },
+      );
+
+      test(
+        'should use null defaults for all optional keys absent from JSON',
+        () {
+          final json = {'title': 'Menu'};
+
+          final props = SetMenuTitleProps.fromJson(json);
+
+          expect(props.subtitle, isNull);
+          expect(props.priceLabel1, isNull);
+          expect(props.price1, isNull);
+          expect(props.priceLabel2, isNull);
+          expect(props.price2, isNull);
+        },
+      );
 
       test('should round-trip a fractional GBP price1 correctly', () {
         const original = SetMenuTitleProps(title: 'Menu', price1: 29.99);

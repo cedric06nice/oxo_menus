@@ -65,19 +65,16 @@ void main() {
         },
       );
 
-      test(
-        'should record loadAsset call with correct path',
-        () async {
-          final bytes = ByteData.sublistView(Uint8List.fromList([0]));
-          repo.whenLoadAsset('assets/fonts/Roboto.ttf', bytes);
+      test('should record loadAsset call with correct path', () async {
+        final bytes = ByteData.sublistView(Uint8List.fromList([0]));
+        repo.whenLoadAsset('assets/fonts/Roboto.ttf', bytes);
 
-          await repo.loadAsset('assets/fonts/Roboto.ttf');
+        await repo.loadAsset('assets/fonts/Roboto.ttf');
 
-          final recorded = repo.loadAssetCalls;
-          expect(recorded.length, equals(1));
-          expect(recorded.first.assetPath, equals('assets/fonts/Roboto.ttf'));
-        },
-      );
+        final recorded = repo.loadAssetCalls;
+        expect(recorded.length, equals(1));
+        expect(recorded.first.assetPath, equals('assets/fonts/Roboto.ttf'));
+      });
 
       test(
         'should accumulate calls for different paths independently',

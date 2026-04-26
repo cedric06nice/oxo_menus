@@ -58,10 +58,15 @@ void main() {
         expect(DietaryType.fromString('Vegetarian'), DietaryType.vegetarian);
       });
 
-      test('should return vegetarian when input has leading/trailing whitespace',
-          () {
-        expect(DietaryType.fromString('  vegetarian  '), DietaryType.vegetarian);
-      });
+      test(
+        'should return vegetarian when input has leading/trailing whitespace',
+        () {
+          expect(
+            DietaryType.fromString('  vegetarian  '),
+            DietaryType.vegetarian,
+          );
+        },
+      );
 
       test('should return null when input is an unrecognised string', () {
         expect(DietaryType.fromString('gluten-free'), isNull);

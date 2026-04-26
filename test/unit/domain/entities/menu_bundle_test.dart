@@ -6,14 +6,17 @@ import '../../../fakes/builders/menu_bundle_builder.dart';
 void main() {
   group('MenuBundle', () {
     group('construction', () {
-      test('should create bundle with correct required fields when id and name are provided', () {
-        // Arrange & Act
-        const bundle = MenuBundle(id: 1, name: 'Weekend Specials');
+      test(
+        'should create bundle with correct required fields when id and name are provided',
+        () {
+          // Arrange & Act
+          const bundle = MenuBundle(id: 1, name: 'Weekend Specials');
 
-        // Assert
-        expect(bundle.id, 1);
-        expect(bundle.name, 'Weekend Specials');
-      });
+          // Assert
+          expect(bundle.id, 1);
+          expect(bundle.name, 'Weekend Specials');
+        },
+      );
 
       test('should default menuIds to empty list when not specified', () {
         // Arrange & Act
@@ -57,7 +60,11 @@ void main() {
 
       test('should store pdfFileId when pdfFileId is provided', () {
         // Arrange & Act
-        const bundle = MenuBundle(id: 1, name: 'Bundle', pdfFileId: 'file-uuid-abc');
+        const bundle = MenuBundle(
+          id: 1,
+          name: 'Bundle',
+          pdfFileId: 'file-uuid-abc',
+        );
 
         // Assert
         expect(bundle.pdfFileId, 'file-uuid-abc');
@@ -156,19 +163,22 @@ void main() {
     });
 
     group('copyWith', () {
-      test('should update pdfFileId when copyWith is called with a new pdfFileId', () {
-        // Arrange
-        const bundle = MenuBundle(id: 1, name: 'A', menuIds: [10]);
+      test(
+        'should update pdfFileId when copyWith is called with a new pdfFileId',
+        () {
+          // Arrange
+          const bundle = MenuBundle(id: 1, name: 'A', menuIds: [10]);
 
-        // Act
-        final updated = bundle.copyWith(pdfFileId: 'abc');
+          // Act
+          final updated = bundle.copyWith(pdfFileId: 'abc');
 
-        // Assert
-        expect(updated.pdfFileId, 'abc');
-        expect(updated.id, 1);
-        expect(updated.name, 'A');
-        expect(updated.menuIds, [10]);
-      });
+          // Assert
+          expect(updated.pdfFileId, 'abc');
+          expect(updated.id, 1);
+          expect(updated.name, 'A');
+          expect(updated.menuIds, [10]);
+        },
+      );
 
       test('should update name when copyWith is called with a new name', () {
         // Arrange
@@ -193,30 +203,36 @@ void main() {
         expect(updated.menuIds, [1, 2, 3]);
       });
 
-      test('should preserve all fields when copyWith is called with no arguments', () {
-        // Arrange
-        final bundle = buildMenuBundle(name: 'Stable', menuIds: [5, 6]);
+      test(
+        'should preserve all fields when copyWith is called with no arguments',
+        () {
+          // Arrange
+          final bundle = buildMenuBundle(name: 'Stable', menuIds: [5, 6]);
 
-        // Act
-        final copy = bundle.copyWith();
+          // Act
+          final copy = bundle.copyWith();
 
-        // Assert
-        expect(copy, equals(bundle));
-      });
+          // Assert
+          expect(copy, equals(bundle));
+        },
+      );
     });
 
     group('collection isolation', () {
-      test('should return a new list reference on copyWith so mutation does not affect original', () {
-        // Arrange
-        const bundle = MenuBundle(id: 1, name: 'Bundle', menuIds: [1, 2]);
+      test(
+        'should return a new list reference on copyWith so mutation does not affect original',
+        () {
+          // Arrange
+          const bundle = MenuBundle(id: 1, name: 'Bundle', menuIds: [1, 2]);
 
-        // Act
-        final updated = bundle.copyWith(menuIds: [1, 2, 3]);
+          // Act
+          final updated = bundle.copyWith(menuIds: [1, 2, 3]);
 
-        // Assert
-        expect(bundle.menuIds, hasLength(2));
-        expect(updated.menuIds, hasLength(3));
-      });
+          // Assert
+          expect(bundle.menuIds, hasLength(2));
+          expect(updated.menuIds, hasLength(3));
+        },
+      );
     });
 
     group('toString', () {
@@ -265,14 +281,20 @@ void main() {
 
   group('CreateMenuBundleInput', () {
     group('construction', () {
-      test('should create input with name and menuIds when both are provided', () {
-        // Arrange & Act
-        const input = CreateMenuBundleInput(name: 'Bundle', menuIds: [10, 20]);
+      test(
+        'should create input with name and menuIds when both are provided',
+        () {
+          // Arrange & Act
+          const input = CreateMenuBundleInput(
+            name: 'Bundle',
+            menuIds: [10, 20],
+          );
 
-        // Assert
-        expect(input.name, 'Bundle');
-        expect(input.menuIds, [10, 20]);
-      });
+          // Assert
+          expect(input.name, 'Bundle');
+          expect(input.menuIds, [10, 20]);
+        },
+      );
 
       test('should default menuIds to empty list when not specified', () {
         // Arrange & Act
@@ -297,16 +319,19 @@ void main() {
 
   group('UpdateMenuBundleInput', () {
     group('construction', () {
-      test('should create input with only id when all optional fields are omitted', () {
-        // Arrange & Act
-        const input = UpdateMenuBundleInput(id: 1);
+      test(
+        'should create input with only id when all optional fields are omitted',
+        () {
+          // Arrange & Act
+          const input = UpdateMenuBundleInput(id: 1);
 
-        // Assert
-        expect(input.id, 1);
-        expect(input.name, isNull);
-        expect(input.menuIds, isNull);
-        expect(input.pdfFileId, isNull);
-      });
+          // Assert
+          expect(input.id, 1);
+          expect(input.name, isNull);
+          expect(input.menuIds, isNull);
+          expect(input.pdfFileId, isNull);
+        },
+      );
 
       test('should store name when name is provided', () {
         // Arrange & Act

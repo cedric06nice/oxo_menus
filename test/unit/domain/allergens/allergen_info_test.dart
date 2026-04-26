@@ -147,22 +147,34 @@ void main() {
       });
 
       test('should not be equal when mayContain differs', () {
-        const info1 = AllergenInfo(allergen: UkAllergen.eggs, mayContain: false);
+        const info1 = AllergenInfo(
+          allergen: UkAllergen.eggs,
+          mayContain: false,
+        );
         const info2 = AllergenInfo(allergen: UkAllergen.eggs, mayContain: true);
         expect(info1, isNot(equals(info2)));
       });
 
       test('should not be equal when details differ', () {
-        const info1 = AllergenInfo(allergen: UkAllergen.gluten, details: 'wheat');
+        const info1 = AllergenInfo(
+          allergen: UkAllergen.gluten,
+          details: 'wheat',
+        );
         const info2 = AllergenInfo(allergen: UkAllergen.gluten, details: 'rye');
         expect(info1, isNot(equals(info2)));
       });
 
-      test('should not be equal when one has details and the other does not', () {
-        const info1 = AllergenInfo(allergen: UkAllergen.gluten, details: 'wheat');
-        const info2 = AllergenInfo(allergen: UkAllergen.gluten);
-        expect(info1, isNot(equals(info2)));
-      });
+      test(
+        'should not be equal when one has details and the other does not',
+        () {
+          const info1 = AllergenInfo(
+            allergen: UkAllergen.gluten,
+            details: 'wheat',
+          );
+          const info2 = AllergenInfo(allergen: UkAllergen.gluten);
+          expect(info1, isNot(equals(info2)));
+        },
+      );
 
       test('should have the same hashCode when values are equal', () {
         const info1 = AllergenInfo(allergen: UkAllergen.milk);
@@ -179,7 +191,10 @@ void main() {
       });
 
       test('should serialize mayContain true when set', () {
-        const info = AllergenInfo(allergen: UkAllergen.gluten, mayContain: true);
+        const info = AllergenInfo(
+          allergen: UkAllergen.gluten,
+          mayContain: true,
+        );
         final json = info.toJson();
         expect(json['mayContain'], isTrue);
       });
@@ -191,7 +206,10 @@ void main() {
       });
 
       test('should serialize details string when provided', () {
-        const info = AllergenInfo(allergen: UkAllergen.gluten, details: 'wheat');
+        const info = AllergenInfo(
+          allergen: UkAllergen.gluten,
+          details: 'wheat',
+        );
         final json = info.toJson();
         expect(json['details'], 'wheat');
       });
@@ -223,7 +241,11 @@ void main() {
       });
 
       test('should deserialize details string from JSON', () {
-        final json = {'allergen': 'nuts', 'mayContain': false, 'details': 'walnut'};
+        final json = {
+          'allergen': 'nuts',
+          'mayContain': false,
+          'details': 'walnut',
+        };
         final info = AllergenInfo.fromJson(json);
         expect(info.details, 'walnut');
       });
@@ -242,9 +264,20 @@ void main() {
 
       test('should deserialize all 14 allergen names correctly', () {
         final allergenNames = [
-          'celery', 'gluten', 'crustaceans', 'eggs', 'fish', 'lupin',
-          'milk', 'molluscs', 'mustard', 'nuts', 'peanuts', 'sesame',
-          'soya', 'sulphites',
+          'celery',
+          'gluten',
+          'crustaceans',
+          'eggs',
+          'fish',
+          'lupin',
+          'milk',
+          'molluscs',
+          'mustard',
+          'nuts',
+          'peanuts',
+          'sesame',
+          'soya',
+          'sulphites',
         ];
         final parsed = allergenNames
             .map((name) => AllergenInfo.fromJson({'allergen': name}))

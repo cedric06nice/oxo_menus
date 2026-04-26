@@ -63,23 +63,26 @@ void main() {
         expect(entity.editingSince, isNull);
       });
 
-      test('should represent unlocked widget when both lock fields are absent', () {
-        // Arrange
-        final dto = WidgetDto({
-          'id': '4',
-          'column': 5,
-          'type_key': 'section',
-          'version': '1.0.0',
-          'index': 0,
-        });
+      test(
+        'should represent unlocked widget when both lock fields are absent',
+        () {
+          // Arrange
+          final dto = WidgetDto({
+            'id': '4',
+            'column': 5,
+            'type_key': 'section',
+            'version': '1.0.0',
+            'index': 0,
+          });
 
-        // Act
-        final entity = WidgetMapper.toEntity(dto);
+          // Act
+          final entity = WidgetMapper.toEntity(dto);
 
-        // Assert — no lock state
-        expect(entity.editingBy, isNull);
-        expect(entity.editingSince, isNull);
-      });
+          // Assert — no lock state
+          expect(entity.editingBy, isNull);
+          expect(entity.editingSince, isNull);
+        },
+      );
 
       test('should map editingBy set to null explicitly as null', () {
         // Arrange

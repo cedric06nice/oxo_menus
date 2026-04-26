@@ -33,7 +33,12 @@ void main() {
 
       test('should parse string id to int', () {
         // Arrange
-        final dto = PageDto({'id': '55', 'index': 0, 'status': 'draft', 'type': 'content'});
+        final dto = PageDto({
+          'id': '55',
+          'index': 0,
+          'status': 'draft',
+          'type': 'content',
+        });
 
         // Act
         final entity = PageMapper.toEntity(dto);
@@ -44,7 +49,12 @@ void main() {
 
       test('should parse a large integer id correctly', () {
         // Arrange
-        final dto = PageDto({'id': '1000', 'index': 0, 'status': 'draft', 'type': 'content'});
+        final dto = PageDto({
+          'id': '1000',
+          'index': 0,
+          'status': 'draft',
+          'type': 'content',
+        });
 
         // Act
         final entity = PageMapper.toEntity(dto);
@@ -55,7 +65,12 @@ void main() {
 
       test('should default menuId to 0 when menu is null', () {
         // Arrange
-        final dto = PageDto({'id': '1', 'index': 0, 'status': 'draft', 'type': 'content'});
+        final dto = PageDto({
+          'id': '1',
+          'index': 0,
+          'status': 'draft',
+          'type': 'content',
+        });
 
         // Act
         final entity = PageMapper.toEntity(dto);
@@ -100,7 +115,12 @@ void main() {
 
       test('should build name as "Page {index}"', () {
         // Arrange
-        final dto = PageDto({'id': '1', 'index': 3, 'status': 'draft', 'type': 'content'});
+        final dto = PageDto({
+          'id': '1',
+          'index': 3,
+          'status': 'draft',
+          'type': 'content',
+        });
 
         // Act
         final entity = PageMapper.toEntity(dto);
@@ -111,7 +131,12 @@ void main() {
 
       test('should map type "header" to PageType.header', () {
         // Arrange
-        final dto = PageDto({'id': '1', 'index': 0, 'status': 'draft', 'type': 'header'});
+        final dto = PageDto({
+          'id': '1',
+          'index': 0,
+          'status': 'draft',
+          'type': 'header',
+        });
 
         // Act
         final entity = PageMapper.toEntity(dto);
@@ -122,7 +147,12 @@ void main() {
 
       test('should map type "footer" to PageType.footer', () {
         // Arrange
-        final dto = PageDto({'id': '1', 'index': 0, 'status': 'draft', 'type': 'footer'});
+        final dto = PageDto({
+          'id': '1',
+          'index': 0,
+          'status': 'draft',
+          'type': 'footer',
+        });
 
         // Act
         final entity = PageMapper.toEntity(dto);
@@ -133,7 +163,12 @@ void main() {
 
       test('should map type "content" to PageType.content', () {
         // Arrange
-        final dto = PageDto({'id': '1', 'index': 0, 'status': 'draft', 'type': 'content'});
+        final dto = PageDto({
+          'id': '1',
+          'index': 0,
+          'status': 'draft',
+          'type': 'content',
+        });
 
         // Act
         final entity = PageMapper.toEntity(dto);
@@ -144,7 +179,12 @@ void main() {
 
       test('should default to PageType.content for unknown type strings', () {
         // Arrange
-        final dto = PageDto({'id': '1', 'index': 0, 'status': 'draft', 'type': 'sidebar'});
+        final dto = PageDto({
+          'id': '1',
+          'index': 0,
+          'status': 'draft',
+          'type': 'sidebar',
+        });
 
         // Act
         final entity = PageMapper.toEntity(dto);
@@ -166,7 +206,12 @@ void main() {
 
       test('should map null dateCreated and dateUpdated to null', () {
         // Arrange
-        final dto = PageDto({'id': '1', 'index': 0, 'status': 'draft', 'type': 'content'});
+        final dto = PageDto({
+          'id': '1',
+          'index': 0,
+          'status': 'draft',
+          'type': 'content',
+        });
 
         // Act
         final entity = PageMapper.toEntity(dto);
@@ -202,7 +247,13 @@ void main() {
 
       test('should serialize PageType.header as "header"', () {
         // Arrange
-        final entity = Page(id: 1, menuId: 1, name: 'Header', index: 0, type: PageType.header);
+        final entity = Page(
+          id: 1,
+          menuId: 1,
+          name: 'Header',
+          index: 0,
+          type: PageType.header,
+        );
 
         // Act
         final dto = PageMapper.toDto(entity);
@@ -213,7 +264,13 @@ void main() {
 
       test('should serialize PageType.footer as "footer"', () {
         // Arrange
-        final entity = Page(id: 2, menuId: 1, name: 'Footer', index: 10, type: PageType.footer);
+        final entity = Page(
+          id: 2,
+          menuId: 1,
+          name: 'Footer',
+          index: 10,
+          type: PageType.footer,
+        );
 
         // Act
         final dto = PageMapper.toDto(entity);
@@ -257,17 +314,26 @@ void main() {
         expect(raw['date_updated'], updated.toIso8601String());
       });
 
-      test('should round-trip page type through toDto then read back via getter', () {
-        // Arrange
-        final entity = Page(id: 5, menuId: 1, name: 'Footer', index: 99, type: PageType.footer);
+      test(
+        'should round-trip page type through toDto then read back via getter',
+        () {
+          // Arrange
+          final entity = Page(
+            id: 5,
+            menuId: 1,
+            name: 'Footer',
+            index: 99,
+            type: PageType.footer,
+          );
 
-        // Act
-        final dto = PageMapper.toDto(entity);
-        final roundTripped = PageMapper.toEntity(dto);
+          // Act
+          final dto = PageMapper.toDto(entity);
+          final roundTripped = PageMapper.toEntity(dto);
 
-        // Assert
-        expect(roundTripped.type, PageType.footer);
-      });
+          // Assert
+          expect(roundTripped.type, PageType.footer);
+        },
+      );
     });
   });
 }

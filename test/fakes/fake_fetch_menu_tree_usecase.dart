@@ -41,13 +41,13 @@ final class FetchMenuTreeCall {
 /// ```
 class FakeFetchMenuTreeUseCase extends FetchMenuTreeUseCase {
   FakeFetchMenuTreeUseCase()
-      : super(
-          menuRepository: _ThrowMenuRepository(),
-          pageRepository: _ThrowPageRepository(),
-          containerRepository: _ThrowContainerRepository(),
-          columnRepository: _ThrowColumnRepository(),
-          widgetRepository: _ThrowWidgetRepository(),
-        );
+    : super(
+        menuRepository: _ThrowMenuRepository(),
+        pageRepository: _ThrowPageRepository(),
+        containerRepository: _ThrowContainerRepository(),
+        columnRepository: _ThrowColumnRepository(),
+        widgetRepository: _ThrowWidgetRepository(),
+      );
 
   // -------------------------------------------------------------------------
   // Call log
@@ -146,8 +146,9 @@ class _ThrowContainerRepository implements ContainerRepository {
       throw StateError('_ThrowContainerRepository should not be called');
 
   @override
-  Future<Result<List<Container>, DomainError>> getAllForContainer(int containerId) =>
-      throw StateError('_ThrowContainerRepository should not be called');
+  Future<Result<List<Container>, DomainError>> getAllForContainer(
+    int containerId,
+  ) => throw StateError('_ThrowContainerRepository should not be called');
 
   @override
   Future<Result<Container, DomainError>> getById(int id) =>
@@ -179,8 +180,9 @@ class _ThrowColumnRepository implements ColumnRepository {
       throw StateError('_ThrowColumnRepository should not be called');
 
   @override
-  Future<Result<List<Column>, DomainError>> getAllForContainer(int containerId) =>
-      throw StateError('_ThrowColumnRepository should not be called');
+  Future<Result<List<Column>, DomainError>> getAllForContainer(
+    int containerId,
+  ) => throw StateError('_ThrowColumnRepository should not be called');
 
   @override
   Future<Result<Column, DomainError>> getById(int id) =>
@@ -205,8 +207,9 @@ class _ThrowWidgetRepository implements WidgetRepository {
       throw StateError('_ThrowWidgetRepository should not be called');
 
   @override
-  Future<Result<List<WidgetInstance>, DomainError>> getAllForColumn(int columnId) =>
-      throw StateError('_ThrowWidgetRepository should not be called');
+  Future<Result<List<WidgetInstance>, DomainError>> getAllForColumn(
+    int columnId,
+  ) => throw StateError('_ThrowWidgetRepository should not be called');
 
   @override
   Future<Result<WidgetInstance, DomainError>> getById(int id) =>

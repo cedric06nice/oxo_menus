@@ -48,20 +48,17 @@ void main() {
         },
       );
 
-      test(
-        'should return ValidationError when bundle name is empty',
-        () async {
-          // Arrange
-          const input = CreateMenuBundleInput(name: '');
+      test('should return ValidationError when bundle name is empty', () async {
+        // Arrange
+        const input = CreateMenuBundleInput(name: '');
 
-          // Act
-          final result = await useCase.execute(input);
+        // Act
+        final result = await useCase.execute(input);
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<ValidationError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<ValidationError>());
+      });
 
       test(
         'should return ValidationError when bundle name is whitespace only',
@@ -78,51 +75,42 @@ void main() {
         },
       );
 
-      test(
-        'should not call repository when name validation fails',
-        () async {
-          // Arrange
-          const input = CreateMenuBundleInput(name: '');
+      test('should not call repository when name validation fails', () async {
+        // Arrange
+        const input = CreateMenuBundleInput(name: '');
 
-          // Act
-          await useCase.execute(input);
+        // Act
+        await useCase.execute(input);
 
-          // Assert
-          expect(repo.createCalls, isEmpty);
-        },
-      );
+        // Assert
+        expect(repo.createCalls, isEmpty);
+      });
 
-      test(
-        'should return Failure when repository.create fails',
-        () async {
-          // Arrange
-          const input = CreateMenuBundleInput(name: 'Weekend Specials');
-          repo.whenCreate(failure(server()));
+      test('should return Failure when repository.create fails', () async {
+        // Arrange
+        const input = CreateMenuBundleInput(name: 'Weekend Specials');
+        repo.whenCreate(failure(server()));
 
-          // Act
-          final result = await useCase.execute(input);
+        // Act
+        final result = await useCase.execute(input);
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<ServerError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<ServerError>());
+      });
 
-      test(
-        'should pass input to repository.create',
-        () async {
-          // Arrange
-          const input = CreateMenuBundleInput(name: 'Dinner', menuIds: [1, 2]);
-          repo.whenCreate(success(buildMenuBundle(id: 1)));
+      test('should pass input to repository.create', () async {
+        // Arrange
+        const input = CreateMenuBundleInput(name: 'Dinner', menuIds: [1, 2]);
+        repo.whenCreate(success(buildMenuBundle(id: 1)));
 
-          // Act
-          await useCase.execute(input);
+        // Act
+        await useCase.execute(input);
 
-          // Assert
-          expect(repo.createCalls.single.input.name, equals('Dinner'));
-          expect(repo.createCalls.single.input.menuIds, equals([1, 2]));
-        },
-      );
+        // Assert
+        expect(repo.createCalls.single.input.name, equals('Dinner'));
+        expect(repo.createCalls.single.input.menuIds, equals([1, 2]));
+      });
     });
 
     // =========================================================================
@@ -136,50 +124,41 @@ void main() {
         useCase = GetMenuBundleUseCase(repository: repo);
       });
 
-      test(
-        'should return bundle when repository finds it',
-        () async {
-          // Arrange
-          final bundle = buildMenuBundle(id: 7, name: 'Sunday Bundle');
-          repo.whenGetById(success(bundle));
+      test('should return bundle when repository finds it', () async {
+        // Arrange
+        final bundle = buildMenuBundle(id: 7, name: 'Sunday Bundle');
+        repo.whenGetById(success(bundle));
 
-          // Act
-          final result = await useCase.execute(7);
+        // Act
+        final result = await useCase.execute(7);
 
-          // Assert
-          expect(result.isSuccess, isTrue);
-          expect(result.valueOrNull!.id, equals(7));
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull!.id, equals(7));
+      });
 
-      test(
-        'should return Failure when repository.getById fails',
-        () async {
-          // Arrange
-          repo.whenGetById(failure(notFound()));
+      test('should return Failure when repository.getById fails', () async {
+        // Arrange
+        repo.whenGetById(failure(notFound()));
 
-          // Act
-          final result = await useCase.execute(99);
+        // Act
+        final result = await useCase.execute(99);
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<NotFoundError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      });
 
-      test(
-        'should pass correct id to repository.getById',
-        () async {
-          // Arrange
-          repo.whenGetById(success(buildMenuBundle(id: 42)));
+      test('should pass correct id to repository.getById', () async {
+        // Arrange
+        repo.whenGetById(success(buildMenuBundle(id: 42)));
 
-          // Act
-          await useCase.execute(42);
+        // Act
+        await useCase.execute(42);
 
-          // Assert
-          expect(repo.getByIdCalls.single.id, equals(42));
-        },
-      );
+        // Assert
+        expect(repo.getByIdCalls.single.id, equals(42));
+      });
     });
 
     // =========================================================================
@@ -193,38 +172,32 @@ void main() {
         useCase = UpdateMenuBundleUseCase(repository: repo);
       });
 
-      test(
-        'should return updated bundle when repository succeeds',
-        () async {
-          // Arrange
-          final updated = buildMenuBundle(id: 3, name: 'Updated');
-          final input = UpdateMenuBundleInput(id: 3, name: 'Updated');
-          repo.whenUpdate(success(updated));
+      test('should return updated bundle when repository succeeds', () async {
+        // Arrange
+        final updated = buildMenuBundle(id: 3, name: 'Updated');
+        final input = UpdateMenuBundleInput(id: 3, name: 'Updated');
+        repo.whenUpdate(success(updated));
 
-          // Act
-          final result = await useCase.execute(input);
+        // Act
+        final result = await useCase.execute(input);
 
-          // Assert
-          expect(result.isSuccess, isTrue);
-          expect(result.valueOrNull!.name, equals('Updated'));
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull!.name, equals('Updated'));
+      });
 
-      test(
-        'should return Failure when repository.update fails',
-        () async {
-          // Arrange
-          final input = UpdateMenuBundleInput(id: 3, name: 'Updated');
-          repo.whenUpdate(failure(server()));
+      test('should return Failure when repository.update fails', () async {
+        // Arrange
+        final input = UpdateMenuBundleInput(id: 3, name: 'Updated');
+        repo.whenUpdate(failure(server()));
 
-          // Act
-          final result = await useCase.execute(input);
+        // Act
+        final result = await useCase.execute(input);
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<ServerError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<ServerError>());
+      });
 
       test(
         'should pass input through to repository.update unchanged',
@@ -273,34 +246,28 @@ void main() {
         },
       );
 
-      test(
-        'should return Failure when repository.delete fails',
-        () async {
-          // Arrange
-          repo.whenDelete(failure(notFound()));
+      test('should return Failure when repository.delete fails', () async {
+        // Arrange
+        repo.whenDelete(failure(notFound()));
 
-          // Act
-          final result = await useCase.execute(4);
+        // Act
+        final result = await useCase.execute(4);
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<NotFoundError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      });
 
-      test(
-        'should pass correct id to repository.delete',
-        () async {
-          // Arrange
-          repo.whenDelete(success(null));
+      test('should pass correct id to repository.delete', () async {
+        // Arrange
+        repo.whenDelete(success(null));
 
-          // Act
-          await useCase.execute(55);
+        // Act
+        await useCase.execute(55);
 
-          // Assert
-          expect(repo.deleteCalls.single.id, equals(55));
-        },
-      );
+        // Assert
+        expect(repo.deleteCalls.single.id, equals(55));
+      });
     });
 
     // =========================================================================
@@ -333,49 +300,40 @@ void main() {
         },
       );
 
-      test(
-        'should return empty list when repository has no bundles',
-        () async {
-          // Arrange
-          repo.whenGetAll(success([]));
+      test('should return empty list when repository has no bundles', () async {
+        // Arrange
+        repo.whenGetAll(success([]));
 
-          // Act
-          final result = await useCase.execute();
+        // Act
+        final result = await useCase.execute();
 
-          // Assert
-          expect(result.isSuccess, isTrue);
-          expect(result.valueOrNull!, isEmpty);
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull!, isEmpty);
+      });
 
-      test(
-        'should return Failure when repository.getAll fails',
-        () async {
-          // Arrange
-          repo.whenGetAll(failure(network()));
+      test('should return Failure when repository.getAll fails', () async {
+        // Arrange
+        repo.whenGetAll(failure(network()));
 
-          // Act
-          final result = await useCase.execute();
+        // Act
+        final result = await useCase.execute();
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<NetworkError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NetworkError>());
+      });
 
-      test(
-        'should call repository.getAll exactly once',
-        () async {
-          // Arrange
-          repo.whenGetAll(success([]));
+      test('should call repository.getAll exactly once', () async {
+        // Arrange
+        repo.whenGetAll(success([]));
 
-          // Act
-          await useCase.execute();
+        // Act
+        await useCase.execute();
 
-          // Assert
-          expect(repo.getAllCalls.length, equals(1));
-        },
-      );
+        // Assert
+        expect(repo.getAllCalls.length, equals(1));
+      });
     });
   });
 }

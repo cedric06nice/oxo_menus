@@ -36,12 +36,7 @@ MenuTree _treeWithWidgets(
   String? widgetTypeForAlignment,
 }) {
   final allowedWidgets = (alignment != null && widgetTypeForAlignment != null)
-      ? [
-          WidgetTypeConfig(
-            type: widgetTypeForAlignment,
-            alignment: alignment,
-          ),
-        ]
+      ? [WidgetTypeConfig(type: widgetTypeForAlignment, alignment: alignment)]
       : const <WidgetTypeConfig>[];
 
   return MenuTree(
@@ -74,11 +69,7 @@ MenuTree _treeWithWidgets(
 }
 
 /// Creates a single-widget [WidgetInstance] with [type] and [props].
-WidgetInstance _widget(
-  String type,
-  Map<String, dynamic> props, {
-  int id = 1,
-}) {
+WidgetInstance _widget(String type, Map<String, dynamic> props, {int id = 1}) {
   return WidgetInstance(
     id: id,
     columnId: 1,
@@ -159,12 +150,7 @@ void main() {
       'should produce a larger document for a single-page tree than for an empty tree',
       () async {
         const emptyTree = MenuTree(
-          menu: Menu(
-            id: 1,
-            name: 'E',
-            status: Status.published,
-            version: '1',
-          ),
+          menu: Menu(id: 1, name: 'E', status: Status.published, version: '1'),
           pages: [],
         );
 
@@ -214,16 +200,10 @@ void main() {
       'should produce valid PDF with an empty page (no containers)',
       () async {
         const tree = MenuTree(
-          menu: Menu(
-            id: 1,
-            name: 'M',
-            status: Status.published,
-            version: '1',
-          ),
+          menu: Menu(id: 1, name: 'M', status: Status.published, version: '1'),
           pages: [
             PageWithContainers(
-              page:
-                  entity.Page(id: 1, menuId: 1, name: 'Empty Page', index: 0),
+              page: entity.Page(id: 1, menuId: 1, name: 'Empty Page', index: 0),
               containers: [],
             ),
           ],
@@ -239,12 +219,7 @@ void main() {
       'should produce valid PDF for a page with a container but no columns',
       () async {
         const tree = MenuTree(
-          menu: Menu(
-            id: 1,
-            name: 'M',
-            status: Status.published,
-            version: '1',
-          ),
+          menu: Menu(id: 1, name: 'M', status: Status.published, version: '1'),
           pages: [
             PageWithContainers(
               page: entity.Page(id: 1, menuId: 1, name: 'P1', index: 0),
@@ -264,53 +239,45 @@ void main() {
       },
     );
 
-    test(
-      'should produce valid PDF with header and footer pages',
-      () async {
-        const contentPage = PageWithContainers(
-          page: entity.Page(id: 1, menuId: 1, name: 'Content', index: 0),
-          containers: [],
-        );
+    test('should produce valid PDF with header and footer pages', () async {
+      const contentPage = PageWithContainers(
+        page: entity.Page(id: 1, menuId: 1, name: 'Content', index: 0),
+        containers: [],
+      );
 
-        const headerPage = PageWithContainers(
-          page: entity.Page(
-            id: 2,
-            menuId: 1,
-            name: 'Header',
-            index: 0,
-            type: PageType.header,
-          ),
-          containers: [],
-        );
+      const headerPage = PageWithContainers(
+        page: entity.Page(
+          id: 2,
+          menuId: 1,
+          name: 'Header',
+          index: 0,
+          type: PageType.header,
+        ),
+        containers: [],
+      );
 
-        const footerPage = PageWithContainers(
-          page: entity.Page(
-            id: 3,
-            menuId: 1,
-            name: 'Footer',
-            index: 1,
-            type: PageType.footer,
-          ),
-          containers: [],
-        );
+      const footerPage = PageWithContainers(
+        page: entity.Page(
+          id: 3,
+          menuId: 1,
+          name: 'Footer',
+          index: 1,
+          type: PageType.footer,
+        ),
+        containers: [],
+      );
 
-        const tree = MenuTree(
-          menu: Menu(
-            id: 1,
-            name: 'H+F',
-            status: Status.published,
-            version: '1',
-          ),
-          pages: [contentPage],
-          headerPage: headerPage,
-          footerPage: footerPage,
-        );
+      const tree = MenuTree(
+        menu: Menu(id: 1, name: 'H+F', status: Status.published, version: '1'),
+        pages: [contentPage],
+        headerPage: headerPage,
+        footerPage: footerPage,
+      );
 
-        final bytes = await build(tree);
+      final bytes = await build(tree);
 
-        expect(_isPdfBytes(bytes), isTrue);
-      },
-    );
+      expect(_isPdfBytes(bytes), isTrue);
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -368,7 +335,11 @@ void main() {
       () async {
         final bytes = await build(
           _treeWithWidgets([
-            _widget('dish', {'name': 'Salad', 'price': 9.0, 'dietary': 'vegan'}),
+            _widget('dish', {
+              'name': 'Salad',
+              'price': 9.0,
+              'dietary': 'vegan',
+            }),
           ]),
         );
 
@@ -381,10 +352,7 @@ void main() {
       () async {
         // AllergenInfo list with gluten+details and plain milk
         final allergenInfo = [
-          const AllergenInfo(
-            allergen: UkAllergen.gluten,
-            details: 'wheat',
-          ),
+          const AllergenInfo(allergen: UkAllergen.gluten, details: 'wheat'),
           const AllergenInfo(allergen: UkAllergen.milk),
           const AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
         ];
@@ -398,9 +366,7 @@ void main() {
           props: {
             'name': 'Pasta',
             'price': 14.0,
-            'allergenInfo': allergenInfo
-                .map((a) => a.toJson())
-                .toList(),
+            'allergenInfo': allergenInfo.map((a) => a.toJson()).toList(),
           },
         );
 
@@ -442,7 +408,9 @@ void main() {
       () async {
         final bytes = await build(
           _treeWithWidgets(
-            [_widget('dish', {'name': 'Beef', 'price': 22.0})],
+            [
+              _widget('dish', {'name': 'Beef', 'price': 22.0}),
+            ],
             alignment: WidgetAlignment.justified,
             widgetTypeForAlignment: 'dish',
           ),
@@ -452,44 +420,41 @@ void main() {
       },
     );
 
-    test(
-      'should produce valid PDF for a dish with center alignment',
-      () async {
-        final bytes = await build(
-          _treeWithWidgets(
-            [_widget('dish', {'name': 'Beef', 'price': 22.0})],
-            alignment: WidgetAlignment.center,
-            widgetTypeForAlignment: 'dish',
-          ),
-        );
+    test('should produce valid PDF for a dish with center alignment', () async {
+      final bytes = await build(
+        _treeWithWidgets(
+          [
+            _widget('dish', {'name': 'Beef', 'price': 22.0}),
+          ],
+          alignment: WidgetAlignment.center,
+          widgetTypeForAlignment: 'dish',
+        ),
+      );
 
-        expect(_isPdfBytes(bytes), isTrue);
-      },
-    );
+      expect(_isPdfBytes(bytes), isTrue);
+    });
 
-    test(
-      'should produce valid PDF for a dish with end alignment',
-      () async {
-        final bytes = await build(
-          _treeWithWidgets(
-            [_widget('dish', {'name': 'Beef', 'price': 22.0})],
-            alignment: WidgetAlignment.end,
-            widgetTypeForAlignment: 'dish',
-          ),
-        );
+    test('should produce valid PDF for a dish with end alignment', () async {
+      final bytes = await build(
+        _treeWithWidgets(
+          [
+            _widget('dish', {'name': 'Beef', 'price': 22.0}),
+          ],
+          alignment: WidgetAlignment.end,
+          widgetTypeForAlignment: 'dish',
+        ),
+      );
 
-        expect(_isPdfBytes(bytes), isTrue);
-      },
-    );
+      expect(_isPdfBytes(bytes), isTrue);
+    });
 
     test(
       'should produce valid PDF when showPrices is false (price suppressed)',
       () async {
         final bytes = await build(
-          _treeWithWidgets(
-            [_widget('dish', {'name': 'Beef', 'price': 22.0})],
-            displayOptions: const MenuDisplayOptions(showPrices: false),
-          ),
+          _treeWithWidgets([
+            _widget('dish', {'name': 'Beef', 'price': 22.0}),
+          ], displayOptions: const MenuDisplayOptions(showPrices: false)),
         );
 
         expect(_isPdfBytes(bytes), isTrue);
@@ -515,10 +480,9 @@ void main() {
         );
 
         final bytes = await build(
-          _treeWithWidgets(
-            [dish],
-            displayOptions: const MenuDisplayOptions(showAllergens: false),
-          ),
+          _treeWithWidgets([
+            dish,
+          ], displayOptions: const MenuDisplayOptions(showAllergens: false)),
         );
 
         expect(_isPdfBytes(bytes), isTrue);
@@ -558,23 +522,20 @@ void main() {
       },
     );
 
-    test(
-      'should produce valid PDF for a dish with very long name',
-      () async {
-        final bytes = await build(
-          _treeWithWidgets([
-            _widget('dish', {
-              'name':
-                  'Slow-Braised Heritage Beef Short Rib with Truffle Pomme '
-                  'Purée, Seasonal Root Vegetables, and a Rich Red Wine Jus',
-              'price': 42.0,
-            }),
-          ]),
-        );
+    test('should produce valid PDF for a dish with very long name', () async {
+      final bytes = await build(
+        _treeWithWidgets([
+          _widget('dish', {
+            'name':
+                'Slow-Braised Heritage Beef Short Rib with Truffle Pomme '
+                'Purée, Seasonal Root Vegetables, and a Rich Red Wine Jus',
+            'price': 42.0,
+          }),
+        ]),
+      );
 
-        expect(_isPdfBytes(bytes), isTrue);
-      },
-    );
+      expect(_isPdfBytes(bytes), isTrue);
+    });
   });
 
   group('PdfDocumentBuilder — widget type: wine', () {
@@ -610,16 +571,13 @@ void main() {
       'should produce valid PDF for a wine with containsSulphites:true and allergens shown',
       () async {
         final bytes = await build(
-          _treeWithWidgets(
-            [
-              _widget('wine', {
-                'name': 'Riesling',
-                'price': 45.0,
-                'containsSulphites': true,
-              }),
-            ],
-            displayOptions: const MenuDisplayOptions(showAllergens: true),
-          ),
+          _treeWithWidgets([
+            _widget('wine', {
+              'name': 'Riesling',
+              'price': 45.0,
+              'containsSulphites': true,
+            }),
+          ], displayOptions: const MenuDisplayOptions(showAllergens: true)),
         );
 
         expect(_isPdfBytes(bytes), isTrue);
@@ -630,16 +588,13 @@ void main() {
       'should produce valid PDF for a wine with containsSulphites:true and allergens hidden',
       () async {
         final bytes = await build(
-          _treeWithWidgets(
-            [
-              _widget('wine', {
-                'name': 'Riesling',
-                'price': 45.0,
-                'containsSulphites': true,
-              }),
-            ],
-            displayOptions: const MenuDisplayOptions(showAllergens: false),
-          ),
+          _treeWithWidgets([
+            _widget('wine', {
+              'name': 'Riesling',
+              'price': 45.0,
+              'containsSulphites': true,
+            }),
+          ], displayOptions: const MenuDisplayOptions(showAllergens: false)),
         );
 
         expect(_isPdfBytes(bytes), isTrue);
@@ -651,7 +606,9 @@ void main() {
       () async {
         final bytes = await build(
           _treeWithWidgets(
-            [_widget('wine', {'name': 'Barolo', 'price': 75.0})],
+            [
+              _widget('wine', {'name': 'Barolo', 'price': 75.0}),
+            ],
             alignment: WidgetAlignment.justified,
             widgetTypeForAlignment: 'wine',
           ),
@@ -661,24 +618,21 @@ void main() {
       },
     );
 
-    test(
-      'should produce valid PDF for a wine with very long name',
-      () async {
-        final bytes = await build(
-          _treeWithWidgets([
-            _widget('wine', {
-              'name':
-                  'Domaine de la Romanée-Conti Grand Cru Monopole Pinot Noir '
-                  'Burgundy Côte de Nuits Premier Selection Vintage Reserve',
-              'price': 850.0,
-              'vintage': 2015,
-            }),
-          ]),
-        );
+    test('should produce valid PDF for a wine with very long name', () async {
+      final bytes = await build(
+        _treeWithWidgets([
+          _widget('wine', {
+            'name':
+                'Domaine de la Romanée-Conti Grand Cru Monopole Pinot Noir '
+                'Burgundy Côte de Nuits Premier Selection Vintage Reserve',
+            'price': 850.0,
+            'vintage': 2015,
+          }),
+        ]),
+      );
 
-        expect(_isPdfBytes(bytes), isTrue);
-      },
-    );
+      expect(_isPdfBytes(bytes), isTrue);
+    });
   });
 
   group('PdfDocumentBuilder — widget type: section', () {
@@ -740,7 +694,9 @@ void main() {
       () async {
         final bytes = await build(
           _treeWithWidgets(
-            [_widget('section', {'title': 'Specials'})],
+            [
+              _widget('section', {'title': 'Specials'}),
+            ],
             alignment: WidgetAlignment.center,
             widgetTypeForAlignment: 'section',
           ),
@@ -756,7 +712,9 @@ void main() {
         // Justified is not meaningful for section — production code maps it to start.
         final bytes = await build(
           _treeWithWidgets(
-            [_widget('section', {'title': 'Wine List'})],
+            [
+              _widget('section', {'title': 'Wine List'}),
+            ],
             alignment: WidgetAlignment.justified,
             widgetTypeForAlignment: 'section',
           ),
@@ -812,31 +770,25 @@ void main() {
       expect(_isPdfBytes(bytes), isTrue);
     });
 
-    test(
-      'should produce valid PDF for text with center alignment',
-      () async {
-        final bytes = await build(
-          _treeWithWidgets([
-            _widget('text', {'text': 'Center', 'align': 'center'}),
-          ]),
-        );
+    test('should produce valid PDF for text with center alignment', () async {
+      final bytes = await build(
+        _treeWithWidgets([
+          _widget('text', {'text': 'Center', 'align': 'center'}),
+        ]),
+      );
 
-        expect(_isPdfBytes(bytes), isTrue);
-      },
-    );
+      expect(_isPdfBytes(bytes), isTrue);
+    });
 
-    test(
-      'should produce valid PDF for text with right alignment',
-      () async {
-        final bytes = await build(
-          _treeWithWidgets([
-            _widget('text', {'text': 'Right', 'align': 'right'}),
-          ]),
-        );
+    test('should produce valid PDF for text with right alignment', () async {
+      final bytes = await build(
+        _treeWithWidgets([
+          _widget('text', {'text': 'Right', 'align': 'right'}),
+        ]),
+      );
 
-        expect(_isPdfBytes(bytes), isTrue);
-      },
-    );
+      expect(_isPdfBytes(bytes), isTrue);
+    });
 
     test(
       'should produce valid PDF for text with unknown alignment (falls back to left)',
@@ -937,27 +889,23 @@ void main() {
       },
     );
 
-    test(
-      'should produce valid PDF for each image BoxFit variant',
-      () async {
-        for (final fit in ['contain', 'cover', 'fill', 'fitWidth', 'fitHeight']) {
-          final bytes = await build(
-            _treeWithWidgets([
-              _widget('image', {
-                'fileId': 'img-fit',
-                'fit': fit,
-                'width': 100.0,
-                'height': 100.0,
-              }),
-            ]),
-            images: {'img-fit': kTestPngBytes},
-          );
+    test('should produce valid PDF for each image BoxFit variant', () async {
+      for (final fit in ['contain', 'cover', 'fill', 'fitWidth', 'fitHeight']) {
+        final bytes = await build(
+          _treeWithWidgets([
+            _widget('image', {
+              'fileId': 'img-fit',
+              'fit': fit,
+              'width': 100.0,
+              'height': 100.0,
+            }),
+          ]),
+          images: {'img-fit': kTestPngBytes},
+        );
 
-          expect(_isPdfBytes(bytes), isTrue,
-              reason: 'Failed for fit=$fit');
-        }
-      },
-    );
+        expect(_isPdfBytes(bytes), isTrue, reason: 'Failed for fit=$fit');
+      }
+    });
   });
 
   group('PdfDocumentBuilder — widget type: dish_to_share', () {
@@ -1027,10 +975,9 @@ void main() {
         );
 
         final bytes = await build(
-          _treeWithWidgets(
-            [dish],
-            displayOptions: const MenuDisplayOptions(showAllergens: true),
-          ),
+          _treeWithWidgets([
+            dish,
+          ], displayOptions: const MenuDisplayOptions(showAllergens: true)),
         );
 
         expect(_isPdfBytes(bytes), isTrue);
@@ -1042,7 +989,9 @@ void main() {
       () async {
         final bytes = await build(
           _treeWithWidgets(
-            [_widget('dish_to_share', {'name': 'Mezze', 'price': 20.0})],
+            [
+              _widget('dish_to_share', {'name': 'Mezze', 'price': 20.0}),
+            ],
             alignment: WidgetAlignment.justified,
             widgetTypeForAlignment: 'dish_to_share',
           ),
@@ -1120,10 +1069,9 @@ void main() {
         );
 
         final bytes = await build(
-          _treeWithWidgets(
-            [dish],
-            displayOptions: const MenuDisplayOptions(showAllergens: true),
-          ),
+          _treeWithWidgets([
+            dish,
+          ], displayOptions: const MenuDisplayOptions(showAllergens: true)),
         );
 
         expect(_isPdfBytes(bytes), isTrue);
@@ -1179,10 +1127,7 @@ void main() {
       () async {
         final bytes = await build(
           _treeWithWidgets([
-            _widget('set_menu_title', {
-              'title': 'Set Menu',
-              'price1': 45.0,
-            }),
+            _widget('set_menu_title', {'title': 'Set Menu', 'price1': 45.0}),
           ]),
         );
 
@@ -1213,16 +1158,13 @@ void main() {
       'should produce valid PDF for a set_menu_title with showPrices:false',
       () async {
         final bytes = await build(
-          _treeWithWidgets(
-            [
-              _widget('set_menu_title', {
-                'title': 'Set Menu',
-                'price1': 50.0,
-                'priceLabel1': '3 Courses',
-              }),
-            ],
-            displayOptions: const MenuDisplayOptions(showPrices: false),
-          ),
+          _treeWithWidgets([
+            _widget('set_menu_title', {
+              'title': 'Set Menu',
+              'price1': 50.0,
+              'priceLabel1': '3 Courses',
+            }),
+          ], displayOptions: const MenuDisplayOptions(showPrices: false)),
         );
 
         expect(_isPdfBytes(bytes), isTrue);
@@ -1488,8 +1430,9 @@ void main() {
                         containerId: 1,
                         index: 0,
                         flex: 1,
-                        styleConfig:
-                            StyleConfig(verticalAlignment: VerticalAlignment.center),
+                        styleConfig: StyleConfig(
+                          verticalAlignment: VerticalAlignment.center,
+                        ),
                       ),
                       widgets: [
                         WidgetInstance(
@@ -1547,8 +1490,9 @@ void main() {
                         containerId: 1,
                         index: 0,
                         flex: 1,
-                        styleConfig:
-                            StyleConfig(verticalAlignment: VerticalAlignment.bottom),
+                        styleConfig: StyleConfig(
+                          verticalAlignment: VerticalAlignment.bottom,
+                        ),
                       ),
                       widgets: [
                         WidgetInstance(
@@ -1712,19 +1656,11 @@ void main() {
                   columns: [],
                   children: [
                     ContainerWithColumns(
-                      container: entity.Container(
-                        id: 10,
-                        pageId: 1,
-                        index: 0,
-                      ),
+                      container: entity.Container(id: 10, pageId: 1, index: 0),
                       columns: [],
                     ),
                     ContainerWithColumns(
-                      container: entity.Container(
-                        id: 11,
-                        pageId: 1,
-                        index: 1,
-                      ),
+                      container: entity.Container(id: 11, pageId: 1, index: 1),
                       columns: [],
                     ),
                   ],
@@ -1785,7 +1721,9 @@ void main() {
     test(
       'should produce more bytes when watermark is applied vs no watermark',
       () async {
-        final tree = _treeWithWidgets([_widget('text', {'text': 'Test'})]);
+        final tree = _treeWithWidgets([
+          _widget('text', {'text': 'Test'}),
+        ]);
 
         final withoutWatermark = await builder.buildDocument(
           menuTree: tree,
@@ -1809,23 +1747,20 @@ void main() {
       },
     );
 
-    test(
-      'should produce valid PDF with multi-word watermark text',
-      () async {
-        final bytes = await builder.buildDocument(
-          menuTree: _treeWithWidgets([
-            _widget('text', {'text': 'Hello'}),
-          ]),
-          baseFontData: baseFontData,
-          boldFontData: boldFontData,
-          sectionFontData: sectionFontData,
-          imageCache: const {},
-          watermarkText: 'SAMPLE MENU PREVIEW',
-        );
+    test('should produce valid PDF with multi-word watermark text', () async {
+      final bytes = await builder.buildDocument(
+        menuTree: _treeWithWidgets([
+          _widget('text', {'text': 'Hello'}),
+        ]),
+        baseFontData: baseFontData,
+        boldFontData: boldFontData,
+        sectionFontData: sectionFontData,
+        imageCache: const {},
+        watermarkText: 'SAMPLE MENU PREVIEW',
+      );
 
-        expect(_isPdfBytes(bytes), isTrue);
-      },
-    );
+      expect(_isPdfBytes(bytes), isTrue);
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -1838,7 +1773,9 @@ void main() {
       () async {
         final bytes = await build(
           _treeWithWidgets(
-            [_widget('text', {'text': 'Styled'})],
+            [
+              _widget('text', {'text': 'Styled'}),
+            ],
             menuStyle: const StyleConfig(
               marginTop: 10.0,
               marginBottom: 10.0,
@@ -1856,13 +1793,9 @@ void main() {
       'should produce valid PDF when menu-level styleConfig has padding and fontSize',
       () async {
         final bytes = await build(
-          _treeWithWidgets(
-            [_widget('text', {'text': 'Padded'})],
-            menuStyle: const StyleConfig(
-              padding: 20.0,
-              fontSize: 14.0,
-            ),
-          ),
+          _treeWithWidgets([
+            _widget('text', {'text': 'Padded'}),
+          ], menuStyle: const StyleConfig(padding: 20.0, fontSize: 14.0)),
         );
 
         expect(_isPdfBytes(bytes), isTrue);
@@ -1873,10 +1806,9 @@ void main() {
       'should produce valid PDF when menu-level styleConfig has a plain thin border',
       () async {
         final bytes = await build(
-          _treeWithWidgets(
-            [_widget('text', {'text': 'Bordered'})],
-            menuStyle: const StyleConfig(borderType: BorderType.plainThin),
-          ),
+          _treeWithWidgets([
+            _widget('text', {'text': 'Bordered'}),
+          ], menuStyle: const StyleConfig(borderType: BorderType.plainThin)),
         );
 
         expect(_isPdfBytes(bytes), isTrue);
@@ -1887,10 +1819,9 @@ void main() {
       'should produce valid PDF when menu-level styleConfig has a drop shadow border',
       () async {
         final bytes = await build(
-          _treeWithWidgets(
-            [_widget('text', {'text': 'Shadow'})],
-            menuStyle: const StyleConfig(borderType: BorderType.dropShadow),
-          ),
+          _treeWithWidgets([
+            _widget('text', {'text': 'Shadow'}),
+          ], menuStyle: const StyleConfig(borderType: BorderType.dropShadow)),
         );
 
         expect(_isPdfBytes(bytes), isTrue);
@@ -2037,7 +1968,11 @@ void main() {
             type: 'dish',
             version: '1',
             index: 1,
-            props: {'name': 'Pasta', 'price': 14.0, 'allergenInfo': allergenJson},
+            props: {
+              'name': 'Pasta',
+              'price': 14.0,
+              'allergenInfo': allergenJson,
+            },
           ),
           WidgetInstance(
             id: 3,
@@ -2052,17 +1987,20 @@ void main() {
             },
           ),
           _widget('text', {'text': 'Terms and conditions apply'}, id: 4),
-          _widget(
-            'wine',
-            {'name': 'Chablis', 'price': 40.0, 'containsSulphites': true},
-            id: 5,
-          ),
-          _widget(
-            'dish_to_share',
-            {'name': 'Mezze', 'price': 22.0, 'servings': 2},
-            id: 6,
-          ),
-          _widget('set_menu_title', {'title': 'Set Lunch', 'price1': 38.0}, id: 7),
+          _widget('wine', {
+            'name': 'Chablis',
+            'price': 40.0,
+            'containsSulphites': true,
+          }, id: 5),
+          _widget('dish_to_share', {
+            'name': 'Mezze',
+            'price': 22.0,
+            'servings': 2,
+          }, id: 6),
+          _widget('set_menu_title', {
+            'title': 'Set Lunch',
+            'price1': 38.0,
+          }, id: 7),
           _widget('set_menu_dish', {'name': 'Tiramisu'}, id: 8),
           _widget('image', {'fileId': 'logo'}, id: 9),
         ];

@@ -86,9 +86,7 @@ class FakeMenuBundleRepository implements MenuBundleRepository {
     _getByIdResponse = response;
   }
 
-  void whenFindByIncludedMenu(
-    Result<List<MenuBundle>, DomainError> response,
-  ) {
+  void whenFindByIncludedMenu(Result<List<MenuBundle>, DomainError> response) {
     _findByIncludedMenuResponse = response;
   }
 
@@ -131,7 +129,9 @@ class FakeMenuBundleRepository implements MenuBundleRepository {
     int menuId,
   ) async {
     calls.add(MenuBundleFindByIncludedMenuCall(menuId));
-    if (_findByIncludedMenuResponse != null) return _findByIncludedMenuResponse!;
+    if (_findByIncludedMenuResponse != null) {
+      return _findByIncludedMenuResponse!;
+    }
     throw StateError(
       'FakeMenuBundleRepository: no response configured for findByIncludedMenu()',
     );

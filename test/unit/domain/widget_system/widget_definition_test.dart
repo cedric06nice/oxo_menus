@@ -11,10 +11,8 @@ class _SimpleProps {
 
   const _SimpleProps({required this.label, required this.count});
 
-  factory _SimpleProps.fromJson(Map<String, dynamic> json) => _SimpleProps(
-        label: json['label'] as String,
-        count: json['count'] as int,
-      );
+  factory _SimpleProps.fromJson(Map<String, dynamic> json) =>
+      _SimpleProps(label: json['label'] as String, count: json['count'] as int);
 
   Map<String, dynamic> toJson() => {'label': label, 'count': count};
 
@@ -55,18 +53,20 @@ void main() {
         expect(definition.version, equals('1.0.0'));
       });
 
-      test('should expose defaultProps when constructed with required fields',
-          () {
-        const defaults = _SimpleProps(label: 'default', count: 0);
-        final definition = WidgetDefinition<_SimpleProps>(
-          type: 'simple',
-          version: '1.0.0',
-          parseProps: _SimpleProps.fromJson,
-          defaultProps: defaults,
-        );
+      test(
+        'should expose defaultProps when constructed with required fields',
+        () {
+          const defaults = _SimpleProps(label: 'default', count: 0);
+          final definition = WidgetDefinition<_SimpleProps>(
+            type: 'simple',
+            version: '1.0.0',
+            parseProps: _SimpleProps.fromJson,
+            defaultProps: defaults,
+          );
 
-        expect(definition.defaultProps, equals(defaults));
-      });
+          expect(definition.defaultProps, equals(defaults));
+        },
+      );
 
       test('should expose parseProps function when constructed', () {
         final definition = WidgetDefinition<_SimpleProps>(

@@ -407,7 +407,9 @@ class FakeDirectusDataSource {
     String? resetUrl,
   }) async {
     calls.add(RequestPasswordResetCall(email: email, resetUrl: resetUrl));
-    if (_requestPasswordResetResult != null) return _requestPasswordResetResult!;
+    if (_requestPasswordResetResult != null) {
+      return _requestPasswordResetResult!;
+    }
     throw StateError(
       'FakeDirectusDataSource: no response configured for requestPasswordReset()',
     );
@@ -418,7 +420,9 @@ class FakeDirectusDataSource {
     required String password,
   }) async {
     calls.add(ConfirmPasswordResetCall(token: token, password: password));
-    if (_confirmPasswordResetResult != null) return _confirmPasswordResetResult!;
+    if (_confirmPasswordResetResult != null) {
+      return _confirmPasswordResetResult!;
+    }
     throw StateError(
       'FakeDirectusDataSource: no response configured for confirmPasswordReset()',
     );
@@ -432,7 +436,9 @@ class FakeDirectusDataSource {
     final key = _getItemKey<T>();
     final response = _crudResponses[key];
     if (response is _Throw) throw response.error;
-    if (_crudResponses.containsKey(key)) return response as Map<String, dynamic>;
+    if (_crudResponses.containsKey(key)) {
+      return response as Map<String, dynamic>;
+    }
     throw StateError(
       'FakeDirectusDataSource: no response configured for getItem<$T>()',
     );
@@ -473,7 +479,9 @@ class FakeDirectusDataSource {
     final key = _createItemKey<T>();
     final response = _crudResponses[key];
     if (response is _Throw) throw response.error;
-    if (_crudResponses.containsKey(key)) return response as Map<String, dynamic>;
+    if (_crudResponses.containsKey(key)) {
+      return response as Map<String, dynamic>;
+    }
     throw StateError(
       'FakeDirectusDataSource: no response configured for createItem<$T>()',
     );
@@ -486,7 +494,9 @@ class FakeDirectusDataSource {
     final key = _updateItemKey<T>();
     final response = _crudResponses[key];
     if (response is _Throw) throw response.error;
-    if (_crudResponses.containsKey(key)) return response as Map<String, dynamic>;
+    if (_crudResponses.containsKey(key)) {
+      return response as Map<String, dynamic>;
+    }
     throw StateError(
       'FakeDirectusDataSource: no response configured for updateItem<$T>()',
     );
@@ -517,7 +527,9 @@ class FakeDirectusDataSource {
     Uint8List bytes,
     String filename,
   ) async {
-    calls.add(ReplaceFileCall(fileId: fileId, bytes: bytes, filename: filename));
+    calls.add(
+      ReplaceFileCall(fileId: fileId, bytes: bytes, filename: filename),
+    );
     if (_replaceFileError != null) throw _replaceFileError!;
     if (_replaceFileResult != null) return _replaceFileResult!;
     throw StateError(

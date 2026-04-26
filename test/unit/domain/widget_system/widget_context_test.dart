@@ -10,11 +10,14 @@ void main() {
 
   group('WidgetContext', () {
     group('construction defaults', () {
-      test('should expose isEditable when constructed with isEditable true', () {
-        const context = WidgetContext(isEditable: true);
+      test(
+        'should expose isEditable when constructed with isEditable true',
+        () {
+          const context = WidgetContext(isEditable: true);
 
-        expect(context.isEditable, isTrue);
-      });
+          expect(context.isEditable, isTrue);
+        },
+      );
 
       test('should expose isEditable as false when constructed with false', () {
         const context = WidgetContext(isEditable: false);
@@ -53,20 +56,18 @@ void main() {
       });
 
       test(
-          'should default alignment to WidgetAlignment.start when not provided',
-          () {
-        const context = WidgetContext(isEditable: true);
+        'should default alignment to WidgetAlignment.start when not provided',
+        () {
+          const context = WidgetContext(isEditable: true);
 
-        expect(context.alignment, equals(WidgetAlignment.start));
-      });
+          expect(context.alignment, equals(WidgetAlignment.start));
+        },
+      );
     });
 
     group('onUpdate callback', () {
       test('should store onUpdate callback when provided', () {
-        final context = WidgetContext(
-          isEditable: true,
-          onUpdate: (_) {},
-        );
+        final context = WidgetContext(isEditable: true, onUpdate: (_) {});
 
         expect(context.onUpdate, isNotNull);
       });
@@ -102,10 +103,7 @@ void main() {
 
     group('onDelete callback', () {
       test('should store onDelete callback when provided', () {
-        final context = WidgetContext(
-          isEditable: true,
-          onDelete: () {},
-        );
+        final context = WidgetContext(isEditable: true, onDelete: () {});
 
         expect(context.onDelete, isNotNull);
       });
@@ -125,10 +123,7 @@ void main() {
 
     group('onEditStarted callback', () {
       test('should store onEditStarted callback when provided', () {
-        final context = WidgetContext(
-          isEditable: true,
-          onEditStarted: () {},
-        );
+        final context = WidgetContext(isEditable: true, onEditStarted: () {});
 
         expect(context.onEditStarted, isNotNull);
       });
@@ -148,10 +143,7 @@ void main() {
 
     group('onEditEnded callback', () {
       test('should store onEditEnded callback when provided', () {
-        final context = WidgetContext(
-          isEditable: true,
-          onEditEnded: () {},
-        );
+        final context = WidgetContext(isEditable: true, onEditEnded: () {});
 
         expect(context.onEditEnded, isNotNull);
       });
@@ -171,7 +163,10 @@ void main() {
 
     group('displayOptions', () {
       test('should expose displayOptions when provided', () {
-        const options = MenuDisplayOptions(showPrices: false, showAllergens: true);
+        const options = MenuDisplayOptions(
+          showPrices: false,
+          showAllergens: true,
+        );
         final context = WidgetContext(
           isEditable: true,
           displayOptions: options,
@@ -181,7 +176,10 @@ void main() {
       });
 
       test('should expose showPrices from displayOptions', () {
-        const options = MenuDisplayOptions(showPrices: false, showAllergens: true);
+        const options = MenuDisplayOptions(
+          showPrices: false,
+          showAllergens: true,
+        );
         final context = WidgetContext(
           isEditable: false,
           displayOptions: options,
@@ -191,7 +189,10 @@ void main() {
       });
 
       test('should expose showAllergens from displayOptions', () {
-        const options = MenuDisplayOptions(showPrices: true, showAllergens: false);
+        const options = MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: false,
+        );
         final context = WidgetContext(
           isEditable: false,
           displayOptions: options,

@@ -26,15 +26,14 @@ Map<String, dynamic> _columnJson({
   int width = 100,
   bool isDroppable = true,
   Map<String, dynamic>? styleJson,
-}) =>
-    {
-      'id': id,
-      'container': containerId,
-      'index': index,
-      'width': width,
-      'is_droppable': isDroppable,
-      'style_json': ?styleJson,
-    };
+}) => {
+  'id': id,
+  'container': containerId,
+  'index': index,
+  'width': width,
+  'is_droppable': isDroppable,
+  'style_json': ?styleJson,
+};
 
 // ---------------------------------------------------------------------------
 // Local fake
@@ -97,9 +96,12 @@ class _FakeDs implements DirectusDataSource {
     int? limit,
     int? offset,
   }) async {
-    getItemsCalls.add(
-      {'type': T, 'filter': filter, 'fields': fields, 'sort': sort},
-    );
+    getItemsCalls.add({
+      'type': T,
+      'filter': filter,
+      'fields': fields,
+      'sort': sort,
+    });
     return _consume<List<Map<String, dynamic>>>(_getItemsQ, 'getItems<$T>');
   }
 
@@ -152,22 +154,25 @@ void main() {
   // create
   // =========================================================================
   group('ColumnRepositoryImpl.create', () {
-    test('should return Success with mapped Column entity on happy path', () async {
-      // Arrange
-      fakeDs.queueCreateItem(
-        _columnJson(id: 2, containerId: 1, index: 0, width: 100),
-      );
-      const input = CreateColumnInput(containerId: 1, index: 0);
+    test(
+      'should return Success with mapped Column entity on happy path',
+      () async {
+        // Arrange
+        fakeDs.queueCreateItem(
+          _columnJson(id: 2, containerId: 1, index: 0, width: 100),
+        );
+        const input = CreateColumnInput(containerId: 1, index: 0);
 
-      // Act
-      final result = await repository.create(input);
+        // Act
+        final result = await repository.create(input);
 
-      // Assert
-      expect(result.isSuccess, isTrue);
-      expect(result.valueOrNull!.id, 2);
-      expect(result.valueOrNull!.index, 0);
-      expect(result.valueOrNull!.width, 100.0);
-    });
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull!.id, 2);
+        expect(result.valueOrNull!.index, 0);
+        expect(result.valueOrNull!.width, 100.0);
+      },
+    );
 
     test('should default width to 100 when input.width is null', () async {
       // Arrange
@@ -208,22 +213,25 @@ void main() {
       expect(sentDto.getValue(forKey: 'flex'), 2);
     });
 
-    test('should include isDroppable=false in DTO when input provides it', () async {
-      // Arrange
-      fakeDs.queueCreateItem(_columnJson(id: 1));
-      const input = CreateColumnInput(
-        containerId: 1,
-        index: 0,
-        isDroppable: false,
-      );
+    test(
+      'should include isDroppable=false in DTO when input provides it',
+      () async {
+        // Arrange
+        fakeDs.queueCreateItem(_columnJson(id: 1));
+        const input = CreateColumnInput(
+          containerId: 1,
+          index: 0,
+          isDroppable: false,
+        );
 
-      // Act
-      await repository.create(input);
+        // Act
+        await repository.create(input);
 
-      // Assert
-      final sentDto = fakeDs.createCalls.single['item'] as ColumnDto;
-      expect(sentDto.getValue(forKey: 'is_droppable'), false);
-    });
+        // Assert
+        final sentDto = fakeDs.createCalls.single['item'] as ColumnDto;
+        expect(sentDto.getValue(forKey: 'is_droppable'), false);
+      },
+    );
 
     test('should write style_json when styleConfig is provided', () async {
       // Arrange
@@ -333,8 +341,7 @@ void main() {
       await repository.getAllForContainer(1);
 
       // Assert
-      final fields =
-          fakeDs.getItemsCalls.single['fields'] as List<String>?;
+      final fields = fakeDs.getItemsCalls.single['fields'] as List<String>?;
       expect(fields, contains('is_droppable'));
     });
 
@@ -346,22 +353,24 @@ void main() {
       await repository.getAllForContainer(1);
 
       // Assert
-      final fields =
-          fakeDs.getItemsCalls.single['fields'] as List<String>?;
+      final fields = fakeDs.getItemsCalls.single['fields'] as List<String>?;
       expect(fields, contains('widgets.id'));
     });
 
-    test('should return Success with empty list when no columns found', () async {
-      // Arrange
-      fakeDs.queueGetItems([]);
+    test(
+      'should return Success with empty list when no columns found',
+      () async {
+        // Arrange
+        fakeDs.queueGetItems([]);
 
-      // Act
-      final result = await repository.getAllForContainer(1);
+        // Act
+        final result = await repository.getAllForContainer(1);
 
-      // Assert
-      expect(result.isSuccess, isTrue);
-      expect(result.valueOrNull, isEmpty);
-    });
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull, isEmpty);
+      },
+    );
 
     test(
       'should return Success with single-item list when one column exists',
@@ -383,10 +392,7 @@ void main() {
       () async {
         // Arrange
         fakeDs.queueGetItemsThrows(
-          DirectusException(
-            code: 'NOT_FOUND',
-            message: 'Container not found',
-          ),
+          DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
         );
 
         // Act
@@ -447,10 +453,7 @@ void main() {
       () async {
         // Arrange
         fakeDs.queueGetItemThrows(
-          DirectusException(
-            code: 'NOT_FOUND',
-            message: 'Column not found',
-          ),
+          DirectusException(code: 'NOT_FOUND', message: 'Column not found'),
         );
 
         // Act
@@ -479,17 +482,25 @@ void main() {
       },
     );
 
-    test('should default isDroppable to true when not present in response', () async {
-      // Arrange — no is_droppable key: ColumnDto defaults to true
-      fakeDs.queueGetItem({'id': 1, 'container': 1, 'index': 0, 'width': 100});
+    test(
+      'should default isDroppable to true when not present in response',
+      () async {
+        // Arrange — no is_droppable key: ColumnDto defaults to true
+        fakeDs.queueGetItem({
+          'id': 1,
+          'container': 1,
+          'index': 0,
+          'width': 100,
+        });
 
-      // Act
-      final result = await repository.getById(1);
+        // Act
+        final result = await repository.getById(1);
 
-      // Assert
-      expect(result.isSuccess, isTrue);
-      expect(result.valueOrNull!.isDroppable, isTrue);
-    });
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull!.isDroppable, isTrue);
+      },
+    );
   });
 
   // =========================================================================

@@ -390,7 +390,9 @@ class FakeDirectusApiManager extends DirectusApiManager {
     if (_sendRequestToEndpointResult != null) {
       return _sendRequestToEndpointResult! as T;
     }
-    throw StateError('FakeDirectusApiManager: sendRequestToEndpoint not stubbed');
+    throw StateError(
+      'FakeDirectusApiManager: sendRequestToEndpoint not stubbed',
+    );
   }
 
   // --- stubs for startWebsocketSubscription ---
@@ -421,9 +423,7 @@ class FakeDirectusApiManager extends DirectusApiManager {
   String? get lastStoppedSubscriptionUid => _lastStoppedSubscriptionUid;
 
   @override
-  Future<void> stopWebsocketSubscription(
-    String webSocketSubscriptionId,
-  ) async {
+  Future<void> stopWebsocketSubscription(String webSocketSubscriptionId) async {
     calledMethods.add('stopWebsocketSubscription');
     _lastStoppedSubscriptionUid = webSocketSubscriptionId;
   }
@@ -487,10 +487,7 @@ class FakeHttpClient extends http.BaseClient {
 String _jsonBody(Map<String, dynamic> data) => json.encode(data);
 
 http.StreamedResponse _streamedResponse(String body, {int statusCode = 200}) {
-  return http.StreamedResponse(
-    Stream.value(utf8.encode(body)),
-    statusCode,
-  );
+  return http.StreamedResponse(Stream.value(utf8.encode(body)), statusCode);
 }
 
 // ---------------------------------------------------------------------------
@@ -519,10 +516,12 @@ void main() {
 
   // =========================================================================
   group('DirectusDataSource construction', () {
-    test('should expose non-null instance when constructed with dependencies',
-        () {
-      expect(dataSource, isNotNull);
-    });
+    test(
+      'should expose non-null instance when constructed with dependencies',
+      () {
+        expect(dataSource, isNotNull);
+      },
+    );
   });
 
   // =========================================================================
@@ -539,23 +538,26 @@ void main() {
       expect(dataSource.currentAccessToken, 'live-access-token');
     });
 
-    test('should return restored token after successful refreshSession', () async {
-      // Arrange
-      fakeStorage.seedTokens(
-        accessToken: 'stored-access',
-        refreshToken: 'stored-refresh',
-      );
-      fakeApiManager.setRefreshToken(null); // no token in manager initially
-      fakeApiManager.stubTryAndRefreshToken(result: true);
-      fakeApiManager.setAccessToken('restored-access');
-      fakeApiManager.setRefreshToken('restored-refresh');
+    test(
+      'should return restored token after successful refreshSession',
+      () async {
+        // Arrange
+        fakeStorage.seedTokens(
+          accessToken: 'stored-access',
+          refreshToken: 'stored-refresh',
+        );
+        fakeApiManager.setRefreshToken(null); // no token in manager initially
+        fakeApiManager.stubTryAndRefreshToken(result: true);
+        fakeApiManager.setAccessToken('restored-access');
+        fakeApiManager.setRefreshToken('restored-refresh');
 
-      // Act
-      await dataSource.refreshSession();
+        // Act
+        await dataSource.refreshSession();
 
-      // Assert
-      expect(dataSource.currentAccessToken, 'restored-access');
-    });
+        // Assert
+        expect(dataSource.currentAccessToken, 'restored-access');
+      },
+    );
   });
 
   // =========================================================================
@@ -597,10 +599,7 @@ void main() {
         const DirectusLoginResult(DirectusLoginResultType.success),
       );
       fakeApiManager.stubCurrentUser(
-        DirectusUser({
-          'id': 'u1',
-          'email': 'a@b.com',
-        }),
+        DirectusUser({'id': 'u1', 'email': 'a@b.com'}),
       );
 
       // Act
@@ -611,25 +610,27 @@ void main() {
       expect(fakeStorage.storedRefreshToken, 'tok-refresh');
     });
 
-    test('should throw INVALID_CREDENTIALS when login result is invalidCredentials',
-        () async {
-      // Arrange
-      fakeApiManager.stubLogin(
-        const DirectusLoginResult(DirectusLoginResultType.invalidCredentials),
-      );
+    test(
+      'should throw INVALID_CREDENTIALS when login result is invalidCredentials',
+      () async {
+        // Arrange
+        fakeApiManager.stubLogin(
+          const DirectusLoginResult(DirectusLoginResultType.invalidCredentials),
+        );
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.login(email: 'bad@email.com', password: 'wrong'),
-        throwsA(
-          isA<DirectusException>().having(
-            (e) => e.code,
-            'code',
-            'INVALID_CREDENTIALS',
+        // Act & Assert
+        await expectLater(
+          () => dataSource.login(email: 'bad@email.com', password: 'wrong'),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'INVALID_CREDENTIALS',
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
 
     test('should throw INVALID_OTP when login result is invalidOTP', () async {
       // Arrange
@@ -641,31 +642,35 @@ void main() {
       await expectLater(
         () => dataSource.login(email: 'a@b.com', password: 'pass'),
         throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'INVALID_OTP'),
+          isA<DirectusException>().having((e) => e.code, 'code', 'INVALID_OTP'),
         ),
       );
     });
 
-    test('should throw REQUESTS_EXCEEDED when login result is requestsExceeded',
-        () async {
-      // Arrange
-      fakeApiManager.stubLogin(
-        const DirectusLoginResult(
-          DirectusLoginResultType.requestsExceeded,
-          message: 'Rate limited',
-        ),
-      );
+    test(
+      'should throw REQUESTS_EXCEEDED when login result is requestsExceeded',
+      () async {
+        // Arrange
+        fakeApiManager.stubLogin(
+          const DirectusLoginResult(
+            DirectusLoginResultType.requestsExceeded,
+            message: 'Rate limited',
+          ),
+        );
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.login(email: 'a@b.com', password: 'pass'),
-        throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'REQUESTS_EXCEEDED'),
-        ),
-      );
-    });
+        // Act & Assert
+        await expectLater(
+          () => dataSource.login(email: 'a@b.com', password: 'pass'),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'REQUESTS_EXCEEDED',
+            ),
+          ),
+        );
+      },
+    );
 
     test('should throw LOGIN_ERROR when login result is error', () async {
       // Arrange
@@ -680,8 +685,7 @@ void main() {
       await expectLater(
         () => dataSource.login(email: 'a@b.com', password: 'pass'),
         throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'LOGIN_ERROR'),
+          isA<DirectusException>().having((e) => e.code, 'code', 'LOGIN_ERROR'),
         ),
       );
     });
@@ -760,24 +764,26 @@ void main() {
 
   // =========================================================================
   group('refreshSession', () {
-    test('should call tryAndRefreshToken on apiManager when refresh token available',
-        () async {
-      // Arrange
-      fakeStorage.seedTokens(
-        accessToken: 'old-access',
-        refreshToken: 'old-refresh',
-      );
-      fakeApiManager.setRefreshToken(null);
-      fakeApiManager.stubTryAndRefreshToken(result: true);
-      fakeApiManager.setAccessToken('new-access');
-      fakeApiManager.setRefreshToken('new-refresh');
+    test(
+      'should call tryAndRefreshToken on apiManager when refresh token available',
+      () async {
+        // Arrange
+        fakeStorage.seedTokens(
+          accessToken: 'old-access',
+          refreshToken: 'old-refresh',
+        );
+        fakeApiManager.setRefreshToken(null);
+        fakeApiManager.stubTryAndRefreshToken(result: true);
+        fakeApiManager.setAccessToken('new-access');
+        fakeApiManager.setRefreshToken('new-refresh');
 
-      // Act
-      await dataSource.refreshSession();
+        // Act
+        await dataSource.refreshSession();
 
-      // Assert
-      expect(fakeApiManager.calledMethods, contains('tryAndRefreshToken'));
-    });
+        // Assert
+        expect(fakeApiManager.calledMethods, contains('tryAndRefreshToken'));
+      },
+    );
 
     test('should save new tokens to storage on successful refresh', () async {
       // Arrange
@@ -816,74 +822,80 @@ void main() {
       expect(fakeApiManager.calledMethods, contains('tryAndRefreshToken'));
     });
 
-    test('should throw TOKEN_EXPIRED when no refresh token is available',
-        () async {
-      // Arrange — neither manager nor storage has a refresh token
-      fakeApiManager.setRefreshToken(null);
-      // storage has no tokens either (default empty state)
+    test(
+      'should throw TOKEN_EXPIRED when no refresh token is available',
+      () async {
+        // Arrange — neither manager nor storage has a refresh token
+        fakeApiManager.setRefreshToken(null);
+        // storage has no tokens either (default empty state)
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.refreshSession(),
-        throwsA(
-          isA<DirectusException>().having(
-            (e) => e.code,
-            'code',
-            'TOKEN_EXPIRED',
+        // Act & Assert
+        await expectLater(
+          () => dataSource.refreshSession(),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'TOKEN_EXPIRED',
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
 
-    test('should throw TOKEN_EXPIRED and clear storage when refresh fails',
-        () async {
-      // Arrange
-      fakeStorage.seedTokens(
-        accessToken: 'stale-access',
-        refreshToken: 'stale-refresh',
-      );
-      fakeApiManager.setRefreshToken(null);
-      fakeApiManager.stubTryAndRefreshToken(result: false);
+    test(
+      'should throw TOKEN_EXPIRED and clear storage when refresh fails',
+      () async {
+        // Arrange
+        fakeStorage.seedTokens(
+          accessToken: 'stale-access',
+          refreshToken: 'stale-refresh',
+        );
+        fakeApiManager.setRefreshToken(null);
+        fakeApiManager.stubTryAndRefreshToken(result: false);
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.refreshSession(),
-        throwsA(
-          isA<DirectusException>().having(
-            (e) => e.code,
-            'code',
-            'TOKEN_EXPIRED',
+        // Act & Assert
+        await expectLater(
+          () => dataSource.refreshSession(),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'TOKEN_EXPIRED',
+            ),
           ),
-        ),
-      );
-      expect(fakeStorage.storedAccessToken, isNull);
-      expect(fakeStorage.storedRefreshToken, isNull);
-    });
+        );
+        expect(fakeStorage.storedAccessToken, isNull);
+        expect(fakeStorage.storedRefreshToken, isNull);
+      },
+    );
 
-    test('should throw TOKEN_EXPIRED when refresh succeeds but tokens are null',
-        () async {
-      // Arrange: tryAndRefreshToken succeeds but manager returns null tokens
-      fakeStorage.seedTokens(
-        accessToken: 'some-access',
-        refreshToken: 'some-refresh',
-      );
-      fakeApiManager.setRefreshToken(null);
-      fakeApiManager.stubTryAndRefreshToken(result: true);
-      fakeApiManager.setAccessToken(null); // manager returns null tokens
-      fakeApiManager.setRefreshToken(null);
+    test(
+      'should throw TOKEN_EXPIRED when refresh succeeds but tokens are null',
+      () async {
+        // Arrange: tryAndRefreshToken succeeds but manager returns null tokens
+        fakeStorage.seedTokens(
+          accessToken: 'some-access',
+          refreshToken: 'some-refresh',
+        );
+        fakeApiManager.setRefreshToken(null);
+        fakeApiManager.stubTryAndRefreshToken(result: true);
+        fakeApiManager.setAccessToken(null); // manager returns null tokens
+        fakeApiManager.setRefreshToken(null);
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.refreshSession(),
-        throwsA(
-          isA<DirectusException>().having(
-            (e) => e.code,
-            'code',
-            'TOKEN_EXPIRED',
+        // Act & Assert
+        await expectLater(
+          () => dataSource.refreshSession(),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'TOKEN_EXPIRED',
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   });
 
   // =========================================================================
@@ -956,36 +968,41 @@ void main() {
       expect(result['role'], {'name': 'Admin'});
     });
 
-    test('should call apiManager.currentDirectusUser with expanded role fields',
-        () async {
-      // Arrange
-      fakeApiManager.stubCurrentUser(
-        DirectusUser({'id': 'u1', 'email': 'a@b.com'}),
-      );
+    test(
+      'should call apiManager.currentDirectusUser with expanded role fields',
+      () async {
+        // Arrange
+        fakeApiManager.stubCurrentUser(
+          DirectusUser({'id': 'u1', 'email': 'a@b.com'}),
+        );
 
-      // Act
-      await dataSource.getCurrentUser();
+        // Act
+        await dataSource.getCurrentUser();
 
-      // Assert
-      expect(fakeApiManager.calledMethods, contains('currentDirectusUser'));
-    });
+        // Assert
+        expect(fakeApiManager.calledMethods, contains('currentDirectusUser'));
+      },
+    );
 
-    test('should throw NOT_AUTHENTICATED when apiManager returns null', () async {
-      // Arrange
-      fakeApiManager.stubCurrentUserReturnsNull();
+    test(
+      'should throw NOT_AUTHENTICATED when apiManager returns null',
+      () async {
+        // Arrange
+        fakeApiManager.stubCurrentUserReturnsNull();
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.getCurrentUser(),
-        throwsA(
-          isA<DirectusException>().having(
-            (e) => e.code,
-            'code',
-            'NOT_AUTHENTICATED',
+        // Act & Assert
+        await expectLater(
+          () => dataSource.getCurrentUser(),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'NOT_AUTHENTICATED',
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   });
 
   // =========================================================================
@@ -1025,23 +1042,25 @@ void main() {
       );
     });
 
-    test('should throw PASSWORD_RESET_FAILED when apiManager returns false',
-        () async {
-      // Arrange
-      fakeApiManager.stubRequestPasswordReset(result: false);
+    test(
+      'should throw PASSWORD_RESET_FAILED when apiManager returns false',
+      () async {
+        // Arrange
+        fakeApiManager.stubRequestPasswordReset(result: false);
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.requestPasswordReset(email: 'bad@email.com'),
-        throwsA(
-          isA<DirectusException>().having(
-            (e) => e.code,
-            'code',
-            'PASSWORD_RESET_FAILED',
+        // Act & Assert
+        await expectLater(
+          () => dataSource.requestPasswordReset(email: 'bad@email.com'),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'PASSWORD_RESET_FAILED',
+            ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   });
 
   // =========================================================================
@@ -1062,26 +1081,28 @@ void main() {
       expect(fakeApiManager.lastConfirmPassword, 'NewP@ss1');
     });
 
-    test('should throw PASSWORD_RESET_FAILED when apiManager returns false',
-        () async {
-      // Arrange
-      fakeApiManager.stubConfirmPasswordReset(result: false);
+    test(
+      'should throw PASSWORD_RESET_FAILED when apiManager returns false',
+      () async {
+        // Arrange
+        fakeApiManager.stubConfirmPasswordReset(result: false);
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.confirmPasswordReset(
-          token: 'invalid-token',
-          password: 'NewP@ss1',
-        ),
-        throwsA(
-          isA<DirectusException>().having(
-            (e) => e.code,
-            'code',
-            'PASSWORD_RESET_FAILED',
+        // Act & Assert
+        await expectLater(
+          () => dataSource.confirmPasswordReset(
+            token: 'invalid-token',
+            password: 'NewP@ss1',
           ),
-        ),
-      );
-    });
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'PASSWORD_RESET_FAILED',
+            ),
+          ),
+        );
+      },
+    );
   });
 
   // =========================================================================
@@ -1106,7 +1127,12 @@ void main() {
 
     test('should forward id as string to apiManager.getSpecificItem', () async {
       // Arrange
-      final dto = MenuDto({'id': 7, 'name': 'Lunch', 'version': '1', 'status': 'draft'});
+      final dto = MenuDto({
+        'id': 7,
+        'name': 'Lunch',
+        'version': '1',
+        'status': 'draft',
+      });
       fakeApiManager.stubGetSpecificItem(dto);
 
       // Act
@@ -1116,18 +1142,25 @@ void main() {
       expect(fakeApiManager.lastGetSpecificItemId, '7');
     });
 
-    test('should forward fields parameter to apiManager.getSpecificItem',
-        () async {
-      // Arrange
-      final dto = MenuDto({'id': 5, 'name': 'N', 'version': '1', 'status': 'draft'});
-      fakeApiManager.stubGetSpecificItem(dto);
+    test(
+      'should forward fields parameter to apiManager.getSpecificItem',
+      () async {
+        // Arrange
+        final dto = MenuDto({
+          'id': 5,
+          'name': 'N',
+          'version': '1',
+          'status': 'draft',
+        });
+        fakeApiManager.stubGetSpecificItem(dto);
 
-      // Act
-      await dataSource.getItem<MenuDto>(5, fields: ['id', 'name']);
+        // Act
+        await dataSource.getItem<MenuDto>(5, fields: ['id', 'name']);
 
-      // Assert
-      expect(fakeApiManager.lastGetSpecificItemFields, 'id,name');
-    });
+        // Assert
+        expect(fakeApiManager.lastGetSpecificItemFields, 'id,name');
+      },
+    );
 
     test('should throw NOT_FOUND when apiManager returns null', () async {
       // Arrange
@@ -1137,8 +1170,7 @@ void main() {
       await expectLater(
         () => dataSource.getItem<MenuDto>(999),
         throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'NOT_FOUND'),
+          isA<DirectusException>().having((e) => e.code, 'code', 'NOT_FOUND'),
         ),
       );
     });
@@ -1149,7 +1181,12 @@ void main() {
     test('should return a list of raw data maps', () async {
       // Arrange
       fakeApiManager.stubFindListOfItems([
-        MenuDto({'id': 1, 'name': 'Breakfast', 'version': '1', 'status': 'published'}),
+        MenuDto({
+          'id': 1,
+          'name': 'Breakfast',
+          'version': '1',
+          'status': 'published',
+        }),
         MenuDto({'id': 2, 'name': 'Lunch', 'version': '2', 'status': 'draft'}),
       ]);
 
@@ -1162,93 +1199,105 @@ void main() {
       expect(results[1]['name'], 'Lunch');
     });
 
-    test('should return an empty list when apiManager returns no items',
-        () async {
-      // Arrange
-      fakeApiManager.stubFindListOfItems([]);
+    test(
+      'should return an empty list when apiManager returns no items',
+      () async {
+        // Arrange
+        fakeApiManager.stubFindListOfItems([]);
 
-      // Act
-      final results = await dataSource.getItems<MenuDto>();
+        // Act
+        final results = await dataSource.getItems<MenuDto>();
 
-      // Assert
-      expect(results, isEmpty);
-    });
-
-    test('should forward limit and offset to apiManager.findListOfItems',
-        () async {
-      // Arrange
-      fakeApiManager.stubFindListOfItems([]);
-
-      // Act
-      await dataSource.getItems<MenuDto>(limit: 5, offset: 10);
-
-      // Assert
-      expect(fakeApiManager.lastFindListLimit, 5);
-      expect(fakeApiManager.lastFindListOffset, 10);
-    });
-
-    test('should forward fields string to apiManager.findListOfItems', () async {
-      // Arrange
-      fakeApiManager.stubFindListOfItems([]);
-
-      // Act
-      await dataSource.getItems<MenuDto>(fields: ['id', 'name', 'status']);
-
-      // Assert
-      expect(fakeApiManager.lastFindListFields, 'id,name,status');
-    });
-
-    test('should convert ascending sort field to SortProperty with ascending true',
-        () async {
-      // Arrange
-      fakeApiManager.stubFindListOfItems([]);
-
-      // Act
-      await dataSource.getItems<MenuDto>(sort: ['name']);
-
-      // Assert
-      final sortBy = fakeApiManager.lastFindListSortBy;
-      expect(sortBy, isNotNull);
-      expect(sortBy!.single.name, 'name');
-      expect(sortBy.single.ascending, isTrue);
-    });
+        // Assert
+        expect(results, isEmpty);
+      },
+    );
 
     test(
-        'should convert descending sort field (prefixed with -) to SortProperty with ascending false',
-        () async {
-      // Arrange
-      fakeApiManager.stubFindListOfItems([]);
+      'should forward limit and offset to apiManager.findListOfItems',
+      () async {
+        // Arrange
+        fakeApiManager.stubFindListOfItems([]);
 
-      // Act
-      await dataSource.getItems<MenuDto>(sort: ['-date_created']);
+        // Act
+        await dataSource.getItems<MenuDto>(limit: 5, offset: 10);
 
-      // Assert
-      final sortBy = fakeApiManager.lastFindListSortBy;
-      expect(sortBy, isNotNull);
-      expect(sortBy!.single.name, 'date_created');
-      expect(sortBy.single.ascending, isFalse);
-    });
+        // Assert
+        expect(fakeApiManager.lastFindListLimit, 5);
+        expect(fakeApiManager.lastFindListOffset, 10);
+      },
+    );
 
-    test('should convert equality filter to PropertyFilter with equals operator',
-        () async {
-      // Arrange
-      fakeApiManager.stubFindListOfItems([]);
+    test(
+      'should forward fields string to apiManager.findListOfItems',
+      () async {
+        // Arrange
+        fakeApiManager.stubFindListOfItems([]);
 
-      // Act
-      await dataSource.getItems<MenuDto>(
-        filter: {
-          'status': {'_eq': 'published'},
-        },
-      );
+        // Act
+        await dataSource.getItems<MenuDto>(fields: ['id', 'name', 'status']);
 
-      // Assert
-      final filter = fakeApiManager.lastFindListFilter;
-      expect(filter, isA<PropertyFilter>());
-      final pf = filter as PropertyFilter;
-      expect(pf.field, 'status');
-      expect(pf.operator, FilterOperator.equals);
-      expect(pf.value, 'published');
-    });
+        // Assert
+        expect(fakeApiManager.lastFindListFields, 'id,name,status');
+      },
+    );
+
+    test(
+      'should convert ascending sort field to SortProperty with ascending true',
+      () async {
+        // Arrange
+        fakeApiManager.stubFindListOfItems([]);
+
+        // Act
+        await dataSource.getItems<MenuDto>(sort: ['name']);
+
+        // Assert
+        final sortBy = fakeApiManager.lastFindListSortBy;
+        expect(sortBy, isNotNull);
+        expect(sortBy!.single.name, 'name');
+        expect(sortBy.single.ascending, isTrue);
+      },
+    );
+
+    test(
+      'should convert descending sort field (prefixed with -) to SortProperty with ascending false',
+      () async {
+        // Arrange
+        fakeApiManager.stubFindListOfItems([]);
+
+        // Act
+        await dataSource.getItems<MenuDto>(sort: ['-date_created']);
+
+        // Assert
+        final sortBy = fakeApiManager.lastFindListSortBy;
+        expect(sortBy, isNotNull);
+        expect(sortBy!.single.name, 'date_created');
+        expect(sortBy.single.ascending, isFalse);
+      },
+    );
+
+    test(
+      'should convert equality filter to PropertyFilter with equals operator',
+      () async {
+        // Arrange
+        fakeApiManager.stubFindListOfItems([]);
+
+        // Act
+        await dataSource.getItems<MenuDto>(
+          filter: {
+            'status': {'_eq': 'published'},
+          },
+        );
+
+        // Assert
+        final filter = fakeApiManager.lastFindListFilter;
+        expect(filter, isA<PropertyFilter>());
+        final pf = filter as PropertyFilter;
+        expect(pf.field, 'status');
+        expect(pf.operator, FilterOperator.equals);
+        expect(pf.value, 'published');
+      },
+    );
 
     test('should combine multiple filter conditions with AND', () async {
       // Arrange
@@ -1270,17 +1319,19 @@ void main() {
       expect(lof.children, hasLength(2));
     });
 
-    test('should pass null filter to apiManager when filter map is empty',
-        () async {
-      // Arrange
-      fakeApiManager.stubFindListOfItems([]);
+    test(
+      'should pass null filter to apiManager when filter map is empty',
+      () async {
+        // Arrange
+        fakeApiManager.stubFindListOfItems([]);
 
-      // Act
-      await dataSource.getItems<MenuDto>(filter: {});
+        // Act
+        await dataSource.getItems<MenuDto>(filter: {});
 
-      // Assert
-      expect(fakeApiManager.lastFindListFilter, isNull);
-    });
+        // Assert
+        expect(fakeApiManager.lastFindListFilter, isNull);
+      },
+    );
 
     test('should support _null filter operator mapping to isNull', () async {
       // Arrange
@@ -1300,25 +1351,27 @@ void main() {
       expect(pf.operator, FilterOperator.isNull);
     });
 
-    test('should support _contains filter operator mapping to contains',
-        () async {
-      // Arrange
-      fakeApiManager.stubFindListOfItems([]);
+    test(
+      'should support _contains filter operator mapping to contains',
+      () async {
+        // Arrange
+        fakeApiManager.stubFindListOfItems([]);
 
-      // Act
-      await dataSource.getItems<MenuDto>(
-        filter: {
-          'name': {'_contains': 'summer'},
-        },
-      );
+        // Act
+        await dataSource.getItems<MenuDto>(
+          filter: {
+            'name': {'_contains': 'summer'},
+          },
+        );
 
-      // Assert
-      final filter = fakeApiManager.lastFindListFilter;
-      expect(filter, isA<PropertyFilter>());
-      final pf = filter as PropertyFilter;
-      expect(pf.operator, FilterOperator.contains);
-      expect(pf.value, 'summer');
-    });
+        // Assert
+        final filter = fakeApiManager.lastFindListFilter;
+        expect(filter, isA<PropertyFilter>());
+        final pf = filter as PropertyFilter;
+        expect(pf.operator, FilterOperator.contains);
+        expect(pf.value, 'summer');
+      },
+    );
 
     test('should support _in filter operator mapping to oneOf', () async {
       // Arrange
@@ -1327,7 +1380,9 @@ void main() {
       // Act
       await dataSource.getItems<MenuDto>(
         filter: {
-          'status': {'_in': ['published', 'draft']},
+          'status': {
+            '_in': ['published', 'draft'],
+          },
         },
       );
 
@@ -1353,40 +1408,48 @@ void main() {
       expect(fakeApiManager.lastFindListFilter, isNull);
     });
 
-    test('should support _between operator with a two-element list value',
-        () async {
-      // Arrange
-      fakeApiManager.stubFindListOfItems([]);
+    test(
+      'should support _between operator with a two-element list value',
+      () async {
+        // Arrange
+        fakeApiManager.stubFindListOfItems([]);
 
-      // Act
-      await dataSource.getItems<MenuDto>(
-        filter: {
-          'index': {'_between': [1, 10]},
-        },
-      );
+        // Act
+        await dataSource.getItems<MenuDto>(
+          filter: {
+            'index': {
+              '_between': [1, 10],
+            },
+          },
+        );
 
-      // Assert
-      final filter = fakeApiManager.lastFindListFilter;
-      expect(filter, isA<PropertyFilter>());
-      final pf = filter as PropertyFilter;
-      expect(pf.operator, FilterOperator.between);
-    });
+        // Assert
+        final filter = fakeApiManager.lastFindListFilter;
+        expect(filter, isA<PropertyFilter>());
+        final pf = filter as PropertyFilter;
+        expect(pf.operator, FilterOperator.between);
+      },
+    );
 
-    test('should ignore _between operator when value is not a two-element list',
-        () async {
-      // Arrange
-      fakeApiManager.stubFindListOfItems([]);
+    test(
+      'should ignore _between operator when value is not a two-element list',
+      () async {
+        // Arrange
+        fakeApiManager.stubFindListOfItems([]);
 
-      // Act — value is a single-element list, not valid for _between
-      await dataSource.getItems<MenuDto>(
-        filter: {
-          'index': {'_between': [1]},
-        },
-      );
+        // Act — value is a single-element list, not valid for _between
+        await dataSource.getItems<MenuDto>(
+          filter: {
+            'index': {
+              '_between': [1],
+            },
+          },
+        );
 
-      // Assert — filter should be null because _between was invalid
-      expect(fakeApiManager.lastFindListFilter, isNull);
-    });
+        // Assert — filter should be null because _between was invalid
+        expect(fakeApiManager.lastFindListFilter, isNull);
+      },
+    );
   });
 
   // =========================================================================
@@ -1410,25 +1473,28 @@ void main() {
       expect(result['name'], 'Dinner Menu');
     });
 
-    test('should throw CREATE_FAILED when creation result is not success',
-        () async {
-      // Arrange
-      final newDto = MenuDto.newItem(name: 'Bad Menu', version: '1');
-      fakeApiManager.stubCreateNewItemFailure(
-        DirectusApiError(
-          customMessage: 'Validation failed',
-        ),
-      );
+    test(
+      'should throw CREATE_FAILED when creation result is not success',
+      () async {
+        // Arrange
+        final newDto = MenuDto.newItem(name: 'Bad Menu', version: '1');
+        fakeApiManager.stubCreateNewItemFailure(
+          DirectusApiError(customMessage: 'Validation failed'),
+        );
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.createItem<MenuDto>(newDto),
-        throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'CREATE_FAILED'),
-        ),
-      );
-    });
+        // Act & Assert
+        await expectLater(
+          () => dataSource.createItem<MenuDto>(newDto),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'CREATE_FAILED',
+            ),
+          ),
+        );
+      },
+    );
 
     test('should forward item to apiManager.createNewItem', () async {
       // Arrange
@@ -1453,7 +1519,12 @@ void main() {
   group('updateItem', () {
     test('should return updated raw data map on success', () async {
       // Arrange
-      final existing = MenuDto({'id': 3, 'name': 'Old Name', 'version': '1', 'status': 'draft'});
+      final existing = MenuDto({
+        'id': 3,
+        'name': 'Old Name',
+        'version': '1',
+        'status': 'draft',
+      });
       existing.setValue('Updated Name', forKey: 'name');
       final returned = MenuDto({
         'id': 3,
@@ -1472,7 +1543,12 @@ void main() {
 
     test('should forward item to apiManager.updateItem', () async {
       // Arrange
-      final dto = MenuDto({'id': 8, 'name': 'Menu', 'version': '1', 'status': 'draft'});
+      final dto = MenuDto({
+        'id': 8,
+        'name': 'Menu',
+        'version': '1',
+        'status': 'draft',
+      });
       fakeApiManager.stubUpdateItem(dto);
 
       // Act
@@ -1490,10 +1566,7 @@ void main() {
       fakeApiManager.stubDeleteItem(result: true);
 
       // Act & Assert — no exception
-      await expectLater(
-        dataSource.deleteItem<MenuDto>(42),
-        completes,
-      );
+      await expectLater(dataSource.deleteItem<MenuDto>(42), completes);
     });
 
     test('should forward id as string to apiManager.deleteItem', () async {
@@ -1515,8 +1588,11 @@ void main() {
       await expectLater(
         () => dataSource.deleteItem<MenuDto>(42),
         throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'DELETE_FAILED'),
+          isA<DirectusException>().having(
+            (e) => e.code,
+            'code',
+            'DELETE_FAILED',
+          ),
         ),
       );
     });
@@ -1528,7 +1604,11 @@ void main() {
       // Arrange
       fakeApiManager.setAccessToken('upload-token');
       fakeHttpClient.stubResponse(
-        _streamedResponse(_jsonBody({'data': {'id': 'file-abc-123'}})),
+        _streamedResponse(
+          _jsonBody({
+            'data': {'id': 'file-abc-123'},
+          }),
+        ),
       );
 
       // Act
@@ -1545,7 +1625,11 @@ void main() {
       // Arrange
       fakeApiManager.setAccessToken('upload-token');
       fakeHttpClient.stubResponse(
-        _streamedResponse(_jsonBody({'data': {'id': 'file-xyz'}})),
+        _streamedResponse(
+          _jsonBody({
+            'data': {'id': 'file-xyz'},
+          }),
+        ),
       );
 
       // Act
@@ -1562,7 +1646,11 @@ void main() {
       // Arrange
       fakeApiManager.setAccessToken('bearer-abc');
       fakeHttpClient.stubResponse(
-        _streamedResponse(_jsonBody({'data': {'id': 'f1'}})),
+        _streamedResponse(
+          _jsonBody({
+            'data': {'id': 'f1'},
+          }),
+        ),
       );
 
       // Act
@@ -1573,20 +1661,25 @@ void main() {
       expect(req!.headers['Authorization'], 'Bearer bearer-abc');
     });
 
-    test('should throw NOT_AUTHENTICATED when no access token is available',
-        () async {
-      // Arrange
-      fakeApiManager.setAccessToken(null);
+    test(
+      'should throw NOT_AUTHENTICATED when no access token is available',
+      () async {
+        // Arrange
+        fakeApiManager.setAccessToken(null);
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.uploadFile(Uint8List.fromList([1]), 'img.png'),
-        throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'NOT_AUTHENTICATED'),
-        ),
-      );
-    });
+        // Act & Assert
+        await expectLater(
+          () => dataSource.uploadFile(Uint8List.fromList([1]), 'img.png'),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'NOT_AUTHENTICATED',
+            ),
+          ),
+        );
+      },
+    );
 
     test('should throw NOT_AUTHENTICATED on HTTP 401 response', () async {
       // Arrange
@@ -1599,8 +1692,11 @@ void main() {
       await expectLater(
         () => dataSource.uploadFile(Uint8List.fromList([1]), 'img.png'),
         throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'NOT_AUTHENTICATED'),
+          isA<DirectusException>().having(
+            (e) => e.code,
+            'code',
+            'NOT_AUTHENTICATED',
+          ),
         ),
       );
     });
@@ -1616,29 +1712,35 @@ void main() {
       await expectLater(
         () => dataSource.uploadFile(Uint8List.fromList([1]), 'img.png'),
         throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'UPLOAD_FAILED'),
+          isA<DirectusException>().having(
+            (e) => e.code,
+            'code',
+            'UPLOAD_FAILED',
+          ),
         ),
       );
     });
 
-    test('should throw UPLOAD_FAILED when response has no file ID in data',
-        () async {
-      // Arrange
-      fakeApiManager.setAccessToken('tok');
-      fakeHttpClient.stubResponse(
-        _streamedResponse(_jsonBody({'data': {}})),
-      );
+    test(
+      'should throw UPLOAD_FAILED when response has no file ID in data',
+      () async {
+        // Arrange
+        fakeApiManager.setAccessToken('tok');
+        fakeHttpClient.stubResponse(_streamedResponse(_jsonBody({'data': {}})));
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.uploadFile(Uint8List.fromList([1]), 'img.png'),
-        throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'UPLOAD_FAILED'),
-        ),
-      );
-    });
+        // Act & Assert
+        await expectLater(
+          () => dataSource.uploadFile(Uint8List.fromList([1]), 'img.png'),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'UPLOAD_FAILED',
+            ),
+          ),
+        );
+      },
+    );
   });
 
   // =========================================================================
@@ -1647,7 +1749,11 @@ void main() {
       // Arrange
       fakeApiManager.setAccessToken('replace-token');
       fakeHttpClient.stubResponse(
-        _streamedResponse(_jsonBody({'data': {'id': 'file-xyz-999'}})),
+        _streamedResponse(
+          _jsonBody({
+            'data': {'id': 'file-xyz-999'},
+          }),
+        ),
       );
 
       // Act
@@ -1665,7 +1771,11 @@ void main() {
       // Arrange
       fakeApiManager.setAccessToken('tok');
       fakeHttpClient.stubResponse(
-        _streamedResponse(_jsonBody({'data': {'id': 'f-77'}})),
+        _streamedResponse(
+          _jsonBody({
+            'data': {'id': 'f-77'},
+          }),
+        ),
       );
 
       // Act
@@ -1681,37 +1791,46 @@ void main() {
       // Arrange
       fakeApiManager.setAccessToken('replace-bearer');
       fakeHttpClient.stubResponse(
-        _streamedResponse(_jsonBody({'data': {'id': 'f-1'}})),
+        _streamedResponse(
+          _jsonBody({
+            'data': {'id': 'f-1'},
+          }),
+        ),
       );
 
       // Act
-      await dataSource.replaceFile(
-          'f-1', Uint8List.fromList([1]), 'menu.pdf');
+      await dataSource.replaceFile('f-1', Uint8List.fromList([1]), 'menu.pdf');
 
       // Assert
       final req = fakeHttpClient.lastRequest as http.MultipartRequest?;
       expect(req!.headers['Authorization'], 'Bearer replace-bearer');
     });
 
-    test('should use the provided filename in the multipart file part',
-        () async {
-      // Arrange
-      fakeApiManager.setAccessToken('tok');
-      fakeHttpClient.stubResponse(
-        _streamedResponse(_jsonBody({'data': {'id': 'f-2'}})),
-      );
+    test(
+      'should use the provided filename in the multipart file part',
+      () async {
+        // Arrange
+        fakeApiManager.setAccessToken('tok');
+        fakeHttpClient.stubResponse(
+          _streamedResponse(
+            _jsonBody({
+              'data': {'id': 'f-2'},
+            }),
+          ),
+        );
 
-      // Act
-      await dataSource.replaceFile(
-        'f-2',
-        Uint8List.fromList([1]),
-        'SummerMenu.pdf',
-      );
+        // Act
+        await dataSource.replaceFile(
+          'f-2',
+          Uint8List.fromList([1]),
+          'SummerMenu.pdf',
+        );
 
-      // Assert
-      final req = fakeHttpClient.lastRequest as http.MultipartRequest?;
-      expect(req!.files.single.filename, 'SummerMenu.pdf');
-    });
+        // Assert
+        final req = fakeHttpClient.lastRequest as http.MultipartRequest?;
+        expect(req!.files.single.filename, 'SummerMenu.pdf');
+      },
+    );
 
     test('should throw NOT_AUTHENTICATED when access token is null', () async {
       // Arrange
@@ -1721,8 +1840,11 @@ void main() {
       await expectLater(
         () => dataSource.replaceFile('f-1', Uint8List.fromList([1]), 'f.pdf'),
         throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'NOT_AUTHENTICATED'),
+          isA<DirectusException>().having(
+            (e) => e.code,
+            'code',
+            'NOT_AUTHENTICATED',
+          ),
         ),
       );
     });
@@ -1738,8 +1860,11 @@ void main() {
       await expectLater(
         () => dataSource.replaceFile('f-1', Uint8List.fromList([1]), 'f.pdf'),
         throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'NOT_AUTHENTICATED'),
+          isA<DirectusException>().having(
+            (e) => e.code,
+            'code',
+            'NOT_AUTHENTICATED',
+          ),
         ),
       );
     });
@@ -1755,8 +1880,11 @@ void main() {
       await expectLater(
         () => dataSource.replaceFile('f-1', Uint8List.fromList([1]), 'f.pdf'),
         throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'UPLOAD_FAILED'),
+          isA<DirectusException>().having(
+            (e) => e.code,
+            'code',
+            'UPLOAD_FAILED',
+          ),
         ),
       );
     });
@@ -1788,40 +1916,45 @@ void main() {
       expect(fakeApiManager.calledMethods, contains('sendRequestToEndpoint'));
     });
 
-    test('should rethrow DirectusException with NOT_FOUND code from apiManager',
-        () async {
-      // Arrange
-      fakeApiManager.stubSendRequestToEndpointThrows(
-        DirectusException(code: 'NOT_FOUND', message: 'File not found'),
-      );
+    test(
+      'should rethrow DirectusException with NOT_FOUND code from apiManager',
+      () async {
+        // Arrange
+        fakeApiManager.stubSendRequestToEndpointThrows(
+          DirectusException(code: 'NOT_FOUND', message: 'File not found'),
+        );
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.downloadFileBytes('missing-file'),
-        throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'NOT_FOUND'),
-        ),
-      );
-    });
+        // Act & Assert
+        await expectLater(
+          () => dataSource.downloadFileBytes('missing-file'),
+          throwsA(
+            isA<DirectusException>().having((e) => e.code, 'code', 'NOT_FOUND'),
+          ),
+        );
+      },
+    );
 
     test(
-        'should wrap non-DirectusException errors in DOWNLOAD_FAILED exception',
-        () async {
-      // Arrange
-      fakeApiManager.stubSendRequestToEndpointThrows(
-        Exception('Network timeout'),
-      );
+      'should wrap non-DirectusException errors in DOWNLOAD_FAILED exception',
+      () async {
+        // Arrange
+        fakeApiManager.stubSendRequestToEndpointThrows(
+          Exception('Network timeout'),
+        );
 
-      // Act & Assert
-      await expectLater(
-        () => dataSource.downloadFileBytes('some-file'),
-        throwsA(
-          isA<DirectusException>()
-              .having((e) => e.code, 'code', 'DOWNLOAD_FAILED'),
-        ),
-      );
-    });
+        // Act & Assert
+        await expectLater(
+          () => dataSource.downloadFileBytes('some-file'),
+          throwsA(
+            isA<DirectusException>().having(
+              (e) => e.code,
+              'code',
+              'DOWNLOAD_FAILED',
+            ),
+          ),
+        );
+      },
+    );
   });
 
   // =========================================================================
@@ -1873,20 +2006,22 @@ void main() {
       expect(fakeApiManager.lastFindListFields, 'id,filename_download');
     });
 
-    test('should convert descending sort field prefix to SortProperty',
-        () async {
-      // Arrange
-      fakeApiManager.stubFindListOfItems([]);
+    test(
+      'should convert descending sort field prefix to SortProperty',
+      () async {
+        // Arrange
+        fakeApiManager.stubFindListOfItems([]);
 
-      // Act
-      await dataSource.listFiles(sort: ['-uploaded_on']);
+        // Act
+        await dataSource.listFiles(sort: ['-uploaded_on']);
 
-      // Assert
-      final sortBy = fakeApiManager.lastFindListSortBy;
-      expect(sortBy, isNotNull);
-      expect(sortBy!.single.ascending, isFalse);
-      expect(sortBy.single.name, 'uploaded_on');
-    });
+        // Assert
+        final sortBy = fakeApiManager.lastFindListSortBy;
+        expect(sortBy, isNotNull);
+        expect(sortBy!.single.ascending, isFalse);
+        expect(sortBy.single.name, 'uploaded_on');
+      },
+    );
   });
 
   // =========================================================================

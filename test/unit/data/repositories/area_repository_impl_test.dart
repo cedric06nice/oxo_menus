@@ -18,43 +18,47 @@ void main() {
 
   group('AreaRepositoryImpl', () {
     group('getAll', () {
-      test('should return Success<List<Area>> with all mapped entities',
-          () async {
-        // Arrange
-        fake.getItemsResult = [
-          {'id': 1, 'name': 'Dining'},
-          {'id': 2, 'name': 'Bar'},
-          {'id': 3, 'name': 'Terrace'},
-        ];
+      test(
+        'should return Success<List<Area>> with all mapped entities',
+        () async {
+          // Arrange
+          fake.getItemsResult = [
+            {'id': 1, 'name': 'Dining'},
+            {'id': 2, 'name': 'Bar'},
+            {'id': 3, 'name': 'Terrace'},
+          ];
 
-        // Act
-        final result = await repository.getAll();
+          // Act
+          final result = await repository.getAll();
 
-        // Assert
-        expect(result, isA<Success>());
-        final areas = (result as Success).value;
-        expect(areas, hasLength(3));
-        expect(areas[0].id, 1);
-        expect(areas[0].name, 'Dining');
-        expect(areas[1].id, 2);
-        expect(areas[1].name, 'Bar');
-        expect(areas[2].id, 3);
-        expect(areas[2].name, 'Terrace');
-      });
+          // Assert
+          expect(result, isA<Success>());
+          final areas = (result as Success).value;
+          expect(areas, hasLength(3));
+          expect(areas[0].id, 1);
+          expect(areas[0].name, 'Dining');
+          expect(areas[1].id, 2);
+          expect(areas[1].name, 'Bar');
+          expect(areas[2].id, 3);
+          expect(areas[2].name, 'Terrace');
+        },
+      );
 
-      test('should return empty list when data source returns no areas',
-          () async {
-        // Arrange
-        fake.getItemsResult = [];
+      test(
+        'should return empty list when data source returns no areas',
+        () async {
+          // Arrange
+          fake.getItemsResult = [];
 
-        // Act
-        final result = await repository.getAll();
+          // Act
+          final result = await repository.getAll();
 
-        // Assert
-        expect(result, isA<Success>());
-        final areas = (result as Success).value;
-        expect(areas, isEmpty);
-      });
+          // Assert
+          expect(result, isA<Success>());
+          final areas = (result as Success).value;
+          expect(areas, isEmpty);
+        },
+      );
 
       test('should request id and name fields only', () async {
         // Arrange
@@ -92,63 +96,73 @@ void main() {
         expect(fake.lastGetItemsFilter, isNull);
       });
 
-      test('should return Failure when data source throws generic exception',
-          () async {
-        // Arrange
-        fake.getItemsError = Exception('Network error');
+      test(
+        'should return Failure when data source throws generic exception',
+        () async {
+          // Arrange
+          fake.getItemsError = Exception('Network error');
 
-        // Act
-        final result = await repository.getAll();
+          // Act
+          final result = await repository.getAll();
 
-        // Assert
-        expect(result, isA<Failure>());
-      });
+          // Assert
+          expect(result, isA<Failure>());
+        },
+      );
 
       test(
-          'should return Failure<UnauthorizedError> when data source throws FORBIDDEN',
-          () async {
-        // Arrange
-        fake.getItemsError =
-            DirectusException(code: 'FORBIDDEN', message: 'Access denied');
+        'should return Failure<UnauthorizedError> when data source throws FORBIDDEN',
+        () async {
+          // Arrange
+          fake.getItemsError = DirectusException(
+            code: 'FORBIDDEN',
+            message: 'Access denied',
+          );
 
-        // Act
-        final result = await repository.getAll();
+          // Act
+          final result = await repository.getAll();
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnauthorizedError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnauthorizedError>());
+        },
+      );
 
       test(
-          'should return Failure<TokenExpiredError> when data source throws TOKEN_EXPIRED',
-          () async {
-        // Arrange
-        fake.getItemsError =
-            DirectusException(code: 'TOKEN_EXPIRED', message: 'Expired');
+        'should return Failure<TokenExpiredError> when data source throws TOKEN_EXPIRED',
+        () async {
+          // Arrange
+          fake.getItemsError = DirectusException(
+            code: 'TOKEN_EXPIRED',
+            message: 'Expired',
+          );
 
-        // Act
-        final result = await repository.getAll();
+          // Act
+          final result = await repository.getAll();
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<TokenExpiredError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<TokenExpiredError>());
+        },
+      );
 
-      test('should return a single area when data source returns one item',
-          () async {
-        // Arrange
-        fake.getItemsResult = [
-          {'id': 5, 'name': 'Garden'},
-        ];
+      test(
+        'should return a single area when data source returns one item',
+        () async {
+          // Arrange
+          fake.getItemsResult = [
+            {'id': 5, 'name': 'Garden'},
+          ];
 
-        // Act
-        final result = await repository.getAll();
+          // Act
+          final result = await repository.getAll();
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        expect(result.valueOrNull, hasLength(1));
-        expect(result.valueOrNull![0].name, 'Garden');
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull, hasLength(1));
+          expect(result.valueOrNull![0].name, 'Garden');
+        },
+      );
     });
   });
 }
@@ -195,12 +209,14 @@ class _FakeAreaDataSource implements DirectusDataSource {
 
   @override
   Future<Map<String, dynamic>> createItem<T extends DirectusItem>(
-          T newItem) async =>
+    T newItem,
+  ) async =>
       throw UnimplementedError('createItem not used by AreaRepositoryImpl');
 
   @override
   Future<Map<String, dynamic>> updateItem<T extends DirectusItem>(
-          T itemToUpdate) async =>
+    T itemToUpdate,
+  ) async =>
       throw UnimplementedError('updateItem not used by AreaRepositoryImpl');
 
   @override
@@ -211,8 +227,7 @@ class _FakeAreaDataSource implements DirectusDataSource {
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> logout() async => throw UnimplementedError();
@@ -231,15 +246,13 @@ class _FakeAreaDataSource implements DirectusDataSource {
   Future<bool> requestPasswordReset({
     required String email,
     String? resetUrl,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<bool> confirmPasswordReset({
     required String token,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<String> uploadFile(Uint8List bytes, String filename) async =>
@@ -247,8 +260,10 @@ class _FakeAreaDataSource implements DirectusDataSource {
 
   @override
   Future<String> replaceFile(
-          String fileId, Uint8List bytes, String filename) async =>
-      throw UnimplementedError();
+    String fileId,
+    Uint8List bytes,
+    String filename,
+  ) async => throw UnimplementedError();
 
   @override
   Future<List<Map<String, dynamic>>> listFiles({
@@ -256,8 +271,7 @@ class _FakeAreaDataSource implements DirectusDataSource {
     List<String>? fields,
     List<String>? sort,
     int? limit,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<Uint8List> downloadFileBytes(String fileId) async =>
@@ -265,8 +279,8 @@ class _FakeAreaDataSource implements DirectusDataSource {
 
   @override
   Future<void> startSubscription(
-          DirectusWebSocketSubscription subscription) async =>
-      throw UnimplementedError();
+    DirectusWebSocketSubscription subscription,
+  ) async => throw UnimplementedError();
 
   @override
   Future<void> stopSubscription(String subscriptionUid) async =>

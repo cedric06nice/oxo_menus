@@ -35,10 +35,7 @@ final class GeneratePdfCall {
 /// ```
 class FakeGeneratePdfUseCase extends GeneratePdfUseCase {
   FakeGeneratePdfUseCase()
-      : super(
-          assetLoader: _ThrowAssetLoaderRepository(),
-          useIsolate: false,
-        );
+    : super(assetLoader: _ThrowAssetLoaderRepository(), useIsolate: false);
 
   // -------------------------------------------------------------------------
   // Call log

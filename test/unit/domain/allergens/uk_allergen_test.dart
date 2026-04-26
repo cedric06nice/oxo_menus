@@ -10,22 +10,25 @@ void main() {
       });
 
       test('should contain all UK FSA mandated allergens', () {
-        expect(UkAllergen.values, containsAll([
-          UkAllergen.celery,
-          UkAllergen.gluten,
-          UkAllergen.crustaceans,
-          UkAllergen.eggs,
-          UkAllergen.fish,
-          UkAllergen.lupin,
-          UkAllergen.milk,
-          UkAllergen.molluscs,
-          UkAllergen.mustard,
-          UkAllergen.nuts,
-          UkAllergen.peanuts,
-          UkAllergen.sesame,
-          UkAllergen.soya,
-          UkAllergen.sulphites,
-        ]));
+        expect(
+          UkAllergen.values,
+          containsAll([
+            UkAllergen.celery,
+            UkAllergen.gluten,
+            UkAllergen.crustaceans,
+            UkAllergen.eggs,
+            UkAllergen.fish,
+            UkAllergen.lupin,
+            UkAllergen.milk,
+            UkAllergen.molluscs,
+            UkAllergen.mustard,
+            UkAllergen.nuts,
+            UkAllergen.peanuts,
+            UkAllergen.sesame,
+            UkAllergen.soya,
+            UkAllergen.sulphites,
+          ]),
+        );
       });
     });
 
@@ -252,20 +255,26 @@ void main() {
         expect(UkAllergen.milk.detailsHint, isNull);
       });
 
-      test('should return null hint for all allergens that do not support details', () {
-        final nonDetailAllergens = UkAllergen.values
-            .where((a) => !a.supportsDetails)
-            .toList();
-        final allergensWithHints = nonDetailAllergens
-            .where((a) => a.detailsHint != null)
-            .toList();
-        expect(allergensWithHints, isEmpty);
-      });
+      test(
+        'should return null hint for all allergens that do not support details',
+        () {
+          final nonDetailAllergens = UkAllergen.values
+              .where((a) => !a.supportsDetails)
+              .toList();
+          final allergensWithHints = nonDetailAllergens
+              .where((a) => a.detailsHint != null)
+              .toList();
+          expect(allergensWithHints, isEmpty);
+        },
+      );
     });
 
     group('detailOptions', () {
       test('should return cereal dictionary for gluten', () {
-        expect(UkAllergen.gluten.detailOptions, AllergenDetailOptions.cerealOptions);
+        expect(
+          UkAllergen.gluten.detailOptions,
+          AllergenDetailOptions.cerealOptions,
+        );
       });
 
       test('should return nut dictionary for nuts', () {
@@ -398,9 +407,12 @@ void main() {
         expect(UkAllergen.fromString('  gluten  '), UkAllergen.gluten);
       });
 
-      test('should parse allergen when input has tab and newline whitespace', () {
-        expect(UkAllergen.fromString('\tgluten\n'), UkAllergen.gluten);
-      });
+      test(
+        'should parse allergen when input has tab and newline whitespace',
+        () {
+          expect(UkAllergen.fromString('\tgluten\n'), UkAllergen.gluten);
+        },
+      );
 
       test('should return null for an empty string', () {
         expect(UkAllergen.fromString(''), isNull);
@@ -422,9 +434,12 @@ void main() {
         expect(UkAllergen.fromString('glut'), isNull);
       });
 
-      test('should return null for a string that is a superstring of an allergen name', () {
-        expect(UkAllergen.fromString('glutens'), isNull);
-      });
+      test(
+        'should return null for a string that is a superstring of an allergen name',
+        () {
+          expect(UkAllergen.fromString('glutens'), isNull);
+        },
+      );
     });
 
     group('equality', () {
@@ -442,9 +457,12 @@ void main() {
         expect(UkAllergen.celery.index, 0);
       });
 
-      test('should have index 13 for sulphites (last in declaration order)', () {
-        expect(UkAllergen.sulphites.index, 13);
-      });
+      test(
+        'should have index 13 for sulphites (last in declaration order)',
+        () {
+          expect(UkAllergen.sulphites.index, 13);
+        },
+      );
 
       test('should have unique index for every allergen', () {
         final indices = UkAllergen.values.map((a) => a.index).toList();

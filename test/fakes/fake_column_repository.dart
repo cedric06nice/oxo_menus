@@ -72,7 +72,7 @@ class FakeColumnRepository implements ColumnRepository {
   Result<Column, DomainError>? _createResponse;
   Result<List<Column>, DomainError>? _getAllForContainerResponse;
   final Map<int, Result<List<Column>, DomainError>>
-      _getAllForContainerByIdResponses = {};
+  _getAllForContainerByIdResponses = {};
   Result<Column, DomainError>? _getByIdResponse;
   Result<Column, DomainError>? _updateResponse;
   Result<void, DomainError>? _deleteResponse;
@@ -138,7 +138,9 @@ class FakeColumnRepository implements ColumnRepository {
     if (_getAllForContainerByIdResponses.containsKey(containerId)) {
       return _getAllForContainerByIdResponses[containerId]!;
     }
-    if (_getAllForContainerResponse != null) return _getAllForContainerResponse!;
+    if (_getAllForContainerResponse != null) {
+      return _getAllForContainerResponse!;
+    }
     throw StateError(
       'FakeColumnRepository: no response configured for getAllForContainer()',
     );
@@ -172,10 +174,7 @@ class FakeColumnRepository implements ColumnRepository {
   }
 
   @override
-  Future<Result<void, DomainError>> reorder(
-    int columnId,
-    int newIndex,
-  ) async {
+  Future<Result<void, DomainError>> reorder(int columnId, int newIndex) async {
     calls.add(ColumnReorderCall(columnId: columnId, newIndex: newIndex));
     if (_reorderResponse != null) return _reorderResponse!;
     throw StateError(

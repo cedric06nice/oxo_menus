@@ -28,13 +28,16 @@ void main() {
       expect(result, PdfPageFormat.a4);
     });
 
-    test('should return A4 when name is "A4" (uppercase — case-insensitive)', () {
-      const pageSize = PageSize(name: 'A4', width: 210, height: 297);
+    test(
+      'should return A4 when name is "A4" (uppercase — case-insensitive)',
+      () {
+        const pageSize = PageSize(name: 'A4', width: 210, height: 297);
 
-      final result = resolver.resolvePageFormat(pageSize);
+        final result = resolver.resolvePageFormat(pageSize);
 
-      expect(result, PdfPageFormat.a4);
-    });
+        expect(result, PdfPageFormat.a4);
+      },
+    );
 
     test('should return letter when name is "letter"', () {
       const pageSize = PageSize(name: 'letter', width: 216, height: 279);
@@ -325,10 +328,7 @@ void main() {
     });
 
     test('should return 0.0 when borderType is null', () {
-      expect(
-        resolver.resolveBorderHorizontalInset(const StyleConfig()),
-        0.0,
-      );
+      expect(resolver.resolveBorderHorizontalInset(const StyleConfig()), 0.0);
     });
 
     test('should return 0.0 for BorderType.none', () {
@@ -417,10 +417,12 @@ void main() {
     test(
       'should set a non-null decoration on the container for BorderType.plainThin',
       () {
-        final result = resolver.wrapWithBorder(
-          child,
-          const StyleConfig(borderType: BorderType.plainThin),
-        ) as pw.Container;
+        final result =
+            resolver.wrapWithBorder(
+                  child,
+                  const StyleConfig(borderType: BorderType.plainThin),
+                )
+                as pw.Container;
 
         expect(result.decoration, isNotNull);
         expect((result.decoration as pw.BoxDecoration).border, isNotNull);

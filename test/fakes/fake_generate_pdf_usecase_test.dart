@@ -15,7 +15,10 @@ void main() {
 
     // Helper to create a minimal MenuTree
     MenuTree buildMenuTree({int menuId = 1}) {
-      return MenuTree(menu: buildMenu(id: menuId), pages: []);
+      return MenuTree(
+        menu: buildMenu(id: menuId),
+        pages: [],
+      );
     }
 
     setUp(() {
@@ -34,10 +37,7 @@ void main() {
           final tree = buildMenuTree();
 
           // Act / Assert
-          await expectLater(
-            fake.execute(tree),
-            throwsStateError,
-          );
+          await expectLater(fake.execute(tree), throwsStateError);
         },
       );
     });

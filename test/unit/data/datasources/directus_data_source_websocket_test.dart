@@ -46,9 +46,7 @@ class FakeDirectusApiManagerWs extends DirectusApiManager {
   String? get lastStoppedUid => _lastStoppedUid;
 
   @override
-  Future<void> stopWebsocketSubscription(
-    String webSocketSubscriptionId,
-  ) async {
+  Future<void> stopWebsocketSubscription(String webSocketSubscriptionId) async {
     calledMethods.add('stopWebsocketSubscription');
     _lastStoppedUid = webSocketSubscriptionId;
   }
@@ -80,23 +78,24 @@ void main() {
     // -----------------------------------------------------------------------
     group('startSubscription', () {
       test(
-          'should delegate to apiManager.startWebsocketSubscription with the given subscription',
-          () async {
-        // Arrange
-        final subscription = FakeDirectusWebSocketSubscription(
-          uid: 'menu-subscription-1',
-        );
+        'should delegate to apiManager.startWebsocketSubscription with the given subscription',
+        () async {
+          // Arrange
+          final subscription = FakeDirectusWebSocketSubscription(
+            uid: 'menu-subscription-1',
+          );
 
-        // Act
-        await dataSource.startSubscription(subscription);
+          // Act
+          await dataSource.startSubscription(subscription);
 
-        // Assert
-        expect(
-          fakeApiManager.calledMethods,
-          contains('startWebsocketSubscription'),
-        );
-        expect(fakeApiManager.lastStartedSubscription, same(subscription));
-      });
+          // Assert
+          expect(
+            fakeApiManager.calledMethods,
+            contains('startWebsocketSubscription'),
+          );
+          expect(fakeApiManager.lastStartedSubscription, same(subscription));
+        },
+      );
 
       test('should pass through a DirectusException from apiManager', () async {
         // Arrange
@@ -115,67 +114,72 @@ void main() {
         );
       });
 
-      test('should call apiManager with the subscription object unchanged',
-          () async {
-        // Arrange
-        final subscription = FakeDirectusWebSocketSubscription(uid: 'sub-42');
-        subscription.onCreate = (_) => null;
+      test(
+        'should call apiManager with the subscription object unchanged',
+        () async {
+          // Arrange
+          final subscription = FakeDirectusWebSocketSubscription(uid: 'sub-42');
+          subscription.onCreate = (_) => null;
 
-        // Act
-        await dataSource.startSubscription(subscription);
+          // Act
+          await dataSource.startSubscription(subscription);
 
-        // Assert
-        final received = fakeApiManager.lastStartedSubscription;
-        expect(received?.uid, 'sub-42');
-      });
+          // Assert
+          final received = fakeApiManager.lastStartedSubscription;
+          expect(received?.uid, 'sub-42');
+        },
+      );
     });
 
     // -----------------------------------------------------------------------
     group('stopSubscription', () {
       test(
-          'should delegate to apiManager.stopWebsocketSubscription with the given uid',
-          () async {
-        // Arrange
-        const uid = 'widget-subscription-99';
+        'should delegate to apiManager.stopWebsocketSubscription with the given uid',
+        () async {
+          // Arrange
+          const uid = 'widget-subscription-99';
 
-        // Act
-        await dataSource.stopSubscription(uid);
+          // Act
+          await dataSource.stopSubscription(uid);
 
-        // Assert
-        expect(
-          fakeApiManager.calledMethods,
-          contains('stopWebsocketSubscription'),
-        );
-        expect(fakeApiManager.lastStoppedUid, uid);
-      });
+          // Assert
+          expect(
+            fakeApiManager.calledMethods,
+            contains('stopWebsocketSubscription'),
+          );
+          expect(fakeApiManager.lastStoppedUid, uid);
+        },
+      );
 
-      test('should complete without error when called with any uid string',
-          () async {
-        // Arrange
-        const uid = 'some-uid-that-never-existed';
+      test(
+        'should complete without error when called with any uid string',
+        () async {
+          // Arrange
+          const uid = 'some-uid-that-never-existed';
 
-        // Act & Assert
-        await expectLater(
-          dataSource.stopSubscription(uid),
-          completes,
-        );
-      });
+          // Act & Assert
+          await expectLater(dataSource.stopSubscription(uid), completes);
+        },
+      );
 
-      test('should be idempotent when called twice with the same uid', () async {
-        // Arrange
-        const uid = 'idempotent-uid';
+      test(
+        'should be idempotent when called twice with the same uid',
+        () async {
+          // Arrange
+          const uid = 'idempotent-uid';
 
-        // Act
-        await dataSource.stopSubscription(uid);
-        await dataSource.stopSubscription(uid);
+          // Act
+          await dataSource.stopSubscription(uid);
+          await dataSource.stopSubscription(uid);
 
-        // Assert
-        final stopCalls = fakeApiManager.calledMethods
-            .where((m) => m == 'stopWebsocketSubscription')
-            .length;
-        expect(stopCalls, 2);
-        expect(fakeApiManager.lastStoppedUid, uid);
-      });
+          // Assert
+          final stopCalls = fakeApiManager.calledMethods
+              .where((m) => m == 'stopWebsocketSubscription')
+              .length;
+          expect(stopCalls, 2);
+          expect(fakeApiManager.lastStoppedUid, uid);
+        },
+      );
     });
 
     // -----------------------------------------------------------------------
@@ -200,22 +204,24 @@ void main() {
         );
       });
 
-      test('should support multiple distinct subscriptions started in sequence',
-          () async {
-        // Arrange
-        final sub1 = FakeDirectusWebSocketSubscription(uid: 'sub-a');
-        final sub2 = FakeDirectusWebSocketSubscription(uid: 'sub-b');
+      test(
+        'should support multiple distinct subscriptions started in sequence',
+        () async {
+          // Arrange
+          final sub1 = FakeDirectusWebSocketSubscription(uid: 'sub-a');
+          final sub2 = FakeDirectusWebSocketSubscription(uid: 'sub-b');
 
-        // Act
-        await dataSource.startSubscription(sub1);
-        await dataSource.startSubscription(sub2);
+          // Act
+          await dataSource.startSubscription(sub1);
+          await dataSource.startSubscription(sub2);
 
-        // Assert
-        final starts = fakeApiManager.calledMethods
-            .where((m) => m == 'startWebsocketSubscription')
-            .length;
-        expect(starts, 2);
-      });
+          // Assert
+          final starts = fakeApiManager.calledMethods
+              .where((m) => m == 'startWebsocketSubscription')
+              .length;
+          expect(starts, 2);
+        },
+      );
     });
   });
 }

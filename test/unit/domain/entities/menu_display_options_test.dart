@@ -36,14 +36,20 @@ void main() {
         expect(options.showAllergens, isFalse);
       });
 
-      test('should store both fields false when both are explicitly set to false', () {
-        // Arrange & Act
-        const options = MenuDisplayOptions(showPrices: false, showAllergens: false);
+      test(
+        'should store both fields false when both are explicitly set to false',
+        () {
+          // Arrange & Act
+          const options = MenuDisplayOptions(
+            showPrices: false,
+            showAllergens: false,
+          );
 
-        // Assert
-        expect(options.showPrices, isFalse);
-        expect(options.showAllergens, isFalse);
-      });
+          // Assert
+          expect(options.showPrices, isFalse);
+          expect(options.showAllergens, isFalse);
+        },
+      );
     });
 
     group('equality', () {
@@ -87,7 +93,10 @@ void main() {
     group('copyWith', () {
       test('should update showPrices when copyWith is called with false', () {
         // Arrange
-        const options = MenuDisplayOptions(showPrices: true, showAllergens: true);
+        const options = MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: true,
+        );
 
         // Act
         final updated = options.copyWith(showPrices: false);
@@ -97,28 +106,40 @@ void main() {
         expect(updated.showAllergens, isTrue);
       });
 
-      test('should update showAllergens when copyWith is called with false', () {
-        // Arrange
-        const options = MenuDisplayOptions(showPrices: true, showAllergens: true);
+      test(
+        'should update showAllergens when copyWith is called with false',
+        () {
+          // Arrange
+          const options = MenuDisplayOptions(
+            showPrices: true,
+            showAllergens: true,
+          );
 
-        // Act
-        final updated = options.copyWith(showAllergens: false);
+          // Act
+          final updated = options.copyWith(showAllergens: false);
 
-        // Assert
-        expect(updated.showAllergens, isFalse);
-        expect(updated.showPrices, isTrue);
-      });
+          // Assert
+          expect(updated.showAllergens, isFalse);
+          expect(updated.showPrices, isTrue);
+        },
+      );
 
-      test('should preserve all fields when copyWith is called with no arguments', () {
-        // Arrange
-        const options = MenuDisplayOptions(showPrices: false, showAllergens: true);
+      test(
+        'should preserve all fields when copyWith is called with no arguments',
+        () {
+          // Arrange
+          const options = MenuDisplayOptions(
+            showPrices: false,
+            showAllergens: true,
+          );
 
-        // Act
-        final copy = options.copyWith();
+          // Act
+          final copy = options.copyWith();
 
-        // Assert
-        expect(copy, equals(options));
-      });
+          // Assert
+          expect(copy, equals(options));
+        },
+      );
     });
 
     group('toString', () {
@@ -137,7 +158,10 @@ void main() {
     group('JSON serialization', () {
       test('should serialize showPrices and showAllergens to JSON', () {
         // Arrange
-        const options = MenuDisplayOptions(showPrices: true, showAllergens: false);
+        const options = MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: false,
+        );
 
         // Act
         final json = options.toJson();
@@ -147,21 +171,27 @@ void main() {
         expect(json['showAllergens'], isFalse);
       });
 
-      test('should deserialize MenuDisplayOptions from JSON with correct field values', () {
-        // Arrange
-        final json = {'showPrices': false, 'showAllergens': true};
+      test(
+        'should deserialize MenuDisplayOptions from JSON with correct field values',
+        () {
+          // Arrange
+          final json = {'showPrices': false, 'showAllergens': true};
 
-        // Act
-        final options = MenuDisplayOptions.fromJson(json);
+          // Act
+          final options = MenuDisplayOptions.fromJson(json);
 
-        // Assert
-        expect(options.showPrices, isFalse);
-        expect(options.showAllergens, isTrue);
-      });
+          // Assert
+          expect(options.showPrices, isFalse);
+          expect(options.showAllergens, isTrue);
+        },
+      );
 
       test('should round-trip through JSON preserving equality', () {
         // Arrange
-        const original = MenuDisplayOptions(showPrices: false, showAllergens: true);
+        const original = MenuDisplayOptions(
+          showPrices: false,
+          showAllergens: true,
+        );
 
         // Act
         final restored = MenuDisplayOptions.fromJson(original.toJson());

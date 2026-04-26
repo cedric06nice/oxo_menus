@@ -104,14 +104,16 @@ void main() {
     });
 
     group('copyWith', () {
-      test('should update fileId when copyWith is called with a new fileId',
-          () {
-        const original = ImageProps(fileId: 'old-id');
+      test(
+        'should update fileId when copyWith is called with a new fileId',
+        () {
+          const original = ImageProps(fileId: 'old-id');
 
-        final modified = original.copyWith(fileId: 'new-id');
+          final modified = original.copyWith(fileId: 'new-id');
 
-        expect(modified.fileId, 'new-id');
-      });
+          expect(modified.fileId, 'new-id');
+        },
+      );
 
       test('should update align when copyWith is called with a new value', () {
         const original = ImageProps(fileId: 'abc', align: 'center');
@@ -214,34 +216,36 @@ void main() {
       });
 
       test(
-          'should restore null height after round-trip when only width was set',
-          () {
-        const original = ImageProps(fileId: 'abc', width: 250.0);
+        'should restore null height after round-trip when only width was set',
+        () {
+          const original = ImageProps(fileId: 'abc', width: 250.0);
 
-        final json = original.toJson();
-        final restored = ImageProps.fromJson(json);
+          final json = original.toJson();
+          final restored = ImageProps.fromJson(json);
 
-        expect(restored.height, isNull);
-        expect(restored.width, 250.0);
-      });
+          expect(restored.height, isNull);
+          expect(restored.width, 250.0);
+        },
+      );
 
       test(
-          'should handle all align string values centre right left after round-trip',
-          () {
-        const props = ImageProps(
-          fileId: 'test-file-id',
-          align: 'right',
-          fit: 'fill',
-          width: 300.0,
-          height: 200.0,
-        );
+        'should handle all align string values centre right left after round-trip',
+        () {
+          const props = ImageProps(
+            fileId: 'test-file-id',
+            align: 'right',
+            fit: 'fill',
+            width: 300.0,
+            height: 200.0,
+          );
 
-        final json = props.toJson();
-        final restored = ImageProps.fromJson(json);
+          final json = props.toJson();
+          final restored = ImageProps.fromJson(json);
 
-        expect(restored.align, 'right');
-        expect(restored.fit, 'fill');
-      });
+          expect(restored.align, 'right');
+          expect(restored.fit, 'fill');
+        },
+      );
     });
   });
 }

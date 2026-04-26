@@ -28,37 +28,32 @@ void main() {
 
     group('crossAxis', () {
       test(
-          'should return CrossAxisAlignment.start when alignment is start', () {
-        expect(
-          WidgetAlignment.start.crossAxis,
-          CrossAxisAlignment.start,
-        );
-      });
+        'should return CrossAxisAlignment.start when alignment is start',
+        () {
+          expect(WidgetAlignment.start.crossAxis, CrossAxisAlignment.start);
+        },
+      );
 
       test(
-          'should return CrossAxisAlignment.center when alignment is center',
-          () {
-        expect(
-          WidgetAlignment.center.crossAxis,
-          CrossAxisAlignment.center,
-        );
-      });
+        'should return CrossAxisAlignment.center when alignment is center',
+        () {
+          expect(WidgetAlignment.center.crossAxis, CrossAxisAlignment.center);
+        },
+      );
 
       test('should return CrossAxisAlignment.end when alignment is end', () {
-        expect(
-          WidgetAlignment.end.crossAxis,
-          CrossAxisAlignment.end,
-        );
+        expect(WidgetAlignment.end.crossAxis, CrossAxisAlignment.end);
       });
 
       test(
-          'should return CrossAxisAlignment.stretch when alignment is justified',
-          () {
-        expect(
-          WidgetAlignment.justified.crossAxis,
-          CrossAxisAlignment.stretch,
-        );
-      });
+        'should return CrossAxisAlignment.stretch when alignment is justified',
+        () {
+          expect(
+            WidgetAlignment.justified.crossAxis,
+            CrossAxisAlignment.stretch,
+          );
+        },
+      );
     });
 
     group('textAlign', () {

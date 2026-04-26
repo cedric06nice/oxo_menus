@@ -39,17 +39,17 @@ NetworkError network([String message = 'Network error']) =>
     NetworkError(message);
 
 /// A [NetworkUnavailableError] with the default message.
-NetworkUnavailableError networkUnavailable(
-        [String message = 'Network unavailable']) =>
-    NetworkUnavailableError(message);
+NetworkUnavailableError networkUnavailable([
+  String message = 'Network unavailable',
+]) => NetworkUnavailableError(message);
 
 /// A [ServerError] with the default message.
 ServerError server([String message = 'Server error']) => ServerError(message);
 
 /// An [InvalidCredentialsError] with the default message.
-InvalidCredentialsError invalidCredentials(
-        [String message = 'Invalid credentials']) =>
-    InvalidCredentialsError(message);
+InvalidCredentialsError invalidCredentials([
+  String message = 'Invalid credentials',
+]) => InvalidCredentialsError(message);
 
 /// A [TokenExpiredError] with the default message.
 TokenExpiredError tokenExpired([String message = 'Token expired']) =>

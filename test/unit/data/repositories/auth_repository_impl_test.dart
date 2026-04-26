@@ -38,23 +38,24 @@ void main() {
   group('AuthRepositoryImpl', () {
     group('login', () {
       test(
-          'should return Success<User> when data source returns a valid response',
-          () async {
-        // Arrange
-        fake.loginResult = _loginResponse;
+        'should return Success<User> when data source returns a valid response',
+        () async {
+          // Arrange
+          fake.loginResult = _loginResponse;
 
-        // Act
-        final result = await repository.login('test@example.com', 'secret');
+          // Act
+          final result = await repository.login('test@example.com', 'secret');
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        final user = result.valueOrNull!;
-        expect(user.id, 'user-1');
-        expect(user.email, 'test@example.com');
-        expect(user.firstName, 'Test');
-        expect(user.lastName, 'User');
-        expect(user.role, UserRole.admin);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          final user = result.valueOrNull!;
+          expect(user.id, 'user-1');
+          expect(user.email, 'test@example.com');
+          expect(user.firstName, 'Test');
+          expect(user.lastName, 'User');
+          expect(user.role, UserRole.admin);
+        },
+      );
 
       test('should forward the credentials to the data source', () async {
         // Arrange
@@ -69,62 +70,70 @@ void main() {
       });
 
       test(
-          'should return Failure<UnknownError> when login response lacks user key',
-          () async {
-        // Arrange
-        fake.loginResult = {'access_token': 'tok', 'refresh_token': 'ref'};
+        'should return Failure<UnknownError> when login response lacks user key',
+        () async {
+          // Arrange
+          fake.loginResult = {'access_token': 'tok', 'refresh_token': 'ref'};
 
-        // Act
-        final result = await repository.login('test@example.com', 'secret');
+          // Act
+          final result = await repository.login('test@example.com', 'secret');
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
-
-      test(
-          'should return Failure<InvalidCredentialsError> when data source throws INVALID_CREDENTIALS',
-          () async {
-        // Arrange
-        fake.loginError = DirectusException(
-            code: 'INVALID_CREDENTIALS', message: 'Bad credentials');
-
-        // Act
-        final result = await repository.login('test@example.com', 'wrong');
-
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<InvalidCredentialsError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
 
       test(
-          'should return Failure<RateLimitError> when data source throws REQUESTS_EXCEEDED',
-          () async {
-        // Arrange
-        fake.loginError = DirectusException(
-            code: 'REQUESTS_EXCEEDED', message: 'Too many attempts');
+        'should return Failure<InvalidCredentialsError> when data source throws INVALID_CREDENTIALS',
+        () async {
+          // Arrange
+          fake.loginError = DirectusException(
+            code: 'INVALID_CREDENTIALS',
+            message: 'Bad credentials',
+          );
 
-        // Act
-        final result = await repository.login('test@example.com', 'pass');
+          // Act
+          final result = await repository.login('test@example.com', 'wrong');
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<RateLimitError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<InvalidCredentialsError>());
+        },
+      );
 
       test(
-          'should return Failure<UnknownError> when data source throws a generic exception',
-          () async {
-        // Arrange
-        fake.loginError = Exception('Network error');
+        'should return Failure<RateLimitError> when data source throws REQUESTS_EXCEEDED',
+        () async {
+          // Arrange
+          fake.loginError = DirectusException(
+            code: 'REQUESTS_EXCEEDED',
+            message: 'Too many attempts',
+          );
 
-        // Act
-        final result = await repository.login('test@example.com', 'pass');
+          // Act
+          final result = await repository.login('test@example.com', 'pass');
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<RateLimitError>());
+        },
+      );
+
+      test(
+        'should return Failure<UnknownError> when data source throws a generic exception',
+        () async {
+          // Arrange
+          fake.loginError = Exception('Network error');
+
+          // Act
+          final result = await repository.login('test@example.com', 'pass');
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
     });
 
     group('logout', () {
@@ -146,77 +155,90 @@ void main() {
     });
 
     group('getCurrentUser', () {
-      test('should return Success<User> when data source returns user data',
-          () async {
-        // Arrange
-        fake.currentUserResult = _userJson;
+      test(
+        'should return Success<User> when data source returns user data',
+        () async {
+          // Arrange
+          fake.currentUserResult = _userJson;
 
-        // Act
-        final result = await repository.getCurrentUser();
+          // Act
+          final result = await repository.getCurrentUser();
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        final user = result.valueOrNull!;
-        expect(user.id, 'user-1');
-        expect(user.email, 'test@example.com');
-        expect(user.role, UserRole.admin);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          final user = result.valueOrNull!;
+          expect(user.id, 'user-1');
+          expect(user.email, 'test@example.com');
+          expect(user.role, UserRole.admin);
+        },
+      );
 
       test(
-          'should return Failure<UnauthorizedError> when data source throws FORBIDDEN',
-          () async {
-        // Arrange
-        fake.currentUserError =
-            DirectusException(code: 'FORBIDDEN', message: 'Access denied');
+        'should return Failure<UnauthorizedError> when data source throws FORBIDDEN',
+        () async {
+          // Arrange
+          fake.currentUserError = DirectusException(
+            code: 'FORBIDDEN',
+            message: 'Access denied',
+          );
 
-        // Act
-        final result = await repository.getCurrentUser();
+          // Act
+          final result = await repository.getCurrentUser();
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnauthorizedError>());
-      });
-
-      test(
-          'should return Failure<TokenExpiredError> when data source throws TOKEN_EXPIRED',
-          () async {
-        // Arrange
-        fake.currentUserError =
-            DirectusException(code: 'TOKEN_EXPIRED', message: 'Expired');
-
-        // Act
-        final result = await repository.getCurrentUser();
-
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<TokenExpiredError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnauthorizedError>());
+        },
+      );
 
       test(
-          'should return Failure<UnauthorizedError> when data source throws NOT_AUTHENTICATED',
-          () async {
-        // Arrange
-        fake.currentUserError = DirectusException(
-            code: 'NOT_AUTHENTICATED', message: 'Not authenticated');
+        'should return Failure<TokenExpiredError> when data source throws TOKEN_EXPIRED',
+        () async {
+          // Arrange
+          fake.currentUserError = DirectusException(
+            code: 'TOKEN_EXPIRED',
+            message: 'Expired',
+          );
 
-        // Act
-        final result = await repository.getCurrentUser();
+          // Act
+          final result = await repository.getCurrentUser();
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnauthorizedError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<TokenExpiredError>());
+        },
+      );
+
+      test(
+        'should return Failure<UnauthorizedError> when data source throws NOT_AUTHENTICATED',
+        () async {
+          // Arrange
+          fake.currentUserError = DirectusException(
+            code: 'NOT_AUTHENTICATED',
+            message: 'Not authenticated',
+          );
+
+          // Act
+          final result = await repository.getCurrentUser();
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnauthorizedError>());
+        },
+      );
     });
 
     group('refreshSession', () {
-      test('should return Success<void> when data source refresh succeeds',
-          () async {
-        // Act
-        final result = await repository.refreshSession();
+      test(
+        'should return Success<void> when data source refresh succeeds',
+        () async {
+          // Act
+          final result = await repository.refreshSession();
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+        },
+      );
 
       test('should call data source refreshSession exactly once', () async {
         // Act
@@ -227,105 +249,117 @@ void main() {
       });
 
       test(
-          'should return Failure<TokenExpiredError> when data source throws TOKEN_EXPIRED',
-          () async {
-        // Arrange
-        fake.refreshSessionError =
-            DirectusException(code: 'TOKEN_EXPIRED', message: 'Token expired');
+        'should return Failure<TokenExpiredError> when data source throws TOKEN_EXPIRED',
+        () async {
+          // Arrange
+          fake.refreshSessionError = DirectusException(
+            code: 'TOKEN_EXPIRED',
+            message: 'Token expired',
+          );
 
-        // Act
-        final result = await repository.refreshSession();
+          // Act
+          final result = await repository.refreshSession();
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<TokenExpiredError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<TokenExpiredError>());
+        },
+      );
 
       test(
-          'should return Failure<UnknownError> when data source throws generic exception',
-          () async {
-        // Arrange
-        fake.refreshSessionError = Exception('network failure');
+        'should return Failure<UnknownError> when data source throws generic exception',
+        () async {
+          // Arrange
+          fake.refreshSessionError = Exception('network failure');
 
-        // Act
-        final result = await repository.refreshSession();
+          // Act
+          final result = await repository.refreshSession();
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
     });
 
     group('tryRestoreSession', () {
       test(
-          'should return Success<User> when restore returns true and getCurrentUser returns data',
-          () async {
-        // Arrange
-        fake.tryRestoreSessionResult = true;
-        fake.currentUserResult = _userJson;
+        'should return Success<User> when restore returns true and getCurrentUser returns data',
+        () async {
+          // Arrange
+          fake.tryRestoreSessionResult = true;
+          fake.currentUserResult = _userJson;
 
-        // Act
-        final result = await repository.tryRestoreSession();
+          // Act
+          final result = await repository.tryRestoreSession();
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        final user = result.valueOrNull!;
-        expect(user.id, 'user-1');
-        expect(user.email, 'test@example.com');
-      });
-
-      test(
-          'should return Failure<TokenExpiredError> when data source returns false',
-          () async {
-        // Arrange
-        fake.tryRestoreSessionResult = false;
-
-        // Act
-        final result = await repository.tryRestoreSession();
-
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<TokenExpiredError>());
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          final user = result.valueOrNull!;
+          expect(user.id, 'user-1');
+          expect(user.email, 'test@example.com');
+        },
+      );
 
       test(
-          'should return Failure<UnknownError> when getCurrentUser throws after successful restore',
-          () async {
-        // Arrange
-        fake.tryRestoreSessionResult = true;
-        fake.currentUserError = Exception('Storage error');
+        'should return Failure<TokenExpiredError> when data source returns false',
+        () async {
+          // Arrange
+          fake.tryRestoreSessionResult = false;
 
-        // Act
-        final result = await repository.tryRestoreSession();
+          // Act
+          final result = await repository.tryRestoreSession();
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<TokenExpiredError>());
+        },
+      );
 
-      test('should not call getCurrentUser when restore returns false',
-          () async {
-        // Arrange
-        fake.tryRestoreSessionResult = false;
+      test(
+        'should return Failure<UnknownError> when getCurrentUser throws after successful restore',
+        () async {
+          // Arrange
+          fake.tryRestoreSessionResult = true;
+          fake.currentUserError = Exception('Storage error');
 
-        // Act
-        await repository.tryRestoreSession();
+          // Act
+          final result = await repository.tryRestoreSession();
 
-        // Assert
-        expect(fake.getCurrentUserCallCount, 0);
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
+
+      test(
+        'should not call getCurrentUser when restore returns false',
+        () async {
+          // Arrange
+          fake.tryRestoreSessionResult = false;
+
+          // Act
+          await repository.tryRestoreSession();
+
+          // Assert
+          expect(fake.getCurrentUserCallCount, 0);
+        },
+      );
     });
 
     group('requestPasswordReset', () {
-      test('should return Success<void> when data source call succeeds',
-          () async {
-        // Act
-        final result =
-            await repository.requestPasswordReset('test@example.com');
+      test(
+        'should return Success<void> when data source call succeeds',
+        () async {
+          // Act
+          final result = await repository.requestPasswordReset(
+            'test@example.com',
+          );
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+        },
+      );
 
       test('should forward email and resetUrl to data source', () async {
         // Act
@@ -337,7 +371,9 @@ void main() {
         // Assert
         expect(fake.lastRequestPasswordResetEmail, 'test@example.com');
         expect(
-            fake.lastRequestPasswordResetUrl, 'https://app.example.com/reset');
+          fake.lastRequestPasswordResetUrl,
+          'https://app.example.com/reset',
+        );
       });
 
       test('should pass null resetUrl when none is provided', () async {
@@ -349,49 +385,57 @@ void main() {
       });
 
       test(
-          'should return Failure<UnknownError> when data source throws generic exception',
-          () async {
-        // Arrange
-        fake.requestPasswordResetError = Exception('Email service down');
+        'should return Failure<UnknownError> when data source throws generic exception',
+        () async {
+          // Arrange
+          fake.requestPasswordResetError = Exception('Email service down');
 
-        // Act
-        final result =
-            await repository.requestPasswordReset('test@example.com');
+          // Act
+          final result = await repository.requestPasswordReset(
+            'test@example.com',
+          );
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
 
       test(
-          'should return Failure<RateLimitError> when data source throws REQUESTS_EXCEEDED',
-          () async {
-        // Arrange
-        fake.requestPasswordResetError = DirectusException(
-            code: 'REQUESTS_EXCEEDED', message: 'Too many requests');
+        'should return Failure<RateLimitError> when data source throws REQUESTS_EXCEEDED',
+        () async {
+          // Arrange
+          fake.requestPasswordResetError = DirectusException(
+            code: 'REQUESTS_EXCEEDED',
+            message: 'Too many requests',
+          );
 
-        // Act
-        final result =
-            await repository.requestPasswordReset('test@example.com');
+          // Act
+          final result = await repository.requestPasswordReset(
+            'test@example.com',
+          );
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<RateLimitError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<RateLimitError>());
+        },
+      );
     });
 
     group('confirmPasswordReset', () {
-      test('should return Success<void> when data source call succeeds',
-          () async {
-        // Act
-        final result = await repository.confirmPasswordReset(
-          token: 'tok-123',
-          password: 'NewPass1!',
-        );
+      test(
+        'should return Success<void> when data source call succeeds',
+        () async {
+          // Act
+          final result = await repository.confirmPasswordReset(
+            token: 'tok-123',
+            password: 'NewPass1!',
+          );
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+        },
+      );
 
       test('should forward token and password to data source', () async {
         // Act
@@ -406,39 +450,43 @@ void main() {
       });
 
       test(
-          'should return Failure<UnknownError> when data source throws generic exception',
-          () async {
-        // Arrange
-        fake.confirmPasswordResetError = Exception('Network error');
+        'should return Failure<UnknownError> when data source throws generic exception',
+        () async {
+          // Arrange
+          fake.confirmPasswordResetError = Exception('Network error');
 
-        // Act
-        final result = await repository.confirmPasswordReset(
-          token: 'bad-token',
-          password: 'pass',
-        );
+          // Act
+          final result = await repository.confirmPasswordReset(
+            token: 'bad-token',
+            password: 'pass',
+          );
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
 
       test(
-          'should return Failure<UnknownError> when data source throws PASSWORD_RESET_FAILED',
-          () async {
-        // Arrange – PASSWORD_RESET_FAILED is not in the switch, falls to UnknownError
-        fake.confirmPasswordResetError = DirectusException(
-            code: 'PASSWORD_RESET_FAILED', message: 'Token invalid');
+        'should return Failure<UnknownError> when data source throws PASSWORD_RESET_FAILED',
+        () async {
+          // Arrange – PASSWORD_RESET_FAILED is not in the switch, falls to UnknownError
+          fake.confirmPasswordResetError = DirectusException(
+            code: 'PASSWORD_RESET_FAILED',
+            message: 'Token invalid',
+          );
 
-        // Act
-        final result = await repository.confirmPasswordReset(
-          token: 'bad-token',
-          password: 'pass',
-        );
+          // Act
+          final result = await repository.confirmPasswordReset(
+            token: 'bad-token',
+            password: 'pass',
+          );
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
     });
   });
 }
@@ -542,8 +590,7 @@ class _FakeDirectusDataSource implements DirectusDataSource {
   Future<Map<String, dynamic>> getItem<T extends DirectusItem>(
     int id, {
     List<String>? fields,
-  }) async =>
-      throw UnimplementedError('getItem not used in this test');
+  }) async => throw UnimplementedError('getItem not used in this test');
 
   @override
   Future<List<Map<String, dynamic>>> getItems<T extends DirectusItem>({
@@ -552,18 +599,17 @@ class _FakeDirectusDataSource implements DirectusDataSource {
     List<String>? sort,
     int? limit,
     int? offset,
-  }) async =>
-      throw UnimplementedError('getItems not used in this test');
+  }) async => throw UnimplementedError('getItems not used in this test');
 
   @override
   Future<Map<String, dynamic>> createItem<T extends DirectusItem>(
-          T newItem) async =>
-      throw UnimplementedError('createItem not used in this test');
+    T newItem,
+  ) async => throw UnimplementedError('createItem not used in this test');
 
   @override
   Future<Map<String, dynamic>> updateItem<T extends DirectusItem>(
-          T itemToUpdate) async =>
-      throw UnimplementedError('updateItem not used in this test');
+    T itemToUpdate,
+  ) async => throw UnimplementedError('updateItem not used in this test');
 
   @override
   Future<void> deleteItem<T extends DirectusItem>(int id) async =>
@@ -575,8 +621,10 @@ class _FakeDirectusDataSource implements DirectusDataSource {
 
   @override
   Future<String> replaceFile(
-          String fileId, Uint8List bytes, String filename) async =>
-      throw UnimplementedError('replaceFile not used in this test');
+    String fileId,
+    Uint8List bytes,
+    String filename,
+  ) async => throw UnimplementedError('replaceFile not used in this test');
 
   @override
   Future<List<Map<String, dynamic>>> listFiles({
@@ -584,8 +632,7 @@ class _FakeDirectusDataSource implements DirectusDataSource {
     List<String>? fields,
     List<String>? sort,
     int? limit,
-  }) async =>
-      throw UnimplementedError('listFiles not used in this test');
+  }) async => throw UnimplementedError('listFiles not used in this test');
 
   @override
   Future<Uint8List> downloadFileBytes(String fileId) async =>
@@ -593,7 +640,8 @@ class _FakeDirectusDataSource implements DirectusDataSource {
 
   @override
   Future<void> startSubscription(
-          DirectusWebSocketSubscription subscription) async =>
+    DirectusWebSocketSubscription subscription,
+  ) async =>
       throw UnimplementedError('startSubscription not used in this test');
 
   @override

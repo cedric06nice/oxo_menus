@@ -45,19 +45,16 @@ void main() {
         },
       );
 
-      test(
-        'should propagate ServerError from findByIncludedMenu',
-        () async {
-          // Arrange
-          repo.whenFindByIncludedMenu(failure(server()));
+      test('should propagate ServerError from findByIncludedMenu', () async {
+        // Arrange
+        repo.whenFindByIncludedMenu(failure(server()));
 
-          // Act
-          final results = await useCase.execute(1);
+        // Act
+        final results = await useCase.execute(1);
 
-          // Assert
-          expect(results.single.errorOrNull, isA<ServerError>());
-        },
-      );
+        // Assert
+        expect(results.single.errorOrNull, isA<ServerError>());
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -142,40 +139,32 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('multiple bundles', () {
-      test(
-        'should publish all bundles and return a result for each',
-        () async {
-          // Arrange
-          final bundles = [
-            buildMenuBundle(id: 10),
-            buildMenuBundle(id: 20),
-            buildMenuBundle(id: 30),
-          ];
-          repo.whenFindByIncludedMenu(success(bundles));
-          publishBundleUseCase.stubExecute(
-            Success(buildMenuBundle(id: 10)),
-          );
+      test('should publish all bundles and return a result for each', () async {
+        // Arrange
+        final bundles = [
+          buildMenuBundle(id: 10),
+          buildMenuBundle(id: 20),
+          buildMenuBundle(id: 30),
+        ];
+        repo.whenFindByIncludedMenu(success(bundles));
+        publishBundleUseCase.stubExecute(Success(buildMenuBundle(id: 10)));
 
-          // Act
-          final results = await useCase.execute(1);
+        // Act
+        final results = await useCase.execute(1);
 
-          // Assert
-          expect(results.length, equals(3));
-          expect(
-            publishBundleUseCase.calls.map((c) => c.bundleId).toList(),
-            containsAll([10, 20, 30]),
-          );
-        },
-      );
+        // Assert
+        expect(results.length, equals(3));
+        expect(
+          publishBundleUseCase.calls.map((c) => c.bundleId).toList(),
+          containsAll([10, 20, 30]),
+        );
+      });
 
       test(
         'should continue publishing remaining bundles after a partial failure',
         () async {
           // Arrange
-          final bundles = [
-            buildMenuBundle(id: 10),
-            buildMenuBundle(id: 20),
-          ];
+          final bundles = [buildMenuBundle(id: 10), buildMenuBundle(id: 20)];
           repo.whenFindByIncludedMenu(success(bundles));
           publishBundleUseCase.stubExecute(failure(server()));
 
@@ -192,10 +181,7 @@ void main() {
         'should return all Success results when all bundles publish successfully',
         () async {
           // Arrange
-          final bundles = [
-            buildMenuBundle(id: 1),
-            buildMenuBundle(id: 2),
-          ];
+          final bundles = [buildMenuBundle(id: 1), buildMenuBundle(id: 2)];
           repo.whenFindByIncludedMenu(success(bundles));
           publishBundleUseCase.stubExecute(Success(buildMenuBundle(id: 1)));
 
@@ -213,22 +199,16 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('repository call verification', () {
-      test(
-        'should pass correct menuId to findByIncludedMenu',
-        () async {
-          // Arrange
-          repo.whenFindByIncludedMenu(success([]));
+      test('should pass correct menuId to findByIncludedMenu', () async {
+        // Arrange
+        repo.whenFindByIncludedMenu(success([]));
 
-          // Act
-          await useCase.execute(42);
+        // Act
+        await useCase.execute(42);
 
-          // Assert
-          expect(
-            repo.findByIncludedMenuCalls.single.menuId,
-            equals(42),
-          );
-        },
-      );
+        // Assert
+        expect(repo.findByIncludedMenuCalls.single.menuId, equals(42));
+      });
     });
   });
 }

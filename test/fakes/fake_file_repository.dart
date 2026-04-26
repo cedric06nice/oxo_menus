@@ -97,9 +97,7 @@ class FakeFileRepository implements FileRepository {
     if (_uploadResponse != null) {
       return _uploadResponse!;
     }
-    throw StateError(
-      'FakeFileRepository: no response configured for upload()',
-    );
+    throw StateError('FakeFileRepository: no response configured for upload()');
   }
 
   @override

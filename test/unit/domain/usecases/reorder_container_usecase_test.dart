@@ -22,20 +22,17 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('container fetch failure', () {
-      test(
-        'should return Failure when getById fails',
-        () async {
-          // Arrange
-          containerRepo.whenGetById(failure(notFound()));
+      test('should return Failure when getById fails', () async {
+        // Arrange
+        containerRepo.whenGetById(failure(notFound()));
 
-          // Act
-          final result = await useCase.execute(1, ReorderDirection.up);
+        // Act
+        final result = await useCase.execute(1, ReorderDirection.up);
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<NotFoundError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -164,24 +161,21 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('reorder failure propagation', () {
-      test(
-        'should return Failure when the first reorder call fails',
-        () async {
-          // Arrange
-          final container = buildContainer(id: 1, pageId: 10, index: 0);
-          final sibling = buildContainer(id: 2, pageId: 10, index: 1);
-          containerRepo.whenGetById(success(container));
-          containerRepo.whenGetAllForPage(success([container, sibling]));
-          containerRepo.whenReorder(failure(server()));
+      test('should return Failure when the first reorder call fails', () async {
+        // Arrange
+        final container = buildContainer(id: 1, pageId: 10, index: 0);
+        final sibling = buildContainer(id: 2, pageId: 10, index: 1);
+        containerRepo.whenGetById(success(container));
+        containerRepo.whenGetAllForPage(success([container, sibling]));
+        containerRepo.whenReorder(failure(server()));
 
-          // Act
-          final result = await useCase.execute(1, ReorderDirection.down);
+        // Act
+        final result = await useCase.execute(1, ReorderDirection.down);
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<ServerError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<ServerError>());
+      });
     });
 
     // -------------------------------------------------------------------------

@@ -95,9 +95,7 @@ class FakeSizeRepository implements SizeRepository {
     if (_getAllResponse != null) {
       return _getAllResponse!;
     }
-    throw StateError(
-      'FakeSizeRepository: no response configured for getAll()',
-    );
+    throw StateError('FakeSizeRepository: no response configured for getAll()');
   }
 
   @override
@@ -117,9 +115,7 @@ class FakeSizeRepository implements SizeRepository {
     if (_createResponse != null) {
       return _createResponse!;
     }
-    throw StateError(
-      'FakeSizeRepository: no response configured for create()',
-    );
+    throw StateError('FakeSizeRepository: no response configured for create()');
   }
 
   @override
@@ -128,9 +124,7 @@ class FakeSizeRepository implements SizeRepository {
     if (_updateResponse != null) {
       return _updateResponse!;
     }
-    throw StateError(
-      'FakeSizeRepository: no response configured for update()',
-    );
+    throw StateError('FakeSizeRepository: no response configured for update()');
   }
 
   @override
@@ -139,9 +133,7 @@ class FakeSizeRepository implements SizeRepository {
     if (_deleteResponse != null) {
       return _deleteResponse!;
     }
-    throw StateError(
-      'FakeSizeRepository: no response configured for delete()',
-    );
+    throw StateError('FakeSizeRepository: no response configured for delete()');
   }
 
   // -------------------------------------------------------------------------

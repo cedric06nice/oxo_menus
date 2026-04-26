@@ -45,55 +45,64 @@ void main() {
         expect(instance.editingBy, 'user-abc-123');
       });
 
-      test('should store editingSince when editingSince is set to a timestamp', () {
-        // Arrange
-        final lockTime = DateTime(2025, 1, 15, 10, 30);
+      test(
+        'should store editingSince when editingSince is set to a timestamp',
+        () {
+          // Arrange
+          final lockTime = DateTime(2025, 1, 15, 10, 30);
 
-        // Act
-        final instance = buildWidgetInstance(editingSince: lockTime);
+          // Act
+          final instance = buildWidgetInstance(editingSince: lockTime);
 
-        // Assert
-        expect(instance.editingSince, lockTime);
-      });
+          // Assert
+          expect(instance.editingSince, lockTime);
+        },
+      );
 
-      test('should store both editingBy and editingSince when both lock fields are set', () {
-        // Arrange
-        final lockTime = DateTime(2025, 6, 1, 9, 0);
+      test(
+        'should store both editingBy and editingSince when both lock fields are set',
+        () {
+          // Arrange
+          final lockTime = DateTime(2025, 6, 1, 9, 0);
 
-        // Act
-        final instance = buildWidgetInstance(
-          editingBy: 'user-xyz',
-          editingSince: lockTime,
-        );
+          // Act
+          final instance = buildWidgetInstance(
+            editingBy: 'user-xyz',
+            editingSince: lockTime,
+          );
 
-        // Assert
-        expect(instance.editingBy, 'user-xyz');
-        expect(instance.editingSince, lockTime);
-      });
+          // Assert
+          expect(instance.editingBy, 'user-xyz');
+          expect(instance.editingSince, lockTime);
+        },
+      );
     });
 
     group('acquiring a lock via copyWith', () {
-      test('should set editingBy via copyWith when transitioning from unlocked to locked', () {
-        // Arrange
-        const instance = WidgetInstance(
-          id: 1,
-          columnId: 1,
-          type: 'dish',
-          version: '1',
-          index: 0,
-          props: {},
-        );
+      test(
+        'should set editingBy via copyWith when transitioning from unlocked to locked',
+        () {
+          // Arrange
+          const instance = WidgetInstance(
+            id: 1,
+            columnId: 1,
+            type: 'dish',
+            version: '1',
+            index: 0,
+            props: {},
+          );
 
-        // Act
-        final locked = instance.copyWith(
-          editingBy: 'user-xyz',
-          editingSince: DateTime(2025, 1, 15),
-        );
+          // Act
+          final locked = instance.copyWith(
+            editingBy: 'user-xyz',
+            editingSince: DateTime(2025, 1, 15),
+          );
 
-        // Assert
-        expect(locked.editingBy, 'user-xyz');
-        expect(locked.editingSince, DateTime(2025, 1, 15));
-      });
+          // Assert
+          expect(locked.editingBy, 'user-xyz');
+          expect(locked.editingSince, DateTime(2025, 1, 15));
+        },
+      );
 
       test('should preserve id when lock fields are set via copyWith', () {
         // Arrange
@@ -147,40 +156,46 @@ void main() {
     });
 
     group('releasing a lock via copyWith', () {
-      test('should clear editingBy when copyWith is called with editingBy null', () {
-        // Arrange
-        final locked = buildWidgetInstance(
-          editingBy: 'user-abc',
-          editingSince: DateTime(2025, 1, 1),
-        );
+      test(
+        'should clear editingBy when copyWith is called with editingBy null',
+        () {
+          // Arrange
+          final locked = buildWidgetInstance(
+            editingBy: 'user-abc',
+            editingSince: DateTime(2025, 1, 1),
+          );
 
-        // Act
-        final released = locked.copyWith(editingBy: null, editingSince: null);
+          // Act
+          final released = locked.copyWith(editingBy: null, editingSince: null);
 
-        // Assert
-        expect(released.editingBy, isNull);
-        expect(released.editingSince, isNull);
-      });
+          // Assert
+          expect(released.editingBy, isNull);
+          expect(released.editingSince, isNull);
+        },
+      );
     });
 
     group('lock transfer', () {
-      test('should update editingBy when a different user acquires the lock via copyWith', () {
-        // Arrange
-        final locked = buildWidgetInstance(
-          editingBy: 'user-alpha',
-          editingSince: DateTime(2025, 1, 1, 8, 0),
-        );
+      test(
+        'should update editingBy when a different user acquires the lock via copyWith',
+        () {
+          // Arrange
+          final locked = buildWidgetInstance(
+            editingBy: 'user-alpha',
+            editingSince: DateTime(2025, 1, 1, 8, 0),
+          );
 
-        // Act
-        final transferred = locked.copyWith(
-          editingBy: 'user-beta',
-          editingSince: DateTime(2025, 1, 1, 9, 0),
-        );
+          // Act
+          final transferred = locked.copyWith(
+            editingBy: 'user-beta',
+            editingSince: DateTime(2025, 1, 1, 9, 0),
+          );
 
-        // Assert
-        expect(transferred.editingBy, 'user-beta');
-        expect(transferred.editingSince, DateTime(2025, 1, 1, 9, 0));
-      });
+          // Assert
+          expect(transferred.editingBy, 'user-beta');
+          expect(transferred.editingSince, DateTime(2025, 1, 1, 9, 0));
+        },
+      );
     });
 
     group('equality', () {
@@ -278,21 +293,24 @@ void main() {
         expect(json['editingBy'], 'user-abc');
       });
 
-      test('should round-trip lock fields through JSON preserving equality', () {
-        // Arrange
-        final lockTime = DateTime.utc(2025, 1, 15, 10, 30);
-        final instance = buildWidgetInstance(
-          editingBy: 'user-xyz',
-          editingSince: lockTime,
-        );
+      test(
+        'should round-trip lock fields through JSON preserving equality',
+        () {
+          // Arrange
+          final lockTime = DateTime.utc(2025, 1, 15, 10, 30);
+          final instance = buildWidgetInstance(
+            editingBy: 'user-xyz',
+            editingSince: lockTime,
+          );
 
-        // Act
-        final restored = WidgetInstance.fromJson(instance.toJson());
+          // Act
+          final restored = WidgetInstance.fromJson(instance.toJson());
 
-        // Assert
-        expect(restored.editingBy, 'user-xyz');
-        expect(restored.editingSince, lockTime);
-      });
+          // Assert
+          expect(restored.editingBy, 'user-xyz');
+          expect(restored.editingSince, lockTime);
+        },
+      );
     });
   });
 }

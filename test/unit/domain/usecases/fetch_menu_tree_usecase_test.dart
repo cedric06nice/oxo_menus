@@ -355,12 +355,7 @@ void main() {
           pageRepo.whenGetAllForMenu(
             success([
               buildPage(id: 10, menuId: 1, type: PageType.header),
-              buildPage(
-                id: 11,
-                menuId: 1,
-                type: PageType.content,
-                index: 0,
-              ),
+              buildPage(id: 11, menuId: 1, type: PageType.content, index: 0),
               buildPage(id: 12, menuId: 1, type: PageType.footer),
             ]),
           );
@@ -435,36 +430,38 @@ void main() {
         expect(containers[2].container.id, equals(102));
       });
 
-      test('should sort columns within a container by index ascending',
-          () async {
-        // Arrange
-        menuRepo.whenGetById(success(buildMenu(id: 1)));
-        pageRepo.whenGetAllForMenu(
-          success([buildPage(id: 10, menuId: 1, type: PageType.content)]),
-        );
-        containerRepo.whenGetAllForPage(
-          success([buildContainer(id: 100, pageId: 10)]),
-        );
-        columnRepo.whenGetAllForContainer(
-          success([
-            buildColumn(id: 202, containerId: 100, index: 2),
-            buildColumn(id: 200, containerId: 100, index: 0),
-            buildColumn(id: 201, containerId: 100, index: 1),
-          ]),
-        );
-        containerRepo.whenGetAllForContainer(success([]));
-        widgetRepo.whenGetAllForColumn(success([]));
+      test(
+        'should sort columns within a container by index ascending',
+        () async {
+          // Arrange
+          menuRepo.whenGetById(success(buildMenu(id: 1)));
+          pageRepo.whenGetAllForMenu(
+            success([buildPage(id: 10, menuId: 1, type: PageType.content)]),
+          );
+          containerRepo.whenGetAllForPage(
+            success([buildContainer(id: 100, pageId: 10)]),
+          );
+          columnRepo.whenGetAllForContainer(
+            success([
+              buildColumn(id: 202, containerId: 100, index: 2),
+              buildColumn(id: 200, containerId: 100, index: 0),
+              buildColumn(id: 201, containerId: 100, index: 1),
+            ]),
+          );
+          containerRepo.whenGetAllForContainer(success([]));
+          widgetRepo.whenGetAllForColumn(success([]));
 
-        // Act
-        final result = await useCase.execute(1);
+          // Act
+          final result = await useCase.execute(1);
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        final cols = result.valueOrNull!.pages.first.containers.first.columns;
-        expect(cols[0].column.id, equals(200));
-        expect(cols[1].column.id, equals(201));
-        expect(cols[2].column.id, equals(202));
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          final cols = result.valueOrNull!.pages.first.containers.first.columns;
+          expect(cols[0].column.id, equals(200));
+          expect(cols[1].column.id, equals(201));
+          expect(cols[2].column.id, equals(202));
+        },
+      );
 
       test('should sort widgets within a column by index ascending', () async {
         // Arrange
@@ -518,7 +515,11 @@ void main() {
         final page = buildPage(id: 10, menuId: 5, type: PageType.content);
         final container = buildContainer(id: 100, pageId: 10);
         final column = buildColumn(id: 200, containerId: 100);
-        final widget1 = buildWidgetInstance(id: 300, columnId: 200, type: 'dish');
+        final widget1 = buildWidgetInstance(
+          id: 300,
+          columnId: 200,
+          type: 'dish',
+        );
 
         menuRepo.whenGetById(success(menu));
         pageRepo.whenGetAllForMenu(success([page]));
@@ -572,8 +573,7 @@ void main() {
 
           // Assert
           expect(result.isSuccess, isTrue);
-          final topContainer =
-              result.valueOrNull!.pages.first.containers.first;
+          final topContainer = result.valueOrNull!.pages.first.containers.first;
           expect(topContainer.children.length, equals(1));
           expect(topContainer.children.first.container.id, equals(101));
         },

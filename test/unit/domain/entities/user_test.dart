@@ -38,14 +38,17 @@ void main() {
 
   group('User', () {
     group('construction', () {
-      test('should create user with only required fields when id and email are provided', () {
-        // Arrange & Act
-        const user = User(id: 'u-1', email: 'test@example.com');
+      test(
+        'should create user with only required fields when id and email are provided',
+        () {
+          // Arrange & Act
+          const user = User(id: 'u-1', email: 'test@example.com');
 
-        // Assert
-        expect(user.id, 'u-1');
-        expect(user.email, 'test@example.com');
-      });
+          // Assert
+          expect(user.id, 'u-1');
+          expect(user.email, 'test@example.com');
+        },
+      );
 
       test('should default firstName to null when not specified', () {
         // Arrange & Act
@@ -124,13 +127,20 @@ void main() {
         expect(user.areas[1].name, 'Bar');
       });
 
-      test('should store UserRole.user when role is explicitly set to user', () {
-        // Arrange & Act
-        const user = User(id: 'u-1', email: 'test@example.com', role: UserRole.user);
+      test(
+        'should store UserRole.user when role is explicitly set to user',
+        () {
+          // Arrange & Act
+          const user = User(
+            id: 'u-1',
+            email: 'test@example.com',
+            role: UserRole.user,
+          );
 
-        // Assert
-        expect(user.role, UserRole.user);
-      });
+          // Assert
+          expect(user.role, UserRole.user);
+        },
+      );
     });
 
     group('equality', () {
@@ -172,8 +182,16 @@ void main() {
 
       test('should not be equal when role differs', () {
         // Arrange
-        const a = User(id: 'u-1', email: 'test@example.com', role: UserRole.admin);
-        const b = User(id: 'u-1', email: 'test@example.com', role: UserRole.user);
+        const a = User(
+          id: 'u-1',
+          email: 'test@example.com',
+          role: UserRole.admin,
+        );
+        const b = User(
+          id: 'u-1',
+          email: 'test@example.com',
+          role: UserRole.user,
+        );
 
         // Assert
         expect(a, isNot(equals(b)));
@@ -181,21 +199,28 @@ void main() {
     });
 
     group('copyWith', () {
-      test('should update firstName when copyWith is called with a new firstName', () {
-        // Arrange
-        const user = User(id: 'u-1', email: 'test@example.com');
+      test(
+        'should update firstName when copyWith is called with a new firstName',
+        () {
+          // Arrange
+          const user = User(id: 'u-1', email: 'test@example.com');
 
-        // Act
-        final updated = user.copyWith(firstName: 'Jane');
+          // Act
+          final updated = user.copyWith(firstName: 'Jane');
 
-        // Assert
-        expect(updated.firstName, 'Jane');
-        expect(updated.id, 'u-1');
-      });
+          // Assert
+          expect(updated.firstName, 'Jane');
+          expect(updated.id, 'u-1');
+        },
+      );
 
       test('should update role when copyWith is called with a new role', () {
         // Arrange
-        const user = User(id: 'u-1', email: 'test@example.com', role: UserRole.user);
+        const user = User(
+          id: 'u-1',
+          email: 'test@example.com',
+          role: UserRole.user,
+        );
 
         // Act
         final updated = user.copyWith(role: UserRole.admin);
@@ -204,49 +229,63 @@ void main() {
         expect(updated.role, UserRole.admin);
       });
 
-      test('should update areas when copyWith is called with a new areas list', () {
-        // Arrange
-        const user = User(id: 'u-1', email: 'test@example.com');
+      test(
+        'should update areas when copyWith is called with a new areas list',
+        () {
+          // Arrange
+          const user = User(id: 'u-1', email: 'test@example.com');
 
-        // Act
-        final updated = user.copyWith(areas: [const Area(id: 5, name: 'Terrace')]);
+          // Act
+          final updated = user.copyWith(
+            areas: [const Area(id: 5, name: 'Terrace')],
+          );
 
-        // Assert
-        expect(updated.areas, hasLength(1));
-        expect(updated.areas.first.name, 'Terrace');
-      });
+          // Assert
+          expect(updated.areas, hasLength(1));
+          expect(updated.areas.first.name, 'Terrace');
+        },
+      );
 
-      test('should preserve unchanged fields when only firstName is updated', () {
-        // Arrange
-        final user = buildUser(id: 'u-42', email: 'keep@example.com');
+      test(
+        'should preserve unchanged fields when only firstName is updated',
+        () {
+          // Arrange
+          final user = buildUser(id: 'u-42', email: 'keep@example.com');
 
-        // Act
-        final updated = user.copyWith(firstName: 'Updated');
+          // Act
+          final updated = user.copyWith(firstName: 'Updated');
 
-        // Assert
-        expect(updated.id, 'u-42');
-        expect(updated.email, 'keep@example.com');
-      });
+          // Assert
+          expect(updated.id, 'u-42');
+          expect(updated.email, 'keep@example.com');
+        },
+      );
     });
 
     group('collection isolation', () {
-      test('should return a new areas list via copyWith so original is not affected', () {
-        // Arrange
-        const user = User(
-          id: 'u-1',
-          email: 'test@example.com',
-          areas: [Area(id: 1, name: 'Dining')],
-        );
+      test(
+        'should return a new areas list via copyWith so original is not affected',
+        () {
+          // Arrange
+          const user = User(
+            id: 'u-1',
+            email: 'test@example.com',
+            areas: [Area(id: 1, name: 'Dining')],
+          );
 
-        // Act
-        final updated = user.copyWith(
-          areas: [const Area(id: 1, name: 'Dining'), const Area(id: 2, name: 'Bar')],
-        );
+          // Act
+          final updated = user.copyWith(
+            areas: [
+              const Area(id: 1, name: 'Dining'),
+              const Area(id: 2, name: 'Bar'),
+            ],
+          );
 
-        // Assert
-        expect(user.areas, hasLength(1));
-        expect(updated.areas, hasLength(2));
-      });
+          // Assert
+          expect(user.areas, hasLength(1));
+          expect(updated.areas, hasLength(2));
+        },
+      );
     });
 
     group('toString', () {
@@ -284,7 +323,11 @@ void main() {
 
       test('should serialize role as "user" for user role', () {
         // Arrange
-        const user = User(id: 'u-1', email: 'test@example.com', role: UserRole.user);
+        const user = User(
+          id: 'u-1',
+          email: 'test@example.com',
+          role: UserRole.user,
+        );
 
         // Act
         final json = user.toJson();
@@ -312,23 +355,29 @@ void main() {
         expect(user.role, UserRole.admin);
       });
 
-      test('should round-trip through JSON preserving equality for minimal user', () {
-        // Arrange
-        const original = User(id: 'u-1', email: 'minimal@example.com');
+      test(
+        'should round-trip through JSON preserving equality for minimal user',
+        () {
+          // Arrange
+          const original = User(id: 'u-1', email: 'minimal@example.com');
 
-        // Act
-        final restored = User.fromJson(original.toJson());
+          // Act
+          final restored = User.fromJson(original.toJson());
 
-        // Assert
-        expect(restored, equals(original));
-      });
+          // Assert
+          expect(restored, equals(original));
+        },
+      );
 
       test('should serialize a non-empty areas list to JSON as a list', () {
         // Arrange
         const user = User(
           id: 'u-1',
           email: 'test@example.com',
-          areas: [Area(id: 1, name: 'Dining'), Area(id: 2, name: 'Bar')],
+          areas: [
+            Area(id: 1, name: 'Dining'),
+            Area(id: 2, name: 'Bar'),
+          ],
         );
 
         // Act

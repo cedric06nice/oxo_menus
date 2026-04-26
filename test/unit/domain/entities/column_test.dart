@@ -8,15 +8,18 @@ import '../../../fakes/builders/column_builder.dart';
 void main() {
   group('Column', () {
     group('construction', () {
-      test('should create column with correct required fields when id, containerId and index are provided', () {
-        // Arrange & Act
-        const column = Column(id: 1, containerId: 2, index: 0);
+      test(
+        'should create column with correct required fields when id, containerId and index are provided',
+        () {
+          // Arrange & Act
+          const column = Column(id: 1, containerId: 2, index: 0);
 
-        // Assert
-        expect(column.id, 1);
-        expect(column.containerId, 2);
-        expect(column.index, 0);
-      });
+          // Assert
+          expect(column.id, 1);
+          expect(column.containerId, 2);
+          expect(column.index, 0);
+        },
+      );
 
       test('should default flex to null when not specified', () {
         // Arrange & Act
@@ -96,37 +99,53 @@ void main() {
 
       test('should accept isDroppable false when explicitly set to false', () {
         // Arrange & Act
-        const column = Column(id: 1, containerId: 1, index: 0, isDroppable: false);
+        const column = Column(
+          id: 1,
+          containerId: 1,
+          index: 0,
+          isDroppable: false,
+        );
 
         // Assert
         expect(column.isDroppable, isFalse);
       });
 
-      test('should store styleConfig with BorderType when borderType is set', () {
-        // Arrange & Act
-        const column = Column(
-          id: 1,
-          containerId: 1,
-          index: 0,
-          styleConfig: StyleConfig(borderType: BorderType.dropShadow),
-        );
+      test(
+        'should store styleConfig with BorderType when borderType is set',
+        () {
+          // Arrange & Act
+          const column = Column(
+            id: 1,
+            containerId: 1,
+            index: 0,
+            styleConfig: StyleConfig(borderType: BorderType.dropShadow),
+          );
 
-        // Assert
-        expect(column.styleConfig!.borderType, BorderType.dropShadow);
-      });
+          // Assert
+          expect(column.styleConfig!.borderType, BorderType.dropShadow);
+        },
+      );
 
-      test('should store styleConfig with VerticalAlignment when verticalAlignment is set', () {
-        // Arrange & Act
-        const column = Column(
-          id: 1,
-          containerId: 1,
-          index: 0,
-          styleConfig: StyleConfig(verticalAlignment: VerticalAlignment.center),
-        );
+      test(
+        'should store styleConfig with VerticalAlignment when verticalAlignment is set',
+        () {
+          // Arrange & Act
+          const column = Column(
+            id: 1,
+            containerId: 1,
+            index: 0,
+            styleConfig: StyleConfig(
+              verticalAlignment: VerticalAlignment.center,
+            ),
+          );
 
-        // Assert
-        expect(column.styleConfig!.verticalAlignment, VerticalAlignment.center);
-      });
+          // Assert
+          expect(
+            column.styleConfig!.verticalAlignment,
+            VerticalAlignment.center,
+          );
+        },
+      );
     });
 
     group('equality', () {
@@ -177,76 +196,94 @@ void main() {
     });
 
     group('copyWith', () {
-      test('should update isDroppable to false when copyWith is called with false', () {
-        // Arrange
-        const column = Column(id: 1, containerId: 1, index: 0);
+      test(
+        'should update isDroppable to false when copyWith is called with false',
+        () {
+          // Arrange
+          const column = Column(id: 1, containerId: 1, index: 0);
 
-        // Act
-        final updated = column.copyWith(isDroppable: false);
+          // Act
+          final updated = column.copyWith(isDroppable: false);
 
-        // Assert
-        expect(updated.isDroppable, isFalse);
-      });
+          // Assert
+          expect(updated.isDroppable, isFalse);
+        },
+      );
 
-      test('should preserve id when only isDroppable is updated via copyWith', () {
-        // Arrange
-        const column = Column(id: 1, containerId: 1, index: 0);
+      test(
+        'should preserve id when only isDroppable is updated via copyWith',
+        () {
+          // Arrange
+          const column = Column(id: 1, containerId: 1, index: 0);
 
-        // Act
-        final updated = column.copyWith(isDroppable: false);
+          // Act
+          final updated = column.copyWith(isDroppable: false);
 
-        // Assert
-        expect(updated.id, 1);
-      });
+          // Assert
+          expect(updated.id, 1);
+        },
+      );
 
-      test('should update flex when copyWith is called with a new flex value', () {
-        // Arrange
-        const column = Column(id: 1, containerId: 1, index: 0);
+      test(
+        'should update flex when copyWith is called with a new flex value',
+        () {
+          // Arrange
+          const column = Column(id: 1, containerId: 1, index: 0);
 
-        // Act
-        final updated = column.copyWith(flex: 3);
+          // Act
+          final updated = column.copyWith(flex: 3);
 
-        // Assert
-        expect(updated.flex, 3);
-      });
+          // Assert
+          expect(updated.flex, 3);
+        },
+      );
 
-      test('should update width when copyWith is called with a new width value', () {
-        // Arrange
-        const column = Column(id: 1, containerId: 1, index: 0);
+      test(
+        'should update width when copyWith is called with a new width value',
+        () {
+          // Arrange
+          const column = Column(id: 1, containerId: 1, index: 0);
 
-        // Act
-        final updated = column.copyWith(width: 250.0);
+          // Act
+          final updated = column.copyWith(width: 250.0);
 
-        // Assert
-        expect(updated.width, 250.0);
-      });
+          // Assert
+          expect(updated.width, 250.0);
+        },
+      );
 
-      test('should update styleConfig when copyWith is called with a new StyleConfig', () {
-        // Arrange
-        const column = Column(id: 1, containerId: 1, index: 0);
+      test(
+        'should update styleConfig when copyWith is called with a new StyleConfig',
+        () {
+          // Arrange
+          const column = Column(id: 1, containerId: 1, index: 0);
 
-        // Act
-        final updated = column.copyWith(
-          styleConfig: const StyleConfig(marginTop: 20.0),
-        );
+          // Act
+          final updated = column.copyWith(
+            styleConfig: const StyleConfig(marginTop: 20.0),
+          );
 
-        // Assert
-        expect(updated.styleConfig!.marginTop, 20.0);
-      });
+          // Assert
+          expect(updated.styleConfig!.marginTop, 20.0);
+        },
+      );
 
-      test('should preserve unchanged fields when copyWith updates index only', () {
-        // Arrange
-        final column = buildColumn(id: 5, containerId: 3, index: 2, flex: 1);
+      test(
+        'should preserve unchanged fields when copyWith updates index only',
+        () {
+          // Arrange
+          final column = buildColumn(id: 5, containerId: 3, index: 2, flex: 1);
 
-        // Act
-        final updated = column.copyWith(index: 4);
+          // Act
+          final updated = column.copyWith(index: 4);
 
-        // Assert
-        expect(updated.id, 5);
-        expect(updated.containerId, 3);
-        expect(updated.flex, 1);
-        expect(updated.index, 4);
-      });
+          // Assert
+          expect(updated.id, 5);
+          expect(updated.containerId, 3);
+          expect(updated.flex, 1);
+          expect(updated.index, 4);
+        },
+      );
     });
 
     group('JSON serialization', () {
@@ -265,7 +302,12 @@ void main() {
 
       test('should deserialize column from JSON with correct field values', () {
         // Arrange
-        final json = {'id': 4, 'containerId': 5, 'index': 1, 'isDroppable': true};
+        final json = {
+          'id': 4,
+          'containerId': 5,
+          'index': 1,
+          'isDroppable': true,
+        };
 
         // Act
         final column = Column.fromJson(json);
@@ -279,7 +321,13 @@ void main() {
 
       test('should round-trip through JSON preserving equality', () {
         // Arrange
-        const original = Column(id: 7, containerId: 9, index: 2, flex: 1, width: 100.0);
+        const original = Column(
+          id: 7,
+          containerId: 9,
+          index: 2,
+          flex: 1,
+          width: 100.0,
+        );
 
         // Act
         final restored = Column.fromJson(original.toJson());

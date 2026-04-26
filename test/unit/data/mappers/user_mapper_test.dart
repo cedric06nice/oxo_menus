@@ -153,20 +153,23 @@ void main() {
         expect(entity.role, UserRole.user);
       });
 
-      test('should map a UUID role string (unexpanded relation) to UserRole.user', () {
-        // Arrange — Directus returns the role UUID when not expanding
-        final dto = UserDto(
-          id: 'u1',
-          email: 'a@b.com',
-          role: 'f8205fcc-3816-4a93-9010-76df1a1f4a90',
-        );
+      test(
+        'should map a UUID role string (unexpanded relation) to UserRole.user',
+        () {
+          // Arrange — Directus returns the role UUID when not expanding
+          final dto = UserDto(
+            id: 'u1',
+            email: 'a@b.com',
+            role: 'f8205fcc-3816-4a93-9010-76df1a1f4a90',
+          );
 
-        // Act
-        final entity = UserMapper.toEntity(dto);
+          // Act
+          final entity = UserMapper.toEntity(dto);
 
-        // Assert
-        expect(entity.role, UserRole.user);
-      });
+          // Assert
+          expect(entity.role, UserRole.user);
+        },
+      );
 
       test('should default unknown role string to UserRole.user', () {
         // Arrange

@@ -23,35 +23,29 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('repository failure', () {
-      test(
-        'should return Failure when menuRepository.listAll fails',
-        () async {
-          // Arrange
-          menuRepo.whenListAll(failure(network()));
+      test('should return Failure when menuRepository.listAll fails', () async {
+        // Arrange
+        menuRepo.whenListAll(failure(network()));
 
-          // Act
-          final result = await useCase.execute();
+        // Act
+        final result = await useCase.execute();
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<NetworkError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NetworkError>());
+      });
 
-      test(
-        'should propagate ServerError from repository',
-        () async {
-          // Arrange
-          menuRepo.whenListAll(failure(server()));
+      test('should propagate ServerError from repository', () async {
+        // Arrange
+        menuRepo.whenListAll(failure(server()));
 
-          // Act
-          final result = await useCase.execute();
+        // Act
+        final result = await useCase.execute();
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<ServerError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<ServerError>());
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -79,24 +73,21 @@ void main() {
         },
       );
 
-      test(
-        'should return all menus when statusFilter is "all"',
-        () async {
-          // Arrange
-          final menus = [
-            buildMenu(id: 1, status: Status.draft),
-            buildMenu(id: 2, status: Status.published),
-          ];
-          menuRepo.whenListAll(success(menus));
+      test('should return all menus when statusFilter is "all"', () async {
+        // Arrange
+        final menus = [
+          buildMenu(id: 1, status: Status.draft),
+          buildMenu(id: 2, status: Status.published),
+        ];
+        menuRepo.whenListAll(success(menus));
 
-          // Act
-          final result = await useCase.execute(statusFilter: 'all');
+        // Act
+        final result = await useCase.execute(statusFilter: 'all');
 
-          // Assert
-          expect(result.isSuccess, isTrue);
-          expect(result.valueOrNull!.length, equals(2));
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull!.length, equals(2));
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -166,22 +157,17 @@ void main() {
         },
       );
 
-      test(
-        'should return empty list when no menus match the filter',
-        () async {
-          // Arrange
-          menuRepo.whenListAll(
-            success([buildMenu(id: 1, status: Status.draft)]),
-          );
+      test('should return empty list when no menus match the filter', () async {
+        // Arrange
+        menuRepo.whenListAll(success([buildMenu(id: 1, status: Status.draft)]));
 
-          // Act
-          final result = await useCase.execute(statusFilter: 'published');
+        // Act
+        final result = await useCase.execute(statusFilter: 'published');
 
-          // Assert
-          expect(result.isSuccess, isTrue);
-          expect(result.valueOrNull!, isEmpty);
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull!, isEmpty);
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -225,19 +211,16 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('repository call semantics', () {
-      test(
-        'should always call listAll with onlyPublished: false',
-        () async {
-          // Arrange
-          menuRepo.whenListAll(success([]));
+      test('should always call listAll with onlyPublished: false', () async {
+        // Arrange
+        menuRepo.whenListAll(success([]));
 
-          // Act
-          await useCase.execute();
+        // Act
+        await useCase.execute();
 
-          // Assert
-          expect(menuRepo.listAllCalls.single.onlyPublished, isFalse);
-        },
-      );
+        // Assert
+        expect(menuRepo.listAllCalls.single.onlyPublished, isFalse);
+      });
     });
   });
 }

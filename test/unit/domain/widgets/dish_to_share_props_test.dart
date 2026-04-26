@@ -114,18 +114,20 @@ void main() {
     });
 
     group('copyWith', () {
-      test('should update servings when copyWith is called with a new value',
-          () {
-        const original = DishToShareProps(
-          name: 'Test',
-          price: 10.0,
-          servings: 2,
-        );
+      test(
+        'should update servings when copyWith is called with a new value',
+        () {
+          const original = DishToShareProps(
+            name: 'Test',
+            price: 10.0,
+            servings: 2,
+          );
 
-        final copy = original.copyWith(servings: 6);
+          final copy = original.copyWith(servings: 6);
 
-        expect(copy.servings, 6);
-      });
+          expect(copy.servings, 6);
+        },
+      );
 
       test('should preserve name when copyWith only changes servings', () {
         const original = DishToShareProps(
@@ -232,24 +234,26 @@ void main() {
       });
 
       test('should return For Ten when servings is 10', () {
-        const props =
-            DishToShareProps(name: 'Test', price: 10.0, servings: 10);
+        const props = DishToShareProps(name: 'Test', price: 10.0, servings: 10);
 
         expect(props.servingsLabel, 'For Ten');
       });
 
       test(
-          'should use numeric fallback when servings exceeds the word dictionary',
-          () {
-        const props =
-            DishToShareProps(name: 'Test', price: 10.0, servings: 12);
+        'should use numeric fallback when servings exceeds the word dictionary',
+        () {
+          const props = DishToShareProps(
+            name: 'Test',
+            price: 10.0,
+            servings: 12,
+          );
 
-        expect(props.servingsLabel, 'For 12');
-      });
+          expect(props.servingsLabel, 'For 12');
+        },
+      );
 
       test('should use numeric fallback for servings value 11', () {
-        const props =
-            DishToShareProps(name: 'Test', price: 10.0, servings: 11);
+        const props = DishToShareProps(name: 'Test', price: 10.0, servings: 11);
 
         expect(props.servingsLabel, 'For 11');
       });
@@ -287,13 +291,17 @@ void main() {
       });
 
       test(
-          'should compose numeric fallback with To Share when servings exceeds dictionary',
-          () {
-        const props =
-            DishToShareProps(name: 'Test', price: 10.0, servings: 12);
+        'should compose numeric fallback with To Share when servings exceeds dictionary',
+        () {
+          const props = DishToShareProps(
+            name: 'Test',
+            price: 10.0,
+            servings: 12,
+          );
 
-        expect(props.sharingText, 'For 12 To Share');
-      });
+          expect(props.sharingText, 'For 12 To Share');
+        },
+      );
     });
 
     group('displayName', () {
@@ -323,12 +331,14 @@ void main() {
         expect(props.displayName, 'SHARING BOARD (V)');
       });
 
-      test('should return empty string when name is empty and no dietary set',
-          () {
-        const props = DishToShareProps(name: '', price: 10.0);
+      test(
+        'should return empty string when name is empty and no dietary set',
+        () {
+          const props = DishToShareProps(name: '', price: 10.0);
 
-        expect(props.displayName, '');
-      });
+          expect(props.displayName, '');
+        },
+      );
     });
 
     group('JSON round-trip', () {
@@ -368,20 +378,19 @@ void main() {
         expect(restored.servings, isNull);
       });
 
-      test('should handle missing servings key in JSON by defaulting to null',
-          () {
-        final json = {'name': 'Board', 'price': 20.0};
+      test(
+        'should handle missing servings key in JSON by defaulting to null',
+        () {
+          final json = {'name': 'Board', 'price': 20.0};
 
-        final props = DishToShareProps.fromJson(json);
+          final props = DishToShareProps.fromJson(json);
 
-        expect(props.servings, isNull);
-      });
+          expect(props.servings, isNull);
+        },
+      );
 
       test('should round-trip a GBP price with fractional pence correctly', () {
-        const original = DishToShareProps(
-          name: 'Platter',
-          price: 18.99,
-        );
+        const original = DishToShareProps(name: 'Platter', price: 18.99);
 
         final json = original.toJson();
         final restored = DishToShareProps.fromJson(json);

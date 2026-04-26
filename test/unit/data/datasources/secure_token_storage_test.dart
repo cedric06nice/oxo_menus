@@ -73,9 +73,9 @@ void main() {
     // are routed to InMemoryStorage.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
-      inMemoryStorage.handle,
-    );
+          const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+          inMemoryStorage.handle,
+        );
 
     // Use the real SecureTokenStorage with a default-constructed
     // FlutterSecureStorage; platform calls are intercepted above.
@@ -86,9 +86,9 @@ void main() {
     // Deregister handler so it does not bleed into subsequent tests.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
-      null,
-    );
+          const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+          null,
+        );
   });
 
   // =========================================================================
@@ -119,24 +119,26 @@ void main() {
         expect(inMemoryStorage.read('refresh_token'), 'refresh-xyz');
       });
 
-      test('should overwrite previously stored tokens when called again',
-          () async {
-        // Arrange
-        await tokenStorage.saveTokens(
-          accessToken: 'old-access',
-          refreshToken: 'old-refresh',
-        );
+      test(
+        'should overwrite previously stored tokens when called again',
+        () async {
+          // Arrange
+          await tokenStorage.saveTokens(
+            accessToken: 'old-access',
+            refreshToken: 'old-refresh',
+          );
 
-        // Act
-        await tokenStorage.saveTokens(
-          accessToken: 'new-access',
-          refreshToken: 'new-refresh',
-        );
+          // Act
+          await tokenStorage.saveTokens(
+            accessToken: 'new-access',
+            refreshToken: 'new-refresh',
+          );
 
-        // Assert
-        expect(inMemoryStorage.read('access_token'), 'new-access');
-        expect(inMemoryStorage.read('refresh_token'), 'new-refresh');
-      });
+          // Assert
+          expect(inMemoryStorage.read('access_token'), 'new-access');
+          expect(inMemoryStorage.read('refresh_token'), 'new-refresh');
+        },
+      );
     });
 
     // -----------------------------------------------------------------------
@@ -162,34 +164,38 @@ void main() {
         expect(result, 'my-access-token');
       });
 
-      test('should round-trip: getAccessToken returns what saveTokens stored',
-          () async {
-        // Arrange
-        await tokenStorage.saveTokens(
-          accessToken: 'roundtrip-access',
-          refreshToken: 'roundtrip-refresh',
-        );
+      test(
+        'should round-trip: getAccessToken returns what saveTokens stored',
+        () async {
+          // Arrange
+          await tokenStorage.saveTokens(
+            accessToken: 'roundtrip-access',
+            refreshToken: 'roundtrip-refresh',
+          );
 
-        // Act
-        final result = await tokenStorage.getAccessToken();
+          // Act
+          final result = await tokenStorage.getAccessToken();
 
-        // Assert
-        expect(result, 'roundtrip-access');
-      });
+          // Assert
+          expect(result, 'roundtrip-access');
+        },
+      );
     });
 
     // -----------------------------------------------------------------------
     group('getRefreshToken', () {
-      test('should return null when no refresh token has been stored',
-          () async {
-        // Arrange — empty storage
+      test(
+        'should return null when no refresh token has been stored',
+        () async {
+          // Arrange — empty storage
 
-        // Act
-        final result = await tokenStorage.getRefreshToken();
+          // Act
+          final result = await tokenStorage.getRefreshToken();
 
-        // Assert
-        expect(result, isNull);
-      });
+          // Assert
+          expect(result, isNull);
+        },
+      );
 
       test('should return the stored refresh token', () async {
         // Arrange
@@ -202,48 +208,54 @@ void main() {
         expect(result, 'my-refresh-token');
       });
 
-      test('should round-trip: getRefreshToken returns what saveTokens stored',
-          () async {
-        // Arrange
-        await tokenStorage.saveTokens(
-          accessToken: 'any-access',
-          refreshToken: 'roundtrip-refresh',
-        );
+      test(
+        'should round-trip: getRefreshToken returns what saveTokens stored',
+        () async {
+          // Arrange
+          await tokenStorage.saveTokens(
+            accessToken: 'any-access',
+            refreshToken: 'roundtrip-refresh',
+          );
 
-        // Act
-        final result = await tokenStorage.getRefreshToken();
+          // Act
+          final result = await tokenStorage.getRefreshToken();
 
-        // Assert
-        expect(result, 'roundtrip-refresh');
-      });
+          // Assert
+          expect(result, 'roundtrip-refresh');
+        },
+      );
     });
 
     // -----------------------------------------------------------------------
     group('saveRefreshToken', () {
-      test('should persist only the refresh token without touching access token',
-          () async {
-        // Arrange — access token already in storage
-        inMemoryStorage.seed('access_token', 'existing-access');
+      test(
+        'should persist only the refresh token without touching access token',
+        () async {
+          // Arrange — access token already in storage
+          inMemoryStorage.seed('access_token', 'existing-access');
 
-        // Act
-        await tokenStorage.saveRefreshToken('standalone-refresh');
+          // Act
+          await tokenStorage.saveRefreshToken('standalone-refresh');
 
-        // Assert — access token untouched
-        expect(inMemoryStorage.read('access_token'), 'existing-access');
-        expect(inMemoryStorage.read('refresh_token'), 'standalone-refresh');
-      });
+          // Assert — access token untouched
+          expect(inMemoryStorage.read('access_token'), 'existing-access');
+          expect(inMemoryStorage.read('refresh_token'), 'standalone-refresh');
+        },
+      );
 
-      test('should overwrite existing refresh token when called again',
-          () async {
-        // Arrange
-        inMemoryStorage.seed('refresh_token', 'old-refresh');
+      test(
+        'should overwrite existing refresh token when called again',
+        () async {
+          // Arrange
+          inMemoryStorage.seed('refresh_token', 'old-refresh');
 
-        // Act
-        await tokenStorage.saveRefreshToken('updated-refresh');
+          // Act
+          await tokenStorage.saveRefreshToken('updated-refresh');
 
-        // Assert
-        expect(inMemoryStorage.read('refresh_token'), 'updated-refresh');
-      });
+          // Assert
+          expect(inMemoryStorage.read('refresh_token'), 'updated-refresh');
+        },
+      );
 
       test('should be retrievable via getRefreshToken after saving', () async {
         // Arrange
@@ -305,21 +317,20 @@ void main() {
         expect(result, isTrue);
       });
 
-      test('should return false after clearTokens removes both tokens',
-          () async {
-        // Arrange
-        await tokenStorage.saveTokens(
-          accessToken: 'a',
-          refreshToken: 'r',
-        );
+      test(
+        'should return false after clearTokens removes both tokens',
+        () async {
+          // Arrange
+          await tokenStorage.saveTokens(accessToken: 'a', refreshToken: 'r');
 
-        // Act
-        await tokenStorage.clearTokens();
-        final result = await tokenStorage.hasTokens();
+          // Act
+          await tokenStorage.clearTokens();
+          final result = await tokenStorage.hasTokens();
 
-        // Assert
-        expect(result, isFalse);
-      });
+          // Assert
+          expect(result, isFalse);
+        },
+      );
     });
 
     // -----------------------------------------------------------------------
@@ -361,10 +372,7 @@ void main() {
 
       test('should be idempotent when called twice', () async {
         // Arrange
-        await tokenStorage.saveTokens(
-          accessToken: 'a',
-          refreshToken: 'r',
-        );
+        await tokenStorage.saveTokens(accessToken: 'a', refreshToken: 'r');
 
         // Act
         await tokenStorage.clearTokens();

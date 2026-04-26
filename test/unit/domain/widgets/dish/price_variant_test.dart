@@ -16,12 +16,14 @@ void main() {
         expect(variant.price, 18.50);
       });
 
-      test('should store whole-number price exactly when price has no decimal',
-          () {
-        const variant = PriceVariant(label: 'Small', price: 10.0);
+      test(
+        'should store whole-number price exactly when price has no decimal',
+        () {
+          const variant = PriceVariant(label: 'Small', price: 10.0);
 
-        expect(variant.price, 10.0);
-      });
+          expect(variant.price, 10.0);
+        },
+      );
 
       test('should store empty-string label when label is empty', () {
         const variant = PriceVariant(label: '', price: 5.0);

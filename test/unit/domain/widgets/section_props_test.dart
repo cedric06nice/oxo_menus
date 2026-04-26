@@ -174,8 +174,7 @@ void main() {
         expect(restored, equals(original));
       });
 
-      test(
-          'should use default values when only title is present in JSON', () {
+      test('should use default values when only title is present in JSON', () {
         final json = {'title': 'Sides'};
 
         final props = SectionProps.fromJson(json);

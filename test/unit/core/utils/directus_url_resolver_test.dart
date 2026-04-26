@@ -24,15 +24,18 @@ void main() {
         expect(result, 'https://custom-api.example.com');
       });
 
-      test('should return dart-define URL even on web with localhost baseUri', () {
-        final result = resolveDirectusUrl(
-          dartDefineUrl: 'https://api.mysite.com',
-          isWeb: true,
-          baseUri: Uri.parse('http://localhost:3000'),
-        );
+      test(
+        'should return dart-define URL even on web with localhost baseUri',
+        () {
+          final result = resolveDirectusUrl(
+            dartDefineUrl: 'https://api.mysite.com',
+            isWeb: true,
+            baseUri: Uri.parse('http://localhost:3000'),
+          );
 
-        expect(result, 'https://api.mysite.com');
-      });
+          expect(result, 'https://api.mysite.com');
+        },
+      );
 
       test('should strip single trailing slash from dart-define URL', () {
         final result = resolveDirectusUrl(
@@ -66,15 +69,18 @@ void main() {
     });
 
     group('web derivation from hostname', () {
-      test('should derive api URL from hostname when on web with real hostname', () {
-        final result = resolveDirectusUrl(
-          dartDefineUrl: '',
-          isWeb: true,
-          baseUri: Uri.parse('https://oxo-menus.example.com'),
-        );
+      test(
+        'should derive api URL from hostname when on web with real hostname',
+        () {
+          final result = resolveDirectusUrl(
+            dartDefineUrl: '',
+            isWeb: true,
+            baseUri: Uri.parse('https://oxo-menus.example.com'),
+          );
 
-        expect(result, 'https://api.oxo-menus.example.com');
-      });
+          expect(result, 'https://api.oxo-menus.example.com');
+        },
+      );
 
       test('should derive api URL for a single-label hostname on web', () {
         final result = resolveDirectusUrl(
@@ -86,25 +92,31 @@ void main() {
         expect(result, 'https://api.myapp.io');
       });
 
-      test('should fall back to localhost when on web but hostname is localhost', () {
-        final result = resolveDirectusUrl(
-          dartDefineUrl: '',
-          isWeb: true,
-          baseUri: Uri.parse('http://localhost:8080'),
-        );
+      test(
+        'should fall back to localhost when on web but hostname is localhost',
+        () {
+          final result = resolveDirectusUrl(
+            dartDefineUrl: '',
+            isWeb: true,
+            baseUri: Uri.parse('http://localhost:8080'),
+          );
 
-        expect(result, 'http://localhost:8055');
-      });
+          expect(result, 'http://localhost:8055');
+        },
+      );
 
-      test('should fall back to localhost when on web but host is empty string', () {
-        final result = resolveDirectusUrl(
-          dartDefineUrl: '',
-          isWeb: true,
-          baseUri: Uri(),
-        );
+      test(
+        'should fall back to localhost when on web but host is empty string',
+        () {
+          final result = resolveDirectusUrl(
+            dartDefineUrl: '',
+            isWeb: true,
+            baseUri: Uri(),
+          );
 
-        expect(result, 'http://localhost:8055');
-      });
+          expect(result, 'http://localhost:8055');
+        },
+      );
     });
 
     group('non-web localhost fallback', () {
@@ -118,29 +130,35 @@ void main() {
         expect(result, 'http://localhost:8055');
       });
 
-      test('should fall back to localhost when not on web with arbitrary baseUri', () {
-        final result = resolveDirectusUrl(
-          dartDefineUrl: '',
-          isWeb: false,
-          baseUri: Uri.parse('https://ignored.example.com'),
-        );
+      test(
+        'should fall back to localhost when not on web with arbitrary baseUri',
+        () {
+          final result = resolveDirectusUrl(
+            dartDefineUrl: '',
+            isWeb: false,
+            baseUri: Uri.parse('https://ignored.example.com'),
+          );
 
-        expect(result, 'http://localhost:8055');
-      });
+          expect(result, 'http://localhost:8055');
+        },
+      );
     });
 
     group('trailing slash stripping', () {
-      test('should strip trailing slash from localhost fallback URL when applicable', () {
-        // The localhost fallback itself is hard-coded without slash, but
-        // if a dart-define URL ending with slash is provided, it is stripped.
-        final result = resolveDirectusUrl(
-          dartDefineUrl: 'http://localhost:8055/',
-          isWeb: false,
-          baseUri: Uri.parse('http://localhost'),
-        );
+      test(
+        'should strip trailing slash from localhost fallback URL when applicable',
+        () {
+          // The localhost fallback itself is hard-coded without slash, but
+          // if a dart-define URL ending with slash is provided, it is stripped.
+          final result = resolveDirectusUrl(
+            dartDefineUrl: 'http://localhost:8055/',
+            isWeb: false,
+            baseUri: Uri.parse('http://localhost'),
+          );
 
-        expect(result, 'http://localhost:8055');
-      });
+          expect(result, 'http://localhost:8055');
+        },
+      );
 
       test('should strip trailing slash from web-derived URL when applicable', () {
         // The derived url is constructed as 'https://api.$host' — no trailing slash
@@ -157,15 +175,18 @@ void main() {
     });
 
     group('default fallback value', () {
-      test('should default to http://localhost:8055 as documented in CLAUDE.md', () {
-        final result = resolveDirectusUrl(
-          dartDefineUrl: '',
-          isWeb: false,
-          baseUri: Uri.parse('http://localhost'),
-        );
+      test(
+        'should default to http://localhost:8055 as documented in CLAUDE.md',
+        () {
+          final result = resolveDirectusUrl(
+            dartDefineUrl: '',
+            isWeb: false,
+            baseUri: Uri.parse('http://localhost'),
+          );
 
-        expect(result, 'http://localhost:8055');
-      });
+          expect(result, 'http://localhost:8055');
+        },
+      );
     });
   });
 }

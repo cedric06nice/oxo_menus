@@ -127,14 +127,16 @@ void main() {
         expect(modified.text, 'Modified');
       });
 
-      test('should update fontSize when copyWith is called with a new value',
-          () {
-        const original = TextProps(text: 'Hello');
+      test(
+        'should update fontSize when copyWith is called with a new value',
+        () {
+          const original = TextProps(text: 'Hello');
 
-        final modified = original.copyWith(fontSize: 16.0);
+          final modified = original.copyWith(fontSize: 16.0);
 
-        expect(modified.fontSize, 16.0);
-      });
+          expect(modified.fontSize, 16.0);
+        },
+      );
 
       test('should update align when copyWith is called with a new value', () {
         const original = TextProps(text: 'Hello', align: 'left');

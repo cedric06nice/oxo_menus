@@ -92,8 +92,8 @@ class FakePresenceRepository implements PresenceRepository {
 
   // Per-menu getActiveUsers stubs.  Falls back to _getActiveUsersDefaultResult
   // when a per-menu stub is absent.
-  final Map<int, Result<List<MenuPresence>, DomainError>> _getActiveUsersResults =
-      {};
+  final Map<int, Result<List<MenuPresence>, DomainError>>
+  _getActiveUsersResults = {};
   Result<List<MenuPresence>, DomainError>? _getActiveUsersDefaultResult;
 
   // -------------------------------------------------------------------------
@@ -116,13 +116,18 @@ class FakePresenceRepository implements PresenceRepository {
   }
 
   /// Configures [getActiveUsers] for a specific [menuId] to return [result].
-  void whenGetActiveUsers(int menuId, Result<List<MenuPresence>, DomainError> result) {
+  void whenGetActiveUsers(
+    int menuId,
+    Result<List<MenuPresence>, DomainError> result,
+  ) {
     _getActiveUsersResults[menuId] = result;
   }
 
   /// Configures a default [getActiveUsers] result used when no per-menu stub
   /// is set.
-  void whenGetActiveUsersDefault(Result<List<MenuPresence>, DomainError> result) {
+  void whenGetActiveUsersDefault(
+    Result<List<MenuPresence>, DomainError> result,
+  ) {
     _getActiveUsersDefaultResult = result;
   }
 
@@ -130,7 +135,8 @@ class FakePresenceRepository implements PresenceRepository {
   // Stream drivers — watchActiveUsers
   // -------------------------------------------------------------------------
 
-  final Map<int, StreamController<List<MenuPresence>>> _presenceControllers = {};
+  final Map<int, StreamController<List<MenuPresence>>> _presenceControllers =
+      {};
 
   /// Pushes [users] to the presence stream for [menuId].
   void emitPresence(int menuId, List<MenuPresence> users) {
@@ -180,12 +186,14 @@ class FakePresenceRepository implements PresenceRepository {
     String? userName,
     String? userAvatar,
   }) async {
-    calls.add(JoinMenuCall(
-      menuId: menuId,
-      userId: userId,
-      userName: userName,
-      userAvatar: userAvatar,
-    ));
+    calls.add(
+      JoinMenuCall(
+        menuId: menuId,
+        userId: userId,
+        userName: userName,
+        userAvatar: userAvatar,
+      ),
+    );
     if (_joinMenuResult != null) {
       return _joinMenuResult!;
     }

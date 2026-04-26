@@ -7,15 +7,18 @@ import '../../../fakes/builders/container_builder.dart';
 void main() {
   group('Container', () {
     group('construction', () {
-      test('should create container with correct required fields when id, pageId and index are provided', () {
-        // Arrange & Act
-        const container = Container(id: 1, pageId: 2, index: 0);
+      test(
+        'should create container with correct required fields when id, pageId and index are provided',
+        () {
+          // Arrange & Act
+          const container = Container(id: 1, pageId: 2, index: 0);
 
-        // Assert
-        expect(container.id, 1);
-        expect(container.pageId, 2);
-        expect(container.index, 0);
-      });
+          // Assert
+          expect(container.id, 1);
+          expect(container.pageId, 2);
+          expect(container.index, 0);
+        },
+      );
 
       test('should default name to null when not specified', () {
         // Arrange & Act
@@ -65,13 +68,21 @@ void main() {
         expect(container.dateUpdated, isNull);
       });
 
-      test('should store parentContainerId when parentContainerId is provided', () {
-        // Arrange & Act
-        const container = Container(id: 2, pageId: 1, index: 0, parentContainerId: 1);
+      test(
+        'should store parentContainerId when parentContainerId is provided',
+        () {
+          // Arrange & Act
+          const container = Container(
+            id: 2,
+            pageId: 1,
+            index: 0,
+            parentContainerId: 1,
+          );
 
-        // Assert
-        expect(container.parentContainerId, 1);
-      });
+          // Assert
+          expect(container.parentContainerId, 1);
+        },
+      );
 
       test('should store name when name is provided', () {
         // Arrange & Act
@@ -81,19 +92,25 @@ void main() {
         expect(container.name, 'Header');
       });
 
-      test('should store styleConfig with borderType when borderType is set', () {
-        // Arrange & Act
-        const container = Container(
-          id: 1,
-          pageId: 1,
-          index: 0,
-          styleConfig: StyleConfig(marginTop: 10.0, borderType: BorderType.plainThin),
-        );
+      test(
+        'should store styleConfig with borderType when borderType is set',
+        () {
+          // Arrange & Act
+          const container = Container(
+            id: 1,
+            pageId: 1,
+            index: 0,
+            styleConfig: StyleConfig(
+              marginTop: 10.0,
+              borderType: BorderType.plainThin,
+            ),
+          );
 
-        // Assert
-        expect(container.styleConfig!.marginTop, 10.0);
-        expect(container.styleConfig!.borderType, BorderType.plainThin);
-      });
+          // Assert
+          expect(container.styleConfig!.marginTop, 10.0);
+          expect(container.styleConfig!.borderType, BorderType.plainThin);
+        },
+      );
 
       test('should store all optional fields when fully specified', () {
         // Arrange
@@ -164,29 +181,35 @@ void main() {
     });
 
     group('copyWith', () {
-      test('should update styleConfig when copyWith is called with a new StyleConfig', () {
-        // Arrange
-        const container = Container(id: 1, pageId: 1, index: 0);
+      test(
+        'should update styleConfig when copyWith is called with a new StyleConfig',
+        () {
+          // Arrange
+          const container = Container(id: 1, pageId: 1, index: 0);
 
-        // Act
-        final updated = container.copyWith(
-          styleConfig: const StyleConfig(paddingLeft: 5.0),
-        );
+          // Act
+          final updated = container.copyWith(
+            styleConfig: const StyleConfig(paddingLeft: 5.0),
+          );
 
-        // Assert
-        expect(updated.styleConfig!.paddingLeft, 5.0);
-      });
+          // Assert
+          expect(updated.styleConfig!.paddingLeft, 5.0);
+        },
+      );
 
-      test('should update parentContainerId when copyWith is called with a new id', () {
-        // Arrange
-        const container = Container(id: 1, pageId: 1, index: 0);
+      test(
+        'should update parentContainerId when copyWith is called with a new id',
+        () {
+          // Arrange
+          const container = Container(id: 1, pageId: 1, index: 0);
 
-        // Act
-        final updated = container.copyWith(parentContainerId: 5);
+          // Act
+          final updated = container.copyWith(parentContainerId: 5);
 
-        // Assert
-        expect(updated.parentContainerId, 5);
-      });
+          // Assert
+          expect(updated.parentContainerId, 5);
+        },
+      );
 
       test('should update name when copyWith is called with a new name', () {
         // Arrange
@@ -210,18 +233,21 @@ void main() {
         expect(updated.index, 3);
       });
 
-      test('should preserve unchanged fields when only name is updated via copyWith', () {
-        // Arrange
-        final container = buildContainer(id: 7, pageId: 2, index: 1);
+      test(
+        'should preserve unchanged fields when only name is updated via copyWith',
+        () {
+          // Arrange
+          final container = buildContainer(id: 7, pageId: 2, index: 1);
 
-        // Act
-        final updated = container.copyWith(name: 'New Name');
+          // Act
+          final updated = container.copyWith(name: 'New Name');
 
-        // Assert
-        expect(updated.id, 7);
-        expect(updated.pageId, 2);
-        expect(updated.index, 1);
-      });
+          // Assert
+          expect(updated.id, 7);
+          expect(updated.pageId, 2);
+          expect(updated.index, 1);
+        },
+      );
     });
 
     group('JSON serialization', () {
@@ -238,18 +264,21 @@ void main() {
         expect(json['index'], 3);
       });
 
-      test('should deserialize container from JSON with correct field values', () {
-        // Arrange
-        final json = {'id': 4, 'pageId': 5, 'index': 1};
+      test(
+        'should deserialize container from JSON with correct field values',
+        () {
+          // Arrange
+          final json = {'id': 4, 'pageId': 5, 'index': 1};
 
-        // Act
-        final container = Container.fromJson(json);
+          // Act
+          final container = Container.fromJson(json);
 
-        // Assert
-        expect(container.id, 4);
-        expect(container.pageId, 5);
-        expect(container.index, 1);
-      });
+          // Assert
+          expect(container.id, 4);
+          expect(container.pageId, 5);
+          expect(container.index, 1);
+        },
+      );
 
       test('should round-trip through JSON preserving equality', () {
         // Arrange
@@ -336,17 +365,20 @@ void main() {
     });
 
     group('copyWith', () {
-      test('should update spacing when copyWith is called with a new spacing value', () {
-        // Arrange
-        const layout = LayoutConfig(direction: 'row');
+      test(
+        'should update spacing when copyWith is called with a new spacing value',
+        () {
+          // Arrange
+          const layout = LayoutConfig(direction: 'row');
 
-        // Act
-        final updated = layout.copyWith(spacing: 12.0);
+          // Act
+          final updated = layout.copyWith(spacing: 12.0);
 
-        // Assert
-        expect(updated.spacing, 12.0);
-        expect(updated.direction, 'row');
-      });
+          // Assert
+          expect(updated.spacing, 12.0);
+          expect(updated.direction, 'row');
+        },
+      );
     });
 
     group('JSON serialization', () {
@@ -367,21 +399,28 @@ void main() {
         expect(json['spacing'], 8.0);
       });
 
-      test('should deserialize LayoutConfig from JSON with correct field values', () {
-        // Arrange
-        final json = {'direction': 'row', 'mainAxisAlignment': 'spaceEvenly'};
+      test(
+        'should deserialize LayoutConfig from JSON with correct field values',
+        () {
+          // Arrange
+          final json = {'direction': 'row', 'mainAxisAlignment': 'spaceEvenly'};
 
-        // Act
-        final layout = LayoutConfig.fromJson(json);
+          // Act
+          final layout = LayoutConfig.fromJson(json);
 
-        // Assert
-        expect(layout.direction, 'row');
-        expect(layout.mainAxisAlignment, 'spaceEvenly');
-      });
+          // Assert
+          expect(layout.direction, 'row');
+          expect(layout.mainAxisAlignment, 'spaceEvenly');
+        },
+      );
 
       test('should round-trip through JSON preserving equality', () {
         // Arrange
-        const original = LayoutConfig(direction: 'row', alignment: 'start', spacing: 4.0);
+        const original = LayoutConfig(
+          direction: 'row',
+          alignment: 'start',
+          spacing: 4.0,
+        );
 
         // Act
         final restored = LayoutConfig.fromJson(original.toJson());

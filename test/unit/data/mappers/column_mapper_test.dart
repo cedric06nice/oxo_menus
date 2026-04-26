@@ -46,16 +46,19 @@ void main() {
         expect(entity.id, 99);
       });
 
-      test('should parse integer id stored as an integer (non-string form)', () {
-        // Arrange
-        final dto = ColumnDto({'id': 20, 'index': 0, 'width': 100});
+      test(
+        'should parse integer id stored as an integer (non-string form)',
+        () {
+          // Arrange
+          final dto = ColumnDto({'id': 20, 'index': 0, 'width': 100});
 
-        // Act
-        final entity = ColumnMapper.toEntity(dto);
+          // Act
+          final entity = ColumnMapper.toEntity(dto);
 
-        // Assert
-        expect(entity.id, 20);
-      });
+          // Assert
+          expect(entity.id, 20);
+        },
+      );
 
       test('should default containerId to 0 when container is null', () {
         // Arrange
@@ -68,16 +71,24 @@ void main() {
         expect(entity.containerId, 0);
       });
 
-      test('should resolve container id when container is an int reference', () {
-        // Arrange
-        final dto = ColumnDto({'id': '1', 'index': 0, 'width': 100, 'container': 7});
+      test(
+        'should resolve container id when container is an int reference',
+        () {
+          // Arrange
+          final dto = ColumnDto({
+            'id': '1',
+            'index': 0,
+            'width': 100,
+            'container': 7,
+          });
 
-        // Act
-        final entity = ColumnMapper.toEntity(dto);
+          // Act
+          final entity = ColumnMapper.toEntity(dto);
 
-        // Assert
-        expect(entity.containerId, 7);
-      });
+          // Assert
+          expect(entity.containerId, 7);
+        },
+      );
 
       test('should resolve container id when container is an expanded map', () {
         // Arrange
@@ -97,7 +108,12 @@ void main() {
 
       test('should convert integer width to double', () {
         // Arrange
-        final dto = ColumnDto({'id': '1', 'index': 0, 'width': 200, 'container': 1});
+        final dto = ColumnDto({
+          'id': '1',
+          'index': 0,
+          'width': 200,
+          'container': 1,
+        });
 
         // Act
         final entity = ColumnMapper.toEntity(dto);
@@ -109,7 +125,12 @@ void main() {
 
       test('should preserve fractional width', () {
         // Arrange
-        final dto = ColumnDto({'id': '1', 'index': 0, 'width': 175.5, 'container': 1});
+        final dto = ColumnDto({
+          'id': '1',
+          'index': 0,
+          'width': 175.5,
+          'container': 1,
+        });
 
         // Act
         final entity = ColumnMapper.toEntity(dto);
@@ -120,7 +141,12 @@ void main() {
 
       test('should never populate flex (always null)', () {
         // Arrange
-        final dto = ColumnDto({'id': '1', 'index': 0, 'width': 100, 'container': 1});
+        final dto = ColumnDto({
+          'id': '1',
+          'index': 0,
+          'width': 100,
+          'container': 1,
+        });
 
         // Act
         final entity = ColumnMapper.toEntity(dto);
@@ -155,7 +181,12 @@ void main() {
 
       test('should set styleConfig to null when style_json is absent', () {
         // Arrange
-        final dto = ColumnDto({'id': '5', 'index': 0, 'width': 100, 'container': 1});
+        final dto = ColumnDto({
+          'id': '5',
+          'index': 0,
+          'width': 100,
+          'container': 1,
+        });
 
         // Act
         final entity = ColumnMapper.toEntity(dto);
@@ -200,7 +231,12 @@ void main() {
 
       test('should default isDroppable to true when field is absent', () {
         // Arrange
-        final dto = ColumnDto({'id': '8', 'index': 0, 'width': 100, 'container': 1});
+        final dto = ColumnDto({
+          'id': '8',
+          'index': 0,
+          'width': 100,
+          'container': 1,
+        });
 
         // Act
         final entity = ColumnMapper.toEntity(dto);
@@ -270,7 +306,13 @@ void main() {
 
       test('should not include flex in DTO (field not supported)', () {
         // Arrange
-        final entity = Column(id: 4, containerId: 1, index: 0, width: 100.0, flex: 3);
+        final entity = Column(
+          id: 4,
+          containerId: 1,
+          index: 0,
+          width: 100.0,
+          flex: 3,
+        );
 
         // Act
         final dto = ColumnMapper.toDto(entity);
@@ -313,7 +355,13 @@ void main() {
 
       test('should map isDroppable false to is_droppable false', () {
         // Arrange
-        final entity = Column(id: 7, containerId: 1, index: 0, width: 150.0, isDroppable: false);
+        final entity = Column(
+          id: 7,
+          containerId: 1,
+          index: 0,
+          width: 150.0,
+          isDroppable: false,
+        );
 
         // Act
         final dto = ColumnMapper.toDto(entity);

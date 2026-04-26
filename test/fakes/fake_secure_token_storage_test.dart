@@ -128,23 +128,32 @@ void main() {
     });
 
     group('seedTokens() helper', () {
-      test('should pre-populate both tokens without calling saveTokens', () async {
-        // Act
-        storage.seedTokens(accessToken: 'seeded-access', refreshToken: 'seeded-refresh');
+      test(
+        'should pre-populate both tokens without calling saveTokens',
+        () async {
+          // Act
+          storage.seedTokens(
+            accessToken: 'seeded-access',
+            refreshToken: 'seeded-refresh',
+          );
 
-        // Assert
-        expect(await storage.getAccessToken(), equals('seeded-access'));
-        expect(await storage.getRefreshToken(), equals('seeded-refresh'));
-      });
+          // Assert
+          expect(await storage.getAccessToken(), equals('seeded-access'));
+          expect(await storage.getRefreshToken(), equals('seeded-refresh'));
+        },
+      );
 
-      test('should expose seeded tokens via storedAccessToken/storedRefreshToken', () {
-        // Act
-        storage.seedTokens(accessToken: 'acc', refreshToken: 'ref');
+      test(
+        'should expose seeded tokens via storedAccessToken/storedRefreshToken',
+        () {
+          // Act
+          storage.seedTokens(accessToken: 'acc', refreshToken: 'ref');
 
-        // Assert
-        expect(storage.storedAccessToken, equals('acc'));
-        expect(storage.storedRefreshToken, equals('ref'));
-      });
+          // Assert
+          expect(storage.storedAccessToken, equals('acc'));
+          expect(storage.storedRefreshToken, equals('ref'));
+        },
+      );
     });
 
     group('hasTokens()', () {

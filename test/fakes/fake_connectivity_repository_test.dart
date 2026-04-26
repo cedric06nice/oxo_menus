@@ -44,35 +44,29 @@ void main() {
         },
       );
 
-      test(
-        'should emit multiple status changes in order',
-        () async {
-          final stream = repo.watchConnectivity();
-          final future = expectLater(
-            stream,
-            emitsInOrder([
-              ConnectivityStatus.online,
-              ConnectivityStatus.offline,
-              ConnectivityStatus.online,
-            ]),
-          );
+      test('should emit multiple status changes in order', () async {
+        final stream = repo.watchConnectivity();
+        final future = expectLater(
+          stream,
+          emitsInOrder([
+            ConnectivityStatus.online,
+            ConnectivityStatus.offline,
+            ConnectivityStatus.online,
+          ]),
+        );
 
-          repo.statusController.add(ConnectivityStatus.online);
-          repo.statusController.add(ConnectivityStatus.offline);
-          repo.statusController.add(ConnectivityStatus.online);
+        repo.statusController.add(ConnectivityStatus.online);
+        repo.statusController.add(ConnectivityStatus.offline);
+        repo.statusController.add(ConnectivityStatus.online);
 
-          await future;
-        },
-      );
+        await future;
+      });
 
-      test(
-        'should record watchConnectivity call',
-        () {
-          repo.watchConnectivity();
+      test('should record watchConnectivity call', () {
+        repo.watchConnectivity();
 
-          expect(repo.watchCalls.length, equals(1));
-        },
-      );
+        expect(repo.watchCalls.length, equals(1));
+      });
     });
 
     // -----------------------------------------------------------------------
@@ -80,48 +74,33 @@ void main() {
     // -----------------------------------------------------------------------
 
     group('checkConnectivity', () {
-      test(
-        'should throw StateError when no response is configured',
-        () async {
-          expect(
-            () => repo.checkConnectivity(),
-            throwsA(isA<StateError>()),
-          );
-        },
-      );
+      test('should throw StateError when no response is configured', () async {
+        expect(() => repo.checkConnectivity(), throwsA(isA<StateError>()));
+      });
 
-      test(
-        'should return online when configured with online',
-        () async {
-          repo.whenCheckConnectivity(ConnectivityStatus.online);
+      test('should return online when configured with online', () async {
+        repo.whenCheckConnectivity(ConnectivityStatus.online);
 
-          final result = await repo.checkConnectivity();
+        final result = await repo.checkConnectivity();
 
-          expect(result, equals(ConnectivityStatus.online));
-        },
-      );
+        expect(result, equals(ConnectivityStatus.online));
+      });
 
-      test(
-        'should return offline when configured with offline',
-        () async {
-          repo.whenCheckConnectivity(ConnectivityStatus.offline);
+      test('should return offline when configured with offline', () async {
+        repo.whenCheckConnectivity(ConnectivityStatus.offline);
 
-          final result = await repo.checkConnectivity();
+        final result = await repo.checkConnectivity();
 
-          expect(result, equals(ConnectivityStatus.offline));
-        },
-      );
+        expect(result, equals(ConnectivityStatus.offline));
+      });
 
-      test(
-        'should record checkConnectivity call',
-        () async {
-          repo.whenCheckConnectivity(ConnectivityStatus.online);
+      test('should record checkConnectivity call', () async {
+        repo.whenCheckConnectivity(ConnectivityStatus.online);
 
-          await repo.checkConnectivity();
+        await repo.checkConnectivity();
 
-          expect(repo.checkCalls.length, equals(1));
-        },
-      );
+        expect(repo.checkCalls.length, equals(1));
+      });
     });
   });
 }

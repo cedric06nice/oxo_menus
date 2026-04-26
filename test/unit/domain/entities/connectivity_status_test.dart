@@ -27,7 +27,10 @@ void main() {
       });
 
       test('should not be equal to the other case', () {
-        expect(ConnectivityStatus.online, isNot(equals(ConnectivityStatus.offline)));
+        expect(
+          ConnectivityStatus.online,
+          isNot(equals(ConnectivityStatus.offline)),
+        );
       });
     });
 

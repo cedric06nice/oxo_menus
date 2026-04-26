@@ -4,14 +4,17 @@ import 'package:oxo_menus/domain/entities/area.dart';
 void main() {
   group('Area', () {
     group('construction', () {
-      test('should create area with correct fields when id and name are provided', () {
-        // Arrange & Act
-        const area = Area(id: 1, name: 'Dining');
+      test(
+        'should create area with correct fields when id and name are provided',
+        () {
+          // Arrange & Act
+          const area = Area(id: 1, name: 'Dining');
 
-        // Assert
-        expect(area.id, 1);
-        expect(area.name, 'Dining');
-      });
+          // Assert
+          expect(area.id, 1);
+          expect(area.name, 'Dining');
+        },
+      );
 
       test('should accept zero as id when id is zero', () {
         // Arrange & Act
@@ -101,30 +104,36 @@ void main() {
         expect(updated.name, 'Terrace');
       });
 
-      test('should preserve all fields when copyWith is called with no arguments', () {
-        // Arrange
-        const area = Area(id: 5, name: 'Bar');
+      test(
+        'should preserve all fields when copyWith is called with no arguments',
+        () {
+          // Arrange
+          const area = Area(id: 5, name: 'Bar');
 
-        // Act
-        final copy = area.copyWith();
+          // Act
+          final copy = area.copyWith();
 
-        // Assert
-        expect(copy, equals(area));
-      });
+          // Assert
+          expect(copy, equals(area));
+        },
+      );
     });
 
     group('toString', () {
-      test('should produce a non-empty descriptive string containing field values', () {
-        // Arrange
-        const area = Area(id: 1, name: 'Dining');
+      test(
+        'should produce a non-empty descriptive string containing field values',
+        () {
+          // Arrange
+          const area = Area(id: 1, name: 'Dining');
 
-        // Act
-        final result = area.toString();
+          // Act
+          final result = area.toString();
 
-        // Assert
-        expect(result, isNotEmpty);
-        expect(result, contains('Dining'));
-      });
+          // Assert
+          expect(result, isNotEmpty);
+          expect(result, contains('Dining'));
+        },
+      );
     });
 
     group('JSON serialization', () {

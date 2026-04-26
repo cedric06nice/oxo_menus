@@ -25,12 +25,14 @@ void main() {
         expect(props.calories, isNull);
       });
 
-      test('should default allergenInfo to an empty list when none is provided',
-          () {
-        const props = SetMenuDishProps(name: 'Beef Wellington');
+      test(
+        'should default allergenInfo to an empty list when none is provided',
+        () {
+          const props = SetMenuDishProps(name: 'Beef Wellington');
 
-        expect(props.allergenInfo, isEmpty);
-      });
+          expect(props.allergenInfo, isEmpty);
+        },
+      );
 
       test('should default dietary to null when none is provided', () {
         const props = SetMenuDishProps(name: 'Beef Wellington');
@@ -126,29 +128,38 @@ void main() {
       test('should update hasSupplement when copyWith is called with true', () {
         const original = SetMenuDishProps(name: 'Test');
 
-        final copy = original.copyWith(hasSupplement: true, supplementPrice: 10.0);
+        final copy = original.copyWith(
+          hasSupplement: true,
+          supplementPrice: 10.0,
+        );
 
         expect(copy.hasSupplement, isTrue);
       });
 
       test(
-          'should update supplementPrice when copyWith is called with a new value',
-          () {
-        const original = SetMenuDishProps(name: 'Test');
+        'should update supplementPrice when copyWith is called with a new value',
+        () {
+          const original = SetMenuDishProps(name: 'Test');
 
-        final copy = original.copyWith(supplementPrice: 10.0);
+          final copy = original.copyWith(supplementPrice: 10.0);
 
-        expect(copy.supplementPrice, 10.0);
-      });
+          expect(copy.supplementPrice, 10.0);
+        },
+      );
 
-      test('should preserve name when copyWith only changes supplement fields',
-          () {
-        const original = SetMenuDishProps(name: 'Test');
+      test(
+        'should preserve name when copyWith only changes supplement fields',
+        () {
+          const original = SetMenuDishProps(name: 'Test');
 
-        final copy = original.copyWith(hasSupplement: true, supplementPrice: 10.0);
+          final copy = original.copyWith(
+            hasSupplement: true,
+            supplementPrice: 10.0,
+          );
 
-        expect(copy.name, 'Test');
-      });
+          expect(copy.name, 'Test');
+        },
+      );
 
       test('should not mutate the original when copyWith is called', () {
         const original = SetMenuDishProps(name: 'Test');
@@ -168,64 +179,69 @@ void main() {
       });
 
       test(
-          'should return empty string when hasSupplement is true but price is 0.0',
-          () {
-        const props = SetMenuDishProps(
-          name: 'Test',
-          hasSupplement: true,
-          supplementPrice: 0.0,
-        );
+        'should return empty string when hasSupplement is true but price is 0.0',
+        () {
+          const props = SetMenuDishProps(
+            name: 'Test',
+            hasSupplement: true,
+            supplementPrice: 0.0,
+          );
 
-        expect(props.supplementText, '');
-      });
-
-      test(
-          'should return Supplement 5 for whole-number GBP supplement price',
-          () {
-        const props = SetMenuDishProps(
-          name: 'Test',
-          hasSupplement: true,
-          supplementPrice: 5.0,
-        );
-
-        expect(props.supplementText, 'Supplement 5');
-      });
+          expect(props.supplementText, '');
+        },
+      );
 
       test(
-          'should return Supplement 7.5 for a single-decimal GBP supplement price',
-          () {
-        const props = SetMenuDishProps(
-          name: 'Test',
-          hasSupplement: true,
-          supplementPrice: 7.5,
-        );
+        'should return Supplement 5 for whole-number GBP supplement price',
+        () {
+          const props = SetMenuDishProps(
+            name: 'Test',
+            hasSupplement: true,
+            supplementPrice: 5.0,
+          );
 
-        expect(props.supplementText, 'Supplement 7.5');
-      });
-
-      test(
-          'should return Supplement 12.75 for a two-decimal GBP supplement price',
-          () {
-        const props = SetMenuDishProps(
-          name: 'Test',
-          hasSupplement: true,
-          supplementPrice: 12.75,
-        );
-
-        expect(props.supplementText, 'Supplement 12.75');
-      });
+          expect(props.supplementText, 'Supplement 5');
+        },
+      );
 
       test(
-          'should return Supplement 10 for a round ten-pound GBP supplement price',
-          () {
-        const props = SetMenuDishProps(
-          name: 'Test',
-          hasSupplement: true,
-          supplementPrice: 10.0,
-        );
+        'should return Supplement 7.5 for a single-decimal GBP supplement price',
+        () {
+          const props = SetMenuDishProps(
+            name: 'Test',
+            hasSupplement: true,
+            supplementPrice: 7.5,
+          );
 
-        expect(props.supplementText, 'Supplement 10');
-      });
+          expect(props.supplementText, 'Supplement 7.5');
+        },
+      );
+
+      test(
+        'should return Supplement 12.75 for a two-decimal GBP supplement price',
+        () {
+          const props = SetMenuDishProps(
+            name: 'Test',
+            hasSupplement: true,
+            supplementPrice: 12.75,
+          );
+
+          expect(props.supplementText, 'Supplement 12.75');
+        },
+      );
+
+      test(
+        'should return Supplement 10 for a round ten-pound GBP supplement price',
+        () {
+          const props = SetMenuDishProps(
+            name: 'Test',
+            hasSupplement: true,
+            supplementPrice: 10.0,
+          );
+
+          expect(props.supplementText, 'Supplement 10');
+        },
+      );
     });
 
     group('displayName', () {
@@ -253,29 +269,33 @@ void main() {
         expect(props.displayName, 'MUSHROOM SOUP (V)');
       });
 
-      test('should return empty string when name is empty and no dietary set',
-          () {
-        const props = SetMenuDishProps(name: '');
+      test(
+        'should return empty string when name is empty and no dietary set',
+        () {
+          const props = SetMenuDishProps(name: '');
 
-        expect(props.displayName, '');
-      });
+          expect(props.displayName, '');
+        },
+      );
     });
 
     group('JSON round-trip', () {
-      test('should be equal to the original with supplement after toJson/fromJson',
-          () {
-        const original = SetMenuDishProps(
-          name: 'Lobster',
-          hasSupplement: true,
-          supplementPrice: 5.0,
-          dietary: DietaryType.vegan,
-        );
+      test(
+        'should be equal to the original with supplement after toJson/fromJson',
+        () {
+          const original = SetMenuDishProps(
+            name: 'Lobster',
+            hasSupplement: true,
+            supplementPrice: 5.0,
+            dietary: DietaryType.vegan,
+          );
 
-        final json = original.toJson();
-        final restored = SetMenuDishProps.fromJson(json);
+          final json = original.toJson();
+          final restored = SetMenuDishProps.fromJson(json);
 
-        expect(restored, equals(original));
-      });
+          expect(restored, equals(original));
+        },
+      );
 
       test('should preserve hasSupplement false after round-trip', () {
         const original = SetMenuDishProps(name: 'Soup of the Day');
@@ -287,9 +307,7 @@ void main() {
         expect(restored.supplementPrice, 0.0);
       });
 
-      test(
-          'should use default values when only name is present in JSON',
-          () {
+      test('should use default values when only name is present in JSON', () {
         final json = {'name': 'Simple Dish'};
 
         final props = SetMenuDishProps.fromJson(json);
@@ -317,19 +335,20 @@ void main() {
       });
 
       test(
-          'should round-trip a GBP supplement price with fractional pence correctly',
-          () {
-        const original = SetMenuDishProps(
-          name: 'Dish',
-          hasSupplement: true,
-          supplementPrice: 7.50,
-        );
+        'should round-trip a GBP supplement price with fractional pence correctly',
+        () {
+          const original = SetMenuDishProps(
+            name: 'Dish',
+            hasSupplement: true,
+            supplementPrice: 7.50,
+          );
 
-        final json = original.toJson();
-        final restored = SetMenuDishProps.fromJson(json);
+          final json = original.toJson();
+          final restored = SetMenuDishProps.fromJson(json);
 
-        expect(restored.supplementPrice, 7.50);
-      });
+          expect(restored.supplementPrice, 7.50);
+        },
+      );
     });
   });
 }

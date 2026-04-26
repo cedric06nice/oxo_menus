@@ -5,25 +5,28 @@ import '../../../fakes/builders/widget_instance_builder.dart';
 void main() {
   group('WidgetInstance', () {
     group('construction', () {
-      test('should create widget instance with correct required fields when all required fields are provided', () {
-        // Arrange & Act
-        const instance = WidgetInstance(
-          id: 1,
-          columnId: 2,
-          type: 'dish',
-          version: '1.0.0',
-          index: 0,
-          props: {},
-        );
+      test(
+        'should create widget instance with correct required fields when all required fields are provided',
+        () {
+          // Arrange & Act
+          const instance = WidgetInstance(
+            id: 1,
+            columnId: 2,
+            type: 'dish',
+            version: '1.0.0',
+            index: 0,
+            props: {},
+          );
 
-        // Assert
-        expect(instance.id, 1);
-        expect(instance.columnId, 2);
-        expect(instance.type, 'dish');
-        expect(instance.version, '1.0.0');
-        expect(instance.index, 0);
-        expect(instance.props, isEmpty);
-      });
+          // Assert
+          expect(instance.id, 1);
+          expect(instance.columnId, 2);
+          expect(instance.type, 'dish');
+          expect(instance.version, '1.0.0');
+          expect(instance.index, 0);
+          expect(instance.props, isEmpty);
+        },
+      );
 
       test('should default isTemplate to false when not specified', () {
         // Arrange & Act
@@ -100,37 +103,43 @@ void main() {
         expect(instance.dateUpdated, isNull);
       });
 
-      test('should store isTemplate true when isTemplate is explicitly set to true', () {
-        // Arrange & Act
-        const instance = WidgetInstance(
-          id: 1,
-          columnId: 1,
-          type: 'text',
-          version: '1',
-          index: 0,
-          props: {},
-          isTemplate: true,
-        );
+      test(
+        'should store isTemplate true when isTemplate is explicitly set to true',
+        () {
+          // Arrange & Act
+          const instance = WidgetInstance(
+            id: 1,
+            columnId: 1,
+            type: 'text',
+            version: '1',
+            index: 0,
+            props: {},
+            isTemplate: true,
+          );
 
-        // Assert
-        expect(instance.isTemplate, isTrue);
-      });
+          // Assert
+          expect(instance.isTemplate, isTrue);
+        },
+      );
 
-      test('should store lockedForEdition true when lockedForEdition is explicitly set to true', () {
-        // Arrange & Act
-        const instance = WidgetInstance(
-          id: 1,
-          columnId: 1,
-          type: 'dish',
-          version: '1',
-          index: 0,
-          props: {},
-          lockedForEdition: true,
-        );
+      test(
+        'should store lockedForEdition true when lockedForEdition is explicitly set to true',
+        () {
+          // Arrange & Act
+          const instance = WidgetInstance(
+            id: 1,
+            columnId: 1,
+            type: 'dish',
+            version: '1',
+            index: 0,
+            props: {},
+            lockedForEdition: true,
+          );
 
-        // Assert
-        expect(instance.lockedForEdition, isTrue);
-      });
+          // Assert
+          expect(instance.lockedForEdition, isTrue);
+        },
+      );
 
       test('should store props map when props contain key-value pairs', () {
         // Arrange & Act
@@ -295,42 +304,48 @@ void main() {
     });
 
     group('copyWith', () {
-      test('should update isTemplate to true when copyWith is called with isTemplate true', () {
-        // Arrange
-        const instance = WidgetInstance(
-          id: 1,
-          columnId: 1,
-          type: 'text',
-          version: '1',
-          index: 0,
-          props: {},
-        );
+      test(
+        'should update isTemplate to true when copyWith is called with isTemplate true',
+        () {
+          // Arrange
+          const instance = WidgetInstance(
+            id: 1,
+            columnId: 1,
+            type: 'text',
+            version: '1',
+            index: 0,
+            props: {},
+          );
 
-        // Act
-        final updated = instance.copyWith(isTemplate: true);
+          // Act
+          final updated = instance.copyWith(isTemplate: true);
 
-        // Assert
-        expect(updated.isTemplate, isTrue);
-      });
+          // Assert
+          expect(updated.isTemplate, isTrue);
+        },
+      );
 
-      test('should preserve id when only isTemplate is updated via copyWith', () {
-        // Arrange
-        const instance = WidgetInstance(
-          id: 1,
-          columnId: 1,
-          type: 'text',
-          version: '1',
-          index: 0,
-          props: {},
-        );
+      test(
+        'should preserve id when only isTemplate is updated via copyWith',
+        () {
+          // Arrange
+          const instance = WidgetInstance(
+            id: 1,
+            columnId: 1,
+            type: 'text',
+            version: '1',
+            index: 0,
+            props: {},
+          );
 
-        // Act
-        final updated = instance.copyWith(isTemplate: true);
+          // Act
+          final updated = instance.copyWith(isTemplate: true);
 
-        // Assert
-        expect(updated.id, 1);
-        expect(updated.type, 'text');
-      });
+          // Assert
+          expect(updated.id, 1);
+          expect(updated.type, 'text');
+        },
+      );
 
       test('should update type when copyWith is called with a new type', () {
         // Arrange
@@ -350,24 +365,29 @@ void main() {
         expect(updated.type, 'wine');
       });
 
-      test('should update props when copyWith is called with a new props map', () {
-        // Arrange
-        const instance = WidgetInstance(
-          id: 1,
-          columnId: 1,
-          type: 'dish',
-          version: '1',
-          index: 0,
-          props: {'name': 'Old'},
-        );
+      test(
+        'should update props when copyWith is called with a new props map',
+        () {
+          // Arrange
+          const instance = WidgetInstance(
+            id: 1,
+            columnId: 1,
+            type: 'dish',
+            version: '1',
+            index: 0,
+            props: {'name': 'Old'},
+          );
 
-        // Act
-        final updated = instance.copyWith(props: {'name': 'New', 'price': 12.0});
+          // Act
+          final updated = instance.copyWith(
+            props: {'name': 'New', 'price': 12.0},
+          );
 
-        // Assert
-        expect(updated.props['name'], 'New');
-        expect(updated.props['price'], 12.0);
-      });
+          // Assert
+          expect(updated.props['name'], 'New');
+          expect(updated.props['price'], 12.0);
+        },
+      );
 
       test('should update index when copyWith is called with a new index', () {
         // Arrange
@@ -380,27 +400,33 @@ void main() {
         expect(updated.index, 5);
       });
 
-      test('should update lockedForEdition when copyWith is called with true', () {
-        // Arrange
-        final instance = buildWidgetInstance(lockedForEdition: false);
+      test(
+        'should update lockedForEdition when copyWith is called with true',
+        () {
+          // Arrange
+          final instance = buildWidgetInstance(lockedForEdition: false);
 
-        // Act
-        final updated = instance.copyWith(lockedForEdition: true);
+          // Act
+          final updated = instance.copyWith(lockedForEdition: true);
 
-        // Assert
-        expect(updated.lockedForEdition, isTrue);
-      });
+          // Assert
+          expect(updated.lockedForEdition, isTrue);
+        },
+      );
 
-      test('should preserve all fields when copyWith is called with no arguments', () {
-        // Arrange
-        final instance = buildWidgetInstance(type: 'section', index: 2);
+      test(
+        'should preserve all fields when copyWith is called with no arguments',
+        () {
+          // Arrange
+          final instance = buildWidgetInstance(type: 'section', index: 2);
 
-        // Act
-        final copy = instance.copyWith();
+          // Act
+          final copy = instance.copyWith();
 
-        // Assert
-        expect(copy, equals(instance));
-      });
+          // Assert
+          expect(copy, equals(instance));
+        },
+      );
     });
 
     group('JSON serialization', () {
@@ -523,17 +549,20 @@ void main() {
     });
 
     group('copyWith', () {
-      test('should update fontSize when copyWith is called with a new fontSize', () {
-        // Arrange
-        const style = WidgetStyle(fontFamily: 'Arial', fontSize: 14.0);
+      test(
+        'should update fontSize when copyWith is called with a new fontSize',
+        () {
+          // Arrange
+          const style = WidgetStyle(fontFamily: 'Arial', fontSize: 14.0);
 
-        // Act
-        final updated = style.copyWith(fontSize: 18.0);
+          // Act
+          final updated = style.copyWith(fontSize: 18.0);
 
-        // Assert
-        expect(updated.fontSize, 18.0);
-        expect(updated.fontFamily, 'Arial');
-      });
+          // Assert
+          expect(updated.fontSize, 18.0);
+          expect(updated.fontFamily, 'Arial');
+        },
+      );
     });
 
     group('JSON serialization', () {

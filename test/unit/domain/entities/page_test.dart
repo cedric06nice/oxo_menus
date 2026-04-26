@@ -46,24 +46,30 @@ void main() {
 
   group('Page', () {
     group('construction', () {
-      test('should create page with correct required fields when all required fields are provided', () {
-        // Arrange & Act
-        const page = Page(id: 1, menuId: 1, name: 'Page 1', index: 0);
+      test(
+        'should create page with correct required fields when all required fields are provided',
+        () {
+          // Arrange & Act
+          const page = Page(id: 1, menuId: 1, name: 'Page 1', index: 0);
 
-        // Assert
-        expect(page.id, 1);
-        expect(page.menuId, 1);
-        expect(page.name, 'Page 1');
-        expect(page.index, 0);
-      });
+          // Assert
+          expect(page.id, 1);
+          expect(page.menuId, 1);
+          expect(page.name, 'Page 1');
+          expect(page.index, 0);
+        },
+      );
 
-      test('should default type to PageType.content when type is not specified', () {
-        // Arrange & Act
-        const page = Page(id: 1, menuId: 1, name: 'Page 1', index: 0);
+      test(
+        'should default type to PageType.content when type is not specified',
+        () {
+          // Arrange & Act
+          const page = Page(id: 1, menuId: 1, name: 'Page 1', index: 0);
 
-        // Assert
-        expect(page.type, PageType.content);
-      });
+          // Assert
+          expect(page.type, PageType.content);
+        },
+      );
 
       test('should default dateCreated to null when not specified', () {
         // Arrange & Act
@@ -81,41 +87,62 @@ void main() {
         expect(page.dateUpdated, isNull);
       });
 
-      test('should store PageType.header when type is explicitly set to header', () {
-        // Arrange & Act
-        const page = Page(id: 1, menuId: 1, name: 'Header', index: 0, type: PageType.header);
+      test(
+        'should store PageType.header when type is explicitly set to header',
+        () {
+          // Arrange & Act
+          const page = Page(
+            id: 1,
+            menuId: 1,
+            name: 'Header',
+            index: 0,
+            type: PageType.header,
+          );
 
-        // Assert
-        expect(page.type, PageType.header);
-      });
+          // Assert
+          expect(page.type, PageType.header);
+        },
+      );
 
-      test('should store PageType.footer when type is explicitly set to footer', () {
-        // Arrange & Act
-        const page = Page(id: 1, menuId: 1, name: 'Footer', index: 0, type: PageType.footer);
+      test(
+        'should store PageType.footer when type is explicitly set to footer',
+        () {
+          // Arrange & Act
+          const page = Page(
+            id: 1,
+            menuId: 1,
+            name: 'Footer',
+            index: 0,
+            type: PageType.footer,
+          );
 
-        // Assert
-        expect(page.type, PageType.footer);
-      });
+          // Assert
+          expect(page.type, PageType.footer);
+        },
+      );
 
-      test('should store dateCreated and dateUpdated when both are provided', () {
-        // Arrange
-        final created = DateTime(2024, 1, 10);
-        final updated = DateTime(2024, 1, 20);
+      test(
+        'should store dateCreated and dateUpdated when both are provided',
+        () {
+          // Arrange
+          final created = DateTime(2024, 1, 10);
+          final updated = DateTime(2024, 1, 20);
 
-        // Act
-        final page = Page(
-          id: 1,
-          menuId: 1,
-          name: 'Page 1',
-          index: 0,
-          dateCreated: created,
-          dateUpdated: updated,
-        );
+          // Act
+          final page = Page(
+            id: 1,
+            menuId: 1,
+            name: 'Page 1',
+            index: 0,
+            dateCreated: created,
+            dateUpdated: updated,
+          );
 
-        // Assert
-        expect(page.dateCreated, created);
-        expect(page.dateUpdated, updated);
-      });
+          // Assert
+          expect(page.dateCreated, created);
+          expect(page.dateUpdated, updated);
+        },
+      );
     });
 
     group('equality', () {
@@ -157,8 +184,20 @@ void main() {
 
       test('should not be equal when type differs', () {
         // Arrange
-        const a = Page(id: 1, menuId: 1, name: 'P', index: 0, type: PageType.content);
-        const b = Page(id: 1, menuId: 1, name: 'P', index: 0, type: PageType.header);
+        const a = Page(
+          id: 1,
+          menuId: 1,
+          name: 'P',
+          index: 0,
+          type: PageType.content,
+        );
+        const b = Page(
+          id: 1,
+          menuId: 1,
+          name: 'P',
+          index: 0,
+          type: PageType.header,
+        );
 
         // Assert
         expect(a, isNot(equals(b)));
@@ -258,7 +297,13 @@ void main() {
 
       test('should deserialize type from JSON string value', () {
         // Arrange
-        final json = {'id': 1, 'menuId': 1, 'name': 'Header', 'index': 0, 'type': 'header'};
+        final json = {
+          'id': 1,
+          'menuId': 1,
+          'name': 'Header',
+          'index': 0,
+          'type': 'header',
+        };
 
         // Act
         final page = Page.fromJson(json);

@@ -107,9 +107,7 @@ class FakePageRepository implements PageRepository {
     if (_createResponse != null) {
       return _createResponse!;
     }
-    throw StateError(
-      'FakePageRepository: no response configured for create()',
-    );
+    throw StateError('FakePageRepository: no response configured for create()');
   }
 
   @override
@@ -140,9 +138,7 @@ class FakePageRepository implements PageRepository {
     if (_updateResponse != null) {
       return _updateResponse!;
     }
-    throw StateError(
-      'FakePageRepository: no response configured for update()',
-    );
+    throw StateError('FakePageRepository: no response configured for update()');
   }
 
   @override
@@ -151,9 +147,7 @@ class FakePageRepository implements PageRepository {
     if (_deleteResponse != null) {
       return _deleteResponse!;
     }
-    throw StateError(
-      'FakePageRepository: no response configured for delete()',
-    );
+    throw StateError('FakePageRepository: no response configured for delete()');
   }
 
   @override

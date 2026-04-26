@@ -71,7 +71,13 @@ void main() {
 
       test('should parse a large integer id correctly', () {
         // Arrange
-        final dto = WidgetDto({'id': '9999', 'column': 1, 'type_key': 'text', 'version': '1.0.0', 'index': 0});
+        final dto = WidgetDto({
+          'id': '9999',
+          'column': 1,
+          'type_key': 'text',
+          'version': '1.0.0',
+          'index': 0,
+        });
 
         // Act
         final entity = WidgetMapper.toEntity(dto);
@@ -82,7 +88,12 @@ void main() {
 
       test('should default columnId to 0 when column is null', () {
         // Arrange
-        final dto = WidgetDto({'id': '1', 'type_key': 'text', 'version': '1.0.0', 'index': 0});
+        final dto = WidgetDto({
+          'id': '1',
+          'type_key': 'text',
+          'version': '1.0.0',
+          'index': 0,
+        });
 
         // Act
         final entity = WidgetMapper.toEntity(dto);
@@ -289,47 +300,50 @@ void main() {
     });
 
     group('toDto', () {
-      test('should map all fields from a fully-populated WidgetInstance entity', () {
-        // Arrange
-        const entity = WidgetInstance(
-          id: 10,
-          columnId: 4,
-          type: 'wine',
-          version: '3.0.0',
-          index: 2,
-          props: {'name': 'Merlot', 'price': 8.5},
-          style: WidgetStyle(
-            fontFamily: 'Georgia',
-            fontSize: 12.0,
-            color: '#333333',
-            backgroundColor: '#FAFAFA',
-            border: 'none',
-            padding: 4.0,
-          ),
-          isTemplate: true,
-          lockedForEdition: false,
-        );
+      test(
+        'should map all fields from a fully-populated WidgetInstance entity',
+        () {
+          // Arrange
+          const entity = WidgetInstance(
+            id: 10,
+            columnId: 4,
+            type: 'wine',
+            version: '3.0.0',
+            index: 2,
+            props: {'name': 'Merlot', 'price': 8.5},
+            style: WidgetStyle(
+              fontFamily: 'Georgia',
+              fontSize: 12.0,
+              color: '#333333',
+              backgroundColor: '#FAFAFA',
+              border: 'none',
+              padding: 4.0,
+            ),
+            isTemplate: true,
+            lockedForEdition: false,
+          );
 
-        // Act
-        final dto = WidgetMapper.toDto(entity);
+          // Act
+          final dto = WidgetMapper.toDto(entity);
 
-        // Assert
-        expect(dto.id, '10');
-        expect(dto.column?.id, '4');
-        expect(dto.typeKey, 'wine');
-        expect(dto.version, '3.0.0');
-        expect(dto.index, 2);
-        expect(dto.propsJson, {'name': 'Merlot', 'price': 8.5});
-        expect(dto.isTemplate, true);
-        expect(dto.lockedForEdition, false);
-        final styleJson = dto.styleJson;
-        expect(styleJson['fontFamily'], 'Georgia');
-        expect(styleJson['fontSize'], 12.0);
-        expect(styleJson['color'], '#333333');
-        expect(styleJson['backgroundColor'], '#FAFAFA');
-        expect(styleJson['border'], 'none');
-        expect(styleJson['padding'], 4.0);
-      });
+          // Assert
+          expect(dto.id, '10');
+          expect(dto.column?.id, '4');
+          expect(dto.typeKey, 'wine');
+          expect(dto.version, '3.0.0');
+          expect(dto.index, 2);
+          expect(dto.propsJson, {'name': 'Merlot', 'price': 8.5});
+          expect(dto.isTemplate, true);
+          expect(dto.lockedForEdition, false);
+          final styleJson = dto.styleJson;
+          expect(styleJson['fontFamily'], 'Georgia');
+          expect(styleJson['fontSize'], 12.0);
+          expect(styleJson['color'], '#333333');
+          expect(styleJson['backgroundColor'], '#FAFAFA');
+          expect(styleJson['border'], 'none');
+          expect(styleJson['padding'], 4.0);
+        },
+      );
 
       test('should produce empty style_json when style is null', () {
         // Arrange

@@ -20,27 +20,18 @@ void main() {
     // -----------------------------------------------------------------------
 
     group('login', () {
-      test(
-        'should throw StateError when no response is configured',
-        () async {
-          expect(
-            () => repo.login('a@b.com', 'pw'),
-            throwsA(isA<StateError>()),
-          );
-        },
-      );
+      test('should throw StateError when no response is configured', () async {
+        expect(() => repo.login('a@b.com', 'pw'), throwsA(isA<StateError>()));
+      });
 
-      test(
-        'should return preset success response when configured',
-        () async {
-          final user = buildUser(email: 'a@b.com');
-          repo.whenLogin(success(user));
+      test('should return preset success response when configured', () async {
+        final user = buildUser(email: 'a@b.com');
+        repo.whenLogin(success(user));
 
-          final result = await repo.login('a@b.com', 'pw');
+        final result = await repo.login('a@b.com', 'pw');
 
-          expect(result, equals(Success<User, DomainError>(user)));
-        },
-      );
+        expect(result, equals(Success<User, DomainError>(user)));
+      });
 
       test(
         'should record login call with correct email and password',
@@ -56,17 +47,14 @@ void main() {
         },
       );
 
-      test(
-        'should return preset failure when configured',
-        () async {
-          repo.whenLogin(failure(invalidCredentials()));
+      test('should return preset failure when configured', () async {
+        repo.whenLogin(failure(invalidCredentials()));
 
-          final result = await repo.login('a@b.com', 'wrong');
+        final result = await repo.login('a@b.com', 'wrong');
 
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<InvalidCredentialsError>());
-        },
-      );
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<InvalidCredentialsError>());
+      });
     });
 
     // -----------------------------------------------------------------------
@@ -74,34 +62,25 @@ void main() {
     // -----------------------------------------------------------------------
 
     group('logout', () {
-      test(
-        'should throw StateError when no response is configured',
-        () async {
-          expect(() => repo.logout(), throwsA(isA<StateError>()));
-        },
-      );
+      test('should throw StateError when no response is configured', () async {
+        expect(() => repo.logout(), throwsA(isA<StateError>()));
+      });
 
-      test(
-        'should return preset success when configured',
-        () async {
-          repo.whenLogout(success(null));
+      test('should return preset success when configured', () async {
+        repo.whenLogout(success(null));
 
-          final result = await repo.logout();
+        final result = await repo.logout();
 
-          expect(result.isSuccess, isTrue);
-        },
-      );
+        expect(result.isSuccess, isTrue);
+      });
 
-      test(
-        'should record logout call',
-        () async {
-          repo.whenLogout(success(null));
+      test('should record logout call', () async {
+        repo.whenLogout(success(null));
 
-          await repo.logout();
+        await repo.logout();
 
-          expect(repo.logoutCalls.length, equals(1));
-        },
-      );
+        expect(repo.logoutCalls.length, equals(1));
+      });
     });
 
     // -----------------------------------------------------------------------
@@ -109,35 +88,26 @@ void main() {
     // -----------------------------------------------------------------------
 
     group('getCurrentUser', () {
-      test(
-        'should throw StateError when no response is configured',
-        () async {
-          expect(() => repo.getCurrentUser(), throwsA(isA<StateError>()));
-        },
-      );
+      test('should throw StateError when no response is configured', () async {
+        expect(() => repo.getCurrentUser(), throwsA(isA<StateError>()));
+      });
 
-      test(
-        'should return preset user when configured',
-        () async {
-          final user = buildAdminUser();
-          repo.whenGetCurrentUser(success(user));
+      test('should return preset user when configured', () async {
+        final user = buildAdminUser();
+        repo.whenGetCurrentUser(success(user));
 
-          final result = await repo.getCurrentUser();
+        final result = await repo.getCurrentUser();
 
-          expect(result, equals(Success<User, DomainError>(user)));
-        },
-      );
+        expect(result, equals(Success<User, DomainError>(user)));
+      });
 
-      test(
-        'should record getCurrentUser call',
-        () async {
-          repo.whenGetCurrentUser(success(buildUser()));
+      test('should record getCurrentUser call', () async {
+        repo.whenGetCurrentUser(success(buildUser()));
 
-          await repo.getCurrentUser();
+        await repo.getCurrentUser();
 
-          expect(repo.getCurrentUserCalls.length, equals(1));
-        },
-      );
+        expect(repo.getCurrentUserCalls.length, equals(1));
+      });
     });
 
     // -----------------------------------------------------------------------
@@ -145,34 +115,25 @@ void main() {
     // -----------------------------------------------------------------------
 
     group('refreshSession', () {
-      test(
-        'should throw StateError when no response is configured',
-        () async {
-          expect(() => repo.refreshSession(), throwsA(isA<StateError>()));
-        },
-      );
+      test('should throw StateError when no response is configured', () async {
+        expect(() => repo.refreshSession(), throwsA(isA<StateError>()));
+      });
 
-      test(
-        'should return preset success when configured',
-        () async {
-          repo.whenRefreshSession(success(null));
+      test('should return preset success when configured', () async {
+        repo.whenRefreshSession(success(null));
 
-          final result = await repo.refreshSession();
+        final result = await repo.refreshSession();
 
-          expect(result.isSuccess, isTrue);
-        },
-      );
+        expect(result.isSuccess, isTrue);
+      });
 
-      test(
-        'should record refreshSession call',
-        () async {
-          repo.whenRefreshSession(success(null));
+      test('should record refreshSession call', () async {
+        repo.whenRefreshSession(success(null));
 
-          await repo.refreshSession();
+        await repo.refreshSession();
 
-          expect(repo.refreshSessionCalls.length, equals(1));
-        },
-      );
+        expect(repo.refreshSessionCalls.length, equals(1));
+      });
     });
 
     // -----------------------------------------------------------------------
@@ -201,27 +162,21 @@ void main() {
         },
       );
 
-      test(
-        'should return defaultTryRestoreSessionResponse when no per-call '
-        'override is set',
-        () async {
-          final user = buildAdminUser();
-          repo.defaultTryRestoreSessionResponse = success(user);
+      test('should return defaultTryRestoreSessionResponse when no per-call '
+          'override is set', () async {
+        final user = buildAdminUser();
+        repo.defaultTryRestoreSessionResponse = success(user);
 
-          final result = await repo.tryRestoreSession();
+        final result = await repo.tryRestoreSession();
 
-          expect(result, equals(Success<User, DomainError>(user)));
-        },
-      );
+        expect(result, equals(Success<User, DomainError>(user)));
+      });
 
-      test(
-        'should record tryRestoreSession call',
-        () async {
-          await repo.tryRestoreSession();
+      test('should record tryRestoreSession call', () async {
+        await repo.tryRestoreSession();
 
-          expect(repo.tryRestoreSessionCalls.length, equals(1));
-        },
-      );
+        expect(repo.tryRestoreSessionCalls.length, equals(1));
+      });
     });
 
     // -----------------------------------------------------------------------
@@ -229,26 +184,20 @@ void main() {
     // -----------------------------------------------------------------------
 
     group('requestPasswordReset', () {
-      test(
-        'should throw StateError when no response is configured',
-        () async {
-          expect(
-            () => repo.requestPasswordReset('a@b.com'),
-            throwsA(isA<StateError>()),
-          );
-        },
-      );
+      test('should throw StateError when no response is configured', () async {
+        expect(
+          () => repo.requestPasswordReset('a@b.com'),
+          throwsA(isA<StateError>()),
+        );
+      });
 
-      test(
-        'should return preset success when configured',
-        () async {
-          repo.whenRequestPasswordReset(success(null));
+      test('should return preset success when configured', () async {
+        repo.whenRequestPasswordReset(success(null));
 
-          final result = await repo.requestPasswordReset('a@b.com');
+        final result = await repo.requestPasswordReset('a@b.com');
 
-          expect(result.isSuccess, isTrue);
-        },
-      );
+        expect(result.isSuccess, isTrue);
+      });
 
       test(
         'should record call with correct email and optional resetUrl',
@@ -273,43 +222,34 @@ void main() {
     // -----------------------------------------------------------------------
 
     group('confirmPasswordReset', () {
-      test(
-        'should throw StateError when no response is configured',
-        () async {
-          expect(
-            () => repo.confirmPasswordReset(token: 'tok', password: 'pw'),
-            throwsA(isA<StateError>()),
-          );
-        },
-      );
+      test('should throw StateError when no response is configured', () async {
+        expect(
+          () => repo.confirmPasswordReset(token: 'tok', password: 'pw'),
+          throwsA(isA<StateError>()),
+        );
+      });
 
-      test(
-        'should return preset success when configured',
-        () async {
-          repo.whenConfirmPasswordReset(success(null));
+      test('should return preset success when configured', () async {
+        repo.whenConfirmPasswordReset(success(null));
 
-          final result = await repo.confirmPasswordReset(
-            token: 'tok',
-            password: 'newPw',
-          );
+        final result = await repo.confirmPasswordReset(
+          token: 'tok',
+          password: 'newPw',
+        );
 
-          expect(result.isSuccess, isTrue);
-        },
-      );
+        expect(result.isSuccess, isTrue);
+      });
 
-      test(
-        'should record call with correct token and password',
-        () async {
-          repo.whenConfirmPasswordReset(success(null));
+      test('should record call with correct token and password', () async {
+        repo.whenConfirmPasswordReset(success(null));
 
-          await repo.confirmPasswordReset(token: 'abc123', password: 'newPw');
+        await repo.confirmPasswordReset(token: 'abc123', password: 'newPw');
 
-          final recorded = repo.confirmPasswordResetCalls;
-          expect(recorded.length, equals(1));
-          expect(recorded.first.token, equals('abc123'));
-          expect(recorded.first.password, equals('newPw'));
-        },
-      );
+        final recorded = repo.confirmPasswordResetCalls;
+        expect(recorded.length, equals(1));
+        expect(recorded.first.token, equals('abc123'));
+        expect(recorded.first.password, equals('newPw'));
+      });
     });
   });
 }

@@ -10,7 +10,11 @@ import 'package:oxo_menus/data/mappers/error_mapper.dart';
 // ---------------------------------------------------------------------------
 // Helper — creates a DirectusApiError backed by a real HTTP response body.
 // ---------------------------------------------------------------------------
-DirectusApiError _makeApiError(String code, String message, {int statusCode = 400}) {
+DirectusApiError _makeApiError(
+  String code,
+  String message, {
+  int statusCode = 400,
+}) {
   final body = jsonEncode({
     'errors': [
       {
@@ -58,20 +62,23 @@ void main() {
     // DirectusException (from DirectusDataSource — concrete class)
     // -----------------------------------------------------------------------
     group('DirectusException (from DirectusDataSource)', () {
-      test('should map INVALID_CREDENTIALS code to InvalidCredentialsError', () {
-        // Arrange
-        final error = DirectusException(
-          code: 'INVALID_CREDENTIALS',
-          message: 'Bad credentials',
-        );
+      test(
+        'should map INVALID_CREDENTIALS code to InvalidCredentialsError',
+        () {
+          // Arrange
+          final error = DirectusException(
+            code: 'INVALID_CREDENTIALS',
+            message: 'Bad credentials',
+          );
 
-        // Act
-        final result = mapDirectusError(error);
+          // Act
+          final result = mapDirectusError(error);
 
-        // Assert
-        expect(result, isA<InvalidCredentialsError>());
-        expect(result.message, 'Bad credentials');
-      });
+          // Assert
+          expect(result, isA<InvalidCredentialsError>());
+          expect(result.message, 'Bad credentials');
+        },
+      );
 
       test('should map INVALID_PAYLOAD code to InvalidCredentialsError', () {
         // Arrange
@@ -105,7 +112,10 @@ void main() {
 
       test('should map FORBIDDEN code to UnauthorizedError', () {
         // Arrange
-        final error = DirectusException(code: 'FORBIDDEN', message: 'Forbidden');
+        final error = DirectusException(
+          code: 'FORBIDDEN',
+          message: 'Forbidden',
+        );
 
         // Act
         final result = mapDirectusError(error);
@@ -131,7 +141,10 @@ void main() {
 
       test('should map NOT_FOUND code to NotFoundError', () {
         // Arrange
-        final error = DirectusException(code: 'NOT_FOUND', message: 'Not found');
+        final error = DirectusException(
+          code: 'NOT_FOUND',
+          message: 'Not found',
+        );
 
         // Act
         final result = mapDirectusError(error);
@@ -143,7 +156,10 @@ void main() {
 
       test('should map INVALID_QUERY code to ValidationError', () {
         // Arrange
-        final error = DirectusException(code: 'INVALID_QUERY', message: 'Bad query');
+        final error = DirectusException(
+          code: 'INVALID_QUERY',
+          message: 'Bad query',
+        );
 
         // Act
         final result = mapDirectusError(error);
@@ -300,17 +316,20 @@ void main() {
     // DirectusApiError (from directus_api_manager package)
     // -----------------------------------------------------------------------
     group('DirectusApiError (from directus_api_manager)', () {
-      test('should map INVALID_CREDENTIALS code to InvalidCredentialsError', () {
-        // Arrange
-        final error = _makeApiError('INVALID_CREDENTIALS', 'Bad creds');
+      test(
+        'should map INVALID_CREDENTIALS code to InvalidCredentialsError',
+        () {
+          // Arrange
+          final error = _makeApiError('INVALID_CREDENTIALS', 'Bad creds');
 
-        // Act
-        final result = mapDirectusError(error);
+          // Act
+          final result = mapDirectusError(error);
 
-        // Assert
-        expect(result, isA<InvalidCredentialsError>());
-        expect(result.message, 'Bad creds');
-      });
+          // Assert
+          expect(result, isA<InvalidCredentialsError>());
+          expect(result.message, 'Bad creds');
+        },
+      );
 
       test('should map INVALID_PAYLOAD code to InvalidCredentialsError', () {
         // Arrange
@@ -325,7 +344,11 @@ void main() {
 
       test('should map TOKEN_EXPIRED code to TokenExpiredError', () {
         // Arrange
-        final error = _makeApiError('TOKEN_EXPIRED', 'Token expired', statusCode: 401);
+        final error = _makeApiError(
+          'TOKEN_EXPIRED',
+          'Token expired',
+          statusCode: 401,
+        );
 
         // Act
         final result = mapDirectusError(error);
@@ -337,7 +360,11 @@ void main() {
 
       test('should map FORBIDDEN code to UnauthorizedError', () {
         // Arrange
-        final error = _makeApiError('FORBIDDEN', 'Access denied', statusCode: 403);
+        final error = _makeApiError(
+          'FORBIDDEN',
+          'Access denied',
+          statusCode: 403,
+        );
 
         // Act
         final result = mapDirectusError(error);
@@ -360,7 +387,11 @@ void main() {
 
       test('should map RECORD_NOT_FOUND code to NotFoundError', () {
         // Arrange
-        final error = _makeApiError('RECORD_NOT_FOUND', 'Record not found', statusCode: 404);
+        final error = _makeApiError(
+          'RECORD_NOT_FOUND',
+          'Record not found',
+          statusCode: 404,
+        );
 
         // Act
         final result = mapDirectusError(error);
@@ -404,7 +435,11 @@ void main() {
 
       test('should map any unknown API code to ServerError', () {
         // Arrange
-        final error = _makeApiError('INTERNAL_ERROR', 'Server blew up', statusCode: 500);
+        final error = _makeApiError(
+          'INTERNAL_ERROR',
+          'Server blew up',
+          statusCode: 500,
+        );
 
         // Act
         final result = mapDirectusError(error);
@@ -413,16 +448,21 @@ void main() {
         expect(result, isA<ServerError>());
       });
 
-      test('should handle DirectusApiError with no response body gracefully', () {
-        // Arrange
-        final error = DirectusApiError(customMessage: 'No response available');
+      test(
+        'should handle DirectusApiError with no response body gracefully',
+        () {
+          // Arrange
+          final error = DirectusApiError(
+            customMessage: 'No response available',
+          );
 
-        // Act
-        final result = mapDirectusError(error);
+          // Act
+          final result = mapDirectusError(error);
 
-        // Assert
-        expect(result, isA<ServerError>());
-      });
+          // Assert
+          expect(result, isA<ServerError>());
+        },
+      );
     });
 
     // -----------------------------------------------------------------------
@@ -503,22 +543,25 @@ void main() {
         expect(result.message, 'Resource not found');
       });
 
-      test('should map INVALID_QUERY to ValidationError with extensions in details', () {
-        // Arrange
-        final error = _FakeDirectusException(
-          code: 'INVALID_QUERY',
-          message: 'Invalid query parameters',
-          extensions: {'field': 'email'},
-        );
+      test(
+        'should map INVALID_QUERY to ValidationError with extensions in details',
+        () {
+          // Arrange
+          final error = _FakeDirectusException(
+            code: 'INVALID_QUERY',
+            message: 'Invalid query parameters',
+            extensions: {'field': 'email'},
+          );
 
-        // Act
-        final result = mapDirectusError(error);
+          // Act
+          final result = mapDirectusError(error);
 
-        // Assert
-        expect(result, isA<ValidationError>());
-        expect(result.message, 'Invalid query parameters');
-        expect(result.details, isNotNull);
-      });
+          // Assert
+          expect(result, isA<ValidationError>());
+          expect(result.message, 'Invalid query parameters');
+          expect(result.details, isNotNull);
+        },
+      );
 
       test('should map RECORD_NOT_UNIQUE to ValidationError', () {
         // Arrange
@@ -580,17 +623,20 @@ void main() {
         expect(result.message, contains('Connection refused'));
       });
 
-      test('should include exception description in the NetworkError message', () {
-        // Arrange
-        final error = _FakeNetworkException('DNS lookup failed');
+      test(
+        'should include exception description in the NetworkError message',
+        () {
+          // Arrange
+          final error = _FakeNetworkException('DNS lookup failed');
 
-        // Act
-        final result = mapDirectusError(error);
+          // Act
+          final result = mapDirectusError(error);
 
-        // Assert
-        expect(result, isA<NetworkError>());
-        expect(result.message, contains('DNS lookup failed'));
-      });
+          // Assert
+          expect(result, isA<NetworkError>());
+          expect(result.message, contains('DNS lookup failed'));
+        },
+      );
     });
 
     // -----------------------------------------------------------------------

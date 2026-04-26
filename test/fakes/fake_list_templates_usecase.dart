@@ -28,8 +28,7 @@ final class ListTemplatesCall {
 /// expect(fake.calls.single.statusFilter, 'all');
 /// ```
 class FakeListTemplatesUseCase extends ListTemplatesUseCase {
-  FakeListTemplatesUseCase()
-      : super(menuRepository: _ThrowMenuRepository());
+  FakeListTemplatesUseCase() : super(menuRepository: _ThrowMenuRepository());
 
   // -------------------------------------------------------------------------
   // Call log
@@ -79,8 +78,7 @@ class _ThrowMenuRepository implements MenuRepository {
   Future<Result<List<Menu>, DomainError>> listAll({
     bool onlyPublished = true,
     List<int>? areaIds,
-  }) =>
-      throw StateError('_ThrowMenuRepository should not be called');
+  }) => throw StateError('_ThrowMenuRepository should not be called');
 
   @override
   Future<Result<Menu, DomainError>> getById(int id) =>

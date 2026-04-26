@@ -45,7 +45,10 @@ final class ContainerDeleteCall extends ContainerRepositoryCall {
 final class ContainerReorderCall extends ContainerRepositoryCall {
   final int containerId;
   final int newIndex;
-  const ContainerReorderCall({required this.containerId, required this.newIndex});
+  const ContainerReorderCall({
+    required this.containerId,
+    required this.newIndex,
+  });
 }
 
 final class ContainerMoveToCall extends ContainerRepositoryCall {
@@ -87,6 +90,8 @@ class FakeContainerRepository implements ContainerRepository {
 
   Result<Container, DomainError>? _createResponse;
   Result<List<Container>, DomainError>? _getAllForPageResponse;
+  final Map<int, Result<List<Container>, DomainError>>
+  _getAllForPageByIdResponses = {};
   Result<List<Container>, DomainError>? _getAllForContainerResponse;
   final Map<int, Result<List<Container>, DomainError>>
   _getAllForContainerByIdResponses = {};
@@ -106,6 +111,17 @@ class FakeContainerRepository implements ContainerRepository {
 
   void whenGetAllForPage(Result<List<Container>, DomainError> response) {
     _getAllForPageResponse = response;
+  }
+
+  /// Registers a per-[pageId] response for [getAllForPage].
+  ///
+  /// When a call is made with a [pageId] that has a per-id entry,
+  /// that entry takes precedence over the global [whenGetAllForPage] stub.
+  void whenGetAllForPageForId(
+    int pageId,
+    Result<List<Container>, DomainError> response,
+  ) {
+    _getAllForPageByIdResponses[pageId] = response;
   }
 
   void whenGetAllForContainer(Result<List<Container>, DomainError> response) {
@@ -159,10 +175,11 @@ class FakeContainerRepository implements ContainerRepository {
   }
 
   @override
-  Future<Result<List<Container>, DomainError>> getAllForPage(
-    int pageId,
-  ) async {
+  Future<Result<List<Container>, DomainError>> getAllForPage(int pageId) async {
     calls.add(ContainerGetAllForPageCall(pageId));
+    if (_getAllForPageByIdResponses.containsKey(pageId)) {
+      return _getAllForPageByIdResponses[pageId]!;
+    }
     if (_getAllForPageResponse != null) return _getAllForPageResponse!;
     throw StateError(
       'FakeContainerRepository: no response configured for getAllForPage()',
@@ -177,7 +194,9 @@ class FakeContainerRepository implements ContainerRepository {
     if (_getAllForContainerByIdResponses.containsKey(containerId)) {
       return _getAllForContainerByIdResponses[containerId]!;
     }
-    if (_getAllForContainerResponse != null) return _getAllForContainerResponse!;
+    if (_getAllForContainerResponse != null) {
+      return _getAllForContainerResponse!;
+    }
     throw StateError(
       'FakeContainerRepository: no response configured for getAllForContainer()',
     );
@@ -217,7 +236,9 @@ class FakeContainerRepository implements ContainerRepository {
     int containerId,
     int newIndex,
   ) async {
-    calls.add(ContainerReorderCall(containerId: containerId, newIndex: newIndex));
+    calls.add(
+      ContainerReorderCall(containerId: containerId, newIndex: newIndex),
+    );
     if (_reorderResponse != null) return _reorderResponse!;
     throw StateError(
       'FakeContainerRepository: no response configured for reorder()',

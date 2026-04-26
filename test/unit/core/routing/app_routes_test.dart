@@ -32,13 +32,19 @@ void main() {
         expect(AppRoutes.adminTemplates, '/admin/templates');
       });
 
-      test('should have adminTemplateCreate path equal to /admin/templates/create', () {
-        expect(AppRoutes.adminTemplateCreate, '/admin/templates/create');
-      });
+      test(
+        'should have adminTemplateCreate path equal to /admin/templates/create',
+        () {
+          expect(AppRoutes.adminTemplateCreate, '/admin/templates/create');
+        },
+      );
 
-      test('should have adminExportableMenus path equal to /admin/exportable_menus', () {
-        expect(AppRoutes.adminExportableMenus, '/admin/exportable_menus');
-      });
+      test(
+        'should have adminExportableMenus path equal to /admin/exportable_menus',
+        () {
+          expect(AppRoutes.adminExportableMenus, '/admin/exportable_menus');
+        },
+      );
 
       test('should have forgotPassword path equal to /forgot-password', () {
         expect(AppRoutes.forgotPassword, '/forgot-password');

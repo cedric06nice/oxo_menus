@@ -138,15 +138,21 @@ void main() {
         expect(error, isA<TokenExpiredError>());
       });
 
-      test('should create ValidationError with message and optional details', () {
-        // Act
-        final error = validation('Name is required', details: {'field': 'name'});
+      test(
+        'should create ValidationError with message and optional details',
+        () {
+          // Act
+          final error = validation(
+            'Name is required',
+            details: {'field': 'name'},
+          );
 
-        // Assert
-        expect(error, isA<ValidationError>());
-        expect(error.message, equals('Name is required'));
-        expect(error.details, equals({'field': 'name'}));
-      });
+          // Assert
+          expect(error, isA<ValidationError>());
+          expect(error.message, equals('Name is required'));
+          expect(error.details, equals({'field': 'name'}));
+        },
+      );
 
       test('should create UnknownError with default message', () {
         // Act
@@ -180,7 +186,10 @@ void main() {
         final result = failureNotFound<int>('Widget not found');
 
         // Assert
-        expect((result.errorOrNull as NotFoundError).message, equals('Widget not found'));
+        expect(
+          (result.errorOrNull as NotFoundError).message,
+          equals('Widget not found'),
+        );
       });
     });
 

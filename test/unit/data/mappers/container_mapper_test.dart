@@ -41,16 +41,19 @@ void main() {
         expect(entity.id, 99);
       });
 
-      test('should parse integer id from raw data when id is provided as int', () {
-        // Arrange
-        final dto = ContainerDto({'id': 500, 'index': 0, 'status': 'draft'});
+      test(
+        'should parse integer id from raw data when id is provided as int',
+        () {
+          // Arrange
+          final dto = ContainerDto({'id': 500, 'index': 0, 'status': 'draft'});
 
-        // Act
-        final entity = ContainerMapper.toEntity(dto);
+          // Act
+          final entity = ContainerMapper.toEntity(dto);
 
-        // Assert
-        expect(entity.id, 500);
-      });
+          // Assert
+          expect(entity.id, 500);
+        },
+      );
 
       test('should default pageId to 0 when page is null', () {
         // Arrange
@@ -122,21 +125,24 @@ void main() {
         expect(entity.parentContainerId, 10);
       });
 
-      test('should set parentContainerId from map parent_container with int id', () {
-        // Arrange
-        final dto = ContainerDto({
-          'id': '2',
-          'index': 0,
-          'status': 'draft',
-          'parent_container': {'id': 20},
-        });
+      test(
+        'should set parentContainerId from map parent_container with int id',
+        () {
+          // Arrange
+          final dto = ContainerDto({
+            'id': '2',
+            'index': 0,
+            'status': 'draft',
+            'parent_container': {'id': 20},
+          });
 
-        // Act
-        final entity = ContainerMapper.toEntity(dto);
+          // Act
+          final entity = ContainerMapper.toEntity(dto);
 
-        // Assert
-        expect(entity.parentContainerId, 20);
-      });
+          // Assert
+          expect(entity.parentContainerId, 20);
+        },
+      );
 
       test('should set parentContainerId to null when absent', () {
         // Arrange
@@ -192,17 +198,20 @@ void main() {
         expect(entity.styleConfig!.backgroundColor, '#EFEFEF');
       });
 
-      test('should set layout and styleConfig to null when style_json is absent', () {
-        // Arrange
-        final dto = ContainerDto({'id': '7', 'index': 0, 'status': 'draft'});
+      test(
+        'should set layout and styleConfig to null when style_json is absent',
+        () {
+          // Arrange
+          final dto = ContainerDto({'id': '7', 'index': 0, 'status': 'draft'});
 
-        // Act
-        final entity = ContainerMapper.toEntity(dto);
+          // Act
+          final entity = ContainerMapper.toEntity(dto);
 
-        // Assert
-        expect(entity.layout, isNull);
-        expect(entity.styleConfig, isNull);
-      });
+          // Assert
+          expect(entity.layout, isNull);
+          expect(entity.styleConfig, isNull);
+        },
+      );
 
       test('should map null dateCreated and dateUpdated to null', () {
         // Arrange
@@ -220,7 +229,12 @@ void main() {
     group('toDto', () {
       test('should map id, pageId, and index correctly', () {
         // Arrange
-        final entity = Container(id: 10, pageId: 5, index: 2, name: 'My Container');
+        final entity = Container(
+          id: 10,
+          pageId: 5,
+          index: 2,
+          name: 'My Container',
+        );
 
         // Act
         final dto = ContainerMapper.toDto(entity);
@@ -231,16 +245,19 @@ void main() {
         expect(dto.index, 2);
       });
 
-      test('should produce empty style_json when layout and styleConfig are null', () {
-        // Arrange
-        final entity = Container(id: 1, pageId: 2, index: 0, name: 'Empty');
+      test(
+        'should produce empty style_json when layout and styleConfig are null',
+        () {
+          // Arrange
+          final entity = Container(id: 1, pageId: 2, index: 0, name: 'Empty');
 
-        // Act
-        final dto = ContainerMapper.toDto(entity);
+          // Act
+          final dto = ContainerMapper.toDto(entity);
 
-        // Assert
-        expect(dto.styleJson, isEmpty);
-      });
+          // Assert
+          expect(dto.styleJson, isEmpty);
+        },
+      );
 
       test('should serialize layout fields into style_json', () {
         // Arrange
@@ -249,7 +266,11 @@ void main() {
           pageId: 1,
           index: 0,
           name: 'Layout Container',
-          layout: const LayoutConfig(direction: 'row', alignment: 'center', spacing: 4.0),
+          layout: const LayoutConfig(
+            direction: 'row',
+            alignment: 'center',
+            spacing: 4.0,
+          ),
         );
 
         // Act
@@ -300,7 +321,13 @@ void main() {
 
       test('should serialize parentContainerId into raw data', () {
         // Arrange
-        final entity = Container(id: 5, pageId: 1, index: 0, name: 'Child', parentContainerId: 99);
+        final entity = Container(
+          id: 5,
+          pageId: 1,
+          index: 0,
+          name: 'Child',
+          parentContainerId: 99,
+        );
 
         // Act
         final dto = ContainerMapper.toDto(entity);
@@ -310,17 +337,20 @@ void main() {
         expect(raw['parent_container'], 99);
       });
 
-      test('should store null for parent_container when parentContainerId is null', () {
-        // Arrange
-        final entity = Container(id: 6, pageId: 1, index: 0, name: 'Root');
+      test(
+        'should store null for parent_container when parentContainerId is null',
+        () {
+          // Arrange
+          final entity = Container(id: 6, pageId: 1, index: 0, name: 'Root');
 
-        // Act
-        final dto = ContainerMapper.toDto(entity);
-        final raw = dto.getRawData();
+          // Act
+          final dto = ContainerMapper.toDto(entity);
+          final raw = dto.getRawData();
 
-        // Assert
-        expect(raw['parent_container'], isNull);
-      });
+          // Assert
+          expect(raw['parent_container'], isNull);
+        },
+      );
     });
 
     group('layoutConfigToJson', () {

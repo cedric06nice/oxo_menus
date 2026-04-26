@@ -94,9 +94,12 @@ void main() {
         expect(AllergenDetailOptions.nutOptions, contains('walnut'));
       });
 
-      test('should not contain peanut because peanuts are a separate allergen', () {
-        expect(AllergenDetailOptions.nutOptions, isNot(contains('peanut')));
-      });
+      test(
+        'should not contain peanut because peanuts are a separate allergen',
+        () {
+          expect(AllergenDetailOptions.nutOptions, isNot(contains('peanut')));
+        },
+      );
 
       test('should be in ascending alphabetical order', () {
         final sorted = [...AllergenDetailOptions.nutOptions]..sort();
@@ -187,7 +190,10 @@ void main() {
       });
 
       test('should return empty list for sulphites', () {
-        expect(AllergenDetailOptions.forAllergen(UkAllergen.sulphites), isEmpty);
+        expect(
+          AllergenDetailOptions.forAllergen(UkAllergen.sulphites),
+          isEmpty,
+        );
       });
 
       test('should return non-empty options for exactly 2 allergens', () {

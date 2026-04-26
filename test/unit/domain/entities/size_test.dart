@@ -6,25 +6,28 @@ import '../../../fakes/builders/size_builder.dart';
 void main() {
   group('Size', () {
     group('construction', () {
-      test('should create size with correct required fields when all required fields are provided', () {
-        // Arrange & Act
-        const size = Size(
-          id: 1,
-          name: 'A4',
-          width: 210.0,
-          height: 297.0,
-          status: Status.published,
-          direction: 'portrait',
-        );
+      test(
+        'should create size with correct required fields when all required fields are provided',
+        () {
+          // Arrange & Act
+          const size = Size(
+            id: 1,
+            name: 'A4',
+            width: 210.0,
+            height: 297.0,
+            status: Status.published,
+            direction: 'portrait',
+          );
 
-        // Assert
-        expect(size.id, 1);
-        expect(size.name, 'A4');
-        expect(size.width, 210.0);
-        expect(size.height, 297.0);
-        expect(size.status, Status.published);
-        expect(size.direction, 'portrait');
-      });
+          // Assert
+          expect(size.id, 1);
+          expect(size.name, 'A4');
+          expect(size.width, 210.0);
+          expect(size.height, 297.0);
+          expect(size.status, Status.published);
+          expect(size.direction, 'portrait');
+        },
+      );
 
       test('should accept draft status when status is set to draft', () {
         // Arrange & Act
@@ -56,20 +59,23 @@ void main() {
         expect(size.status, Status.archived);
       });
 
-      test('should accept landscape direction when direction is "landscape"', () {
-        // Arrange & Act
-        const size = Size(
-          id: 2,
-          name: 'A4-landscape',
-          width: 297.0,
-          height: 210.0,
-          status: Status.published,
-          direction: 'landscape',
-        );
+      test(
+        'should accept landscape direction when direction is "landscape"',
+        () {
+          // Arrange & Act
+          const size = Size(
+            id: 2,
+            name: 'A4-landscape',
+            width: 297.0,
+            height: 210.0,
+            status: Status.published,
+            direction: 'landscape',
+          );
 
-        // Assert
-        expect(size.direction, 'landscape');
-      });
+          // Assert
+          expect(size.direction, 'landscape');
+        },
+      );
 
       test('should accept zero width and height when dimensions are zero', () {
         // Arrange & Act
@@ -251,38 +257,47 @@ void main() {
         expect(updated.width, 148.0);
       });
 
-      test('should update height when copyWith is called with a new height', () {
-        // Arrange
-        final size = buildSize(height: 297.0);
+      test(
+        'should update height when copyWith is called with a new height',
+        () {
+          // Arrange
+          final size = buildSize(height: 297.0);
 
-        // Act
-        final updated = size.copyWith(height: 210.0);
+          // Act
+          final updated = size.copyWith(height: 210.0);
 
-        // Assert
-        expect(updated.height, 210.0);
-      });
+          // Assert
+          expect(updated.height, 210.0);
+        },
+      );
 
-      test('should update status when copyWith is called with a new status', () {
-        // Arrange
-        final size = buildSize(status: Status.published);
+      test(
+        'should update status when copyWith is called with a new status',
+        () {
+          // Arrange
+          final size = buildSize(status: Status.published);
 
-        // Act
-        final updated = size.copyWith(status: Status.archived);
+          // Act
+          final updated = size.copyWith(status: Status.archived);
 
-        // Assert
-        expect(updated.status, Status.archived);
-      });
+          // Assert
+          expect(updated.status, Status.archived);
+        },
+      );
 
-      test('should update direction when copyWith is called with a new direction', () {
-        // Arrange
-        final size = buildSize(direction: 'portrait');
+      test(
+        'should update direction when copyWith is called with a new direction',
+        () {
+          // Arrange
+          final size = buildSize(direction: 'portrait');
 
-        // Act
-        final updated = size.copyWith(direction: 'landscape');
+          // Act
+          final updated = size.copyWith(direction: 'landscape');
 
-        // Assert
-        expect(updated.direction, 'landscape');
-      });
+          // Assert
+          expect(updated.direction, 'landscape');
+        },
+      );
 
       test('should preserve id when only name is updated via copyWith', () {
         // Arrange
@@ -295,16 +310,19 @@ void main() {
         expect(updated.id, 42);
       });
 
-      test('should preserve all fields when copyWith is called with no arguments', () {
-        // Arrange
-        final size = buildSize();
+      test(
+        'should preserve all fields when copyWith is called with no arguments',
+        () {
+          // Arrange
+          final size = buildSize();
 
-        // Act
-        final copy = size.copyWith();
+          // Act
+          final copy = size.copyWith();
 
-        // Assert
-        expect(copy, equals(size));
-      });
+          // Assert
+          expect(copy, equals(size));
+        },
+      );
     });
 
     group('toString', () {

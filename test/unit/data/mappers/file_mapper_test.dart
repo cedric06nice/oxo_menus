@@ -4,30 +4,29 @@ import 'package:oxo_menus/data/mappers/file_mapper.dart';
 void main() {
   group('FileMapper', () {
     group('toEntity', () {
-      test('should map id, title, and type from a fully-populated data map', () {
-        // Arrange
-        final data = {
-          'id': 'abc-123',
-          'title': 'Menu Banner',
-          'type': 'image/jpeg',
-        };
+      test(
+        'should map id, title, and type from a fully-populated data map',
+        () {
+          // Arrange
+          final data = {
+            'id': 'abc-123',
+            'title': 'Menu Banner',
+            'type': 'image/jpeg',
+          };
 
-        // Act
-        final entity = FileMapper.toEntity(data);
+          // Act
+          final entity = FileMapper.toEntity(data);
 
-        // Assert
-        expect(entity.id, 'abc-123');
-        expect(entity.title, 'Menu Banner');
-        expect(entity.type, 'image/jpeg');
-      });
+          // Assert
+          expect(entity.id, 'abc-123');
+          expect(entity.title, 'Menu Banner');
+          expect(entity.type, 'image/jpeg');
+        },
+      );
 
       test('should map null title as null', () {
         // Arrange
-        final data = {
-          'id': 'file-001',
-          'title': null,
-          'type': 'image/png',
-        };
+        final data = {'id': 'file-001', 'title': null, 'type': 'image/png'};
 
         // Act
         final entity = FileMapper.toEntity(data);
@@ -38,11 +37,7 @@ void main() {
 
       test('should map null type as null', () {
         // Arrange
-        final data = {
-          'id': 'file-002',
-          'title': 'Some Image',
-          'type': null,
-        };
+        final data = {'id': 'file-002', 'title': 'Some Image', 'type': null};
 
         // Act
         final entity = FileMapper.toEntity(data);

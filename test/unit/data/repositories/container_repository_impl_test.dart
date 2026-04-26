@@ -98,18 +98,27 @@ class _FakeDs implements DirectusDataSource {
     int? limit,
     int? offset,
   }) async {
-    getItemsCalls.add({'type': T, 'filter': filter, 'fields': fields, 'sort': sort});
+    getItemsCalls.add({
+      'type': T,
+      'filter': filter,
+      'fields': fields,
+      'sort': sort,
+    });
     return _consume<List<Map<String, dynamic>>>(_getItemsQ, 'getItems<$T>');
   }
 
   @override
-  Future<Map<String, dynamic>> createItem<T extends DirectusItem>(T newItem) async {
+  Future<Map<String, dynamic>> createItem<T extends DirectusItem>(
+    T newItem,
+  ) async {
     createCalls.add({'type': T, 'item': newItem});
     return _consume<Map<String, dynamic>>(_createItemQ, 'createItem<$T>');
   }
 
   @override
-  Future<Map<String, dynamic>> updateItem<T extends DirectusItem>(T itemToUpdate) async {
+  Future<Map<String, dynamic>> updateItem<T extends DirectusItem>(
+    T itemToUpdate,
+  ) async {
     updateCalls.add({'type': T, 'item': itemToUpdate});
     return _consume<Map<String, dynamic>>(_updateItemQ, 'updateItem<$T>');
   }
@@ -147,20 +156,27 @@ void main() {
   // create
   // =========================================================================
   group('ContainerRepositoryImpl.create', () {
-    test('should return Success with mapped Container entity on happy path', () async {
-      // Arrange
-      fakeDs.queueCreateItem(_containerJson(id: 2, pageId: 1, index: 0));
-      const input = CreateContainerInput(pageId: 1, index: 0, direction: 'row');
+    test(
+      'should return Success with mapped Container entity on happy path',
+      () async {
+        // Arrange
+        fakeDs.queueCreateItem(_containerJson(id: 2, pageId: 1, index: 0));
+        const input = CreateContainerInput(
+          pageId: 1,
+          index: 0,
+          direction: 'row',
+        );
 
-      // Act
-      final result = await repository.create(input);
+        // Act
+        final result = await repository.create(input);
 
-      // Assert
-      expect(result.isSuccess, isTrue);
-      expect(result.valueOrNull!.id, 2);
-      expect(result.valueOrNull!.pageId, 1);
-      expect(result.valueOrNull!.index, 0);
-    });
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull!.id, 2);
+        expect(result.valueOrNull!.pageId, 1);
+        expect(result.valueOrNull!.index, 0);
+      },
+    );
 
     test('should generate name as Container {id} via mapper', () async {
       // Arrange
@@ -205,30 +221,35 @@ void main() {
       expect(sentDto.getValue(forKey: 'name'), 'My Header');
     });
 
-    test('should include parentContainerId in DTO when creating child container', () async {
-      // Arrange
-      fakeDs.queueCreateItem(_containerJson(id: 3, parentContainer: 5));
-      const input = CreateContainerInput(
-        pageId: 1,
-        index: 0,
-        direction: 'row',
-        parentContainerId: 5,
-      );
+    test(
+      'should include parentContainerId in DTO when creating child container',
+      () async {
+        // Arrange
+        fakeDs.queueCreateItem(_containerJson(id: 3, parentContainer: 5));
+        const input = CreateContainerInput(
+          pageId: 1,
+          index: 0,
+          direction: 'row',
+          parentContainerId: 5,
+        );
 
-      // Act
-      await repository.create(input);
+        // Act
+        await repository.create(input);
 
-      // Assert
-      final sentDto = fakeDs.createCalls.single['item'] as ContainerDto;
-      expect(sentDto.getValue(forKey: 'parent_container'), 5);
-    });
+        // Assert
+        final sentDto = fakeDs.createCalls.single['item'] as ContainerDto;
+        expect(sentDto.getValue(forKey: 'parent_container'), 5);
+      },
+    );
 
     test('should merge layout into style_json field in sent DTO', () async {
       // Arrange
-      fakeDs.queueCreateItem(_containerJson(
-        id: 1,
-        styleJson: {'direction': 'row', 'mainAxisAlignment': 'spaceBetween'},
-      ));
+      fakeDs.queueCreateItem(
+        _containerJson(
+          id: 1,
+          styleJson: {'direction': 'row', 'mainAxisAlignment': 'spaceBetween'},
+        ),
+      );
       const input = CreateContainerInput(
         pageId: 1,
         index: 0,
@@ -248,61 +269,76 @@ void main() {
       expect(sentDto.styleJson['direction'], 'row');
     });
 
-    test('should merge styleConfig into style_json field in sent DTO', () async {
-      // Arrange
-      fakeDs.queueCreateItem(_containerJson(
-        id: 1,
-        styleJson: {'marginTop': 10.0},
-      ));
-      const input = CreateContainerInput(
-        pageId: 1,
-        index: 0,
-        direction: 'row',
-        styleConfig: StyleConfig(marginTop: 10.0),
-      );
+    test(
+      'should merge styleConfig into style_json field in sent DTO',
+      () async {
+        // Arrange
+        fakeDs.queueCreateItem(
+          _containerJson(id: 1, styleJson: {'marginTop': 10.0}),
+        );
+        const input = CreateContainerInput(
+          pageId: 1,
+          index: 0,
+          direction: 'row',
+          styleConfig: StyleConfig(marginTop: 10.0),
+        );
 
-      // Act
-      await repository.create(input);
+        // Act
+        await repository.create(input);
 
-      // Assert
-      final sentDto = fakeDs.createCalls.single['item'] as ContainerDto;
-      expect(sentDto.styleJson['marginTop'], 10.0);
-    });
+        // Assert
+        final sentDto = fakeDs.createCalls.single['item'] as ContainerDto;
+        expect(sentDto.styleJson['marginTop'], 10.0);
+      },
+    );
 
-    test('should merge both layout and styleConfig into same style_json', () async {
-      // Arrange
-      fakeDs.queueCreateItem(_containerJson(id: 1));
-      const input = CreateContainerInput(
-        pageId: 1,
-        index: 0,
-        direction: 'row',
-        layout: LayoutConfig(mainAxisAlignment: 'spaceEvenly'),
-        styleConfig: StyleConfig(marginTop: 5.0),
-      );
+    test(
+      'should merge both layout and styleConfig into same style_json',
+      () async {
+        // Arrange
+        fakeDs.queueCreateItem(_containerJson(id: 1));
+        const input = CreateContainerInput(
+          pageId: 1,
+          index: 0,
+          direction: 'row',
+          layout: LayoutConfig(mainAxisAlignment: 'spaceEvenly'),
+          styleConfig: StyleConfig(marginTop: 5.0),
+        );
 
-      // Act
-      await repository.create(input);
+        // Act
+        await repository.create(input);
 
-      // Assert
-      final sentDto = fakeDs.createCalls.single['item'] as ContainerDto;
-      expect(sentDto.styleJson['mainAxisAlignment'], 'spaceEvenly');
-      expect(sentDto.styleJson['marginTop'], 5.0);
-    });
+        // Assert
+        final sentDto = fakeDs.createCalls.single['item'] as ContainerDto;
+        expect(sentDto.styleJson['mainAxisAlignment'], 'spaceEvenly');
+        expect(sentDto.styleJson['marginTop'], 5.0);
+      },
+    );
 
-    test('should return Failure(ValidationError) when data source throws INVALID_FOREIGN_KEY', () async {
-      // Arrange
-      fakeDs.queueCreateItemThrows(
-        DirectusException(code: 'INVALID_FOREIGN_KEY', message: 'Page not found'),
-      );
-      const input = CreateContainerInput(pageId: 99, index: 0, direction: 'row');
+    test(
+      'should return Failure(ValidationError) when data source throws INVALID_FOREIGN_KEY',
+      () async {
+        // Arrange
+        fakeDs.queueCreateItemThrows(
+          DirectusException(
+            code: 'INVALID_FOREIGN_KEY',
+            message: 'Page not found',
+          ),
+        );
+        const input = CreateContainerInput(
+          pageId: 99,
+          index: 0,
+          direction: 'row',
+        );
 
-      // Act
-      final result = await repository.create(input);
+        // Act
+        final result = await repository.create(input);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<ValidationError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<ValidationError>());
+      },
+    );
 
     test('should return Failure(UnknownError) on generic exception', () async {
       // Arrange
@@ -347,21 +383,26 @@ void main() {
       await repository.getAllForPage(42);
 
       // Assert
-      final filter = fakeDs.getItemsCalls.single['filter'] as Map<String, dynamic>;
+      final filter =
+          fakeDs.getItemsCalls.single['filter'] as Map<String, dynamic>;
       expect(filter['page'], {'_eq': 42});
     });
 
-    test('should filter to only top-level containers (parent_container _null)', () async {
-      // Arrange
-      fakeDs.queueGetItems([]);
+    test(
+      'should filter to only top-level containers (parent_container _null)',
+      () async {
+        // Arrange
+        fakeDs.queueGetItems([]);
 
-      // Act
-      await repository.getAllForPage(1);
+        // Act
+        await repository.getAllForPage(1);
 
-      // Assert
-      final filter = fakeDs.getItemsCalls.single['filter'] as Map<String, dynamic>;
-      expect(filter['parent_container'], {'_null': true});
-    });
+        // Assert
+        final filter =
+            fakeDs.getItemsCalls.single['filter'] as Map<String, dynamic>;
+        expect(filter['parent_container'], {'_null': true});
+      },
+    );
 
     test('should include sort:[index] for ordering', () async {
       // Arrange
@@ -377,31 +418,37 @@ void main() {
       );
     });
 
-    test('should return Success with empty list when no containers found', () async {
-      // Arrange
-      fakeDs.queueGetItems([]);
+    test(
+      'should return Success with empty list when no containers found',
+      () async {
+        // Arrange
+        fakeDs.queueGetItems([]);
 
-      // Act
-      final result = await repository.getAllForPage(1);
+        // Act
+        final result = await repository.getAllForPage(1);
 
-      // Assert
-      expect(result.isSuccess, isTrue);
-      expect(result.valueOrNull, isEmpty);
-    });
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull, isEmpty);
+      },
+    );
 
-    test('should return Failure(NotFoundError) when data source throws NOT_FOUND', () async {
-      // Arrange
-      fakeDs.queueGetItemsThrows(
-        DirectusException(code: 'NOT_FOUND', message: 'Page not found'),
-      );
+    test(
+      'should return Failure(NotFoundError) when data source throws NOT_FOUND',
+      () async {
+        // Arrange
+        fakeDs.queueGetItemsThrows(
+          DirectusException(code: 'NOT_FOUND', message: 'Page not found'),
+        );
 
-      // Act
-      final result = await repository.getAllForPage(99);
+        // Act
+        final result = await repository.getAllForPage(99);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<NotFoundError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      },
+    );
   });
 
   // =========================================================================
@@ -433,21 +480,25 @@ void main() {
       await repository.getAllForContainer(55);
 
       // Assert
-      final filter = fakeDs.getItemsCalls.single['filter'] as Map<String, dynamic>;
+      final filter =
+          fakeDs.getItemsCalls.single['filter'] as Map<String, dynamic>;
       expect(filter['parent_container'], {'_eq': 55});
     });
 
-    test('should return Success with empty list when parent has no children', () async {
-      // Arrange
-      fakeDs.queueGetItems([]);
+    test(
+      'should return Success with empty list when parent has no children',
+      () async {
+        // Arrange
+        fakeDs.queueGetItems([]);
 
-      // Act
-      final result = await repository.getAllForContainer(1);
+        // Act
+        final result = await repository.getAllForContainer(1);
 
-      // Assert
-      expect(result.isSuccess, isTrue);
-      expect(result.valueOrNull, isEmpty);
-    });
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull, isEmpty);
+      },
+    );
 
     test('should return Failure when data source throws', () async {
       // Arrange
@@ -467,12 +518,14 @@ void main() {
   group('ContainerRepositoryImpl.getById', () {
     test('should return Success with mapped Container entity', () async {
       // Arrange
-      fakeDs.queueGetItem(_containerJson(
-        id: 1,
-        pageId: 1,
-        index: 0,
-        styleJson: {'direction': 'row'},
-      ));
+      fakeDs.queueGetItem(
+        _containerJson(
+          id: 1,
+          pageId: 1,
+          index: 0,
+          styleJson: {'direction': 'row'},
+        ),
+      );
 
       // Act
       final result = await repository.getById(1);
@@ -508,33 +561,39 @@ void main() {
       expect(fields, contains('parent_container'));
     });
 
-    test('should return Failure(NotFoundError) when data source throws NOT_FOUND', () async {
-      // Arrange
-      fakeDs.queueGetItemThrows(
-        DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
-      );
+    test(
+      'should return Failure(NotFoundError) when data source throws NOT_FOUND',
+      () async {
+        // Arrange
+        fakeDs.queueGetItemThrows(
+          DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
+        );
 
-      // Act
-      final result = await repository.getById(99);
+        // Act
+        final result = await repository.getById(99);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<NotFoundError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      },
+    );
 
-    test('should return Failure(UnauthorizedError) when data source throws FORBIDDEN', () async {
-      // Arrange
-      fakeDs.queueGetItemThrows(
-        DirectusException(code: 'FORBIDDEN', message: 'Access denied'),
-      );
+    test(
+      'should return Failure(UnauthorizedError) when data source throws FORBIDDEN',
+      () async {
+        // Arrange
+        fakeDs.queueGetItemThrows(
+          DirectusException(code: 'FORBIDDEN', message: 'Access denied'),
+        );
 
-      // Act
-      final result = await repository.getById(1);
+        // Act
+        final result = await repository.getById(1);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<UnauthorizedError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<UnauthorizedError>());
+      },
+    );
 
     test('should map null style_json to null layout and styleConfig', () async {
       // Arrange — no style_json key in response
@@ -616,39 +675,45 @@ void main() {
       expect(sentDto.styleJson['mainAxisAlignment'], 'center');
     });
 
-    test('should merge layout and styleConfig into single style_json on update', () async {
-      // Arrange
-      fakeDs.queueGetItem(_containerJson(id: 1));
-      fakeDs.queueUpdateItem(_containerJson(id: 1));
-      const input = UpdateContainerInput(
-        id: 1,
-        layout: LayoutConfig(mainAxisAlignment: 'spaceBetween'),
-        styleConfig: StyleConfig(paddingLeft: 5.0),
-      );
+    test(
+      'should merge layout and styleConfig into single style_json on update',
+      () async {
+        // Arrange
+        fakeDs.queueGetItem(_containerJson(id: 1));
+        fakeDs.queueUpdateItem(_containerJson(id: 1));
+        const input = UpdateContainerInput(
+          id: 1,
+          layout: LayoutConfig(mainAxisAlignment: 'spaceBetween'),
+          styleConfig: StyleConfig(paddingLeft: 5.0),
+        );
 
-      // Act
-      await repository.update(input);
+        // Act
+        await repository.update(input);
 
-      // Assert
-      final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
-      expect(sentDto.styleJson['mainAxisAlignment'], 'spaceBetween');
-      expect(sentDto.styleJson['paddingLeft'], 5.0);
-    });
+        // Assert
+        final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
+        expect(sentDto.styleJson['mainAxisAlignment'], 'spaceBetween');
+        expect(sentDto.styleJson['paddingLeft'], 5.0);
+      },
+    );
 
-    test('should return Failure(NotFoundError) when getItem throws NOT_FOUND', () async {
-      // Arrange
-      fakeDs.queueGetItemThrows(
-        DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
-      );
-      const input = UpdateContainerInput(id: 99, index: 1);
+    test(
+      'should return Failure(NotFoundError) when getItem throws NOT_FOUND',
+      () async {
+        // Arrange
+        fakeDs.queueGetItemThrows(
+          DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
+        );
+        const input = UpdateContainerInput(id: 99, index: 1);
 
-      // Act
-      final result = await repository.update(input);
+        // Act
+        final result = await repository.update(input);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<NotFoundError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      },
+    );
 
     test('should return Failure when updateItem throws', () async {
       // Arrange
@@ -692,19 +757,22 @@ void main() {
       expect(fakeDs.deletedIds.single, 77);
     });
 
-    test('should return Failure(NotFoundError) when data source throws NOT_FOUND', () async {
-      // Arrange
-      fakeDs.queueDeleteItemThrows(
-        DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
-      );
+    test(
+      'should return Failure(NotFoundError) when data source throws NOT_FOUND',
+      () async {
+        // Arrange
+        fakeDs.queueDeleteItemThrows(
+          DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
+        );
 
-      // Act
-      final result = await repository.delete(99);
+        // Act
+        final result = await repository.delete(99);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<NotFoundError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      },
+    );
 
     test('should return Failure(UnknownError) on generic exception', () async {
       // Arrange
@@ -735,18 +803,21 @@ void main() {
       expect(result.isSuccess, isTrue);
     });
 
-    test('should write the new index to the DTO before updateItem is called', () async {
-      // Arrange
-      fakeDs.queueGetItem(_containerJson(id: 1, index: 0));
-      fakeDs.queueUpdateItem(_containerJson(id: 1, index: 4));
+    test(
+      'should write the new index to the DTO before updateItem is called',
+      () async {
+        // Arrange
+        fakeDs.queueGetItem(_containerJson(id: 1, index: 0));
+        fakeDs.queueUpdateItem(_containerJson(id: 1, index: 4));
 
-      // Act
-      await repository.reorder(1, 4);
+        // Act
+        await repository.reorder(1, 4);
 
-      // Assert
-      final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
-      expect(sentDto.getValue(forKey: 'index'), 4);
-    });
+        // Assert
+        final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
+        expect(sentDto.getValue(forKey: 'index'), 4);
+      },
+    );
 
     test('should call updateItem exactly once', () async {
       // Arrange
@@ -760,19 +831,22 @@ void main() {
       expect(fakeDs.updateCalls.length, 1);
     });
 
-    test('should return Failure(NotFoundError) when getItem throws NOT_FOUND', () async {
-      // Arrange
-      fakeDs.queueGetItemThrows(
-        DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
-      );
+    test(
+      'should return Failure(NotFoundError) when getItem throws NOT_FOUND',
+      () async {
+        // Arrange
+        fakeDs.queueGetItemThrows(
+          DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
+        );
 
-      // Act
-      final result = await repository.reorder(99, 2);
+        // Act
+        final result = await repository.reorder(99, 2);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<NotFoundError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      },
+    );
 
     test('should reorder to boundary index zero', () async {
       // Arrange
@@ -805,19 +879,22 @@ void main() {
       expect(result.isSuccess, isTrue);
     });
 
-    test('should write new page_id and index to DTO before updateItem is called', () async {
-      // Arrange
-      fakeDs.queueGetItem(_containerJson(id: 1, pageId: 1, index: 0));
-      fakeDs.queueUpdateItem(_containerJson(id: 1, pageId: 3, index: 2));
+    test(
+      'should write new page_id and index to DTO before updateItem is called',
+      () async {
+        // Arrange
+        fakeDs.queueGetItem(_containerJson(id: 1, pageId: 1, index: 0));
+        fakeDs.queueUpdateItem(_containerJson(id: 1, pageId: 3, index: 2));
 
-      // Act
-      await repository.moveTo(1, 3, 2);
+        // Act
+        await repository.moveTo(1, 3, 2);
 
-      // Assert
-      final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
-      expect(sentDto.getValue(forKey: 'page_id'), 3);
-      expect(sentDto.getValue(forKey: 'index'), 2);
-    });
+        // Assert
+        final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
+        expect(sentDto.getValue(forKey: 'page_id'), 3);
+        expect(sentDto.getValue(forKey: 'index'), 2);
+      },
+    );
 
     test('should call updateItem exactly once', () async {
       // Arrange
@@ -831,34 +908,43 @@ void main() {
       expect(fakeDs.updateCalls.length, 1);
     });
 
-    test('should return Failure(NotFoundError) when getItem throws NOT_FOUND', () async {
-      // Arrange
-      fakeDs.queueGetItemThrows(
-        DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
-      );
+    test(
+      'should return Failure(NotFoundError) when getItem throws NOT_FOUND',
+      () async {
+        // Arrange
+        fakeDs.queueGetItemThrows(
+          DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
+        );
 
-      // Act
-      final result = await repository.moveTo(99, 2, 0);
+        // Act
+        final result = await repository.moveTo(99, 2, 0);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<NotFoundError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      },
+    );
 
-    test('should return Failure(ValidationError) when updateItem throws INVALID_FOREIGN_KEY', () async {
-      // Arrange
-      fakeDs.queueGetItem(_containerJson(id: 1, pageId: 1, index: 0));
-      fakeDs.queueUpdateItemThrows(
-        DirectusException(code: 'INVALID_FOREIGN_KEY', message: 'Page not found'),
-      );
+    test(
+      'should return Failure(ValidationError) when updateItem throws INVALID_FOREIGN_KEY',
+      () async {
+        // Arrange
+        fakeDs.queueGetItem(_containerJson(id: 1, pageId: 1, index: 0));
+        fakeDs.queueUpdateItemThrows(
+          DirectusException(
+            code: 'INVALID_FOREIGN_KEY',
+            message: 'Page not found',
+          ),
+        );
 
-      // Act
-      final result = await repository.moveTo(1, 99, 0);
+        // Act
+        final result = await repository.moveTo(1, 99, 0);
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<ValidationError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<ValidationError>());
+      },
+    );
 
     test('should move to index zero (boundary)', () async {
       // Arrange

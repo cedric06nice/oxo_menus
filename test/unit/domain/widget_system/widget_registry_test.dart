@@ -42,14 +42,19 @@ void main() {
         expect(registry.count, equals(0));
       });
 
-      test('should have empty registeredTypes when no definitions are registered',
-          () {
-        expect(registry.registeredTypes, isEmpty);
-      });
+      test(
+        'should have empty registeredTypes when no definitions are registered',
+        () {
+          expect(registry.registeredTypes, isEmpty);
+        },
+      );
 
-      test('should return null when looking up a type in an empty registry', () {
-        expect(registry.getDefinition('anything'), isNull);
-      });
+      test(
+        'should return null when looking up a type in an empty registry',
+        () {
+          expect(registry.getDefinition('anything'), isNull);
+        },
+      );
 
       test('should return false for isRegistered when registry is empty', () {
         expect(registry.isRegistered('anything'), isFalse);
@@ -63,14 +68,17 @@ void main() {
         expect(registry.count, equals(1));
       });
 
-      test('should return the registered definition when looked up by type', () {
-        registry.register(_def('dish'));
+      test(
+        'should return the registered definition when looked up by type',
+        () {
+          registry.register(_def('dish'));
 
-        final result = registry.getDefinition('dish');
+          final result = registry.getDefinition('dish');
 
-        expect(result, isNotNull);
-        expect(result!.type, equals('dish'));
-      });
+          expect(result, isNotNull);
+          expect(result!.type, equals('dish'));
+        },
+      );
 
       test('should return true for isRegistered after registration', () {
         registry.register(_def('section'));
@@ -85,19 +93,22 @@ void main() {
       });
 
       test(
-          'should return null for getDefinition when type has not been registered',
-          () {
-        registry.register(_def('dish'));
+        'should return null for getDefinition when type has not been registered',
+        () {
+          registry.register(_def('dish'));
 
-        expect(registry.getDefinition('unknown'), isNull);
-      });
+          expect(registry.getDefinition('unknown'), isNull);
+        },
+      );
 
-      test('should return false for isRegistered when type was not registered',
-          () {
-        registry.register(_def('dish'));
+      test(
+        'should return false for isRegistered when type was not registered',
+        () {
+          registry.register(_def('dish'));
 
-        expect(registry.isRegistered('unknown'), isFalse);
-      });
+          expect(registry.isRegistered('unknown'), isFalse);
+        },
+      );
     });
 
     group('multiple registrations', () {
@@ -120,14 +131,16 @@ void main() {
         expect(types, hasLength(3));
       });
 
-      test('should find each type independently after multiple registrations',
-          () {
-        registry.register(_def('dish'));
-        registry.register(_def('section'));
+      test(
+        'should find each type independently after multiple registrations',
+        () {
+          registry.register(_def('dish'));
+          registry.register(_def('section'));
 
-        expect(registry.getDefinition('dish'), isNotNull);
-        expect(registry.getDefinition('section'), isNotNull);
-      });
+          expect(registry.getDefinition('dish'), isNotNull);
+          expect(registry.getDefinition('section'), isNotNull);
+        },
+      );
     });
 
     group('double registration (overwrite semantics)', () {
@@ -148,16 +161,17 @@ void main() {
       });
 
       test(
-          'should list type only once in registeredTypes after double registration',
-          () {
-        registry.register(_def('dish', version: '1.0.0'));
-        registry.register(_def('dish', version: '2.0.0'));
+        'should list type only once in registeredTypes after double registration',
+        () {
+          registry.register(_def('dish', version: '1.0.0'));
+          registry.register(_def('dish', version: '2.0.0'));
 
-        expect(
-          registry.registeredTypes.where((t) => t == 'dish').length,
-          equals(1),
-        );
-      });
+          expect(
+            registry.registeredTypes.where((t) => t == 'dish').length,
+            equals(1),
+          );
+        },
+      );
     });
 
     group('registeredTypes enumeration', () {
@@ -170,13 +184,14 @@ void main() {
       });
 
       test(
-          'should not contain types that were never registered after several registrations',
-          () {
-        registry.register(_def('dish'));
-        registry.register(_def('section'));
+        'should not contain types that were never registered after several registrations',
+        () {
+          registry.register(_def('dish'));
+          registry.register(_def('section'));
 
-        expect(registry.registeredTypes, isNot(contains('wine')));
-      });
+          expect(registry.registeredTypes, isNot(contains('wine')));
+        },
+      );
     });
   });
 }

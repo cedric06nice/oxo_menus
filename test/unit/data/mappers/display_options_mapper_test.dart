@@ -53,7 +53,10 @@ void main() {
 
       test('should default showPrices to true when value is null', () {
         // Arrange
-        final json = <String, dynamic>{'showPrices': null, 'showAllergens': true};
+        final json = <String, dynamic>{
+          'showPrices': null,
+          'showAllergens': true,
+        };
 
         // Act
         final options = DisplayOptionsMapper.fromJson(json);
@@ -64,7 +67,10 @@ void main() {
 
       test('should default showAllergens to true when value is null', () {
         // Arrange
-        final json = <String, dynamic>{'showPrices': true, 'showAllergens': null};
+        final json = <String, dynamic>{
+          'showPrices': true,
+          'showAllergens': null,
+        };
 
         // Act
         final options = DisplayOptionsMapper.fromJson(json);
@@ -89,7 +95,10 @@ void main() {
     group('toJson', () {
       test('should serialize showPrices and showAllergens', () {
         // Arrange
-        const options = MenuDisplayOptions(showPrices: true, showAllergens: false);
+        const options = MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: false,
+        );
 
         // Act
         final json = DisplayOptionsMapper.toJson(options);
@@ -101,7 +110,10 @@ void main() {
 
       test('should always include both keys even when both are true', () {
         // Arrange
-        const options = MenuDisplayOptions(showPrices: true, showAllergens: true);
+        const options = MenuDisplayOptions(
+          showPrices: true,
+          showAllergens: true,
+        );
 
         // Act
         final json = DisplayOptionsMapper.toJson(options);
@@ -114,7 +126,10 @@ void main() {
 
       test('should always include both keys even when both are false', () {
         // Arrange
-        const options = MenuDisplayOptions(showPrices: false, showAllergens: false);
+        const options = MenuDisplayOptions(
+          showPrices: false,
+          showAllergens: false,
+        );
 
         // Act
         final json = DisplayOptionsMapper.toJson(options);
@@ -139,18 +154,21 @@ void main() {
         expect(serialized['showAllergens'], true);
       });
 
-      test('should preserve default values through round-trip starting from empty JSON', () {
-        // Arrange
-        final empty = <String, dynamic>{};
+      test(
+        'should preserve default values through round-trip starting from empty JSON',
+        () {
+          // Arrange
+          final empty = <String, dynamic>{};
 
-        // Act
-        final entity = DisplayOptionsMapper.fromJson(empty);
-        final serialized = DisplayOptionsMapper.toJson(entity);
+          // Act
+          final entity = DisplayOptionsMapper.fromJson(empty);
+          final serialized = DisplayOptionsMapper.toJson(entity);
 
-        // Assert
-        expect(serialized['showPrices'], true);
-        expect(serialized['showAllergens'], true);
-      });
+          // Assert
+          expect(serialized['showPrices'], true);
+          expect(serialized['showAllergens'], true);
+        },
+      );
     });
   });
 }

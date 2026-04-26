@@ -24,10 +24,7 @@ void main() {
         'should throw StateError when execute is called without configuration',
         () async {
           // Act / Assert
-          await expectLater(
-            fake.execute(1),
-            throwsStateError,
-          );
+          await expectLater(fake.execute(1), throwsStateError);
         },
       );
     });
@@ -41,10 +38,7 @@ void main() {
         'should return the configured Success result when execute is called',
         () async {
           // Arrange
-          final menuTree = MenuTree(
-            menu: buildMenu(id: 42),
-            pages: [],
-          );
+          final menuTree = MenuTree(menu: buildMenu(id: 42), pages: []);
           fake.stubExecute(Success(menuTree));
 
           // Act

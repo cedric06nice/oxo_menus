@@ -67,12 +67,13 @@ void main() {
       });
 
       test(
-          'should preserve leading zero in decimal so 1.05 gives .05 not .5',
-          () {
-        final parts = formatPriceParts(1.05);
+        'should preserve leading zero in decimal so 1.05 gives .05 not .5',
+        () {
+          final parts = formatPriceParts(1.05);
 
-        expect(parts.decimal, '.05');
-      });
+          expect(parts.decimal, '.05');
+        },
+      );
 
       test('should return .99 for price 12345.99', () {
         final parts = formatPriceParts(12345.99);
@@ -80,12 +81,14 @@ void main() {
         expect(parts.decimal, '.99');
       });
 
-      test('should return .5 for 1000.5 (decimal preserved with thousands)',
-          () {
-        final parts = formatPriceParts(1000.5);
+      test(
+        'should return .5 for 1000.5 (decimal preserved with thousands)',
+        () {
+          final parts = formatPriceParts(1000.5);
 
-        expect(parts.decimal, '.5');
-      });
+          expect(parts.decimal, '.5');
+        },
+      );
 
       test('should return .5 for 9.50 (trailing zero stripped)', () {
         final parts = formatPriceParts(9.50);
@@ -93,12 +96,14 @@ void main() {
         expect(parts.decimal, '.5');
       });
 
-      test('should strip trailing zero only from the right (9.10 becomes .1)',
-          () {
-        final parts = formatPriceParts(9.10);
+      test(
+        'should strip trailing zero only from the right (9.10 becomes .1)',
+        () {
+          final parts = formatPriceParts(9.10);
 
-        expect(parts.decimal, '.1');
-      });
+          expect(parts.decimal, '.1');
+        },
+      );
     });
   });
 
@@ -150,13 +155,14 @@ void main() {
 
   group('PriceParts record', () {
     test(
-        'should combine integer and decimal to match formatPrice for same input',
-        () {
-      final parts = formatPriceParts(9.75);
-      final combined = '${parts.integer}${parts.decimal}';
+      'should combine integer and decimal to match formatPrice for same input',
+      () {
+        final parts = formatPriceParts(9.75);
+        final combined = '${parts.integer}${parts.decimal}';
 
-      expect(combined, formatPrice(9.75));
-    });
+        expect(combined, formatPrice(9.75));
+      },
+    );
 
     test('should combine correctly for a whole-number price', () {
       final parts = formatPriceParts(20.0);

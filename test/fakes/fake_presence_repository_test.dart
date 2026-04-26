@@ -27,10 +27,7 @@ void main() {
         'should throw StateError when joinMenu is called without configuration',
         () async {
           // Act / Assert
-          await expectLater(
-            fake.joinMenu(1, 'user-1'),
-            throwsStateError,
-          );
+          await expectLater(fake.joinMenu(1, 'user-1'), throwsStateError);
         },
       );
 
@@ -38,10 +35,7 @@ void main() {
         'should throw StateError when leaveMenu is called without configuration',
         () async {
           // Act / Assert
-          await expectLater(
-            fake.leaveMenu(1, 'user-1'),
-            throwsStateError,
-          );
+          await expectLater(fake.leaveMenu(1, 'user-1'), throwsStateError);
         },
       );
 
@@ -49,10 +43,7 @@ void main() {
         'should throw StateError when heartbeat is called without configuration',
         () async {
           // Act / Assert
-          await expectLater(
-            fake.heartbeat(1, 'user-1'),
-            throwsStateError,
-          );
+          await expectLater(fake.heartbeat(1, 'user-1'), throwsStateError);
         },
       );
 
@@ -60,10 +51,7 @@ void main() {
         'should throw StateError when getActiveUsers is called without configuration',
         () async {
           // Act / Assert
-          await expectLater(
-            fake.getActiveUsers(1),
-            throwsStateError,
-          );
+          await expectLater(fake.getActiveUsers(1), throwsStateError);
         },
       );
 
@@ -182,10 +170,7 @@ void main() {
           fake.whenGetActiveUsers(5, success([]));
 
           // Act / Assert
-          await expectLater(
-            fake.getActiveUsers(6),
-            throwsStateError,
-          );
+          await expectLater(fake.getActiveUsers(6), throwsStateError);
         },
       );
     });
@@ -213,49 +198,40 @@ void main() {
         },
       );
 
-      test(
-        'should record a LeaveMenuCall with correct arguments',
-        () async {
-          // Arrange
-          fake.whenLeaveMenu(success(null));
+      test('should record a LeaveMenuCall with correct arguments', () async {
+        // Arrange
+        fake.whenLeaveMenu(success(null));
 
-          // Act
-          await fake.leaveMenu(10, 'user-3');
+        // Act
+        await fake.leaveMenu(10, 'user-3');
 
-          // Assert
-          expect(fake.leaveMenuCalls, hasLength(1));
-          expect(fake.leaveMenuCalls.first.menuId, equals(10));
-          expect(fake.leaveMenuCalls.first.userId, equals('user-3'));
-        },
-      );
+        // Assert
+        expect(fake.leaveMenuCalls, hasLength(1));
+        expect(fake.leaveMenuCalls.first.menuId, equals(10));
+        expect(fake.leaveMenuCalls.first.userId, equals('user-3'));
+      });
 
-      test(
-        'should record a HeartbeatCall with correct arguments',
-        () async {
-          // Arrange
-          fake.whenHeartbeat(success(null));
+      test('should record a HeartbeatCall with correct arguments', () async {
+        // Arrange
+        fake.whenHeartbeat(success(null));
 
-          // Act
-          await fake.heartbeat(5, 'user-99');
+        // Act
+        await fake.heartbeat(5, 'user-99');
 
-          // Assert
-          expect(fake.heartbeatCalls, hasLength(1));
-          expect(fake.heartbeatCalls.first.menuId, equals(5));
-          expect(fake.heartbeatCalls.first.userId, equals('user-99'));
-        },
-      );
+        // Assert
+        expect(fake.heartbeatCalls, hasLength(1));
+        expect(fake.heartbeatCalls.first.menuId, equals(5));
+        expect(fake.heartbeatCalls.first.userId, equals('user-99'));
+      });
 
-      test(
-        'should record a WatchActiveUsersCall with correct menuId',
-        () {
-          // Act
-          fake.watchActiveUsers(8);
+      test('should record a WatchActiveUsersCall with correct menuId', () {
+        // Act
+        fake.watchActiveUsers(8);
 
-          // Assert
-          expect(fake.watchActiveUsersCalls, hasLength(1));
-          expect(fake.watchActiveUsersCalls.first.menuId, equals(8));
-        },
-      );
+        // Assert
+        expect(fake.watchActiveUsersCalls, hasLength(1));
+        expect(fake.watchActiveUsersCalls.first.menuId, equals(8));
+      });
 
       test(
         'should record an UnsubscribePresenceCall when unsubscribePresence is called',

@@ -95,20 +95,17 @@ void main() {
         },
       );
 
-      test(
-        'should propagate ServerError from repository',
-        () async {
-          // Arrange
-          fileRepo.whenListImageFiles(failure(server()));
+      test('should propagate ServerError from repository', () async {
+        // Arrange
+        fileRepo.whenListImageFiles(failure(server()));
 
-          // Act
-          final result = await useCase.execute();
+        // Act
+        final result = await useCase.execute();
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<ServerError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<ServerError>());
+      });
     });
 
     // -------------------------------------------------------------------------

@@ -164,14 +164,16 @@ void main() {
         expect(modified.price, 15.0);
       });
 
-      test('should update calories when copyWith is called with a new value',
-          () {
-        const original = DishProps(name: 'Pasta', price: 10.0);
+      test(
+        'should update calories when copyWith is called with a new value',
+        () {
+          const original = DishProps(name: 'Pasta', price: 10.0);
 
-        final withCalories = original.copyWith(calories: 500);
+          final withCalories = original.copyWith(calories: 500);
 
-        expect(withCalories.calories, 500);
-      });
+          expect(withCalories.calories, 500);
+        },
+      );
 
       test('should clear calories when copyWith is called with null', () {
         const original = DishProps(name: 'Pasta', price: 10.0, calories: 400);
@@ -181,17 +183,19 @@ void main() {
         expect(withoutCalories.calories, isNull);
       });
 
-      test('should update priceVariants when copyWith is called with new list',
-          () {
-        const original = DishProps(name: 'Dish', price: 10.0);
+      test(
+        'should update priceVariants when copyWith is called with new list',
+        () {
+          const original = DishProps(name: 'Dish', price: 10.0);
 
-        final modified = original.copyWith(
-          priceVariants: const [PriceVariant(label: 'Large', price: 14.0)],
-        );
+          final modified = original.copyWith(
+            priceVariants: const [PriceVariant(label: 'Large', price: 14.0)],
+          );
 
-        expect(modified.priceVariants, hasLength(1));
-        expect(modified.priceVariants.first.label, 'Large');
-      });
+          expect(modified.priceVariants, hasLength(1));
+          expect(modified.priceVariants.first.label, 'Large');
+        },
+      );
 
       test('should not mutate the original when copyWith is called', () {
         const original = DishProps(name: 'Original', price: 10.0);
@@ -251,24 +255,27 @@ void main() {
         expect(props.displayName, 'GARDEN SALAD (Ve)');
       });
 
-      test('should return empty string when name is empty and no dietary set',
-          () {
-        const props = DishProps(name: '', price: 0);
+      test(
+        'should return empty string when name is empty and no dietary set',
+        () {
+          const props = DishProps(name: '', price: 0);
 
-        expect(props.displayName, '');
-      });
+          expect(props.displayName, '');
+        },
+      );
 
       test(
-          'should return space-prefixed abbreviation when name is empty and dietary is set',
-          () {
-        const props = DishProps(
-          name: '',
-          price: 0,
-          dietary: DietaryType.vegan,
-        );
+        'should return space-prefixed abbreviation when name is empty and dietary is set',
+        () {
+          const props = DishProps(
+            name: '',
+            price: 0,
+            dietary: DietaryType.vegan,
+          );
 
-        expect(props.displayName, ' (Ve)');
-      });
+          expect(props.displayName, ' (Ve)');
+        },
+      );
     });
 
     group('JSON round-trip', () {
@@ -288,18 +295,20 @@ void main() {
         expect(json['price'], 12.50);
       });
 
-      test('should serialise dietary as a lowercase string in the JSON map',
-          () {
-        const props = DishProps(
-          name: 'Pasta',
-          price: 12.50,
-          dietary: DietaryType.vegetarian,
-        );
+      test(
+        'should serialise dietary as a lowercase string in the JSON map',
+        () {
+          const props = DishProps(
+            name: 'Pasta',
+            price: 12.50,
+            dietary: DietaryType.vegetarian,
+          );
 
-        final json = props.toJson();
+          final json = props.toJson();
 
-        expect(json['dietary'], 'vegetarian');
-      });
+          expect(json['dietary'], 'vegetarian');
+        },
+      );
 
       test('should serialise allergenInfo as a JSON list', () {
         const props = DishProps(
@@ -398,14 +407,16 @@ void main() {
         expect(restored, equals(original));
       });
 
-      test('should produce empty priceVariants list when key is absent in JSON',
-          () {
-        final json = {'name': 'Dish', 'price': 11.0};
+      test(
+        'should produce empty priceVariants list when key is absent in JSON',
+        () {
+          final json = {'name': 'Dish', 'price': 11.0};
 
-        final props = DishProps.fromJson(json);
+          final props = DishProps.fromJson(json);
 
-        expect(props.priceVariants, isEmpty);
-      });
+          expect(props.priceVariants, isEmpty);
+        },
+      );
 
       test('should handle null dietary in JSON by using null', () {
         final json = {
@@ -421,11 +432,7 @@ void main() {
       });
 
       test('should handle null description in JSON by using null', () {
-        final json = {
-          'name': 'Dish',
-          'price': 10.0,
-          'description': null,
-        };
+        final json = {'name': 'Dish', 'price': 10.0, 'description': null};
 
         final props = DishProps.fromJson(json);
 
@@ -433,14 +440,15 @@ void main() {
       });
 
       test(
-          'should use default empty allergenInfo when key is absent from JSON',
-          () {
-        final json = {'name': 'Simple Dish', 'price': 10.0};
+        'should use default empty allergenInfo when key is absent from JSON',
+        () {
+          final json = {'name': 'Simple Dish', 'price': 10.0};
 
-        final props = DishProps.fromJson(json);
+          final props = DishProps.fromJson(json);
 
-        expect(props.allergenInfo, isEmpty);
-      });
+          expect(props.allergenInfo, isEmpty);
+        },
+      );
     });
   });
 }

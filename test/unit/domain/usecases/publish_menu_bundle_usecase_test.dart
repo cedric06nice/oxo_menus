@@ -85,7 +85,10 @@ void main() {
     });
 
     MenuTree buildSimpleTree({int menuId = 1}) {
-      return MenuTree(menu: buildMenu(id: menuId), pages: []);
+      return MenuTree(
+        menu: buildMenu(id: menuId),
+        pages: [],
+      );
     }
 
     // -------------------------------------------------------------------------
@@ -93,20 +96,17 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('bundle fetch failure', () {
-      test(
-        'should return Failure when repository.getById fails',
-        () async {
-          // Arrange
-          bundleRepo.whenGetById(failure(notFound()));
+      test('should return Failure when repository.getById fails', () async {
+        // Arrange
+        bundleRepo.whenGetById(failure(notFound()));
 
-          // Act
-          final result = await useCase.execute(1);
+        // Act
+        final result = await useCase.execute(1);
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<NotFoundError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<NotFoundError>());
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -239,8 +239,11 @@ void main() {
         'should upload PDF and return updated bundle with new fileId',
         () async {
           // Arrange
-          final updatedBundle =
-              buildMenuBundle(id: 1, menuIds: [10], pdfFileId: 'new-file-id');
+          final updatedBundle = buildMenuBundle(
+            id: 1,
+            menuIds: [10],
+            pdfFileId: 'new-file-id',
+          );
           bundleRepo.whenGetById(
             success(buildMenuBundle(id: 1, menuIds: [10], pdfFileId: null)),
           );
@@ -257,47 +260,38 @@ void main() {
         },
       );
 
-      test(
-        'should call upload (not replace) when pdfFileId is null',
-        () async {
-          // Arrange
-          bundleRepo.whenGetById(
-            success(buildMenuBundle(id: 1, menuIds: [10], pdfFileId: null)),
-          );
-          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
-          fileRepo.whenUpload(success('new-file-id'));
-          bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
+      test('should call upload (not replace) when pdfFileId is null', () async {
+        // Arrange
+        bundleRepo.whenGetById(
+          success(buildMenuBundle(id: 1, menuIds: [10], pdfFileId: null)),
+        );
+        fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+        fileRepo.whenUpload(success('new-file-id'));
+        bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
 
-          // Act
-          await useCase.execute(1);
+        // Act
+        await useCase.execute(1);
 
-          // Assert
-          expect(fileRepo.uploadCalls.length, equals(1));
-          expect(fileRepo.replaceCalls, isEmpty);
-        },
-      );
+        // Assert
+        expect(fileRepo.uploadCalls.length, equals(1));
+        expect(fileRepo.replaceCalls, isEmpty);
+      });
 
-      test(
-        'should use bundle name as PDF filename',
-        () async {
-          // Arrange
-          bundleRepo.whenGetById(
-            success(buildMenuBundle(id: 1, name: 'Weekend Set', menuIds: [10])),
-          );
-          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
-          fileRepo.whenUpload(success('file-id'));
-          bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
+      test('should use bundle name as PDF filename', () async {
+        // Arrange
+        bundleRepo.whenGetById(
+          success(buildMenuBundle(id: 1, name: 'Weekend Set', menuIds: [10])),
+        );
+        fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+        fileRepo.whenUpload(success('file-id'));
+        bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
 
-          // Act
-          await useCase.execute(1);
+        // Act
+        await useCase.execute(1);
 
-          // Assert
-          expect(
-            fileRepo.uploadCalls.single.filename,
-            equals('Weekend Set.pdf'),
-          );
-        },
-      );
+        // Assert
+        expect(fileRepo.uploadCalls.single.filename, equals('Weekend Set.pdf'));
+      });
 
       test(
         'should pass the returned fileId to repository.update after first upload',
@@ -348,45 +342,39 @@ void main() {
         },
       );
 
-      test(
-        'should call replace with the existing pdfFileId',
-        () async {
-          // Arrange
-          bundleRepo.whenGetById(
-            success(
-              buildMenuBundle(id: 1, menuIds: [10], pdfFileId: 'existing-id'),
-            ),
-          );
-          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
-          fileRepo.whenReplace(success('existing-id'));
+      test('should call replace with the existing pdfFileId', () async {
+        // Arrange
+        bundleRepo.whenGetById(
+          success(
+            buildMenuBundle(id: 1, menuIds: [10], pdfFileId: 'existing-id'),
+          ),
+        );
+        fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+        fileRepo.whenReplace(success('existing-id'));
 
-          // Act
-          await useCase.execute(1);
+        // Act
+        await useCase.execute(1);
 
-          // Assert
-          expect(fileRepo.replaceCalls.single.fileId, equals('existing-id'));
-        },
-      );
+        // Assert
+        expect(fileRepo.replaceCalls.single.fileId, equals('existing-id'));
+      });
 
-      test(
-        'should not call repository.update on subsequent publish',
-        () async {
-          // Arrange
-          bundleRepo.whenGetById(
-            success(
-              buildMenuBundle(id: 1, menuIds: [10], pdfFileId: 'existing-id'),
-            ),
-          );
-          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
-          fileRepo.whenReplace(success('existing-id'));
+      test('should not call repository.update on subsequent publish', () async {
+        // Arrange
+        bundleRepo.whenGetById(
+          success(
+            buildMenuBundle(id: 1, menuIds: [10], pdfFileId: 'existing-id'),
+          ),
+        );
+        fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+        fileRepo.whenReplace(success('existing-id'));
 
-          // Act
-          await useCase.execute(1);
+        // Act
+        await useCase.execute(1);
 
-          // Assert
-          expect(bundleRepo.updateCalls, isEmpty);
-        },
-      );
+        // Assert
+        expect(bundleRepo.updateCalls, isEmpty);
+      });
 
       test(
         'should return the original bundle (not updated) on subsequent publish',
@@ -420,9 +408,7 @@ void main() {
         'should attempt to build PDF when bundle has empty menuIds',
         () async {
           // Arrange
-          bundleRepo.whenGetById(
-            success(buildMenuBundle(id: 1, menuIds: [])),
-          );
+          bundleRepo.whenGetById(success(buildMenuBundle(id: 1, menuIds: [])));
           fileRepo.whenUpload(success('file-id'));
           bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
 
@@ -493,9 +479,7 @@ void main() {
         'should use default "SAMPLE MENU" watermark when not explicitly configured',
         () async {
           // Arrange
-          bundleRepo.whenGetById(
-            success(buildMenuBundle(id: 1, menuIds: [])),
-          );
+          bundleRepo.whenGetById(success(buildMenuBundle(id: 1, menuIds: [])));
           fileRepo.whenUpload(success('file-id'));
           bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
 
@@ -508,32 +492,27 @@ void main() {
         },
       );
 
-      test(
-        'should allow custom watermark text at construction',
-        () async {
-          // Arrange
-          final customUseCase = PublishMenuBundleUseCase(
-            repository: bundleRepo,
-            fetchMenuTreeUseCase: fetchMenuTree,
-            fileRepository: fileRepo,
-            assetLoader: assetLoader,
-            pdfBuilder: pdfBuilder,
-            watermarkText: 'PREVIEW ONLY',
-          );
-          bundleRepo.whenGetById(
-            success(buildMenuBundle(id: 1, menuIds: [])),
-          );
-          fileRepo.whenUpload(success('file-id'));
-          bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
+      test('should allow custom watermark text at construction', () async {
+        // Arrange
+        final customUseCase = PublishMenuBundleUseCase(
+          repository: bundleRepo,
+          fetchMenuTreeUseCase: fetchMenuTree,
+          fileRepository: fileRepo,
+          assetLoader: assetLoader,
+          pdfBuilder: pdfBuilder,
+          watermarkText: 'PREVIEW ONLY',
+        );
+        bundleRepo.whenGetById(success(buildMenuBundle(id: 1, menuIds: [])));
+        fileRepo.whenUpload(success('file-id'));
+        bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
 
-          // Act
-          final result = await customUseCase.execute(1);
+        // Act
+        final result = await customUseCase.execute(1);
 
-          // Assert
-          expect(result.isSuccess, isTrue);
-          expect(customUseCase.watermarkText, equals('PREVIEW ONLY'));
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(customUseCase.watermarkText, equals('PREVIEW ONLY'));
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -545,9 +524,7 @@ void main() {
         'should load exactly three font assets before building the PDF',
         () async {
           // Arrange
-          bundleRepo.whenGetById(
-            success(buildMenuBundle(id: 1, menuIds: [])),
-          );
+          bundleRepo.whenGetById(success(buildMenuBundle(id: 1, menuIds: [])));
           fileRepo.whenUpload(success('file-id'));
           bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
 

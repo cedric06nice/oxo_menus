@@ -140,18 +140,14 @@ class FakeMenuRepository implements MenuRepository {
     calls.add(MenuUpdateCall(input));
     if (_updateFutureResponse != null) return _updateFutureResponse!;
     if (_updateResponse != null) return _updateResponse!;
-    throw StateError(
-      'FakeMenuRepository: no response configured for update()',
-    );
+    throw StateError('FakeMenuRepository: no response configured for update()');
   }
 
   @override
   Future<Result<void, DomainError>> delete(int id) async {
     calls.add(MenuDeleteCall(id));
     if (_deleteResponse != null) return _deleteResponse!;
-    throw StateError(
-      'FakeMenuRepository: no response configured for delete()',
-    );
+    throw StateError('FakeMenuRepository: no response configured for delete()');
   }
 
   // -------------------------------------------------------------------------

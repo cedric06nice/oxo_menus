@@ -67,30 +67,32 @@ void main() {
       );
     });
 
-    test('should return empty ByteData when handler returns empty bytes',
-        () async {
-      // Arrange
-      final emptyBytes = Uint8List(0);
-      final binding = TestDefaultBinaryMessengerBinding.instance;
-      binding.defaultBinaryMessenger.setMockMessageHandler(
-        'flutter/assets',
-        (message) async => emptyBytes.buffer.asByteData(),
-      );
+    test(
+      'should return empty ByteData when handler returns empty bytes',
+      () async {
+        // Arrange
+        final emptyBytes = Uint8List(0);
+        final binding = TestDefaultBinaryMessengerBinding.instance;
+        binding.defaultBinaryMessenger.setMockMessageHandler(
+          'flutter/assets',
+          (message) async => emptyBytes.buffer.asByteData(),
+        );
 
-      final repo = AssetLoaderRepositoryImpl();
+        final repo = AssetLoaderRepositoryImpl();
 
-      // Act
-      final result = await repo.loadAsset('assets/fonts/empty.ttf');
+        // Act
+        final result = await repo.loadAsset('assets/fonts/empty.ttf');
 
-      // Assert
-      expect(result.lengthInBytes, 0);
+        // Assert
+        expect(result.lengthInBytes, 0);
 
-      // Cleanup
-      binding.defaultBinaryMessenger.setMockMessageHandler(
-        'flutter/assets',
-        null,
-      );
-    });
+        // Cleanup
+        binding.defaultBinaryMessenger.setMockMessageHandler(
+          'flutter/assets',
+          null,
+        );
+      },
+    );
 
     test('should throw when rootBundle cannot find the asset', () async {
       // Arrange — reset handler so rootBundle has no registered asset

@@ -19,13 +19,7 @@ Map<String, dynamic> _minimalMenuJson({
   String name = 'Test Menu',
   String status = 'published',
   String version = '1.0.0',
-}) =>
-    {
-      'id': id,
-      'name': name,
-      'status': status,
-      'version': version,
-    };
+}) => {'id': id, 'name': name, 'status': status, 'version': version};
 
 void main() {
   late _FakeMenuDataSource fake;
@@ -38,22 +32,24 @@ void main() {
 
   group('MenuRepositoryImpl', () {
     group('getById', () {
-      test('should return Success<Menu> when data source returns a menu',
-          () async {
-        // Arrange
-        fake.getItemResult = _minimalMenuJson();
+      test(
+        'should return Success<Menu> when data source returns a menu',
+        () async {
+          // Arrange
+          fake.getItemResult = _minimalMenuJson();
 
-        // Act
-        final result = await repository.getById(1);
+          // Act
+          final result = await repository.getById(1);
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        final menu = result.valueOrNull!;
-        expect(menu.id, 1);
-        expect(menu.name, 'Test Menu');
-        expect(menu.status, Status.published);
-        expect(menu.version, '1.0.0');
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          final menu = result.valueOrNull!;
+          expect(menu.id, 1);
+          expect(menu.name, 'Test Menu');
+          expect(menu.status, Status.published);
+          expect(menu.version, '1.0.0');
+        },
+      );
 
       test('should call getItem with the provided id', () async {
         // Arrange
@@ -119,34 +115,38 @@ void main() {
       });
 
       test(
-          'should return Failure<NotFoundError> when data source throws NOT_FOUND',
-          () async {
-        // Arrange
-        fake.getItemError = DirectusException(
-            code: 'NOT_FOUND', message: 'Menu not found');
+        'should return Failure<NotFoundError> when data source throws NOT_FOUND',
+        () async {
+          // Arrange
+          fake.getItemError = DirectusException(
+            code: 'NOT_FOUND',
+            message: 'Menu not found',
+          );
 
-        // Act
-        final result = await repository.getById(99);
+          // Act
+          final result = await repository.getById(99);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<NotFoundError>());
-        expect(result.errorOrNull!.message, contains('Menu not found'));
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NotFoundError>());
+          expect(result.errorOrNull!.message, contains('Menu not found'));
+        },
+      );
 
       test(
-          'should return Failure<UnknownError> when data source throws generic exception',
-          () async {
-        // Arrange
-        fake.getItemError = Exception('Network error');
+        'should return Failure<UnknownError> when data source throws generic exception',
+        () async {
+          // Arrange
+          fake.getItemError = Exception('Network error');
 
-        // Act
-        final result = await repository.getById(1);
+          // Act
+          final result = await repository.getById(1);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
     });
 
     group('listAll', () {
@@ -168,20 +168,21 @@ void main() {
       });
 
       test(
-          'should pass published status filter when onlyPublished is true',
-          () async {
-        // Arrange
-        fake.getItemsResult = [];
+        'should pass published status filter when onlyPublished is true',
+        () async {
+          // Arrange
+          fake.getItemsResult = [];
 
-        // Act
-        await repository.listAll(onlyPublished: true);
+          // Act
+          await repository.listAll(onlyPublished: true);
 
-        // Assert
-        final filter = fake.lastGetItemsFilter;
-        expect(filter, isNotNull);
-        expect(filter!['status'], isNotNull);
-        expect(filter['status']['_eq'], 'published');
-      });
+          // Assert
+          final filter = fake.lastGetItemsFilter;
+          expect(filter, isNotNull);
+          expect(filter!['status'], isNotNull);
+          expect(filter['status']['_eq'], 'published');
+        },
+      );
 
       test('should pass null filter when onlyPublished is false', () async {
         // Arrange
@@ -224,29 +225,34 @@ void main() {
         });
       });
 
-      test('should return empty list without calling data source when areaIds is empty',
-          () async {
-        // Act
-        final result = await repository.listAll(areaIds: []);
+      test(
+        'should return empty list without calling data source when areaIds is empty',
+        () async {
+          // Act
+          final result = await repository.listAll(areaIds: []);
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        expect(result.valueOrNull, isEmpty);
-        expect(fake.getItemsCallCount, 0);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull, isEmpty);
+          expect(fake.getItemsCallCount, 0);
+        },
+      );
 
       test(
-          'should return empty list without calling data source when areaIds is empty and onlyPublished is false',
-          () async {
-        // Act
-        final result =
-            await repository.listAll(onlyPublished: false, areaIds: []);
+        'should return empty list without calling data source when areaIds is empty and onlyPublished is false',
+        () async {
+          // Act
+          final result = await repository.listAll(
+            onlyPublished: false,
+            areaIds: [],
+          );
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        expect(result.valueOrNull, isEmpty);
-        expect(fake.getItemsCallCount, 0);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull, isEmpty);
+          expect(fake.getItemsCallCount, 0);
+        },
+      );
 
       test('should include sort by -date_updated', () async {
         // Arrange
@@ -271,31 +277,34 @@ void main() {
       });
 
       test(
-          'should return Failure<UnknownError> when data source throws generic exception',
-          () async {
-        // Arrange
-        fake.getItemsError = Exception('server error');
+        'should return Failure<UnknownError> when data source throws generic exception',
+        () async {
+          // Arrange
+          fake.getItemsError = Exception('server error');
 
-        // Act
-        final result = await repository.listAll();
+          // Act
+          final result = await repository.listAll();
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
 
-      test('should return empty list when data source returns no menus',
-          () async {
-        // Arrange
-        fake.getItemsResult = [];
+      test(
+        'should return empty list when data source returns no menus',
+        () async {
+          // Arrange
+          fake.getItemsResult = [];
 
-        // Act
-        final result = await repository.listAll();
+          // Act
+          final result = await repository.listAll();
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        expect(result.valueOrNull, isEmpty);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull, isEmpty);
+        },
+      );
     });
 
     group('create', () {
@@ -308,7 +317,11 @@ void main() {
       test('should return Success<Menu> with the created entity', () async {
         // Arrange
         fake.createItemResult = _minimalMenuJson(
-            id: 99, name: 'New Menu', status: 'draft', version: '1.0.0');
+          id: 99,
+          name: 'New Menu',
+          status: 'draft',
+          version: '1.0.0',
+        );
 
         // Act
         final result = await repository.create(input);
@@ -322,8 +335,11 @@ void main() {
 
       test('should call createItem exactly once', () async {
         // Arrange
-        fake.createItemResult =
-            _minimalMenuJson(id: 1, name: 'New Menu', status: 'draft');
+        fake.createItemResult = _minimalMenuJson(
+          id: 1,
+          name: 'New Menu',
+          status: 'draft',
+        );
 
         // Act
         await repository.create(input);
@@ -333,34 +349,40 @@ void main() {
       });
 
       test(
-          'should return Failure<ValidationError> when data source throws RECORD_NOT_UNIQUE',
-          () async {
-        // Arrange
-        fake.createItemError = DirectusException(
-            code: 'RECORD_NOT_UNIQUE', message: 'Menu already exists');
+        'should return Failure<ValidationError> when data source throws RECORD_NOT_UNIQUE',
+        () async {
+          // Arrange
+          fake.createItemError = DirectusException(
+            code: 'RECORD_NOT_UNIQUE',
+            message: 'Menu already exists',
+          );
 
-        // Act
-        final result = await repository.create(input);
+          // Act
+          final result = await repository.create(input);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<ValidationError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ValidationError>());
+        },
+      );
 
       test(
-          'should return Failure<ServerError> when data source throws CREATE_FAILED',
-          () async {
-        // Arrange
-        fake.createItemError =
-            DirectusException(code: 'CREATE_FAILED', message: 'Failed');
+        'should return Failure<ServerError> when data source throws CREATE_FAILED',
+        () async {
+          // Arrange
+          fake.createItemError = DirectusException(
+            code: 'CREATE_FAILED',
+            message: 'Failed',
+          );
 
-        // Act
-        final result = await repository.create(input);
+          // Act
+          final result = await repository.create(input);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<ServerError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ServerError>());
+        },
+      );
     });
 
     group('update', () {
@@ -370,20 +392,25 @@ void main() {
         status: Status.published,
       );
 
-      test('should fetch existing item then update and return entity', () async {
-        // Arrange
-        fake.getItemResult = _minimalMenuJson(status: 'draft');
-        fake.updateItemResult =
-            _minimalMenuJson(name: 'Updated Menu', status: 'published');
+      test(
+        'should fetch existing item then update and return entity',
+        () async {
+          // Arrange
+          fake.getItemResult = _minimalMenuJson(status: 'draft');
+          fake.updateItemResult = _minimalMenuJson(
+            name: 'Updated Menu',
+            status: 'published',
+          );
 
-        // Act
-        final result = await repository.update(input);
+          // Act
+          final result = await repository.update(input);
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        expect(result.valueOrNull!.name, 'Updated Menu');
-        expect(result.valueOrNull!.status, Status.published);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.name, 'Updated Menu');
+          expect(result.valueOrNull!.status, Status.published);
+        },
+      );
 
       test('should call getItem then updateItem in sequence', () async {
         // Arrange
@@ -399,46 +426,54 @@ void main() {
       });
 
       test(
-          'should return Failure<NotFoundError> when getItem throws NOT_FOUND',
-          () async {
-        // Arrange
-        fake.getItemError =
-            DirectusException(code: 'NOT_FOUND', message: 'Menu not found');
+        'should return Failure<NotFoundError> when getItem throws NOT_FOUND',
+        () async {
+          // Arrange
+          fake.getItemError = DirectusException(
+            code: 'NOT_FOUND',
+            message: 'Menu not found',
+          );
 
-        // Act
-        final result = await repository.update(input);
+          // Act
+          final result = await repository.update(input);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<NotFoundError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NotFoundError>());
+        },
+      );
 
       test(
-          'should return Failure<ServerError> when updateItem throws UPDATE_FAILED',
-          () async {
-        // Arrange
-        fake.getItemResult = _minimalMenuJson();
-        fake.updateItemError =
-            DirectusException(code: 'UPDATE_FAILED', message: 'Update failed');
+        'should return Failure<ServerError> when updateItem throws UPDATE_FAILED',
+        () async {
+          // Arrange
+          fake.getItemResult = _minimalMenuJson();
+          fake.updateItemError = DirectusException(
+            code: 'UPDATE_FAILED',
+            message: 'Update failed',
+          );
 
-        // Act
-        final result = await repository.update(input);
+          // Act
+          final result = await repository.update(input);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<ServerError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ServerError>());
+        },
+      );
     });
 
     group('delete', () {
-      test('should return Success<void> when data source deletes successfully',
-          () async {
-        // Act
-        final result = await repository.delete(1);
+      test(
+        'should return Success<void> when data source deletes successfully',
+        () async {
+          // Act
+          final result = await repository.delete(1);
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+        },
+      );
 
       test('should call deleteItem with the provided id', () async {
         // Act
@@ -449,33 +484,37 @@ void main() {
       });
 
       test(
-          'should return Failure<NotFoundError> when data source throws NOT_FOUND',
-          () async {
-        // Arrange
-        fake.deleteItemError =
-            DirectusException(code: 'NOT_FOUND', message: 'Menu not found');
+        'should return Failure<NotFoundError> when data source throws NOT_FOUND',
+        () async {
+          // Arrange
+          fake.deleteItemError = DirectusException(
+            code: 'NOT_FOUND',
+            message: 'Menu not found',
+          );
 
-        // Act
-        final result = await repository.delete(99);
+          // Act
+          final result = await repository.delete(99);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<NotFoundError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NotFoundError>());
+        },
+      );
 
       test(
-          'should return Failure<UnknownError> when data source throws generic exception',
-          () async {
-        // Arrange
-        fake.deleteItemError = Exception('Database error');
+        'should return Failure<UnknownError> when data source throws generic exception',
+        () async {
+          // Arrange
+          fake.deleteItemError = Exception('Database error');
 
-        // Act
-        final result = await repository.delete(1);
+          // Act
+          final result = await repository.delete(1);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
     });
   });
 }
@@ -547,7 +586,8 @@ class _FakeMenuDataSource implements DirectusDataSource {
 
   @override
   Future<Map<String, dynamic>> createItem<T extends DirectusItem>(
-      T newItem) async {
+    T newItem,
+  ) async {
     createItemCallCount++;
     if (createItemError != null) throw createItemError!;
     if (createItemResult != null) return createItemResult!;
@@ -556,7 +596,8 @@ class _FakeMenuDataSource implements DirectusDataSource {
 
   @override
   Future<Map<String, dynamic>> updateItem<T extends DirectusItem>(
-      T itemToUpdate) async {
+    T itemToUpdate,
+  ) async {
     updateItemCallCount++;
     if (updateItemError != null) throw updateItemError!;
     if (updateItemResult != null) return updateItemResult!;
@@ -574,8 +615,7 @@ class _FakeMenuDataSource implements DirectusDataSource {
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
-  }) async =>
-      {};
+  }) async => {};
 
   @override
   Future<void> logout() async {}
@@ -593,15 +633,13 @@ class _FakeMenuDataSource implements DirectusDataSource {
   Future<bool> requestPasswordReset({
     required String email,
     String? resetUrl,
-  }) async =>
-      true;
+  }) async => true;
 
   @override
   Future<bool> confirmPasswordReset({
     required String token,
     required String password,
-  }) async =>
-      true;
+  }) async => true;
 
   @override
   Future<String> uploadFile(Uint8List bytes, String filename) async =>
@@ -609,8 +647,10 @@ class _FakeMenuDataSource implements DirectusDataSource {
 
   @override
   Future<String> replaceFile(
-          String fileId, Uint8List bytes, String filename) async =>
-      throw UnimplementedError();
+    String fileId,
+    Uint8List bytes,
+    String filename,
+  ) async => throw UnimplementedError();
 
   @override
   Future<List<Map<String, dynamic>>> listFiles({
@@ -618,8 +658,7 @@ class _FakeMenuDataSource implements DirectusDataSource {
     List<String>? fields,
     List<String>? sort,
     int? limit,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<Uint8List> downloadFileBytes(String fileId) async =>
@@ -627,8 +666,8 @@ class _FakeMenuDataSource implements DirectusDataSource {
 
   @override
   Future<void> startSubscription(
-          DirectusWebSocketSubscription subscription) async =>
-      throw UnimplementedError();
+    DirectusWebSocketSubscription subscription,
+  ) async => throw UnimplementedError();
 
   @override
   Future<void> stopSubscription(String subscriptionUid) async =>

@@ -55,9 +55,7 @@ class FakeAreaRepository implements AreaRepository {
     if (_getAllResponse != null) {
       return _getAllResponse!;
     }
-    throw StateError(
-      'FakeAreaRepository: no response configured for getAll()',
-    );
+    throw StateError('FakeAreaRepository: no response configured for getAll()');
   }
 
   // -------------------------------------------------------------------------

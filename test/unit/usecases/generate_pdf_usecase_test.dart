@@ -94,12 +94,7 @@ MenuTree _minimalMenuTree({
 
 /// Completely empty tree: no pages.
 const _emptyMenuTree = MenuTree(
-  menu: Menu(
-    id: 2,
-    name: 'Empty',
-    status: Status.draft,
-    version: '1',
-  ),
+  menu: Menu(id: 2, name: 'Empty', status: Status.draft, version: '1'),
   pages: [],
 );
 
@@ -124,10 +119,7 @@ void main() {
   setUp(() {
     assetLoader = _RootBundleAssetLoader();
     // Use useIsolate: false so isolate restrictions don't affect unit tests.
-    useCase = GeneratePdfUseCase(
-      assetLoader: assetLoader,
-      useIsolate: false,
-    );
+    useCase = GeneratePdfUseCase(assetLoader: assetLoader, useIsolate: false);
   });
 
   // ---------------------------------------------------------------------------
@@ -187,18 +179,15 @@ void main() {
       },
     );
 
-    test(
-      'should load exactly three font assets during execution',
-      () async {
-        await useCase.execute(_emptyMenuTree);
+    test('should load exactly three font assets during execution', () async {
+      await useCase.execute(_emptyMenuTree);
 
-        final paths = assetLoader.loadAssetCalls.map((c) => c.assetPath);
-        expect(paths, contains('assets/fonts/FuturaStd-Light.ttf'));
-        expect(paths, contains('assets/fonts/FuturaStd-Book.ttf'));
-        expect(paths, contains('assets/fonts/LibreBaskerville-Regular.ttf'));
-        expect(assetLoader.loadAssetCalls.length, 3);
-      },
-    );
+      final paths = assetLoader.loadAssetCalls.map((c) => c.assetPath);
+      expect(paths, contains('assets/fonts/FuturaStd-Light.ttf'));
+      expect(paths, contains('assets/fonts/FuturaStd-Book.ttf'));
+      expect(paths, contains('assets/fonts/LibreBaskerville-Regular.ttf'));
+      expect(assetLoader.loadAssetCalls.length, 3);
+    });
 
     test(
       'should produce valid PDF when useIsolate is false (main-thread path)',
@@ -230,47 +219,39 @@ void main() {
       },
     );
 
-    test(
-      'should pass watermark text through to the built document',
-      () async {
-        // We cannot inspect the PDF content without a parser, so we verify
-        // that the use case accepts a watermarkText parameter without failure
-        // and still returns valid PDF bytes.
-        final useCaseWithWatermark = GeneratePdfUseCase(
-          resolver: const PdfStyleResolver(),
-          assetLoader: assetLoader,
-          useIsolate: false,
-        );
+    test('should pass watermark text through to the built document', () async {
+      // We cannot inspect the PDF content without a parser, so we verify
+      // that the use case accepts a watermarkText parameter without failure
+      // and still returns valid PDF bytes.
+      final useCaseWithWatermark = GeneratePdfUseCase(
+        resolver: const PdfStyleResolver(),
+        assetLoader: assetLoader,
+        useIsolate: false,
+      );
 
-        // Execute via buildDocument directly to supply watermarkText.
-        // (GeneratePdfUseCase.execute does not expose watermarkText yet —
-        // exercise via PdfDocumentBuilder directly in builder tests.)
-        final result = await useCaseWithWatermark.execute(_minimalMenuTree());
+      // Execute via buildDocument directly to supply watermarkText.
+      // (GeneratePdfUseCase.execute does not expose watermarkText yet —
+      // exercise via PdfDocumentBuilder directly in builder tests.)
+      final result = await useCaseWithWatermark.execute(_minimalMenuTree());
 
-        expect(result.isSuccess, isTrue);
-      },
-    );
+      expect(result.isSuccess, isTrue);
+    });
 
-    test(
-      'should produce valid PDF for menu with custom page size',
-      () async {
-        final result = await useCase.execute(
-          _minimalMenuTree(
-            pageSize: const PageSize(name: 'custom', width: 100, height: 150),
-          ),
-        );
+    test('should produce valid PDF for menu with custom page size', () async {
+      final result = await useCase.execute(
+        _minimalMenuTree(
+          pageSize: const PageSize(name: 'custom', width: 100, height: 150),
+        ),
+      );
 
-        expect(result.isSuccess, isTrue);
-        expect(_isPdfBytes(result.valueOrNull!), isTrue);
-      },
-    );
+      expect(result.isSuccess, isTrue);
+      expect(_isPdfBytes(result.valueOrNull!), isTrue);
+    });
 
     test(
       'should produce valid PDF for menu with null pageSize (defaults to A4)',
       () async {
-        final result = await useCase.execute(
-          _minimalMenuTree(pageSize: null),
-        );
+        final result = await useCase.execute(_minimalMenuTree(pageSize: null));
 
         expect(result.isSuccess, isTrue);
         expect(_isPdfBytes(result.valueOrNull!), isTrue);
@@ -326,20 +307,17 @@ void main() {
       },
     );
 
-    test(
-      'should not throw — wraps all errors into Failure',
-      () async {
-        final failingUseCase = GeneratePdfUseCase(
-          assetLoader: _FailingAssetLoader(error: StateError('broken')),
-          useIsolate: false,
-        );
+    test('should not throw — wraps all errors into Failure', () async {
+      final failingUseCase = GeneratePdfUseCase(
+        assetLoader: _FailingAssetLoader(error: StateError('broken')),
+        useIsolate: false,
+      );
 
-        final Result<Uint8List, DomainError> result;
-        result = await failingUseCase.execute(_emptyMenuTree);
+      final Result<Uint8List, DomainError> result;
+      result = await failingUseCase.execute(_emptyMenuTree);
 
-        expect(result.isFailure, isTrue);
-      },
-    );
+      expect(result.isFailure, isTrue);
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -347,55 +325,51 @@ void main() {
   // ---------------------------------------------------------------------------
 
   group('GeneratePdfUseCase — image pre-fetching', () {
-    test(
-      'should not call downloadFile when fileRepository is null',
-      () async {
-        final useCaseNoFile = GeneratePdfUseCase(
-          assetLoader: assetLoader,
-          fileRepository: null,
-          useIsolate: false,
-        );
-        final tree = MenuTree(
-          menu: const Menu(
-            id: 10,
-            name: 'Image Menu',
-            status: Status.published,
-            version: '1',
+    test('should not call downloadFile when fileRepository is null', () async {
+      final useCaseNoFile = GeneratePdfUseCase(
+        assetLoader: assetLoader,
+        fileRepository: null,
+        useIsolate: false,
+      );
+      final tree = MenuTree(
+        menu: const Menu(
+          id: 10,
+          name: 'Image Menu',
+          status: Status.published,
+          version: '1',
+        ),
+        pages: const [
+          PageWithContainers(
+            page: entity.Page(id: 1, menuId: 10, name: 'P1', index: 0),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 1, pageId: 1, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(id: 1, containerId: 1, index: 0),
+                    widgets: [
+                      WidgetInstance(
+                        id: 1,
+                        columnId: 1,
+                        type: 'image',
+                        version: '1',
+                        index: 0,
+                        props: {'fileId': 'img-001'},
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
-          pages: const [
-            PageWithContainers(
-              page: entity.Page(id: 1, menuId: 10, name: 'P1', index: 0),
-              containers: [
-                ContainerWithColumns(
-                  container: entity.Container(id: 1, pageId: 1, index: 0),
-                  columns: [
-                    ColumnWithWidgets(
-                      column:
-                          entity.Column(id: 1, containerId: 1, index: 0),
-                      widgets: [
-                        WidgetInstance(
-                          id: 1,
-                          columnId: 1,
-                          type: 'image',
-                          version: '1',
-                          index: 0,
-                          props: {'fileId': 'img-001'},
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        ],
+      );
 
-        final result = await useCaseNoFile.execute(tree);
+      final result = await useCaseNoFile.execute(tree);
 
-        // Should succeed and render placeholder (no bytes in cache)
-        expect(result.isSuccess, isTrue);
-      },
-    );
+      // Should succeed and render placeholder (no bytes in cache)
+      expect(result.isSuccess, isTrue);
+    });
 
     test(
       'should call downloadFile for each image fileId found in the tree',
@@ -424,8 +398,7 @@ void main() {
                   container: entity.Container(id: 1, pageId: 1, index: 0),
                   columns: [
                     ColumnWithWidgets(
-                      column:
-                          entity.Column(id: 1, containerId: 1, index: 0),
+                      column: entity.Column(id: 1, containerId: 1, index: 0),
                       widgets: [
                         WidgetInstance(
                           id: 1,
@@ -454,71 +427,67 @@ void main() {
       },
     );
 
-    test(
-      'should de-duplicate image fileIds so each is fetched once',
-      () async {
-        final fileRepo = FakeFileRepository();
-        fileRepo.whenDownloadFile(success(kTestPngBytes));
+    test('should de-duplicate image fileIds so each is fetched once', () async {
+      final fileRepo = FakeFileRepository();
+      fileRepo.whenDownloadFile(success(kTestPngBytes));
 
-        final useCaseWithFile = GeneratePdfUseCase(
-          assetLoader: assetLoader,
-          fileRepository: fileRepo,
-          useIsolate: false,
-        );
+      final useCaseWithFile = GeneratePdfUseCase(
+        assetLoader: assetLoader,
+        fileRepository: fileRepo,
+        useIsolate: false,
+      );
 
-        // Two widgets referencing the same fileId.
-        const sameFid = 'shared-image';
-        final tree = MenuTree(
-          menu: const Menu(
-            id: 12,
-            name: 'Dedup Test',
-            status: Status.published,
-            version: '1',
+      // Two widgets referencing the same fileId.
+      const sameFid = 'shared-image';
+      final tree = MenuTree(
+        menu: const Menu(
+          id: 12,
+          name: 'Dedup Test',
+          status: Status.published,
+          version: '1',
+        ),
+        pages: const [
+          PageWithContainers(
+            page: entity.Page(id: 1, menuId: 12, name: 'P1', index: 0),
+            containers: [
+              ContainerWithColumns(
+                container: entity.Container(id: 1, pageId: 1, index: 0),
+                columns: [
+                  ColumnWithWidgets(
+                    column: entity.Column(id: 1, containerId: 1, index: 0),
+                    widgets: [
+                      WidgetInstance(
+                        id: 1,
+                        columnId: 1,
+                        type: 'image',
+                        version: '1',
+                        index: 0,
+                        props: {'fileId': sameFid},
+                      ),
+                      WidgetInstance(
+                        id: 2,
+                        columnId: 1,
+                        type: 'image',
+                        version: '1',
+                        index: 1,
+                        props: {'fileId': sameFid},
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
           ),
-          pages: const [
-            PageWithContainers(
-              page: entity.Page(id: 1, menuId: 12, name: 'P1', index: 0),
-              containers: [
-                ContainerWithColumns(
-                  container: entity.Container(id: 1, pageId: 1, index: 0),
-                  columns: [
-                    ColumnWithWidgets(
-                      column:
-                          entity.Column(id: 1, containerId: 1, index: 0),
-                      widgets: [
-                        WidgetInstance(
-                          id: 1,
-                          columnId: 1,
-                          type: 'image',
-                          version: '1',
-                          index: 0,
-                          props: {'fileId': sameFid},
-                        ),
-                        WidgetInstance(
-                          id: 2,
-                          columnId: 1,
-                          type: 'image',
-                          version: '1',
-                          index: 1,
-                          props: {'fileId': sameFid},
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        ],
+      );
 
-        await useCaseWithFile.execute(tree);
+      await useCaseWithFile.execute(tree);
 
-        final callsForId = fileRepo.downloadFileCalls
-            .where((c) => c.fileId == sameFid)
-            .toList();
-        expect(callsForId.length, 1);
-      },
-    );
+      final callsForId = fileRepo.downloadFileCalls
+          .where((c) => c.fileId == sameFid)
+          .toList();
+      expect(callsForId.length, 1);
+    });
 
     test(
       'should still produce valid PDF when downloadFile returns Failure (placeholder rendered)',
@@ -546,8 +515,7 @@ void main() {
                   container: entity.Container(id: 1, pageId: 1, index: 0),
                   columns: [
                     ColumnWithWidgets(
-                      column:
-                          entity.Column(id: 1, containerId: 1, index: 0),
+                      column: entity.Column(id: 1, containerId: 1, index: 0),
                       widgets: [
                         WidgetInstance(
                           id: 1,
@@ -573,67 +541,64 @@ void main() {
       },
     );
 
-    test(
-      'should scan header and footer pages for image fileIds',
-      () async {
-        final fileRepo = FakeFileRepository();
-        fileRepo.whenDownloadFile(success(kTestPngBytes));
+    test('should scan header and footer pages for image fileIds', () async {
+      final fileRepo = FakeFileRepository();
+      fileRepo.whenDownloadFile(success(kTestPngBytes));
 
-        final useCaseWithFile = GeneratePdfUseCase(
-          assetLoader: assetLoader,
-          fileRepository: fileRepo,
-          useIsolate: false,
-        );
+      final useCaseWithFile = GeneratePdfUseCase(
+        assetLoader: assetLoader,
+        fileRepository: fileRepo,
+        useIsolate: false,
+      );
 
-        final headerPage = PageWithContainers(
-          page: const entity.Page(
-            id: 10,
-            menuId: 20,
-            name: 'Header',
-            index: 0,
-            type: PageType.header,
+      final headerPage = PageWithContainers(
+        page: const entity.Page(
+          id: 10,
+          menuId: 20,
+          name: 'Header',
+          index: 0,
+          type: PageType.header,
+        ),
+        containers: const [
+          ContainerWithColumns(
+            container: entity.Container(id: 10, pageId: 10, index: 0),
+            columns: [
+              ColumnWithWidgets(
+                column: entity.Column(id: 10, containerId: 10, index: 0),
+                widgets: [
+                  WidgetInstance(
+                    id: 10,
+                    columnId: 10,
+                    type: 'image',
+                    version: '1',
+                    index: 0,
+                    props: {'fileId': 'header-img'},
+                  ),
+                ],
+              ),
+            ],
           ),
-          containers: const [
-            ContainerWithColumns(
-              container: entity.Container(id: 10, pageId: 10, index: 0),
-              columns: [
-                ColumnWithWidgets(
-                  column: entity.Column(id: 10, containerId: 10, index: 0),
-                  widgets: [
-                    WidgetInstance(
-                      id: 10,
-                      columnId: 10,
-                      type: 'image',
-                      version: '1',
-                      index: 0,
-                      props: {'fileId': 'header-img'},
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        ],
+      );
 
-        final tree = MenuTree(
-          menu: const Menu(
-            id: 20,
-            name: 'Header Image Test',
-            status: Status.published,
-            version: '1',
-          ),
-          pages: const [],
-          headerPage: headerPage,
-        );
+      final tree = MenuTree(
+        menu: const Menu(
+          id: 20,
+          name: 'Header Image Test',
+          status: Status.published,
+          version: '1',
+        ),
+        pages: const [],
+        headerPage: headerPage,
+      );
 
-        await useCaseWithFile.execute(tree);
+      await useCaseWithFile.execute(tree);
 
-        final downloadedIds = fileRepo.downloadFileCalls
-            .map((c) => c.fileId)
-            .toList();
-        expect(downloadedIds, contains('header-img'));
-      },
-    );
+      final downloadedIds = fileRepo.downloadFileCalls
+          .map((c) => c.fileId)
+          .toList();
+      expect(downloadedIds, contains('header-img'));
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -642,31 +607,25 @@ void main() {
 
   group('GeneratePdfUseCase — page size resolution', () {
     for (final pageSizeName in ['a4', 'letter', 'legal', 'a3']) {
-      test(
-        'should succeed for named page size "$pageSizeName"',
-        () async {
-          final result = await useCase.execute(
-            _minimalMenuTree(
-              pageSize: PageSize(name: pageSizeName, width: 210, height: 297),
-            ),
-          );
-
-          expect(result.isSuccess, isTrue);
-        },
-      );
-    }
-
-    test(
-      'should succeed for custom numeric page size',
-      () async {
+      test('should succeed for named page size "$pageSizeName"', () async {
         final result = await useCase.execute(
           _minimalMenuTree(
-            pageSize: const PageSize(name: 'custom', width: 80, height: 120),
+            pageSize: PageSize(name: pageSizeName, width: 210, height: 297),
           ),
         );
 
         expect(result.isSuccess, isTrue);
-      },
-    );
+      });
+    }
+
+    test('should succeed for custom numeric page size', () async {
+      final result = await useCase.execute(
+        _minimalMenuTree(
+          pageSize: const PageSize(name: 'custom', width: 80, height: 120),
+        ),
+      );
+
+      expect(result.isSuccess, isTrue);
+    });
   });
 }

@@ -20,15 +20,14 @@ Map<String, dynamic> _sizeJson({
   double height = 297.0,
   String status = 'published',
   String direction = 'portrait',
-}) =>
-    {
-      'id': id,
-      'name': name,
-      'width': width,
-      'height': height,
-      'status': status,
-      'direction': direction,
-    };
+}) => {
+  'id': id,
+  'name': name,
+  'width': width,
+  'height': height,
+  'status': status,
+  'direction': direction,
+};
 
 void main() {
   late _FakeSizeDataSource fake;
@@ -41,42 +40,47 @@ void main() {
 
   group('SizeRepositoryImpl', () {
     group('getAll', () {
-      test('should return Success<List<Size>> with all mapped entities',
-          () async {
-        // Arrange
-        fake.getItemsResult = [
-          _sizeJson(id: 1, name: 'A4'),
-          _sizeJson(
+      test(
+        'should return Success<List<Size>> with all mapped entities',
+        () async {
+          // Arrange
+          fake.getItemsResult = [
+            _sizeJson(id: 1, name: 'A4'),
+            _sizeJson(
               id: 2,
               name: 'Letter',
               width: 215.9,
               height: 279.4,
               status: 'draft',
-              direction: 'landscape'),
-        ];
+              direction: 'landscape',
+            ),
+          ];
 
-        // Act
-        final result = await repository.getAll();
+          // Act
+          final result = await repository.getAll();
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        expect(result.valueOrNull, hasLength(2));
-        expect(result.valueOrNull![0].name, 'A4');
-        expect(result.valueOrNull![1].name, 'Letter');
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull, hasLength(2));
+          expect(result.valueOrNull![0].name, 'A4');
+          expect(result.valueOrNull![1].name, 'Letter');
+        },
+      );
 
-      test('should return empty list when data source returns no sizes',
-          () async {
-        // Arrange
-        fake.getItemsResult = [];
+      test(
+        'should return empty list when data source returns no sizes',
+        () async {
+          // Arrange
+          fake.getItemsResult = [];
 
-        // Act
-        final result = await repository.getAll();
+          // Act
+          final result = await repository.getAll();
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        expect(result.valueOrNull, isEmpty);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull, isEmpty);
+        },
+      );
 
       test('should request all required fields', () async {
         // Arrange
@@ -87,8 +91,10 @@ void main() {
 
         // Assert
         final fields = fake.lastGetItemsFields;
-        expect(fields,
-            containsAll(['id', 'name', 'width', 'height', 'status', 'direction']));
+        expect(
+          fields,
+          containsAll(['id', 'name', 'width', 'height', 'status', 'direction']),
+        );
       });
 
       test('should sort by name', () async {
@@ -103,33 +109,37 @@ void main() {
       });
 
       test(
-          'should return Failure<DomainError> when data source throws generic exception',
-          () async {
-        // Arrange
-        fake.getItemsError = Exception('Connection failed');
+        'should return Failure<DomainError> when data source throws generic exception',
+        () async {
+          // Arrange
+          fake.getItemsError = Exception('Connection failed');
 
-        // Act
-        final result = await repository.getAll();
+          // Act
+          final result = await repository.getAll();
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<DomainError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<DomainError>());
+        },
+      );
 
       test(
-          'should return Failure<UnauthorizedError> when data source throws FORBIDDEN',
-          () async {
-        // Arrange
-        fake.getItemsError =
-            DirectusException(code: 'FORBIDDEN', message: 'Access denied');
+        'should return Failure<UnauthorizedError> when data source throws FORBIDDEN',
+        () async {
+          // Arrange
+          fake.getItemsError = DirectusException(
+            code: 'FORBIDDEN',
+            message: 'Access denied',
+          );
 
-        // Act
-        final result = await repository.getAll();
+          // Act
+          final result = await repository.getAll();
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnauthorizedError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnauthorizedError>());
+        },
+      );
     });
 
     group('getById', () {
@@ -158,38 +168,44 @@ void main() {
 
         // Assert
         final fields = fake.lastGetItemFields;
-        expect(fields,
-            containsAll(['id', 'name', 'width', 'height', 'status', 'direction']));
+        expect(
+          fields,
+          containsAll(['id', 'name', 'width', 'height', 'status', 'direction']),
+        );
       });
 
       test(
-          'should return Failure<NotFoundError> when data source throws NOT_FOUND',
-          () async {
-        // Arrange
-        fake.getItemError =
-            DirectusException(code: 'NOT_FOUND', message: 'Size not found');
+        'should return Failure<NotFoundError> when data source throws NOT_FOUND',
+        () async {
+          // Arrange
+          fake.getItemError = DirectusException(
+            code: 'NOT_FOUND',
+            message: 'Size not found',
+          );
 
-        // Act
-        final result = await repository.getById(99);
+          // Act
+          final result = await repository.getById(99);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<NotFoundError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NotFoundError>());
+        },
+      );
 
       test(
-          'should return Failure<DomainError> when data source throws generic exception',
-          () async {
-        // Arrange
-        fake.getItemError = Exception('Not found');
+        'should return Failure<DomainError> when data source throws generic exception',
+        () async {
+          // Arrange
+          fake.getItemError = Exception('Not found');
 
-        // Act
-        final result = await repository.getById(99);
+          // Act
+          final result = await repository.getById(99);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<DomainError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<DomainError>());
+        },
+      );
     });
 
     group('create', () {
@@ -204,7 +220,12 @@ void main() {
       test('should return Success<Size> with the created entity', () async {
         // Arrange
         fake.createItemResult = _sizeJson(
-            id: 3, name: 'A5', width: 148.0, height: 210.0, status: 'draft');
+          id: 3,
+          name: 'A5',
+          width: 148.0,
+          height: 210.0,
+          status: 'draft',
+        );
 
         // Act
         final result = await repository.create(input);
@@ -232,33 +253,37 @@ void main() {
       });
 
       test(
-          'should return Failure<ValidationError> when data source throws RECORD_NOT_UNIQUE',
-          () async {
-        // Arrange
-        fake.createItemError = DirectusException(
-            code: 'RECORD_NOT_UNIQUE', message: 'Size already exists');
+        'should return Failure<ValidationError> when data source throws RECORD_NOT_UNIQUE',
+        () async {
+          // Arrange
+          fake.createItemError = DirectusException(
+            code: 'RECORD_NOT_UNIQUE',
+            message: 'Size already exists',
+          );
 
-        // Act
-        final result = await repository.create(input);
+          // Act
+          final result = await repository.create(input);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<ValidationError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ValidationError>());
+        },
+      );
 
       test(
-          'should return Failure<UnknownError> when data source throws generic exception',
-          () async {
-        // Arrange
-        fake.createItemError = Exception('Create failed');
+        'should return Failure<UnknownError> when data source throws generic exception',
+        () async {
+          // Arrange
+          fake.createItemError = Exception('Create failed');
 
-        // Act
-        final result = await repository.create(input);
+          // Act
+          final result = await repository.create(input);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
     });
 
     group('update', () {
@@ -269,21 +294,24 @@ void main() {
       );
 
       test(
-          'should fetch existing size, apply patch, and return updated entity',
-          () async {
-        // Arrange
-        fake.getItemResult = _sizeJson(name: 'A4', status: 'draft');
-        fake.updateItemResult =
-            _sizeJson(name: 'A4 Updated', status: 'published');
+        'should fetch existing size, apply patch, and return updated entity',
+        () async {
+          // Arrange
+          fake.getItemResult = _sizeJson(name: 'A4', status: 'draft');
+          fake.updateItemResult = _sizeJson(
+            name: 'A4 Updated',
+            status: 'published',
+          );
 
-        // Act
-        final result = await repository.update(input);
+          // Act
+          final result = await repository.update(input);
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-        expect(result.valueOrNull!.name, 'A4 Updated');
-        expect(result.valueOrNull!.status, Status.published);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.name, 'A4 Updated');
+          expect(result.valueOrNull!.status, Status.published);
+        },
+      );
 
       test('should call getItem then updateItem in sequence', () async {
         // Arrange
@@ -299,46 +327,54 @@ void main() {
       });
 
       test(
-          'should return Failure<NotFoundError> when getItem throws NOT_FOUND',
-          () async {
-        // Arrange
-        fake.getItemError =
-            DirectusException(code: 'NOT_FOUND', message: 'Size not found');
+        'should return Failure<NotFoundError> when getItem throws NOT_FOUND',
+        () async {
+          // Arrange
+          fake.getItemError = DirectusException(
+            code: 'NOT_FOUND',
+            message: 'Size not found',
+          );
 
-        // Act
-        final result = await repository.update(input);
+          // Act
+          final result = await repository.update(input);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<NotFoundError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NotFoundError>());
+        },
+      );
 
       test(
-          'should return Failure<ServerError> when updateItem throws UPDATE_FAILED',
-          () async {
-        // Arrange
-        fake.getItemResult = _sizeJson();
-        fake.updateItemError =
-            DirectusException(code: 'UPDATE_FAILED', message: 'Update failed');
+        'should return Failure<ServerError> when updateItem throws UPDATE_FAILED',
+        () async {
+          // Arrange
+          fake.getItemResult = _sizeJson();
+          fake.updateItemError = DirectusException(
+            code: 'UPDATE_FAILED',
+            message: 'Update failed',
+          );
 
-        // Act
-        final result = await repository.update(input);
+          // Act
+          final result = await repository.update(input);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<ServerError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ServerError>());
+        },
+      );
     });
 
     group('delete', () {
-      test('should return Success<void> when data source deletes successfully',
-          () async {
-        // Act
-        final result = await repository.delete(1);
+      test(
+        'should return Success<void> when data source deletes successfully',
+        () async {
+          // Act
+          final result = await repository.delete(1);
 
-        // Assert
-        expect(result.isSuccess, isTrue);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+        },
+      );
 
       test('should call deleteItem with the provided id', () async {
         // Act
@@ -349,33 +385,37 @@ void main() {
       });
 
       test(
-          'should return Failure<NotFoundError> when data source throws NOT_FOUND',
-          () async {
-        // Arrange
-        fake.deleteItemError =
-            DirectusException(code: 'NOT_FOUND', message: 'Size not found');
+        'should return Failure<NotFoundError> when data source throws NOT_FOUND',
+        () async {
+          // Arrange
+          fake.deleteItemError = DirectusException(
+            code: 'NOT_FOUND',
+            message: 'Size not found',
+          );
 
-        // Act
-        final result = await repository.delete(99);
+          // Act
+          final result = await repository.delete(99);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<NotFoundError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NotFoundError>());
+        },
+      );
 
       test(
-          'should return Failure<UnknownError> when data source throws generic exception',
-          () async {
-        // Arrange
-        fake.deleteItemError = Exception('Delete failed');
+        'should return Failure<UnknownError> when data source throws generic exception',
+        () async {
+          // Arrange
+          fake.deleteItemError = Exception('Delete failed');
 
-        // Act
-        final result = await repository.delete(1);
+          // Act
+          final result = await repository.delete(1);
 
-        // Assert
-        expect(result.isFailure, isTrue);
-        expect(result.errorOrNull, isA<UnknownError>());
-      });
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
     });
   });
 }
@@ -438,7 +478,8 @@ class _FakeSizeDataSource implements DirectusDataSource {
 
   @override
   Future<Map<String, dynamic>> createItem<T extends DirectusItem>(
-      T newItem) async {
+    T newItem,
+  ) async {
     createItemCallCount++;
     if (createItemError != null) throw createItemError!;
     if (createItemResult != null) return createItemResult!;
@@ -447,7 +488,8 @@ class _FakeSizeDataSource implements DirectusDataSource {
 
   @override
   Future<Map<String, dynamic>> updateItem<T extends DirectusItem>(
-      T itemToUpdate) async {
+    T itemToUpdate,
+  ) async {
     updateItemCallCount++;
     if (updateItemError != null) throw updateItemError!;
     if (updateItemResult != null) return updateItemResult!;
@@ -464,8 +506,7 @@ class _FakeSizeDataSource implements DirectusDataSource {
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
-  }) async =>
-      {};
+  }) async => {};
 
   @override
   Future<void> logout() async {}
@@ -483,15 +524,13 @@ class _FakeSizeDataSource implements DirectusDataSource {
   Future<bool> requestPasswordReset({
     required String email,
     String? resetUrl,
-  }) async =>
-      true;
+  }) async => true;
 
   @override
   Future<bool> confirmPasswordReset({
     required String token,
     required String password,
-  }) async =>
-      true;
+  }) async => true;
 
   @override
   Future<String> uploadFile(Uint8List bytes, String filename) async =>
@@ -499,8 +538,10 @@ class _FakeSizeDataSource implements DirectusDataSource {
 
   @override
   Future<String> replaceFile(
-          String fileId, Uint8List bytes, String filename) async =>
-      throw UnimplementedError();
+    String fileId,
+    Uint8List bytes,
+    String filename,
+  ) async => throw UnimplementedError();
 
   @override
   Future<List<Map<String, dynamic>>> listFiles({
@@ -508,8 +549,7 @@ class _FakeSizeDataSource implements DirectusDataSource {
     List<String>? fields,
     List<String>? sort,
     int? limit,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<Uint8List> downloadFileBytes(String fileId) async =>
@@ -517,8 +557,8 @@ class _FakeSizeDataSource implements DirectusDataSource {
 
   @override
   Future<void> startSubscription(
-          DirectusWebSocketSubscription subscription) async =>
-      throw UnimplementedError();
+    DirectusWebSocketSubscription subscription,
+  ) async => throw UnimplementedError();
 
   @override
   Future<void> stopSubscription(String subscriptionUid) async =>

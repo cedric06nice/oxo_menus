@@ -62,7 +62,11 @@ void main() {
           // Arrange
           fakeDataSource
             ..getItemsResult = []
-            ..createItemResult = _presenceJson(id: 1, userId: 'user-abc', menuId: 42);
+            ..createItemResult = _presenceJson(
+              id: 1,
+              userId: 'user-abc',
+              menuId: 42,
+            );
 
           // Act
           final result = await repository.joinMenu(42, 'user-abc');
@@ -72,21 +76,22 @@ void main() {
         },
       );
 
-      test(
-        'should call createItem exactly once when joining a menu',
-        () async {
-          // Arrange
-          fakeDataSource
-            ..getItemsResult = []
-            ..createItemResult = _presenceJson(id: 1, userId: 'user-abc', menuId: 42);
+      test('should call createItem exactly once when joining a menu', () async {
+        // Arrange
+        fakeDataSource
+          ..getItemsResult = []
+          ..createItemResult = _presenceJson(
+            id: 1,
+            userId: 'user-abc',
+            menuId: 42,
+          );
 
-          // Act
-          await repository.joinMenu(42, 'user-abc');
+        // Act
+        await repository.joinMenu(42, 'user-abc');
 
-          // Assert
-          expect(fakeDataSource.createItemCallCount, equals(1));
-        },
-      );
+        // Assert
+        expect(fakeDataSource.createItemCallCount, equals(1));
+      });
 
       test(
         'should delete all existing entries for the user before creating a new one',
@@ -97,7 +102,11 @@ void main() {
               _presenceJson(id: 10, userId: 'user-abc', menuId: 1),
               _presenceJson(id: 20, userId: 'user-abc', menuId: 99),
             ]
-            ..createItemResult = _presenceJson(id: 1, userId: 'user-abc', menuId: 42);
+            ..createItemResult = _presenceJson(
+              id: 1,
+              userId: 'user-abc',
+              menuId: 42,
+            );
 
           // Act
           await repository.joinMenu(42, 'user-abc');
@@ -113,7 +122,11 @@ void main() {
           // Arrange
           fakeDataSource
             ..getItemsResult = []
-            ..createItemResult = _presenceJson(id: 1, userId: 'user-abc', menuId: 42);
+            ..createItemResult = _presenceJson(
+              id: 1,
+              userId: 'user-abc',
+              menuId: 42,
+            );
 
           // Act
           await repository.joinMenu(42, 'user-abc');
@@ -125,27 +138,24 @@ void main() {
         },
       );
 
-      test(
-        'should store userName in the created DTO when provided',
-        () async {
-          // Arrange
-          fakeDataSource
-            ..getItemsResult = []
-            ..createItemResult = _presenceJson(
-              id: 1,
-              userId: 'user-abc',
-              menuId: 42,
-              userName: 'Alice',
-            );
+      test('should store userName in the created DTO when provided', () async {
+        // Arrange
+        fakeDataSource
+          ..getItemsResult = []
+          ..createItemResult = _presenceJson(
+            id: 1,
+            userId: 'user-abc',
+            menuId: 42,
+            userName: 'Alice',
+          );
 
-          // Act
-          await repository.joinMenu(42, 'user-abc', userName: 'Alice');
+        // Act
+        await repository.joinMenu(42, 'user-abc', userName: 'Alice');
 
-          // Assert
-          final dto = fakeDataSource.lastCreatedItem as PresenceDto;
-          expect(dto.userName, equals('Alice'));
-        },
-      );
+        // Assert
+        final dto = fakeDataSource.lastCreatedItem as PresenceDto;
+        expect(dto.userName, equals('Alice'));
+      });
 
       test(
         'should store userAvatar in the created DTO when provided',
@@ -287,20 +297,17 @@ void main() {
         },
       );
 
-      test(
-        'should return Failure when the data source throws',
-        () async {
-          // Arrange
-          fakeDataSource.getItemsError = Exception('server error');
+      test('should return Failure when the data source throws', () async {
+        // Arrange
+        fakeDataSource.getItemsError = Exception('server error');
 
-          // Act
-          final result = await repository.leaveMenu(42, 'user-abc');
+        // Act
+        final result = await repository.leaveMenu(42, 'user-abc');
 
-          // Assert
-          expect(result.isSuccess, isFalse);
-          expect(result.errorOrNull, isA<DomainError>());
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isFalse);
+        expect(result.errorOrNull, isA<DomainError>());
+      });
     });
 
     // ========================================================================
@@ -316,7 +323,11 @@ void main() {
             ..getItemsResult = [
               _presenceJson(id: 5, userId: 'user-abc', menuId: 42),
             ]
-            ..updateItemResult = _presenceJson(id: 5, userId: 'user-abc', menuId: 42);
+            ..updateItemResult = _presenceJson(
+              id: 5,
+              userId: 'user-abc',
+              menuId: 42,
+            );
 
           // Act
           final result = await repository.heartbeat(42, 'user-abc');
@@ -334,7 +345,11 @@ void main() {
             ..getItemsResult = [
               _presenceJson(id: 5, userId: 'user-abc', menuId: 42),
             ]
-            ..updateItemResult = _presenceJson(id: 5, userId: 'user-abc', menuId: 42);
+            ..updateItemResult = _presenceJson(
+              id: 5,
+              userId: 'user-abc',
+              menuId: 42,
+            );
 
           // Act
           await repository.heartbeat(42, 'user-abc');
@@ -368,7 +383,11 @@ void main() {
               _presenceJson(id: 5, userId: 'user-abc', menuId: 42),
               _presenceJson(id: 6, userId: 'user-abc', menuId: 42),
             ]
-            ..updateItemResult = _presenceJson(id: 5, userId: 'user-abc', menuId: 42);
+            ..updateItemResult = _presenceJson(
+              id: 5,
+              userId: 'user-abc',
+              menuId: 42,
+            );
 
           // Act
           await repository.heartbeat(42, 'user-abc');
@@ -378,39 +397,33 @@ void main() {
         },
       );
 
-      test(
-        'should return Failure when getItems throws',
-        () async {
-          // Arrange
-          fakeDataSource.getItemsError = Exception('connection reset');
+      test('should return Failure when getItems throws', () async {
+        // Arrange
+        fakeDataSource.getItemsError = Exception('connection reset');
 
-          // Act
-          final result = await repository.heartbeat(42, 'user-abc');
+        // Act
+        final result = await repository.heartbeat(42, 'user-abc');
 
-          // Assert
-          expect(result.isSuccess, isFalse);
-          expect(result.errorOrNull, isA<DomainError>());
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isFalse);
+        expect(result.errorOrNull, isA<DomainError>());
+      });
 
-      test(
-        'should return Failure when updateItem throws',
-        () async {
-          // Arrange
-          fakeDataSource
-            ..getItemsResult = [
-              _presenceJson(id: 5, userId: 'user-abc', menuId: 42),
-            ]
-            ..updateItemError = Exception('write failed');
+      test('should return Failure when updateItem throws', () async {
+        // Arrange
+        fakeDataSource
+          ..getItemsResult = [
+            _presenceJson(id: 5, userId: 'user-abc', menuId: 42),
+          ]
+          ..updateItemError = Exception('write failed');
 
-          // Act
-          final result = await repository.heartbeat(42, 'user-abc');
+        // Act
+        final result = await repository.heartbeat(42, 'user-abc');
 
-          // Assert
-          expect(result.isSuccess, isFalse);
-          expect(result.errorOrNull, isA<DomainError>());
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isFalse);
+        expect(result.errorOrNull, isA<DomainError>());
+      });
     });
 
     // ========================================================================
@@ -456,37 +469,31 @@ void main() {
         },
       );
 
-      test(
-        'should preserve userId from the presence JSON',
-        () async {
-          // Arrange
-          fakeDataSource.getItemsResult = [
-            _presenceJson(id: 1, userId: 'user-abc', menuId: 42),
-          ];
+      test('should preserve userId from the presence JSON', () async {
+        // Arrange
+        fakeDataSource.getItemsResult = [
+          _presenceJson(id: 1, userId: 'user-abc', menuId: 42),
+        ];
 
-          // Act
-          final result = await repository.getActiveUsers(42);
+        // Act
+        final result = await repository.getActiveUsers(42);
 
-          // Assert
-          expect(result.valueOrNull!.first.userId, equals('user-abc'));
-        },
-      );
+        // Assert
+        expect(result.valueOrNull!.first.userId, equals('user-abc'));
+      });
 
-      test(
-        'should preserve menuId from the presence JSON',
-        () async {
-          // Arrange
-          fakeDataSource.getItemsResult = [
-            _presenceJson(id: 1, userId: 'user-abc', menuId: 42),
-          ];
+      test('should preserve menuId from the presence JSON', () async {
+        // Arrange
+        fakeDataSource.getItemsResult = [
+          _presenceJson(id: 1, userId: 'user-abc', menuId: 42),
+        ];
 
-          // Act
-          final result = await repository.getActiveUsers(42);
+        // Act
+        final result = await repository.getActiveUsers(42);
 
-          // Assert
-          expect(result.valueOrNull!.first.menuId, equals(42));
-        },
-      );
+        // Assert
+        expect(result.valueOrNull!.first.menuId, equals(42));
+      });
 
       test(
         'should include userName when present in the presence JSON',
@@ -543,40 +550,40 @@ void main() {
           final fields = fakeDataSource.lastGetItemsFields!;
           expect(
             fields,
-            containsAll(['user', 'user_name', 'user_avatar', 'menu', 'last_seen']),
+            containsAll([
+              'user',
+              'user_name',
+              'user_avatar',
+              'menu',
+              'last_seen',
+            ]),
           );
         },
       );
 
-      test(
-        'should filter getItems by the requested menuId',
-        () async {
-          // Arrange
-          fakeDataSource.getItemsResult = [];
+      test('should filter getItems by the requested menuId', () async {
+        // Arrange
+        fakeDataSource.getItemsResult = [];
 
-          // Act
-          await repository.getActiveUsers(42);
+        // Act
+        await repository.getActiveUsers(42);
 
-          // Assert
-          final filter = fakeDataSource.lastGetItemsFilter!;
-          expect(filter, containsPair('menu', {'_eq': 42}));
-        },
-      );
+        // Assert
+        final filter = fakeDataSource.lastGetItemsFilter!;
+        expect(filter, containsPair('menu', {'_eq': 42}));
+      });
 
-      test(
-        'should return Failure when getItems throws',
-        () async {
-          // Arrange
-          fakeDataSource.getItemsError = Exception('server error');
+      test('should return Failure when getItems throws', () async {
+        // Arrange
+        fakeDataSource.getItemsError = Exception('server error');
 
-          // Act
-          final result = await repository.getActiveUsers(42);
+        // Act
+        final result = await repository.getActiveUsers(42);
 
-          // Assert
-          expect(result.isSuccess, isFalse);
-          expect(result.errorOrNull, isA<DomainError>());
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isFalse);
+        expect(result.errorOrNull, isA<DomainError>());
+      });
 
       test(
         'should return Failure wrapping an UnknownError when a generic exception is thrown',
@@ -687,7 +694,9 @@ void main() {
           final fake = capturedSubscription();
 
           // Act
-          fake.emitDelete({'ids': <dynamic>[1]});
+          fake.emitDelete({
+            'ids': <dynamic>[1],
+          });
           await Future<void>.delayed(Duration.zero);
 
           // Assert
@@ -724,7 +733,9 @@ void main() {
           await Future<void>.delayed(Duration.zero);
           fake.emitCreate({'id': 2});
           await Future<void>.delayed(Duration.zero);
-          fake.emitDelete({'ids': <dynamic>[1]});
+          fake.emitDelete({
+            'ids': <dynamic>[1],
+          });
           await Future<void>.delayed(Duration.zero);
 
           // Assert
@@ -832,24 +843,21 @@ void main() {
         },
       );
 
-      test(
-        'should pass the correct UID to stopSubscription',
-        () async {
-          // Arrange
-          fakeDataSource.getItemsResult = [];
-          final stream = repository.watchActiveUsers(42);
-          final sub = stream.listen((_) {});
-          await Future<void>.delayed(Duration.zero);
+      test('should pass the correct UID to stopSubscription', () async {
+        // Arrange
+        fakeDataSource.getItemsResult = [];
+        final stream = repository.watchActiveUsers(42);
+        final sub = stream.listen((_) {});
+        await Future<void>.delayed(Duration.zero);
 
-          // Act
-          await repository.unsubscribePresence(42);
+        // Act
+        await repository.unsubscribePresence(42);
 
-          // Assert
-          expect(fakeDataSource.lastStoppedUid, contains('42'));
+        // Assert
+        expect(fakeDataSource.lastStoppedUid, contains('42'));
 
-          await sub.cancel();
-        },
-      );
+        await sub.cancel();
+      });
 
       test(
         'should not call stopSubscription when no subscription exists for menuId',
@@ -1079,11 +1087,8 @@ class _FakePresenceDataSource implements DirectusDataSource {
   Future<String> uploadFile(Uint8List bytes, String filename) => _notUsed();
 
   @override
-  Future<String> replaceFile(
-    String fileId,
-    Uint8List bytes,
-    String filename,
-  ) => _notUsed();
+  Future<String> replaceFile(String fileId, Uint8List bytes, String filename) =>
+      _notUsed();
 
   @override
   Future<List<Map<String, dynamic>>> listFiles({
@@ -1096,8 +1101,7 @@ class _FakePresenceDataSource implements DirectusDataSource {
   @override
   Future<Uint8List> downloadFileBytes(String fileId) => _notUsed();
 
-  Never _notUsed() =>
-      throw UnimplementedError('Method not used in this test');
+  Never _notUsed() => throw UnimplementedError('Method not used in this test');
 }
 
 /// Data source variant that serves successive [getItemsResult] responses,

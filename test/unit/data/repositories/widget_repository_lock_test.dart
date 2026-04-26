@@ -100,7 +100,13 @@ void main() {
 
     test('should call updateItem exactly once', () async {
       // Arrange
-      fakeDs.queueUpdateItem({'id': 1, 'type_key': 'dish', 'version': '1.0.0', 'index': 0, 'props_json': <String, dynamic>{}});
+      fakeDs.queueUpdateItem({
+        'id': 1,
+        'type_key': 'dish',
+        'version': '1.0.0',
+        'index': 0,
+        'props_json': <String, dynamic>{},
+      });
 
       // Act
       await repository.lockForEditing(1, 'user-abc');
@@ -111,7 +117,13 @@ void main() {
 
     test('should send editing_by with the provided userId', () async {
       // Arrange
-      fakeDs.queueUpdateItem({'id': 5, 'type_key': 'dish', 'version': '1.0.0', 'index': 0, 'props_json': <String, dynamic>{}});
+      fakeDs.queueUpdateItem({
+        'id': 5,
+        'type_key': 'dish',
+        'version': '1.0.0',
+        'index': 0,
+        'props_json': <String, dynamic>{},
+      });
 
       // Act
       await repository.lockForEditing(5, 'user-xyz');
@@ -123,7 +135,13 @@ void main() {
 
     test('should send a non-null editing_since timestamp', () async {
       // Arrange
-      fakeDs.queueUpdateItem({'id': 1, 'type_key': 'dish', 'version': '1.0.0', 'index': 0, 'props_json': <String, dynamic>{}});
+      fakeDs.queueUpdateItem({
+        'id': 1,
+        'type_key': 'dish',
+        'version': '1.0.0',
+        'index': 0,
+        'props_json': <String, dynamic>{},
+      });
 
       // Act
       await repository.lockForEditing(1, 'user-abc');
@@ -138,7 +156,13 @@ void main() {
 
     test('should send widget id in the DTO (no pre-fetch required)', () async {
       // Arrange
-      fakeDs.queueUpdateItem({'id': 42, 'type_key': 'dish', 'version': '1.0.0', 'index': 0, 'props_json': <String, dynamic>{}});
+      fakeDs.queueUpdateItem({
+        'id': 42,
+        'type_key': 'dish',
+        'version': '1.0.0',
+        'index': 0,
+        'props_json': <String, dynamic>{},
+      });
 
       // Act
       await repository.lockForEditing(42, 'user-abc');
@@ -201,19 +225,22 @@ void main() {
       expect(result.errorOrNull, isA<UnknownError>());
     });
 
-    test('should return Failure(UnauthorizedError) when FORBIDDEN is thrown', () async {
-      // Arrange
-      fakeDs.queueUpdateItemThrows(
-        DirectusException(code: 'FORBIDDEN', message: 'Access denied'),
-      );
+    test(
+      'should return Failure(UnauthorizedError) when FORBIDDEN is thrown',
+      () async {
+        // Arrange
+        fakeDs.queueUpdateItemThrows(
+          DirectusException(code: 'FORBIDDEN', message: 'Access denied'),
+        );
 
-      // Act
-      final result = await repository.lockForEditing(1, 'user-abc');
+        // Act
+        final result = await repository.lockForEditing(1, 'user-abc');
 
-      // Assert
-      expect(result.isFailure, isTrue);
-      expect(result.errorOrNull, isA<UnauthorizedError>());
-    });
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<UnauthorizedError>());
+      },
+    );
   });
 
   // =========================================================================
@@ -240,7 +267,13 @@ void main() {
 
     test('should call updateItem exactly once', () async {
       // Arrange
-      fakeDs.queueUpdateItem({'id': 1, 'type_key': 'dish', 'version': '1.0.0', 'index': 0, 'props_json': <String, dynamic>{}});
+      fakeDs.queueUpdateItem({
+        'id': 1,
+        'type_key': 'dish',
+        'version': '1.0.0',
+        'index': 0,
+        'props_json': <String, dynamic>{},
+      });
 
       // Act
       await repository.unlockEditing(1);
@@ -251,7 +284,13 @@ void main() {
 
     test('should send editing_by=null in DTO', () async {
       // Arrange
-      fakeDs.queueUpdateItem({'id': 1, 'type_key': 'dish', 'version': '1.0.0', 'index': 0, 'props_json': <String, dynamic>{}});
+      fakeDs.queueUpdateItem({
+        'id': 1,
+        'type_key': 'dish',
+        'version': '1.0.0',
+        'index': 0,
+        'props_json': <String, dynamic>{},
+      });
 
       // Act
       await repository.unlockEditing(1);
@@ -263,7 +302,13 @@ void main() {
 
     test('should send editing_since=null in DTO', () async {
       // Arrange
-      fakeDs.queueUpdateItem({'id': 1, 'type_key': 'dish', 'version': '1.0.0', 'index': 0, 'props_json': <String, dynamic>{}});
+      fakeDs.queueUpdateItem({
+        'id': 1,
+        'type_key': 'dish',
+        'version': '1.0.0',
+        'index': 0,
+        'props_json': <String, dynamic>{},
+      });
 
       // Act
       await repository.unlockEditing(1);
@@ -275,7 +320,13 @@ void main() {
 
     test('should send the correct widget id in the DTO', () async {
       // Arrange
-      fakeDs.queueUpdateItem({'id': 77, 'type_key': 'dish', 'version': '1.0.0', 'index': 0, 'props_json': <String, dynamic>{}});
+      fakeDs.queueUpdateItem({
+        'id': 77,
+        'type_key': 'dish',
+        'version': '1.0.0',
+        'index': 0,
+        'props_json': <String, dynamic>{},
+      });
 
       // Act
       await repository.unlockEditing(77);
@@ -285,22 +336,25 @@ void main() {
       expect(sentDto.intId, 77);
     });
 
-    test('should succeed even when widget was never locked (idempotent)', () async {
-      // Arrange — widget had no lock; unlock still succeeds
-      fakeDs.queueUpdateItem({
-        'id': 1,
-        'type_key': 'dish',
-        'version': '1.0.0',
-        'index': 0,
-        'props_json': <String, dynamic>{},
-      });
+    test(
+      'should succeed even when widget was never locked (idempotent)',
+      () async {
+        // Arrange — widget had no lock; unlock still succeeds
+        fakeDs.queueUpdateItem({
+          'id': 1,
+          'type_key': 'dish',
+          'version': '1.0.0',
+          'index': 0,
+          'props_json': <String, dynamic>{},
+        });
 
-      // Act
-      final result = await repository.unlockEditing(1);
+        // Act
+        final result = await repository.unlockEditing(1);
 
-      // Assert
-      expect(result.isSuccess, isTrue);
-    });
+        // Assert
+        expect(result.isSuccess, isTrue);
+      },
+    );
 
     test(
       'should return Failure(NotFoundError) when updateItem throws NOT_FOUND',

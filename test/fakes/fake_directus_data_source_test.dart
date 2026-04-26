@@ -22,7 +22,11 @@ void main() {
     group('call recording', () {
       test('should record a LoginCall when login() is called', () async {
         // Arrange
-        fake.whenLogin({'user': {}, 'access_token': 'tok', 'refresh_token': 'ref'});
+        fake.whenLogin({
+          'user': {},
+          'access_token': 'tok',
+          'refresh_token': 'ref',
+        });
 
         // Act
         await fake.login(email: 'a@b.com', password: 'secret');
@@ -54,23 +58,28 @@ void main() {
         expect(fake.calls.first, isA<LogoutCall>());
       });
 
-      test('should record a GetItemsCall with itemType when getItems is called', () async {
-        // Arrange
-        fake.whenGetItems<MenuDto>([]);
+      test(
+        'should record a GetItemsCall with itemType when getItems is called',
+        () async {
+          // Arrange
+          fake.whenGetItems<MenuDto>([]);
 
-        // Act
-        await fake.getItems<MenuDto>();
+          // Act
+          await fake.getItems<MenuDto>();
 
-        // Assert
-        expect(fake.calls, hasLength(1));
-        final call = fake.calls.first as GetItemsCall;
-        expect(call.itemType, equals(MenuDto));
-      });
+          // Assert
+          expect(fake.calls, hasLength(1));
+          final call = fake.calls.first as GetItemsCall;
+          expect(call.itemType, equals(MenuDto));
+        },
+      );
 
       test('should record filter in GetItemsCall', () async {
         // Arrange
         fake.whenGetItems<MenuDto>([]);
-        final filter = {'status': {'_eq': 'published'}};
+        final filter = {
+          'status': {'_eq': 'published'},
+        };
 
         // Act
         await fake.getItems<MenuDto>(filter: filter);
@@ -80,18 +89,21 @@ void main() {
         expect(call.filter, equals(filter));
       });
 
-      test('should record a StartSubscriptionCall when startSubscription is called', () async {
-        // Arrange
-        final subscription = FakeDirectusWebSocketSubscription(uid: 'sub-1');
+      test(
+        'should record a StartSubscriptionCall when startSubscription is called',
+        () async {
+          // Arrange
+          final subscription = FakeDirectusWebSocketSubscription(uid: 'sub-1');
 
-        // Act
-        await fake.startSubscription(subscription);
+          // Act
+          await fake.startSubscription(subscription);
 
-        // Assert
-        expect(fake.calls, hasLength(1));
-        final call = fake.calls.first as StartSubscriptionCall;
-        expect(call.subscription, same(subscription));
-      });
+          // Assert
+          expect(fake.calls, hasLength(1));
+          final call = fake.calls.first as StartSubscriptionCall;
+          expect(call.subscription, same(subscription));
+        },
+      );
 
       test('should accumulate multiple calls in order', () async {
         // Arrange
@@ -118,7 +130,11 @@ void main() {
     group('preset responses', () {
       test('should return configured login response', () async {
         // Arrange
-        final response = {'user': {'id': 'u1'}, 'access_token': 'at', 'refresh_token': 'rt'};
+        final response = {
+          'user': {'id': 'u1'},
+          'access_token': 'at',
+          'refresh_token': 'rt',
+        };
         fake.whenLogin(response);
 
         // Act
@@ -177,16 +193,16 @@ void main() {
         expect(restored, isTrue);
       });
 
-      test('should complete deleteItem without error when configured', () async {
-        // Arrange
-        fake.whenDeleteItem<MenuDto>();
+      test(
+        'should complete deleteItem without error when configured',
+        () async {
+          // Arrange
+          fake.whenDeleteItem<MenuDto>();
 
-        // Act / Assert — no exception thrown
-        await expectLater(
-          fake.deleteItem<MenuDto>(42),
-          completes,
-        );
-      });
+          // Act / Assert — no exception thrown
+          await expectLater(fake.deleteItem<MenuDto>(42), completes);
+        },
+      );
     });
 
     // -------------------------------------------------------------------------
@@ -205,16 +221,16 @@ void main() {
         );
       });
 
-      test('should throw configured getItems error for a specific DTO type', () async {
-        // Arrange
-        fake.whenGetItemsThrows<MenuDto>(Exception('server error'));
+      test(
+        'should throw configured getItems error for a specific DTO type',
+        () async {
+          // Arrange
+          fake.whenGetItemsThrows<MenuDto>(Exception('server error'));
 
-        // Act / Assert
-        await expectLater(
-          fake.getItems<MenuDto>(),
-          throwsException,
-        );
-      });
+          // Act / Assert
+          await expectLater(fake.getItems<MenuDto>(), throwsException);
+        },
+      );
 
       test('should throw configured uploadFile error', () async {
         // Arrange
@@ -233,61 +249,70 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('unconfigured methods throw StateError', () {
-      test('should throw StateError when login is called without configuration', () async {
-        // Act / Assert
-        await expectLater(
-          fake.login(email: 'x@y.com', password: 'p'),
-          throwsStateError,
-        );
-      });
+      test(
+        'should throw StateError when login is called without configuration',
+        () async {
+          // Act / Assert
+          await expectLater(
+            fake.login(email: 'x@y.com', password: 'p'),
+            throwsStateError,
+          );
+        },
+      );
 
-      test('should throw StateError when getItems is called without configuration', () async {
-        // Act / Assert
-        await expectLater(
-          fake.getItems<MenuDto>(),
-          throwsStateError,
-        );
-      });
+      test(
+        'should throw StateError when getItems is called without configuration',
+        () async {
+          // Act / Assert
+          await expectLater(fake.getItems<MenuDto>(), throwsStateError);
+        },
+      );
 
-      test('should throw StateError when getItem is called without configuration', () async {
-        // Act / Assert
-        await expectLater(
-          fake.getItem<MenuDto>(1),
-          throwsStateError,
-        );
-      });
+      test(
+        'should throw StateError when getItem is called without configuration',
+        () async {
+          // Act / Assert
+          await expectLater(fake.getItem<MenuDto>(1), throwsStateError);
+        },
+      );
 
-      test('should throw StateError when getCurrentUser is called without configuration', () async {
-        // Act / Assert
-        await expectLater(
-          fake.getCurrentUser(),
-          throwsStateError,
-        );
-      });
+      test(
+        'should throw StateError when getCurrentUser is called without configuration',
+        () async {
+          // Act / Assert
+          await expectLater(fake.getCurrentUser(), throwsStateError);
+        },
+      );
 
-      test('should throw StateError when uploadFile is called without configuration', () async {
-        // Act / Assert
-        await expectLater(
-          fake.uploadFile(Uint8List(0), 'x.pdf'),
-          throwsStateError,
-        );
-      });
+      test(
+        'should throw StateError when uploadFile is called without configuration',
+        () async {
+          // Act / Assert
+          await expectLater(
+            fake.uploadFile(Uint8List(0), 'x.pdf'),
+            throwsStateError,
+          );
+        },
+      );
 
-      test('should throw StateError when downloadFileBytes is called without configuration', () async {
-        // Act / Assert
-        await expectLater(
-          fake.downloadFileBytes('file-id'),
-          throwsStateError,
-        );
-      });
+      test(
+        'should throw StateError when downloadFileBytes is called without configuration',
+        () async {
+          // Act / Assert
+          await expectLater(
+            fake.downloadFileBytes('file-id'),
+            throwsStateError,
+          );
+        },
+      );
 
-      test('should throw StateError when deleteItem is called without configuration', () async {
-        // Act / Assert
-        await expectLater(
-          fake.deleteItem<MenuDto>(1),
-          throwsStateError,
-        );
-      });
+      test(
+        'should throw StateError when deleteItem is called without configuration',
+        () async {
+          // Act / Assert
+          await expectLater(fake.deleteItem<MenuDto>(1), throwsStateError);
+        },
+      );
     });
 
     // -------------------------------------------------------------------------
@@ -300,10 +325,7 @@ void main() {
         fake.whenGetItems<MenuDto>([]);
 
         // Act / Assert — PageDto is unconfigured → StateError
-        await expectLater(
-          fake.getItems<PageDto>(),
-          throwsStateError,
-        );
+        await expectLater(fake.getItems<PageDto>(), throwsStateError);
       });
     });
 
@@ -319,7 +341,11 @@ void main() {
 
         // Act
         await fake.getItems<MenuDto>();
-        await fake.getItems<MenuDto>(filter: {'status': {'_eq': 'draft'}});
+        await fake.getItems<MenuDto>(
+          filter: {
+            'status': {'_eq': 'draft'},
+          },
+        );
         await fake.getItems<PageDto>();
 
         // Assert

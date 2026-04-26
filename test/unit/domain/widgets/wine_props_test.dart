@@ -35,12 +35,14 @@ void main() {
         expect(props.dietary, isNull);
       });
 
-      test('should default containsSulphites to false when none is provided',
-          () {
-        const props = WineProps(name: 'House Red', price: 8.0);
+      test(
+        'should default containsSulphites to false when none is provided',
+        () {
+          const props = WineProps(name: 'House Red', price: 8.0);
 
-        expect(props.containsSulphites, isFalse);
-      });
+          expect(props.containsSulphites, isFalse);
+        },
+      );
 
       test('should store zero price when price is 0.0', () {
         const props = WineProps(name: 'Chateau Margaux', price: 0.0);
@@ -96,7 +98,11 @@ void main() {
 
       test('should not be equal when containsSulphites differs', () {
         const a = WineProps(name: 'Wine', price: 10.0, containsSulphites: true);
-        const b = WineProps(name: 'Wine', price: 10.0, containsSulphites: false);
+        const b = WineProps(
+          name: 'Wine',
+          price: 10.0,
+          containsSulphites: false,
+        );
 
         expect(a, isNot(equals(b)));
       });
@@ -128,24 +134,27 @@ void main() {
         expect(modified.price, 15.0);
       });
 
-      test('should update vintage when copyWith is called with a new value',
-          () {
-        const original = WineProps(name: 'Wine', price: 10.0);
+      test(
+        'should update vintage when copyWith is called with a new value',
+        () {
+          const original = WineProps(name: 'Wine', price: 10.0);
 
-        final modified = original.copyWith(vintage: 2020);
+          final modified = original.copyWith(vintage: 2020);
 
-        expect(modified.vintage, 2020);
-      });
+          expect(modified.vintage, 2020);
+        },
+      );
 
       test(
-          'should update containsSulphites when copyWith is called with true',
-          () {
-        const original = WineProps(name: 'Wine', price: 10.0);
+        'should update containsSulphites when copyWith is called with true',
+        () {
+          const original = WineProps(name: 'Wine', price: 10.0);
 
-        final modified = original.copyWith(containsSulphites: true);
+          final modified = original.copyWith(containsSulphites: true);
 
-        expect(modified.containsSulphites, isTrue);
-      });
+          expect(modified.containsSulphites, isTrue);
+        },
+      );
 
       test('should preserve unchanged fields when only name is updated', () {
         const original = WineProps(
@@ -199,24 +208,27 @@ void main() {
         expect(props.displayName, 'SAUVIGNON BLANC (Ve)');
       });
 
-      test('should return empty string when name is empty and no dietary set',
-          () {
-        const props = WineProps(name: '', price: 0.0);
+      test(
+        'should return empty string when name is empty and no dietary set',
+        () {
+          const props = WineProps(name: '', price: 0.0);
 
-        expect(props.displayName, '');
-      });
+          expect(props.displayName, '');
+        },
+      );
 
       test(
-          'should return space-prefixed abbreviation when name is empty and dietary is set',
-          () {
-        const props = WineProps(
-          name: '',
-          price: 0.0,
-          dietary: DietaryType.vegan,
-        );
+        'should return space-prefixed abbreviation when name is empty and dietary is set',
+        () {
+          const props = WineProps(
+            name: '',
+            price: 0.0,
+            dietary: DietaryType.vegan,
+          );
 
-        expect(props.displayName, ' (Ve)');
-      });
+          expect(props.displayName, ' (Ve)');
+        },
+      );
     });
 
     group('JSON round-trip', () {
@@ -268,46 +280,50 @@ void main() {
         expect(json['containsSulphites'], isTrue);
       });
 
-      test('should be equal to the original after toJson then fromJson with all fields',
-          () {
-        const original = WineProps(
-          name: 'Pinot Noir',
-          price: 9.50,
-          description: 'Light and fruity',
-          vintage: 2021,
-          dietary: DietaryType.vegan,
-          containsSulphites: true,
-        );
+      test(
+        'should be equal to the original after toJson then fromJson with all fields',
+        () {
+          const original = WineProps(
+            name: 'Pinot Noir',
+            price: 9.50,
+            description: 'Light and fruity',
+            vintage: 2021,
+            dietary: DietaryType.vegan,
+            containsSulphites: true,
+          );
 
-        final json = original.toJson();
-        final restored = WineProps.fromJson(json);
+          final json = original.toJson();
+          final restored = WineProps.fromJson(json);
 
-        expect(restored, equals(original));
-      });
+          expect(restored, equals(original));
+        },
+      );
 
       test(
-          'should be equal to the original after toJson then fromJson with minimal fields',
-          () {
-        const original = WineProps(name: 'House Red', price: 8.0);
+        'should be equal to the original after toJson then fromJson with minimal fields',
+        () {
+          const original = WineProps(name: 'House Red', price: 8.0);
 
-        final json = original.toJson();
-        final restored = WineProps.fromJson(json);
+          final json = original.toJson();
+          final restored = WineProps.fromJson(json);
 
-        expect(restored, equals(original));
-      });
+          expect(restored, equals(original));
+        },
+      );
 
       test(
-          'should use defaults when only name and price are present in JSON',
-          () {
-        final json = {'name': 'Simple Wine', 'price': 10.0};
+        'should use defaults when only name and price are present in JSON',
+        () {
+          final json = {'name': 'Simple Wine', 'price': 10.0};
 
-        final props = WineProps.fromJson(json);
+          final props = WineProps.fromJson(json);
 
-        expect(props.description, isNull);
-        expect(props.vintage, isNull);
-        expect(props.dietary, isNull);
-        expect(props.containsSulphites, isFalse);
-      });
+          expect(props.description, isNull);
+          expect(props.vintage, isNull);
+          expect(props.dietary, isNull);
+          expect(props.containsSulphites, isFalse);
+        },
+      );
 
       test('should round-trip a fractional GBP price correctly', () {
         const original = WineProps(name: 'House White', price: 7.50);

@@ -20,68 +20,59 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('unconfigured methods throw StateError', () {
-      test('should throw StateError when create is called without configuration',
-          () async {
-        // Arrange
-        const input = CreateColumnInput(containerId: 1, index: 0);
+      test(
+        'should throw StateError when create is called without configuration',
+        () async {
+          // Arrange
+          const input = CreateColumnInput(containerId: 1, index: 0);
 
-        // Act / Assert
-        await expectLater(
-          fake.create(input),
-          throwsStateError,
-        );
-      });
+          // Act / Assert
+          await expectLater(fake.create(input), throwsStateError);
+        },
+      );
 
       test(
-          'should throw StateError when getAllForContainer is called without configuration',
-          () async {
-        // Act / Assert
-        await expectLater(
-          fake.getAllForContainer(1),
-          throwsStateError,
-        );
-      });
+        'should throw StateError when getAllForContainer is called without configuration',
+        () async {
+          // Act / Assert
+          await expectLater(fake.getAllForContainer(1), throwsStateError);
+        },
+      );
 
       test(
-          'should throw StateError when getById is called without configuration',
-          () async {
-        // Act / Assert
-        await expectLater(
-          fake.getById(1),
-          throwsStateError,
-        );
-      });
-
-      test('should throw StateError when update is called without configuration',
-          () async {
-        // Arrange
-        const input = UpdateColumnInput(id: 1);
-
-        // Act / Assert
-        await expectLater(
-          fake.update(input),
-          throwsStateError,
-        );
-      });
-
-      test('should throw StateError when delete is called without configuration',
-          () async {
-        // Act / Assert
-        await expectLater(
-          fake.delete(1),
-          throwsStateError,
-        );
-      });
+        'should throw StateError when getById is called without configuration',
+        () async {
+          // Act / Assert
+          await expectLater(fake.getById(1), throwsStateError);
+        },
+      );
 
       test(
-          'should throw StateError when reorder is called without configuration',
-          () async {
-        // Act / Assert
-        await expectLater(
-          fake.reorder(1, 0),
-          throwsStateError,
-        );
-      });
+        'should throw StateError when update is called without configuration',
+        () async {
+          // Arrange
+          const input = UpdateColumnInput(id: 1);
+
+          // Act / Assert
+          await expectLater(fake.update(input), throwsStateError);
+        },
+      );
+
+      test(
+        'should throw StateError when delete is called without configuration',
+        () async {
+          // Act / Assert
+          await expectLater(fake.delete(1), throwsStateError);
+        },
+      );
+
+      test(
+        'should throw StateError when reorder is called without configuration',
+        () async {
+          // Act / Assert
+          await expectLater(fake.reorder(1, 0), throwsStateError);
+        },
+      );
     });
 
     // -------------------------------------------------------------------------
@@ -103,19 +94,21 @@ void main() {
         expect((result as Success).value.id, equals(10));
       });
 
-      test('should return configured success result from getAllForContainer()',
-          () async {
-        // Arrange
-        final columns = [buildColumn(id: 1), buildColumn(id: 2)];
-        fake.whenGetAllForContainer(success(columns));
+      test(
+        'should return configured success result from getAllForContainer()',
+        () async {
+          // Arrange
+          final columns = [buildColumn(id: 1), buildColumn(id: 2)];
+          fake.whenGetAllForContainer(success(columns));
 
-        // Act
-        final result = await fake.getAllForContainer(3);
+          // Act
+          final result = await fake.getAllForContainer(3);
 
-        // Assert
-        expect(result, isA<Success<List<Column>, dynamic>>());
-        expect((result as Success).value, hasLength(2));
-      });
+          // Assert
+          expect(result, isA<Success<List<Column>, dynamic>>());
+          expect((result as Success).value, hasLength(2));
+        },
+      );
 
       test('should return configured failure result from getById()', () async {
         // Arrange
@@ -142,23 +135,27 @@ void main() {
         expect((result as Success).value.flex, equals(3));
       });
 
-      test('should complete successfully from delete() when configured',
-          () async {
-        // Arrange
-        fake.whenDelete(success(null));
+      test(
+        'should complete successfully from delete() when configured',
+        () async {
+          // Arrange
+          fake.whenDelete(success(null));
 
-        // Act / Assert
-        await expectLater(fake.delete(4), completes);
-      });
+          // Act / Assert
+          await expectLater(fake.delete(4), completes);
+        },
+      );
 
-      test('should complete successfully from reorder() when configured',
-          () async {
-        // Arrange
-        fake.whenReorder(success(null));
+      test(
+        'should complete successfully from reorder() when configured',
+        () async {
+          // Arrange
+          fake.whenReorder(success(null));
 
-        // Act / Assert
-        await expectLater(fake.reorder(2, 1), completes);
-      });
+          // Act / Assert
+          await expectLater(fake.reorder(2, 1), completes);
+        },
+      );
     });
 
     // -------------------------------------------------------------------------
@@ -167,41 +164,43 @@ void main() {
 
     group('call recording', () {
       test(
-          'should record a ColumnCreateCall with containerId and index when create() is called',
-          () async {
-        // Arrange
-        fake.whenCreate(success(buildColumn()));
-        const input = CreateColumnInput(
-          containerId: 9,
-          index: 1,
-          flex: 1,
-          isDroppable: false,
-        );
+        'should record a ColumnCreateCall with containerId and index when create() is called',
+        () async {
+          // Arrange
+          fake.whenCreate(success(buildColumn()));
+          const input = CreateColumnInput(
+            containerId: 9,
+            index: 1,
+            flex: 1,
+            isDroppable: false,
+          );
 
-        // Act
-        await fake.create(input);
+          // Act
+          await fake.create(input);
 
-        // Assert
-        expect(fake.createCalls, hasLength(1));
-        expect(fake.createCalls.first.input.containerId, equals(9));
-        expect(fake.createCalls.first.input.index, equals(1));
-        expect(fake.createCalls.first.input.flex, equals(1));
-        expect(fake.createCalls.first.input.isDroppable, isFalse);
-      });
+          // Assert
+          expect(fake.createCalls, hasLength(1));
+          expect(fake.createCalls.first.input.containerId, equals(9));
+          expect(fake.createCalls.first.input.index, equals(1));
+          expect(fake.createCalls.first.input.flex, equals(1));
+          expect(fake.createCalls.first.input.isDroppable, isFalse);
+        },
+      );
 
       test(
-          'should record a ColumnGetAllForContainerCall with correct containerId',
-          () async {
-        // Arrange
-        fake.whenGetAllForContainer(success([]));
+        'should record a ColumnGetAllForContainerCall with correct containerId',
+        () async {
+          // Arrange
+          fake.whenGetAllForContainer(success([]));
 
-        // Act
-        await fake.getAllForContainer(25);
+          // Act
+          await fake.getAllForContainer(25);
 
-        // Assert
-        expect(fake.getAllForContainerCalls, hasLength(1));
-        expect(fake.getAllForContainerCalls.first.containerId, equals(25));
-      });
+          // Assert
+          expect(fake.getAllForContainerCalls, hasLength(1));
+          expect(fake.getAllForContainerCalls.first.containerId, equals(25));
+        },
+      );
 
       test('should record a ColumnGetByIdCall with correct id', () async {
         // Arrange
@@ -216,36 +215,38 @@ void main() {
       });
 
       test(
-          'should record a ColumnReorderCall with columnId and newIndex when reorder() is called',
-          () async {
-        // Arrange
-        fake.whenReorder(success(null));
+        'should record a ColumnReorderCall with columnId and newIndex when reorder() is called',
+        () async {
+          // Arrange
+          fake.whenReorder(success(null));
 
-        // Act
-        await fake.reorder(11, 3);
+          // Act
+          await fake.reorder(11, 3);
 
-        // Assert
-        expect(fake.reorderCalls, hasLength(1));
-        expect(fake.reorderCalls.first.columnId, equals(11));
-        expect(fake.reorderCalls.first.newIndex, equals(3));
-      });
+          // Assert
+          expect(fake.reorderCalls, hasLength(1));
+          expect(fake.reorderCalls.first.columnId, equals(11));
+          expect(fake.reorderCalls.first.newIndex, equals(3));
+        },
+      );
 
       test(
-          'should record a ColumnUpdateCall with correct input when update() is called',
-          () async {
-        // Arrange
-        fake.whenUpdate(success(buildColumn(id: 20)));
-        const input = UpdateColumnInput(id: 20, flex: 2, width: 150.0);
+        'should record a ColumnUpdateCall with correct input when update() is called',
+        () async {
+          // Arrange
+          fake.whenUpdate(success(buildColumn(id: 20)));
+          const input = UpdateColumnInput(id: 20, flex: 2, width: 150.0);
 
-        // Act
-        await fake.update(input);
+          // Act
+          await fake.update(input);
 
-        // Assert
-        expect(fake.updateCalls, hasLength(1));
-        expect(fake.updateCalls.first.input.id, equals(20));
-        expect(fake.updateCalls.first.input.flex, equals(2));
-        expect(fake.updateCalls.first.input.width, equals(150.0));
-      });
+          // Assert
+          expect(fake.updateCalls, hasLength(1));
+          expect(fake.updateCalls.first.input.id, equals(20));
+          expect(fake.updateCalls.first.input.flex, equals(2));
+          expect(fake.updateCalls.first.input.width, equals(150.0));
+        },
+      );
 
       test('should accumulate multiple calls in insertion order', () async {
         // Arrange

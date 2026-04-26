@@ -67,13 +67,16 @@ void main() {
         expect(() => fake.emitCreate({'id': 1}), returnsNormally);
       });
 
-      test('should still increment onCreateCallCount even when onCreate is null', () {
-        // Act
-        fake.emitCreate({});
+      test(
+        'should still increment onCreateCallCount even when onCreate is null',
+        () {
+          // Act
+          fake.emitCreate({});
 
-        // Assert
-        expect(fake.onCreateCallCount, equals(1));
-      });
+          // Assert
+          expect(fake.onCreateCallCount, equals(1));
+        },
+      );
     });
 
     group('emitUpdate()', () {
@@ -178,15 +181,24 @@ void main() {
     });
 
     group('reflectable members throw UnimplementedError', () {
-      test('should throw UnimplementedError when specificClass is accessed', () {
-        // Act / Assert
-        expect(() => fake.specificClass, throwsA(isA<UnimplementedError>()));
-      });
+      test(
+        'should throw UnimplementedError when specificClass is accessed',
+        () {
+          // Act / Assert
+          expect(() => fake.specificClass, throwsA(isA<UnimplementedError>()));
+        },
+      );
 
-      test('should throw UnimplementedError when collectionMetadata is accessed', () {
-        // Act / Assert
-        expect(() => fake.collectionMetadata, throwsA(isA<UnimplementedError>()));
-      });
+      test(
+        'should throw UnimplementedError when collectionMetadata is accessed',
+        () {
+          // Act / Assert
+          expect(
+            () => fake.collectionMetadata,
+            throwsA(isA<UnimplementedError>()),
+          );
+        },
+      );
     });
   });
 }

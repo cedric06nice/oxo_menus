@@ -97,9 +97,12 @@ void main() {
         expect(StatusConverter.mapStatusToEnum('ARCHIVED'), Status.archived);
       });
 
-      test('should default to Status.draft when value is an unknown string', () {
-        expect(StatusConverter.mapStatusToEnum('unknown'), Status.draft);
-      });
+      test(
+        'should default to Status.draft when value is an unknown string',
+        () {
+          expect(StatusConverter.mapStatusToEnum('unknown'), Status.draft);
+        },
+      );
 
       test('should default to Status.draft when value is an empty string', () {
         expect(StatusConverter.mapStatusToEnum(''), Status.draft);
@@ -112,7 +115,10 @@ void main() {
       });
 
       test('should return "published" for Status.published', () {
-        expect(StatusConverter.mapStatusToString(Status.published), 'published');
+        expect(
+          StatusConverter.mapStatusToString(Status.published),
+          'published',
+        );
       });
 
       test('should return "archived" for Status.archived', () {
@@ -121,13 +127,16 @@ void main() {
     });
 
     group('round-trip', () {
-      test('should round-trip every case through mapStatusToString then mapStatusToEnum', () {
-        for (final status in Status.values) {
-          final str = StatusConverter.mapStatusToString(status);
-          final restored = StatusConverter.mapStatusToEnum(str);
-          expect(restored, status);
-        }
-      });
+      test(
+        'should round-trip every case through mapStatusToString then mapStatusToEnum',
+        () {
+          for (final status in Status.values) {
+            final str = StatusConverter.mapStatusToString(status);
+            final restored = StatusConverter.mapStatusToEnum(str);
+            expect(restored, status);
+          }
+        },
+      );
     });
   });
 }

@@ -101,23 +101,20 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('container creation failure', () {
-      test(
-        'should return Failure when container creation fails',
-        () async {
-          // Arrange
-          final source = buildContainer(id: 1, pageId: 10, index: 0);
-          containerRepo.whenGetById(success(source));
-          containerRepo.whenGetAllForPage(success([]));
-          containerRepo.whenCreate(failure(server()));
+      test('should return Failure when container creation fails', () async {
+        // Arrange
+        final source = buildContainer(id: 1, pageId: 10, index: 0);
+        containerRepo.whenGetById(success(source));
+        containerRepo.whenGetAllForPage(success([]));
+        containerRepo.whenCreate(failure(server()));
 
-          // Act
-          final result = await useCase.execute(1);
+        // Act
+        final result = await useCase.execute(1);
 
-          // Assert
-          expect(result.isFailure, isTrue);
-          expect(result.errorOrNull, isA<ServerError>());
-        },
-      );
+        // Assert
+        expect(result.isFailure, isTrue);
+        expect(result.errorOrNull, isA<ServerError>());
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -151,26 +148,23 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('happy path — container with no columns', () {
-      test(
-        'should return new container when source has no columns',
-        () async {
-          // Arrange
-          final source = buildContainer(id: 1, pageId: 10, index: 0, name: 'Box');
-          containerRepo.whenGetById(success(source));
-          containerRepo.whenGetAllForPage(success([source]));
-          containerRepo.whenReorder(success(null));
-          containerRepo.whenCreate(success(buildContainer(id: 50, pageId: 10)));
-          columnRepo.whenGetAllForContainer(success([]));
-          containerRepo.whenGetAllForContainer(success([]));
+      test('should return new container when source has no columns', () async {
+        // Arrange
+        final source = buildContainer(id: 1, pageId: 10, index: 0, name: 'Box');
+        containerRepo.whenGetById(success(source));
+        containerRepo.whenGetAllForPage(success([source]));
+        containerRepo.whenReorder(success(null));
+        containerRepo.whenCreate(success(buildContainer(id: 50, pageId: 10)));
+        columnRepo.whenGetAllForContainer(success([]));
+        containerRepo.whenGetAllForContainer(success([]));
 
-          // Act
-          final result = await useCase.execute(1);
+        // Act
+        final result = await useCase.execute(1);
 
-          // Assert
-          expect(result.isSuccess, isTrue);
-          expect(result.valueOrNull!.id, equals(50));
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(result.valueOrNull!.id, equals(50));
+      });
 
       test(
         'should append "(copy)" to the container name at the top level',
@@ -251,27 +245,24 @@ void main() {
         },
       );
 
-      test(
-        'should not shift siblings with index less than newIndex',
-        () async {
-          // Arrange
-          final source = buildContainer(id: 1, pageId: 10, index: 2);
-          final sibling = buildContainer(id: 2, pageId: 10, index: 0);
-          containerRepo.whenGetById(success(source));
-          containerRepo.whenGetAllForPage(success([source, sibling]));
-          containerRepo.whenCreate(
-            success(buildContainer(id: 50, pageId: 10, index: 3)),
-          );
-          columnRepo.whenGetAllForContainer(success([]));
-          containerRepo.whenGetAllForContainer(success([]));
+      test('should not shift siblings with index less than newIndex', () async {
+        // Arrange
+        final source = buildContainer(id: 1, pageId: 10, index: 2);
+        final sibling = buildContainer(id: 2, pageId: 10, index: 0);
+        containerRepo.whenGetById(success(source));
+        containerRepo.whenGetAllForPage(success([source, sibling]));
+        containerRepo.whenCreate(
+          success(buildContainer(id: 50, pageId: 10, index: 3)),
+        );
+        columnRepo.whenGetAllForContainer(success([]));
+        containerRepo.whenGetAllForContainer(success([]));
 
-          // Act
-          await useCase.execute(1);
+        // Act
+        await useCase.execute(1);
 
-          // Assert
-          expect(containerRepo.reorderCalls, isEmpty);
-        },
-      );
+        // Assert
+        expect(containerRepo.reorderCalls, isEmpty);
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -279,31 +270,25 @@ void main() {
     // -------------------------------------------------------------------------
 
     group('column duplication', () {
-      test(
-        'should create column linked to the new container id',
-        () async {
-          // Arrange
-          final source = buildContainer(id: 1, pageId: 10, index: 0);
-          final sourceColumn = buildColumn(id: 100, containerId: 1, index: 0);
-          containerRepo.whenGetById(success(source));
-          containerRepo.whenGetAllForPage(success([]));
-          containerRepo.whenCreate(success(buildContainer(id: 50, pageId: 10)));
-          columnRepo.whenGetAllForContainer(success([sourceColumn]));
-          widgetRepo.whenGetAllForColumn(success([]));
-          containerRepo.whenGetAllForContainer(success([]));
-          columnRepo.whenCreate(success(buildColumn(id: 200, containerId: 50)));
+      test('should create column linked to the new container id', () async {
+        // Arrange
+        final source = buildContainer(id: 1, pageId: 10, index: 0);
+        final sourceColumn = buildColumn(id: 100, containerId: 1, index: 0);
+        containerRepo.whenGetById(success(source));
+        containerRepo.whenGetAllForPage(success([]));
+        containerRepo.whenCreate(success(buildContainer(id: 50, pageId: 10)));
+        columnRepo.whenGetAllForContainer(success([sourceColumn]));
+        widgetRepo.whenGetAllForColumn(success([]));
+        containerRepo.whenGetAllForContainer(success([]));
+        columnRepo.whenCreate(success(buildColumn(id: 200, containerId: 50)));
 
-          // Act
-          final result = await useCase.execute(1);
+        // Act
+        final result = await useCase.execute(1);
 
-          // Assert
-          expect(result.isSuccess, isTrue);
-          expect(
-            columnRepo.createCalls.single.input.containerId,
-            equals(50),
-          );
-        },
-      );
+        // Assert
+        expect(result.isSuccess, isTrue);
+        expect(columnRepo.createCalls.single.input.containerId, equals(50));
+      });
     });
 
     // -------------------------------------------------------------------------

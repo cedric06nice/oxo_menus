@@ -24,10 +24,7 @@ void main() {
         'should throw StateError when execute is called without configuration',
         () async {
           // Act / Assert
-          await expectLater(
-            fake.execute(1),
-            throwsStateError,
-          );
+          await expectLater(fake.execute(1), throwsStateError);
         },
       );
     });

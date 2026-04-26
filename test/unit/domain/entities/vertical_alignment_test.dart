@@ -58,7 +58,10 @@ void main() {
 
       test('should not be equal to a different case', () {
         expect(VerticalAlignment.top, isNot(equals(VerticalAlignment.center)));
-        expect(VerticalAlignment.center, isNot(equals(VerticalAlignment.bottom)));
+        expect(
+          VerticalAlignment.center,
+          isNot(equals(VerticalAlignment.bottom)),
+        );
       });
     });
 
@@ -74,48 +77,83 @@ void main() {
   group('VerticalAlignmentConverter', () {
     group('fromString', () {
       test('should return VerticalAlignment.top when value is "top"', () {
-        expect(VerticalAlignmentConverter.fromString('top'), VerticalAlignment.top);
+        expect(
+          VerticalAlignmentConverter.fromString('top'),
+          VerticalAlignment.top,
+        );
       });
 
       test('should return VerticalAlignment.center when value is "center"', () {
-        expect(VerticalAlignmentConverter.fromString('center'), VerticalAlignment.center);
+        expect(
+          VerticalAlignmentConverter.fromString('center'),
+          VerticalAlignment.center,
+        );
       });
 
       test('should return VerticalAlignment.bottom when value is "bottom"', () {
-        expect(VerticalAlignmentConverter.fromString('bottom'), VerticalAlignment.bottom);
+        expect(
+          VerticalAlignmentConverter.fromString('bottom'),
+          VerticalAlignment.bottom,
+        );
       });
 
-      test('should return VerticalAlignment.top when value is an unknown string', () {
-        expect(VerticalAlignmentConverter.fromString('unknown'), VerticalAlignment.top);
-      });
+      test(
+        'should return VerticalAlignment.top when value is an unknown string',
+        () {
+          expect(
+            VerticalAlignmentConverter.fromString('unknown'),
+            VerticalAlignment.top,
+          );
+        },
+      );
 
-      test('should return VerticalAlignment.top when value is an empty string', () {
-        expect(VerticalAlignmentConverter.fromString(''), VerticalAlignment.top);
-      });
+      test(
+        'should return VerticalAlignment.top when value is an empty string',
+        () {
+          expect(
+            VerticalAlignmentConverter.fromString(''),
+            VerticalAlignment.top,
+          );
+        },
+      );
     });
 
     group('toJsonString', () {
       test('should return "top" for VerticalAlignment.top', () {
-        expect(VerticalAlignmentConverter.toJsonString(VerticalAlignment.top), 'top');
+        expect(
+          VerticalAlignmentConverter.toJsonString(VerticalAlignment.top),
+          'top',
+        );
       });
 
       test('should return "center" for VerticalAlignment.center', () {
-        expect(VerticalAlignmentConverter.toJsonString(VerticalAlignment.center), 'center');
+        expect(
+          VerticalAlignmentConverter.toJsonString(VerticalAlignment.center),
+          'center',
+        );
       });
 
       test('should return "bottom" for VerticalAlignment.bottom', () {
-        expect(VerticalAlignmentConverter.toJsonString(VerticalAlignment.bottom), 'bottom');
+        expect(
+          VerticalAlignmentConverter.toJsonString(VerticalAlignment.bottom),
+          'bottom',
+        );
       });
     });
 
     group('round-trip', () {
-      test('should round-trip every case through toJsonString then fromString', () {
-        for (final alignment in VerticalAlignment.values) {
-          final serialized = VerticalAlignmentConverter.toJsonString(alignment);
-          final restored = VerticalAlignmentConverter.fromString(serialized);
-          expect(restored, alignment);
-        }
-      });
+      test(
+        'should round-trip every case through toJsonString then fromString',
+        () {
+          for (final alignment in VerticalAlignment.values) {
+            final serialized = VerticalAlignmentConverter.toJsonString(
+              alignment,
+            );
+            final restored = VerticalAlignmentConverter.fromString(serialized);
+            expect(restored, alignment);
+          }
+        },
+      );
     });
   });
 }

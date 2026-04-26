@@ -50,13 +50,13 @@ final class PublishMenuBundleCall {
 /// ```
 class FakePublishMenuBundleUseCase extends PublishMenuBundleUseCase {
   FakePublishMenuBundleUseCase()
-      : super(
-          repository: _ThrowMenuBundleRepository(),
-          fetchMenuTreeUseCase: _ThrowFetchMenuTreeUseCase(),
-          fileRepository: _ThrowFileRepository(),
-          assetLoader: _ThrowAssetLoaderRepository(),
-          pdfBuilder: const PdfDocumentBuilder(),
-        );
+    : super(
+        repository: _ThrowMenuBundleRepository(),
+        fetchMenuTreeUseCase: _ThrowFetchMenuTreeUseCase(),
+        fileRepository: _ThrowFileRepository(),
+        assetLoader: _ThrowAssetLoaderRepository(),
+        pdfBuilder: const PdfDocumentBuilder(),
+      );
 
   // -------------------------------------------------------------------------
   // Call log
@@ -105,8 +105,9 @@ class _ThrowMenuBundleRepository implements MenuBundleRepository {
       throw StateError('_ThrowMenuBundleRepository should not be called');
 
   @override
-  Future<Result<List<MenuBundle>, DomainError>> findByIncludedMenu(int menuId) =>
-      throw StateError('_ThrowMenuBundleRepository should not be called');
+  Future<Result<List<MenuBundle>, DomainError>> findByIncludedMenu(
+    int menuId,
+  ) => throw StateError('_ThrowMenuBundleRepository should not be called');
 
   @override
   Future<Result<MenuBundle, DomainError>> create(CreateMenuBundleInput input) =>
@@ -123,13 +124,13 @@ class _ThrowMenuBundleRepository implements MenuBundleRepository {
 
 class _ThrowFetchMenuTreeUseCase extends FetchMenuTreeUseCase {
   _ThrowFetchMenuTreeUseCase()
-      : super(
-          menuRepository: _ThrowMenuRepository(),
-          pageRepository: _ThrowPageRepository(),
-          containerRepository: _ThrowContainerRepository(),
-          columnRepository: _ThrowColumnRepository(),
-          widgetRepository: _ThrowWidgetRepository(),
-        );
+    : super(
+        menuRepository: _ThrowMenuRepository(),
+        pageRepository: _ThrowPageRepository(),
+        containerRepository: _ThrowContainerRepository(),
+        columnRepository: _ThrowColumnRepository(),
+        widgetRepository: _ThrowWidgetRepository(),
+      );
 
   @override
   Future<Result<MenuTree, DomainError>> execute(int menuId) =>
@@ -282,9 +283,8 @@ class _ThrowColumnRepository implements ColumnRepository {
 
 class _ThrowWidgetRepository implements WidgetRepository {
   @override
-  Future<Result<WidgetInstance, DomainError>> create(
-    CreateWidgetInput input,
-  ) => throw StateError('_ThrowWidgetRepository should not be called');
+  Future<Result<WidgetInstance, DomainError>> create(CreateWidgetInput input) =>
+      throw StateError('_ThrowWidgetRepository should not be called');
 
   @override
   Future<Result<List<WidgetInstance>, DomainError>> getAllForColumn(
@@ -296,9 +296,8 @@ class _ThrowWidgetRepository implements WidgetRepository {
       throw StateError('_ThrowWidgetRepository should not be called');
 
   @override
-  Future<Result<WidgetInstance, DomainError>> update(
-    UpdateWidgetInput input,
-  ) => throw StateError('_ThrowWidgetRepository should not be called');
+  Future<Result<WidgetInstance, DomainError>> update(UpdateWidgetInput input) =>
+      throw StateError('_ThrowWidgetRepository should not be called');
 
   @override
   Future<Result<void, DomainError>> delete(int id) =>

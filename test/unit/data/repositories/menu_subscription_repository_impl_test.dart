@@ -167,7 +167,9 @@ void main() {
           final fake = fakeDataSource.lastCaptured!;
 
           // Act
-          fake.emitDelete({'ids': <dynamic>[1, 2]});
+          fake.emitDelete({
+            'ids': <dynamic>[1, 2],
+          });
           await Future<void>.delayed(Duration.zero);
 
           // Assert
@@ -190,7 +192,9 @@ void main() {
           final fake = fakeDataSource.lastCaptured!;
 
           // Act
-          fake.emitDelete({'ids': <dynamic>[10, 20, 30]});
+          fake.emitDelete({
+            'ids': <dynamic>[10, 20, 30],
+          });
           await Future<void>.delayed(Duration.zero);
 
           // Assert
@@ -313,16 +317,16 @@ void main() {
           // Arrange
           final stream = repository.subscribeToMenuChanges(42);
           final events = <WidgetChangedEvent>[];
-          final sub = stream.listen(
-            (e) => events.add(e as WidgetChangedEvent),
-          );
+          final sub = stream.listen((e) => events.add(e as WidgetChangedEvent));
           await Future<void>.delayed(Duration.zero);
           final fake = fakeDataSource.lastCaptured!;
 
           // Act
           fake.emitCreate({'id': 1, 'type_key': 'dish', 'index': 0});
           fake.emitUpdate({'id': 1, 'type_key': 'dish', 'index': 1});
-          fake.emitDelete({'ids': <dynamic>[1]});
+          fake.emitDelete({
+            'ids': <dynamic>[1],
+          });
           await Future<void>.delayed(Duration.zero);
 
           // Assert
@@ -578,9 +582,8 @@ class _FakeMenuSubDataSource implements DirectusDataSource {
   }) => _notUsed();
 
   @override
-  Future<Map<String, dynamic>> createItem<T extends DirectusItem>(
-    T newItem,
-  ) => _notUsed();
+  Future<Map<String, dynamic>> createItem<T extends DirectusItem>(T newItem) =>
+      _notUsed();
 
   @override
   Future<Map<String, dynamic>> updateItem<T extends DirectusItem>(
@@ -594,11 +597,8 @@ class _FakeMenuSubDataSource implements DirectusDataSource {
   Future<String> uploadFile(Uint8List bytes, String filename) => _notUsed();
 
   @override
-  Future<String> replaceFile(
-    String fileId,
-    Uint8List bytes,
-    String filename,
-  ) => _notUsed();
+  Future<String> replaceFile(String fileId, Uint8List bytes, String filename) =>
+      _notUsed();
 
   @override
   Future<List<Map<String, dynamic>>> listFiles({
@@ -611,8 +611,7 @@ class _FakeMenuSubDataSource implements DirectusDataSource {
   @override
   Future<Uint8List> downloadFileBytes(String fileId) => _notUsed();
 
-  Never _notUsed() =>
-      throw UnimplementedError('Method not used in this test');
+  Never _notUsed() => throw UnimplementedError('Method not used in this test');
 }
 
 /// Variant that throws [StateError] from [stopSubscription] to verify the

@@ -57,7 +57,10 @@ final class WidgetMoveToCall extends WidgetRepositoryCall {
 final class WidgetLockForEditingCall extends WidgetRepositoryCall {
   final int widgetId;
   final String userId;
-  const WidgetLockForEditingCall({required this.widgetId, required this.userId});
+  const WidgetLockForEditingCall({
+    required this.widgetId,
+    required this.userId,
+  });
 }
 
 final class WidgetUnlockEditingCall extends WidgetRepositoryCall {
@@ -94,7 +97,7 @@ class FakeWidgetRepository implements WidgetRepository {
   Result<WidgetInstance, DomainError>? _createResponse;
   Result<List<WidgetInstance>, DomainError>? _getAllForColumnResponse;
   final Map<int, Result<List<WidgetInstance>, DomainError>>
-      _getAllForColumnByIdResponses = {};
+  _getAllForColumnByIdResponses = {};
   Result<WidgetInstance, DomainError>? _getByIdResponse;
   Result<WidgetInstance, DomainError>? _updateResponse;
   Result<void, DomainError>? _deleteResponse;
@@ -223,10 +226,7 @@ class FakeWidgetRepository implements WidgetRepository {
   }
 
   @override
-  Future<Result<void, DomainError>> reorder(
-    int widgetId,
-    int newIndex,
-  ) async {
+  Future<Result<void, DomainError>> reorder(int widgetId, int newIndex) async {
     calls.add(WidgetReorderCall(widgetId: widgetId, newIndex: newIndex));
     if (_reorderResponse != null) return _reorderResponse!;
     throw StateError(

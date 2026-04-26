@@ -246,14 +246,17 @@ void main() {
         expect(mapped.valueOrNull, 16);
       });
 
-      test('should pass through the failure unchanged when result is Failure', () {
-        const result = Failure<int, String>('original error');
+      test(
+        'should pass through the failure unchanged when result is Failure',
+        () {
+          const result = Failure<int, String>('original error');
 
-        final mapped = result.map((v) => v * 2);
+          final mapped = result.map((v) => v * 2);
 
-        expect(mapped.isFailure, isTrue);
-        expect(mapped.errorOrNull, 'original error');
-      });
+          expect(mapped.isFailure, isTrue);
+          expect(mapped.errorOrNull, 'original error');
+        },
+      );
 
       test('should change the success type via map', () {
         const result = Success<int, String>(42);
@@ -286,14 +289,17 @@ void main() {
     });
 
     group('mapError', () {
-      test('should pass through the value unchanged when result is Success', () {
-        const result = Success<int, String>(7);
+      test(
+        'should pass through the value unchanged when result is Success',
+        () {
+          const result = Success<int, String>(7);
 
-        final mapped = result.mapError((e) => e.length);
+          final mapped = result.mapError((e) => e.length);
 
-        expect(mapped.isSuccess, isTrue);
-        expect(mapped.valueOrNull, 7);
-      });
+          expect(mapped.isSuccess, isTrue);
+          expect(mapped.valueOrNull, 7);
+        },
+      );
 
       test('should transform the error when result is Failure', () {
         const result = Failure<int, String>('error');
@@ -338,7 +344,9 @@ void main() {
       test('should chain Success to another Success', () {
         const result = Success<int, String>(5);
 
-        final chained = result.flatMap((v) => Success<String, String>(v.toString()));
+        final chained = result.flatMap(
+          (v) => Success<String, String>(v.toString()),
+        );
 
         expect(chained.isSuccess, isTrue);
         expect(chained.valueOrNull, '5');
@@ -347,7 +355,9 @@ void main() {
       test('should chain Success to a Failure', () {
         const result = Success<int, String>(5);
 
-        final chained = result.flatMap<String>((_) => const Failure('downstream error'));
+        final chained = result.flatMap<String>(
+          (_) => const Failure('downstream error'),
+        );
 
         expect(chained.isFailure, isTrue);
         expect(chained.errorOrNull, 'downstream error');
@@ -367,13 +377,16 @@ void main() {
         expect(chained.errorOrNull, 'upstream');
       });
 
-      test('should preserve original error when flatMap is called on Failure', () {
-        const result = Failure<int, String>('keep this');
+      test(
+        'should preserve original error when flatMap is called on Failure',
+        () {
+          const result = Failure<int, String>('keep this');
 
-        final chained = result.flatMap<double>((_) => const Success(1.0));
+          final chained = result.flatMap<double>((_) => const Success(1.0));
 
-        expect(chained.errorOrNull, 'keep this');
-      });
+          expect(chained.errorOrNull, 'keep this');
+        },
+      );
 
       test('should support chaining multiple flatMap calls', () {
         const start = Success<int, String>(2);

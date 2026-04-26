@@ -124,10 +124,7 @@ class FakeAuthRepository implements AuthRepository {
   // -------------------------------------------------------------------------
 
   @override
-  Future<Result<User, DomainError>> login(
-    String email,
-    String password,
-  ) async {
+  Future<Result<User, DomainError>> login(String email, String password) async {
     calls.add(LoginCall(email: email, password: password));
     if (_loginResponse != null) {
       return _loginResponse!;

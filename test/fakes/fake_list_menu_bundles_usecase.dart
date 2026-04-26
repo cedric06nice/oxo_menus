@@ -28,7 +28,7 @@ final class ListMenuBundlesCall {
 /// ```
 class FakeListMenuBundlesUseCase extends ListMenuBundlesUseCase {
   FakeListMenuBundlesUseCase()
-      : super(repository: _ThrowMenuBundleRepository());
+    : super(repository: _ThrowMenuBundleRepository());
 
   // -------------------------------------------------------------------------
   // Call log
@@ -77,19 +77,16 @@ class _ThrowMenuBundleRepository implements MenuBundleRepository {
       throw StateError('_ThrowMenuBundleRepository should not be called');
 
   @override
-  Future<Result<List<MenuBundle>, DomainError>> findByIncludedMenu(int menuId) =>
+  Future<Result<List<MenuBundle>, DomainError>> findByIncludedMenu(
+    int menuId,
+  ) => throw StateError('_ThrowMenuBundleRepository should not be called');
+
+  @override
+  Future<Result<MenuBundle, DomainError>> create(CreateMenuBundleInput input) =>
       throw StateError('_ThrowMenuBundleRepository should not be called');
 
   @override
-  Future<Result<MenuBundle, DomainError>> create(
-    CreateMenuBundleInput input,
-  ) =>
-      throw StateError('_ThrowMenuBundleRepository should not be called');
-
-  @override
-  Future<Result<MenuBundle, DomainError>> update(
-    UpdateMenuBundleInput input,
-  ) =>
+  Future<Result<MenuBundle, DomainError>> update(UpdateMenuBundleInput input) =>
       throw StateError('_ThrowMenuBundleRepository should not be called');
 
   @override

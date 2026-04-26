@@ -144,39 +144,33 @@ void main() {
       },
     );
 
-    test(
-      'should preserve input menu order within the no-allergen half',
-      () {
-        final tree1 = _tree(menuId: 1, name: 'Mains');
-        final tree2 = _tree(menuId: 2, name: 'Desserts');
-        final tree3 = _tree(menuId: 3, name: 'Drinks');
+    test('should preserve input menu order within the no-allergen half', () {
+      final tree1 = _tree(menuId: 1, name: 'Mains');
+      final tree2 = _tree(menuId: 2, name: 'Desserts');
+      final tree3 = _tree(menuId: 3, name: 'Drinks');
 
-        final order = composeBundleRenderOrder(
-          trees: [tree1, tree2, tree3],
-          base: const MenuDisplayOptions(),
-        );
+      final order = composeBundleRenderOrder(
+        trees: [tree1, tree2, tree3],
+        base: const MenuDisplayOptions(),
+      );
 
-        expect(order[0].menu.id, 1);
-        expect(order[1].menu.id, 2);
-        expect(order[2].menu.id, 3);
-      },
-    );
+      expect(order[0].menu.id, 1);
+      expect(order[1].menu.id, 2);
+      expect(order[2].menu.id, 3);
+    });
 
-    test(
-      'should preserve input menu order within the with-allergen half',
-      () {
-        final tree1 = _tree(menuId: 1, name: 'Mains');
-        final tree2 = _tree(menuId: 2, name: 'Desserts');
+    test('should preserve input menu order within the with-allergen half', () {
+      final tree1 = _tree(menuId: 1, name: 'Mains');
+      final tree2 = _tree(menuId: 2, name: 'Desserts');
 
-        final order = composeBundleRenderOrder(
-          trees: [tree1, tree2],
-          base: const MenuDisplayOptions(),
-        );
+      final order = composeBundleRenderOrder(
+        trees: [tree1, tree2],
+        base: const MenuDisplayOptions(),
+      );
 
-        expect(order[2].menu.id, 1);
-        expect(order[3].menu.id, 2);
-      },
-    );
+      expect(order[2].menu.id, 1);
+      expect(order[3].menu.id, 2);
+    });
 
     test(
       'should propagate showPrices:false from base options to all four slots',
@@ -193,17 +187,14 @@ void main() {
       },
     );
 
-    test(
-      'should return an empty list when trees list is empty',
-      () {
-        final order = composeBundleRenderOrder(
-          trees: const [],
-          base: const MenuDisplayOptions(),
-        );
+    test('should return an empty list when trees list is empty', () {
+      final order = composeBundleRenderOrder(
+        trees: const [],
+        base: const MenuDisplayOptions(),
+      );
 
-        expect(order, isEmpty);
-      },
-    );
+      expect(order, isEmpty);
+    });
 
     test(
       'should return two entries (without, then with allergens) for a single-tree input',
@@ -221,22 +212,19 @@ void main() {
       },
     );
 
-    test(
-      'should produce 2N entries for N input trees',
-      () {
-        final trees = List.generate(
-          4,
-          (i) => _tree(menuId: i + 1, name: 'Menu ${i + 1}'),
-        );
+    test('should produce 2N entries for N input trees', () {
+      final trees = List.generate(
+        4,
+        (i) => _tree(menuId: i + 1, name: 'Menu ${i + 1}'),
+      );
 
-        final order = composeBundleRenderOrder(
-          trees: trees,
-          base: const MenuDisplayOptions(),
-        );
+      final order = composeBundleRenderOrder(
+        trees: trees,
+        base: const MenuDisplayOptions(),
+      );
 
-        expect(order.length, 8);
-      },
-    );
+      expect(order.length, 8);
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -244,16 +232,13 @@ void main() {
   // ---------------------------------------------------------------------------
 
   group('PdfDocumentBuilder.buildBundleDocument', () {
-    test(
-      'should return valid PDF bytes for a single-tree bundle',
-      () async {
-        final tree = _tree(menuId: 1, name: 'Mains');
+    test('should return valid PDF bytes for a single-tree bundle', () async {
+      final tree = _tree(menuId: 1, name: 'Mains');
 
-        final bytes = await buildBundle(trees: [tree]);
+      final bytes = await buildBundle(trees: [tree]);
 
-        expect(_isPdfBytes(bytes), isTrue);
-      },
-    );
+      expect(_isPdfBytes(bytes), isTrue);
+    });
 
     test(
       'should return valid PDF bytes for a multi-tree bundle with watermark',
@@ -270,14 +255,11 @@ void main() {
       },
     );
 
-    test(
-      'should return valid PDF bytes when trees list is empty',
-      () async {
-        final bytes = await buildBundle(trees: const []);
+    test('should return valid PDF bytes when trees list is empty', () async {
+      final bytes = await buildBundle(trees: const []);
 
-        expect(_isPdfBytes(bytes), isTrue);
-      },
-    );
+      expect(_isPdfBytes(bytes), isTrue);
+    });
 
     test(
       'should produce a larger document for more trees than for fewer trees',

@@ -31,7 +31,11 @@ void main() {
 
       test('should parse string id to int', () {
         // Arrange
-        final dto = MenuBundleDto({'id': '42', 'name': 'Bundle', 'menu_ids': <int>[]});
+        final dto = MenuBundleDto({
+          'id': '42',
+          'name': 'Bundle',
+          'menu_ids': <int>[],
+        });
 
         // Act
         final entity = MenuBundleMapper.toEntity(dto);
@@ -42,7 +46,11 @@ void main() {
 
       test('should parse a large integer id correctly', () {
         // Arrange
-        final dto = MenuBundleDto({'id': '100', 'name': 'Bundle', 'menu_ids': <int>[]});
+        final dto = MenuBundleDto({
+          'id': '100',
+          'name': 'Bundle',
+          'menu_ids': <int>[],
+        });
 
         // Act
         final entity = MenuBundleMapper.toEntity(dto);
@@ -64,7 +72,11 @@ void main() {
 
       test('should default menuIds to empty list when field is null', () {
         // Arrange
-        final dto = MenuBundleDto({'id': '1', 'name': 'Bundle', 'menu_ids': null});
+        final dto = MenuBundleDto({
+          'id': '1',
+          'name': 'Bundle',
+          'menu_ids': null,
+        });
 
         // Act
         final entity = MenuBundleMapper.toEntity(dto);
@@ -105,7 +117,11 @@ void main() {
 
       test('should map null pdfFileId as null', () {
         // Arrange
-        final dto = MenuBundleDto({'id': '1', 'name': 'Bundle', 'menu_ids': <int>[]});
+        final dto = MenuBundleDto({
+          'id': '1',
+          'name': 'Bundle',
+          'menu_ids': <int>[],
+        });
 
         // Act
         final entity = MenuBundleMapper.toEntity(dto);
@@ -116,7 +132,11 @@ void main() {
 
       test('should map null dateCreated and dateUpdated as null', () {
         // Arrange
-        final dto = MenuBundleDto({'id': '1', 'name': 'Bundle', 'menu_ids': <int>[]});
+        final dto = MenuBundleDto({
+          'id': '1',
+          'name': 'Bundle',
+          'menu_ids': <int>[],
+        });
 
         // Act
         final entity = MenuBundleMapper.toEntity(dto);
@@ -128,7 +148,11 @@ void main() {
 
       test('should handle a single-item menuIds list', () {
         // Arrange
-        final dto = MenuBundleDto({'id': '1', 'name': 'Bundle', 'menu_ids': [99]});
+        final dto = MenuBundleDto({
+          'id': '1',
+          'name': 'Bundle',
+          'menu_ids': [99],
+        });
 
         // Act
         final entity = MenuBundleMapper.toEntity(dto);
@@ -141,7 +165,10 @@ void main() {
     group('toCreatePayload', () {
       test('should emit name and menu_ids', () {
         // Arrange
-        const input = CreateMenuBundleInput(name: 'New Bundle', menuIds: [4, 5, 6]);
+        const input = CreateMenuBundleInput(
+          name: 'New Bundle',
+          menuIds: [4, 5, 6],
+        );
 
         // Act
         final payload = MenuBundleMapper.toCreatePayload(input);
@@ -165,23 +192,26 @@ void main() {
     });
 
     group('toUpdatePayload', () {
-      test('should include name, menu_ids, and pdfFileId when all provided', () {
-        // Arrange
-        const input = UpdateMenuBundleInput(
-          id: 1,
-          name: 'Updated Bundle',
-          menuIds: [7, 8],
-          pdfFileId: 'new-file-id',
-        );
+      test(
+        'should include name, menu_ids, and pdfFileId when all provided',
+        () {
+          // Arrange
+          const input = UpdateMenuBundleInput(
+            id: 1,
+            name: 'Updated Bundle',
+            menuIds: [7, 8],
+            pdfFileId: 'new-file-id',
+          );
 
-        // Act
-        final payload = MenuBundleMapper.toUpdatePayload(input);
+          // Act
+          final payload = MenuBundleMapper.toUpdatePayload(input);
 
-        // Assert
-        expect(payload['name'], 'Updated Bundle');
-        expect(payload['menu_ids'], [7, 8]);
-        expect(payload['pdf_file_id'], 'new-file-id');
-      });
+          // Assert
+          expect(payload['name'], 'Updated Bundle');
+          expect(payload['menu_ids'], [7, 8]);
+          expect(payload['pdf_file_id'], 'new-file-id');
+        },
+      );
 
       test('should omit name when name is null', () {
         // Arrange

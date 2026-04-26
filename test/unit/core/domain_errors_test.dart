@@ -54,12 +54,15 @@ void main() {
         expect(error == error, isTrue);
       });
 
-      test('should equal another instance of the same type with same message', () {
-        const a = NotFoundError('missing');
-        const b = NotFoundError('missing');
+      test(
+        'should equal another instance of the same type with same message',
+        () {
+          const a = NotFoundError('missing');
+          const b = NotFoundError('missing');
 
-        expect(a, equals(b));
-      });
+          expect(a, equals(b));
+        },
+      );
 
       test('should have matching hashCode for equal errors', () {
         const a = NotFoundError('missing');
@@ -68,12 +71,15 @@ void main() {
         expect(a.hashCode, equals(b.hashCode));
       });
 
-      test('should not equal an instance of a different type with the same message', () {
-        const a = NetworkError('error');
-        const b = ServerError('error');
+      test(
+        'should not equal an instance of a different type with the same message',
+        () {
+          const a = NetworkError('error');
+          const b = ServerError('error');
 
-        expect(a, isNot(equals(b)));
-      });
+          expect(a, isNot(equals(b)));
+        },
+      );
 
       test('should not equal an instance with a different message', () {
         const a = NotFoundError('first');
@@ -82,12 +88,15 @@ void main() {
         expect(a, isNot(equals(b)));
       });
 
-      test('should include same-type, different-message errors in inequality', () {
-        const a = NotFoundError('alpha');
-        const b = NotFoundError('beta');
+      test(
+        'should include same-type, different-message errors in inequality',
+        () {
+          const a = NotFoundError('alpha');
+          const b = NotFoundError('beta');
 
-        expect(a.hashCode == b.hashCode, isFalse);
-      });
+          expect(a.hashCode == b.hashCode, isFalse);
+        },
+      );
     });
 
     group('InvalidCredentialsError', () {
@@ -128,12 +137,15 @@ void main() {
         expect(a, equals(b));
       });
 
-      test('should not equal InvalidCredentialsError with different message', () {
-        const a = InvalidCredentialsError('oops');
-        const b = InvalidCredentialsError('nope');
+      test(
+        'should not equal InvalidCredentialsError with different message',
+        () {
+          const a = InvalidCredentialsError('oops');
+          const b = InvalidCredentialsError('nope');
 
-        expect(a, isNot(equals(b)));
-      });
+          expect(a, isNot(equals(b)));
+        },
+      );
     });
 
     group('TokenExpiredError', () {
@@ -144,7 +156,9 @@ void main() {
       });
 
       test('should use custom message when provided', () {
-        const error = TokenExpiredError('Session has expired, please log in again');
+        const error = TokenExpiredError(
+          'Session has expired, please log in again',
+        );
 
         expect(error.message, 'Session has expired, please log in again');
       });
@@ -394,7 +408,10 @@ void main() {
       });
 
       test('should store details when provided as a string', () {
-        const error = ValidationError('Bad input', details: 'must be non-empty');
+        const error = ValidationError(
+          'Bad input',
+          details: 'must be non-empty',
+        );
 
         expect(error.details, 'must be non-empty');
       });
@@ -437,19 +454,25 @@ void main() {
         expect(a, equals(b));
       });
 
-      test('should not equal another with same message but different details', () {
-        const a = ValidationError('invalid', details: {'x': 1});
-        const b = ValidationError('invalid', details: {'x': 2});
+      test(
+        'should not equal another with same message but different details',
+        () {
+          const a = ValidationError('invalid', details: {'x': 1});
+          const b = ValidationError('invalid', details: {'x': 2});
 
-        expect(a, isNot(equals(b)));
-      });
+          expect(a, isNot(equals(b)));
+        },
+      );
 
-      test('should not equal another with different message but same details', () {
-        const a = ValidationError('one', details: {'x': 1});
-        const b = ValidationError('two', details: {'x': 1});
+      test(
+        'should not equal another with different message but same details',
+        () {
+          const a = ValidationError('one', details: {'x': 1});
+          const b = ValidationError('two', details: {'x': 1});
 
-        expect(a, isNot(equals(b)));
-      });
+          expect(a, isNot(equals(b)));
+        },
+      );
 
       test('should have matching hashCode for equal errors with details', () {
         const a = ValidationError('invalid', details: {'x': 1});
@@ -499,11 +522,14 @@ void main() {
     });
 
     group('UnknownError', () {
-      test('should have default message when constructed without arguments', () {
-        const error = UnknownError();
+      test(
+        'should have default message when constructed without arguments',
+        () {
+          const error = UnknownError();
 
-        expect(error.message, 'Unknown error');
-      });
+          expect(error.message, 'Unknown error');
+        },
+      );
 
       test('should use custom message when provided', () {
         const error = UnknownError('Something unexpected happened');
@@ -584,26 +610,35 @@ void main() {
         expect(a, isNot(equals(b)));
       });
 
-      test('should not equal ServerError vs UnknownError with same message', () {
-        const a = ServerError('error');
-        const b = UnknownError('error');
+      test(
+        'should not equal ServerError vs UnknownError with same message',
+        () {
+          const a = ServerError('error');
+          const b = UnknownError('error');
 
-        expect(a, isNot(equals(b)));
-      });
+          expect(a, isNot(equals(b)));
+        },
+      );
 
-      test('should not equal TokenExpiredError vs UnauthorizedError with same message', () {
-        const a = TokenExpiredError('session expired');
-        const b = UnauthorizedError('session expired');
+      test(
+        'should not equal TokenExpiredError vs UnauthorizedError with same message',
+        () {
+          const a = TokenExpiredError('session expired');
+          const b = UnauthorizedError('session expired');
 
-        expect(a, isNot(equals(b)));
-      });
+          expect(a, isNot(equals(b)));
+        },
+      );
 
-      test('should not equal InvalidCredentialsError vs RateLimitError with same message', () {
-        const a = InvalidCredentialsError('denied');
-        const b = RateLimitError('denied');
+      test(
+        'should not equal InvalidCredentialsError vs RateLimitError with same message',
+        () {
+          const a = InvalidCredentialsError('denied');
+          const b = RateLimitError('denied');
 
-        expect(a, isNot(equals(b)));
-      });
+          expect(a, isNot(equals(b)));
+        },
+      );
     });
   });
 }

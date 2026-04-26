@@ -255,16 +255,21 @@ void main() {
         expect(json['borderType'], 'drop_shadow');
       });
 
-      test('should serialize verticalAlignment as its string representation', () {
-        // Arrange
-        const config = StyleConfig(verticalAlignment: VerticalAlignment.center);
+      test(
+        'should serialize verticalAlignment as its string representation',
+        () {
+          // Arrange
+          const config = StyleConfig(
+            verticalAlignment: VerticalAlignment.center,
+          );
 
-        // Act
-        final json = StyleConfigMapper.toJson(config);
+          // Act
+          final json = StyleConfigMapper.toJson(config);
 
-        // Assert
-        expect(json['verticalAlignment'], 'center');
-      });
+          // Assert
+          expect(json['verticalAlignment'], 'center');
+        },
+      );
 
       test('should serialize all margin and padding fields when provided', () {
         // Arrange
@@ -314,31 +319,34 @@ void main() {
     });
 
     group('round-trip', () {
-      test('should preserve a fully-populated config through fromJson then toJson', () {
-        // Arrange
-        final original = {
-          'fontFamily': 'Helvetica',
-          'fontSize': 12.0,
-          'primaryColor': '#AABBCC',
-          'marginTop': 10.0,
-          'paddingLeft': 4.0,
-          'borderType': 'plain_thin',
-          'verticalAlignment': 'bottom',
-        };
+      test(
+        'should preserve a fully-populated config through fromJson then toJson',
+        () {
+          // Arrange
+          final original = {
+            'fontFamily': 'Helvetica',
+            'fontSize': 12.0,
+            'primaryColor': '#AABBCC',
+            'marginTop': 10.0,
+            'paddingLeft': 4.0,
+            'borderType': 'plain_thin',
+            'verticalAlignment': 'bottom',
+          };
 
-        // Act
-        final config = StyleConfigMapper.fromJson(original);
-        final serialized = StyleConfigMapper.toJson(config);
+          // Act
+          final config = StyleConfigMapper.fromJson(original);
+          final serialized = StyleConfigMapper.toJson(config);
 
-        // Assert
-        expect(serialized['fontFamily'], 'Helvetica');
-        expect(serialized['fontSize'], 12.0);
-        expect(serialized['primaryColor'], '#AABBCC');
-        expect(serialized['marginTop'], 10.0);
-        expect(serialized['paddingLeft'], 4.0);
-        expect(serialized['borderType'], 'plain_thin');
-        expect(serialized['verticalAlignment'], 'bottom');
-      });
+          // Assert
+          expect(serialized['fontFamily'], 'Helvetica');
+          expect(serialized['fontSize'], 12.0);
+          expect(serialized['primaryColor'], '#AABBCC');
+          expect(serialized['marginTop'], 10.0);
+          expect(serialized['paddingLeft'], 4.0);
+          expect(serialized['borderType'], 'plain_thin');
+          expect(serialized['verticalAlignment'], 'bottom');
+        },
+      );
     });
   });
 }

@@ -36,28 +36,28 @@ import '../../../fakes/reflectable_bootstrap.dart';
 /// constructor args with no-op stubs so tests can override execute() behaviour.
 class _FakeDuplicateMenuUseCase extends DuplicateMenuUseCase {
   _FakeDuplicateMenuUseCase()
-      : super(
-          fetchMenuTreeUseCase: _ThrowFetchMenuTreeUseCase(),
-          menuRepository: _ThrowMenuRepository(),
-          pageRepository: _ThrowPageRepository(),
-          containerRepository: _ThrowContainerRepository(),
-          columnRepository: _ThrowColumnRepository(),
-          widgetRepository: _ThrowWidgetRepository(),
-          sizeRepository: _ThrowSizeRepository(),
-        );
+    : super(
+        fetchMenuTreeUseCase: _ThrowFetchMenuTreeUseCase(),
+        menuRepository: _ThrowMenuRepository(),
+        pageRepository: _ThrowPageRepository(),
+        containerRepository: _ThrowContainerRepository(),
+        columnRepository: _ThrowColumnRepository(),
+        widgetRepository: _ThrowWidgetRepository(),
+        sizeRepository: _ThrowSizeRepository(),
+      );
 }
 
 // Minimal throw-only stubs used solely to satisfy DuplicateMenuUseCase constructor
 
 class _ThrowFetchMenuTreeUseCase extends FetchMenuTreeUseCase {
   _ThrowFetchMenuTreeUseCase()
-      : super(
-          menuRepository: _ThrowMenuRepository(),
-          pageRepository: _ThrowPageRepository(),
-          containerRepository: _ThrowContainerRepository(),
-          columnRepository: _ThrowColumnRepository(),
-          widgetRepository: _ThrowWidgetRepository(),
-        );
+    : super(
+        menuRepository: _ThrowMenuRepository(),
+        pageRepository: _ThrowPageRepository(),
+        containerRepository: _ThrowContainerRepository(),
+        columnRepository: _ThrowColumnRepository(),
+        widgetRepository: _ThrowWidgetRepository(),
+      );
 
   @override
   Future<Result<MenuTree, DomainError>> execute(int menuId) async {
@@ -67,38 +67,44 @@ class _ThrowFetchMenuTreeUseCase extends FetchMenuTreeUseCase {
 
 class _ThrowMenuRepository implements MenuRepository {
   @override
-  dynamic noSuchMethod(Invocation i) =>
-      throw StateError('_ThrowMenuRepository.${i.memberName} called unexpectedly');
+  dynamic noSuchMethod(Invocation i) => throw StateError(
+    '_ThrowMenuRepository.${i.memberName} called unexpectedly',
+  );
 }
 
 class _ThrowPageRepository implements PageRepository {
   @override
-  dynamic noSuchMethod(Invocation i) =>
-      throw StateError('_ThrowPageRepository.${i.memberName} called unexpectedly');
+  dynamic noSuchMethod(Invocation i) => throw StateError(
+    '_ThrowPageRepository.${i.memberName} called unexpectedly',
+  );
 }
 
 class _ThrowContainerRepository implements ContainerRepository {
   @override
-  dynamic noSuchMethod(Invocation i) =>
-      throw StateError('_ThrowContainerRepository.${i.memberName} called unexpectedly');
+  dynamic noSuchMethod(Invocation i) => throw StateError(
+    '_ThrowContainerRepository.${i.memberName} called unexpectedly',
+  );
 }
 
 class _ThrowColumnRepository implements ColumnRepository {
   @override
-  dynamic noSuchMethod(Invocation i) =>
-      throw StateError('_ThrowColumnRepository.${i.memberName} called unexpectedly');
+  dynamic noSuchMethod(Invocation i) => throw StateError(
+    '_ThrowColumnRepository.${i.memberName} called unexpectedly',
+  );
 }
 
 class _ThrowWidgetRepository implements WidgetRepository {
   @override
-  dynamic noSuchMethod(Invocation i) =>
-      throw StateError('_ThrowWidgetRepository.${i.memberName} called unexpectedly');
+  dynamic noSuchMethod(Invocation i) => throw StateError(
+    '_ThrowWidgetRepository.${i.memberName} called unexpectedly',
+  );
 }
 
 class _ThrowSizeRepository implements SizeRepository {
   @override
-  dynamic noSuchMethod(Invocation i) =>
-      throw StateError('_ThrowSizeRepository.${i.memberName} called unexpectedly');
+  dynamic noSuchMethod(Invocation i) => throw StateError(
+    '_ThrowSizeRepository.${i.memberName} called unexpectedly',
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -121,7 +127,9 @@ Widget _buildApp({
     overrides: [
       authRepositoryProvider.overrideWithValue(fakeAuth),
       menuRepositoryProvider.overrideWithValue(fakeMenu),
-      duplicateMenuUseCaseProvider.overrideWithValue(_FakeDuplicateMenuUseCase()),
+      duplicateMenuUseCaseProvider.overrideWithValue(
+        _FakeDuplicateMenuUseCase(),
+      ),
       ...extraOverrides.cast(),
     ],
     child: Consumer(
@@ -149,13 +157,16 @@ void main() {
       'should redirect unauthenticated user to /login when visiting splash',
       (tester) async {
         final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse =
-            const Failure(UnauthorizedError());
+        fakeAuth.defaultTryRestoreSessionResponse = const Failure(
+          UnauthorizedError(),
+        );
 
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
 
-        await tester.pumpWidget(_buildApp(fakeAuth: fakeAuth, fakeMenu: fakeMenu));
+        await tester.pumpWidget(
+          _buildApp(fakeAuth: fakeAuth, fakeMenu: fakeMenu),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('OXO Menus'), findsOneWidget);
@@ -166,13 +177,14 @@ void main() {
       'should redirect authenticated user to /home when visiting splash',
       (tester) async {
         final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse =
-            Success(buildUser());
+        fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
 
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
 
-        await tester.pumpWidget(_buildApp(fakeAuth: fakeAuth, fakeMenu: fakeMenu));
+        await tester.pumpWidget(
+          _buildApp(fakeAuth: fakeAuth, fakeMenu: fakeMenu),
+        );
         await tester.pumpAndSettle();
 
         expect(find.text('Quick Actions'), findsOneWidget);
@@ -183,8 +195,9 @@ void main() {
       'should redirect unauthenticated user to /login when navigating to /menus',
       (tester) async {
         final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse =
-            const Failure(UnauthorizedError());
+        fakeAuth.defaultTryRestoreSessionResponse = const Failure(
+          UnauthorizedError(),
+        );
 
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
@@ -265,32 +278,31 @@ void main() {
       },
     );
 
-    testWidgets(
-      'should allow admin user to access /admin/templates',
-      (tester) async {
-        final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
+    testWidgets('should allow admin user to access /admin/templates', (
+      tester,
+    ) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
 
-        final fakeMenu = FakeMenuRepository();
-        _configureMenuRepository(fakeMenu);
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
 
-        late GoRouter router;
+      late GoRouter router;
 
-        await tester.pumpWidget(
-          _buildApp(
-            fakeAuth: fakeAuth,
-            fakeMenu: fakeMenu,
-            onRouter: (r) => router = r,
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        router.go('/admin/templates');
-        await tester.pumpAndSettle();
+      router.go('/admin/templates');
+      await tester.pumpAndSettle();
 
-        expect(find.text('No templates found'), findsOneWidget);
-      },
-    );
+      expect(find.text('No templates found'), findsOneWidget);
+    });
 
     testWidgets(
       'should block non-admin user from /admin/sizes and redirect to /home',
@@ -352,8 +364,9 @@ void main() {
       'should allow unauthenticated user to access /forgot-password',
       (tester) async {
         final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse =
-            const Failure(UnauthorizedError());
+        fakeAuth.defaultTryRestoreSessionResponse = const Failure(
+          UnauthorizedError(),
+        );
 
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
@@ -376,90 +389,88 @@ void main() {
       },
     );
 
-    testWidgets(
-      'should allow unauthenticated user to access /reset-password',
-      (tester) async {
-        final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse =
-            const Failure(UnauthorizedError());
+    testWidgets('should allow unauthenticated user to access /reset-password', (
+      tester,
+    ) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = const Failure(
+        UnauthorizedError(),
+      );
 
-        final fakeMenu = FakeMenuRepository();
-        _configureMenuRepository(fakeMenu);
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
 
-        late GoRouter router;
+      late GoRouter router;
 
-        await tester.pumpWidget(
-          _buildApp(
-            fakeAuth: fakeAuth,
-            fakeMenu: fakeMenu,
-            onRouter: (r) => router = r,
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        router.go('/reset-password?token=abc123');
-        await tester.pumpAndSettle();
+      router.go('/reset-password?token=abc123');
+      await tester.pumpAndSettle();
 
-        expect(find.text('Reset Password'), findsAtLeast(1));
-        expect(find.byKey(const Key('login_button')), findsNothing);
-      },
-    );
+      expect(find.text('Reset Password'), findsAtLeast(1));
+      expect(find.byKey(const Key('login_button')), findsNothing);
+    });
   });
 
   group('AppRouter — authenticated routes reachable', () {
-    testWidgets(
-      'should render /menus page for authenticated user',
-      (tester) async {
-        final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
+    testWidgets('should render /menus page for authenticated user', (
+      tester,
+    ) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
 
-        final fakeMenu = FakeMenuRepository();
-        _configureMenuRepository(fakeMenu);
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
 
-        late GoRouter router;
+      late GoRouter router;
 
-        await tester.pumpWidget(
-          _buildApp(
-            fakeAuth: fakeAuth,
-            fakeMenu: fakeMenu,
-            onRouter: (r) => router = r,
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        router.go('/menus');
-        await tester.pumpAndSettle();
+      router.go('/menus');
+      await tester.pumpAndSettle();
 
-        expect(find.text('Menus'), findsAtLeast(1));
-      },
-    );
+      expect(find.text('Menus'), findsAtLeast(1));
+    });
 
-    testWidgets(
-      'should render /settings page for authenticated user',
-      (tester) async {
-        final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
+    testWidgets('should render /settings page for authenticated user', (
+      tester,
+    ) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
 
-        final fakeMenu = FakeMenuRepository();
-        _configureMenuRepository(fakeMenu);
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
 
-        late GoRouter router;
+      late GoRouter router;
 
-        await tester.pumpWidget(
-          _buildApp(
-            fakeAuth: fakeAuth,
-            fakeMenu: fakeMenu,
-            onRouter: (r) => router = r,
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        router.go('/settings');
-        await tester.pumpAndSettle();
+      router.go('/settings');
+      await tester.pumpAndSettle();
 
-        expect(find.text('Settings'), findsAtLeast(1));
-      },
-    );
+      expect(find.text('Settings'), findsAtLeast(1));
+    });
 
     testWidgets(
       'should render /menus/:id menu editor page for authenticated user',
@@ -479,7 +490,9 @@ void main() {
           _buildApp(
             fakeAuth: fakeAuth,
             fakeMenu: fakeMenu,
-            extraOverrides: [widgetRepositoryProvider.overrideWithValue(fakeWidget)],
+            extraOverrides: [
+              widgetRepositoryProvider.overrideWithValue(fakeWidget),
+            ],
             onRouter: (r) => router = r,
           ),
         );
@@ -495,89 +508,87 @@ void main() {
   });
 
   group('AppRouter — admin template routes', () {
-    testWidgets(
-      'should render /admin/templates/create page for admin user',
-      (tester) async {
-        final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
+    testWidgets('should render /admin/templates/create page for admin user', (
+      tester,
+    ) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
 
-        final fakeMenu = FakeMenuRepository();
-        _configureMenuRepository(fakeMenu);
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
 
-        final fakeSize = FakeSizeRepository();
-        fakeSize.whenGetAll(const Success([]));
+      final fakeSize = FakeSizeRepository();
+      fakeSize.whenGetAll(const Success([]));
 
-        final fakeArea = FakeAreaRepository();
-        fakeArea.whenGetAll(const Success([]));
+      final fakeArea = FakeAreaRepository();
+      fakeArea.whenGetAll(const Success([]));
 
-        late GoRouter router;
+      late GoRouter router;
 
-        await tester.pumpWidget(
-          _buildApp(
-            fakeAuth: fakeAuth,
-            fakeMenu: fakeMenu,
-            extraOverrides: [
-              sizeRepositoryProvider.overrideWithValue(fakeSize),
-              areaRepositoryProvider.overrideWithValue(fakeArea),
-            ],
-            onRouter: (r) => router = r,
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          extraOverrides: [
+            sizeRepositoryProvider.overrideWithValue(fakeSize),
+            areaRepositoryProvider.overrideWithValue(fakeArea),
+          ],
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        router.go('/admin/templates/create');
-        await tester.pumpAndSettle();
+      router.go('/admin/templates/create');
+      await tester.pumpAndSettle();
 
-        expect(find.byType(AdminTemplateCreatorPage), findsOneWidget);
-      },
-    );
+      expect(find.byType(AdminTemplateCreatorPage), findsOneWidget);
+    });
 
-    testWidgets(
-      'should render /admin/templates/:id page for admin user',
-      (tester) async {
-        final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
+    testWidgets('should render /admin/templates/:id page for admin user', (
+      tester,
+    ) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
 
-        final fakeMenu = FakeMenuRepository();
-        _configureMenuRepository(fakeMenu);
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
 
-        final fakePage = FakePageRepository();
-        fakePage.whenGetAllForMenu(const Success([]));
+      final fakePage = FakePageRepository();
+      fakePage.whenGetAllForMenu(const Success([]));
 
-        final fakeContainer = FakeContainerRepository();
-        fakeContainer.whenGetAllForPage(const Success([]));
-        fakeContainer.whenGetAllForContainer(const Success([]));
+      final fakeContainer = FakeContainerRepository();
+      fakeContainer.whenGetAllForPage(const Success([]));
+      fakeContainer.whenGetAllForContainer(const Success([]));
 
-        final fakeColumn = FakeColumnRepository();
-        fakeColumn.whenGetAllForContainer(const Success([]));
+      final fakeColumn = FakeColumnRepository();
+      fakeColumn.whenGetAllForContainer(const Success([]));
 
-        final fakeWidget = FakeWidgetRepository();
-        fakeWidget.whenGetAllForColumn(const Success([]));
+      final fakeWidget = FakeWidgetRepository();
+      fakeWidget.whenGetAllForColumn(const Success([]));
 
-        late GoRouter router;
+      late GoRouter router;
 
-        await tester.pumpWidget(
-          _buildApp(
-            fakeAuth: fakeAuth,
-            fakeMenu: fakeMenu,
-            extraOverrides: [
-              pageRepositoryProvider.overrideWithValue(fakePage),
-              containerRepositoryProvider.overrideWithValue(fakeContainer),
-              columnRepositoryProvider.overrideWithValue(fakeColumn),
-              widgetRepositoryProvider.overrideWithValue(fakeWidget),
-            ],
-            onRouter: (r) => router = r,
-          ),
-        );
-        await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          extraOverrides: [
+            pageRepositoryProvider.overrideWithValue(fakePage),
+            containerRepositoryProvider.overrideWithValue(fakeContainer),
+            columnRepositoryProvider.overrideWithValue(fakeColumn),
+            widgetRepositoryProvider.overrideWithValue(fakeWidget),
+          ],
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
 
-        router.go('/admin/templates/123');
-        await tester.pumpAndSettle();
+      router.go('/admin/templates/123');
+      await tester.pumpAndSettle();
 
-        // Template not found — AdminTemplateEditorPage shows error state
-        expect(find.textContaining('Error:'), findsOneWidget);
-      },
-    );
+      // Template not found — AdminTemplateEditorPage shows error state
+      expect(find.textContaining('Error:'), findsOneWidget);
+    });
   });
 
   group('AppRouter — deep linking', () {
@@ -585,8 +596,9 @@ void main() {
       'should redirect deep link to /login when user is unauthenticated',
       (tester) async {
         final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse =
-            const Failure(UnauthorizedError());
+        fakeAuth.defaultTryRestoreSessionResponse = const Failure(
+          UnauthorizedError(),
+        );
 
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
@@ -628,7 +640,9 @@ void main() {
           _buildApp(
             fakeAuth: fakeAuth,
             fakeMenu: fakeMenu,
-            extraOverrides: [widgetRepositoryProvider.overrideWithValue(fakeWidget)],
+            extraOverrides: [
+              widgetRepositoryProvider.overrideWithValue(fakeWidget),
+            ],
             onRouter: (r) => router = r,
           ),
         );

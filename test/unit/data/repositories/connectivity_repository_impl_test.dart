@@ -514,28 +514,25 @@ void main() {
     // ========================================================================
 
     group('watchConnectivity — distinct deduplication', () {
-      test(
-        'should deduplicate consecutive identical status emissions',
-        () async {
-          // Arrange
-          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
-          final repository = _repo(fakeConnectivity, probe: () async => true);
-          final results = <ConnectivityStatus>[];
-          final sub = repository.watchConnectivity().listen(results.add);
-          await Future<void>.delayed(Duration.zero);
+      test('should deduplicate consecutive identical status emissions', () async {
+        // Arrange
+        fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+        final repository = _repo(fakeConnectivity, probe: () async => true);
+        final results = <ConnectivityStatus>[];
+        final sub = repository.watchConnectivity().listen(results.add);
+        await Future<void>.delayed(Duration.zero);
 
-          // Act — emit the same state twice in a row
-          fakeConnectivity.emitChange([ConnectivityResult.wifi]);
-          await Future<void>.delayed(Duration.zero);
-          fakeConnectivity.emitChange([ConnectivityResult.mobile]);
-          await Future<void>.delayed(Duration.zero);
+        // Act — emit the same state twice in a row
+        fakeConnectivity.emitChange([ConnectivityResult.wifi]);
+        await Future<void>.delayed(Duration.zero);
+        fakeConnectivity.emitChange([ConnectivityResult.mobile]);
+        await Future<void>.delayed(Duration.zero);
 
-          // Assert — still online after both changes, deduped to one total emission
-          expect(results, [ConnectivityStatus.online]);
+        // Assert — still online after both changes, deduped to one total emission
+        expect(results, [ConnectivityStatus.online]);
 
-          await sub.cancel();
-        },
-      );
+        await sub.cancel();
+      });
 
       test(
         'should emit both online and offline when status genuinely transitions',
@@ -696,32 +693,29 @@ void main() {
         },
       );
 
-      test(
-        'should stop periodic probing when stream is cancelled',
-        () {
-          fakeAsync((async) {
-            var probeCallCount = 0;
-            fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
-            final repository = _repo(
-              fakeConnectivity,
-              probe: () async {
-                probeCallCount++;
-                return true;
-              },
-            );
+      test('should stop periodic probing when stream is cancelled', () {
+        fakeAsync((async) {
+          var probeCallCount = 0;
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(
+            fakeConnectivity,
+            probe: () async {
+              probeCallCount++;
+              return true;
+            },
+          );
 
-            final sub = repository.watchConnectivity().listen((_) {});
-            async.flushMicrotasks();
-            sub.cancel();
-            async.flushMicrotasks();
-            final callsAtCancel = probeCallCount;
+          final sub = repository.watchConnectivity().listen((_) {});
+          async.flushMicrotasks();
+          sub.cancel();
+          async.flushMicrotasks();
+          final callsAtCancel = probeCallCount;
 
-            // Advance well past a probe interval — no new probes
-            async.elapse(const Duration(seconds: 60));
-            expect(probeCallCount, equals(callsAtCancel));
-          });
-        },
-      );
+          // Advance well past a probe interval — no new probes
+          async.elapse(const Duration(seconds: 60));
+          expect(probeCallCount, equals(callsAtCancel));
+        });
+      });
     });
 
     // ========================================================================
@@ -1117,7 +1111,8 @@ void main() {
             expect(
               results.last,
               equals(ConnectivityStatus.online),
-              reason: 'recovery probe should detect DNS recovery after no-interface offline',
+              reason:
+                  'recovery probe should detect DNS recovery after no-interface offline',
             );
 
             sub.cancel();
