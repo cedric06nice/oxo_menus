@@ -2,209 +2,282 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 import 'package:oxo_menus/domain/widget_system/widget_migrator.dart';
+import '../../../fakes/builders/widget_instance_builder.dart';
 
-// Mock props class for testing
-class TestProps {
+// ---------------------------------------------------------------------------
+// Minimal concrete props type.
+//
+// Must expose toJson() because WidgetMigrator.migrate calls
+// `(migratedProps as dynamic).toJson()` to produce the output map.
+// ---------------------------------------------------------------------------
+
+class _MigrProps {
   final String name;
   final int value;
 
-  const TestProps({required this.name, required this.value});
+  const _MigrProps({required this.name, required this.value});
 
-  factory TestProps.fromJson(Map<String, dynamic> json) {
-    return TestProps(name: json['name'] as String, value: json['value'] as int);
-  }
+  factory _MigrProps.fromJson(Map<String, dynamic> json) => _MigrProps(
+        name: json['name'] as String,
+        value: json['value'] as int? ?? 0,
+      );
 
   Map<String, dynamic> toJson() => {'name': name, 'value': value};
 }
 
+// ---------------------------------------------------------------------------
+// Definition helpers
+// ---------------------------------------------------------------------------
+
+WidgetDefinition<_MigrProps> _defNoMigrate(String version) =>
+    WidgetDefinition<_MigrProps>(
+      type: 'test',
+      version: version,
+      parseProps: _MigrProps.fromJson,
+      defaultProps: const _MigrProps(name: 'default', value: 0),
+    );
+
+WidgetDefinition<_MigrProps> _defWithMigrate(
+  String version,
+  _MigrProps Function(Map<String, dynamic>) fn,
+) =>
+    WidgetDefinition<_MigrProps>(
+      type: 'test',
+      version: version,
+      parseProps: _MigrProps.fromJson,
+      defaultProps: const _MigrProps(name: 'default', value: 0),
+      migrate: fn,
+    );
+
+// ---------------------------------------------------------------------------
+// WidgetInstance helpers
+// ---------------------------------------------------------------------------
+
+WidgetInstance _instanceAt(
+  String version,
+  Map<String, dynamic> props,
+) =>
+    buildWidgetInstance(type: 'test', version: version, props: props);
+
 void main() {
+  // -------------------------------------------------------------------------
+  // WidgetMigrator
+  // -------------------------------------------------------------------------
+
   group('WidgetMigrator', () {
-    test('should detect when migration is needed', () {
-      const instance = WidgetInstance(
-        id: 1,
-        columnId: 1,
-        type: 'test',
-        version: '1.0.0',
-        index: 0,
-        props: {'name': 'test', 'value': 42},
-      );
+    // -----------------------------------------------------------------------
+    // needsMigration
+    // -----------------------------------------------------------------------
 
-      final definition = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '2.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
+    group('needsMigration', () {
+      test(
+          'should return false when instance version equals definition version',
+          () {
+        final instance = _instanceAt('1.0.0', {'name': 'x', 'value': 1});
+        final definition = _defNoMigrate('1.0.0');
 
-        defaultProps: const TestProps(name: 'default', value: 0),
-      );
+        expect(WidgetMigrator.needsMigration(instance, definition), isFalse);
+      });
 
-      expect(WidgetMigrator.needsMigration(instance, definition), true);
+      test('should return true when instance version is older than definition',
+          () {
+        final instance = _instanceAt('1.0.0', {'name': 'x', 'value': 1});
+        final definition = _defNoMigrate('2.0.0');
+
+        expect(WidgetMigrator.needsMigration(instance, definition), isTrue);
+      });
+
+      test('should return true when instance version is newer than definition',
+          () {
+        final instance = _instanceAt('3.0.0', {'name': 'x', 'value': 1});
+        final definition = _defNoMigrate('2.0.0');
+
+        expect(WidgetMigrator.needsMigration(instance, definition), isTrue);
+      });
+
+      test(
+          'should return false when both instance and definition are at version 1',
+          () {
+        final instance = _instanceAt('1', {});
+        final definition = _defNoMigrate('1');
+
+        expect(WidgetMigrator.needsMigration(instance, definition), isFalse);
+      });
+
+      test(
+          'should return true when instance has empty version and definition has non-empty version',
+          () {
+        final instance = _instanceAt('', {'name': 'x', 'value': 0});
+        final definition = _defNoMigrate('1.0.0');
+
+        expect(WidgetMigrator.needsMigration(instance, definition), isTrue);
+      });
     });
 
-    test('should detect when migration is not needed', () {
-      const instance = WidgetInstance(
-        id: 1,
-        columnId: 1,
-        type: 'test',
-        version: '1.0.0',
-        index: 0,
-        props: {'name': 'test', 'value': 42},
-      );
+    // -----------------------------------------------------------------------
+    // migrate — no migration function
+    // -----------------------------------------------------------------------
 
-      final definition = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '1.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
+    group('migrate when no migrate function is defined', () {
+      test('should return original props map when definition has no migrate fn',
+          () {
+        final props = <String, dynamic>{'name': 'dish', 'value': 5};
+        final instance = _instanceAt('1.0.0', props);
+        final definition = _defNoMigrate('2.0.0');
 
-        defaultProps: const TestProps(name: 'default', value: 0),
-      );
+        final result = WidgetMigrator.migrate(instance, definition);
 
-      expect(WidgetMigrator.needsMigration(instance, definition), false);
+        expect(result, equals(props));
+      });
+
+      test(
+          'should return map equal to original props when definition has no migrate fn',
+          () {
+        final props = <String, dynamic>{'name': 'dish', 'value': 5};
+        final instance = _instanceAt('1.0.0', props);
+        final definition = _defNoMigrate('2.0.0');
+
+        final result = WidgetMigrator.migrate(instance, definition);
+
+        expect(result, equals(props));
+      });
+
+      test(
+          'should return empty map unchanged when instance props are empty and no migrate fn',
+          () {
+        final instance = _instanceAt('1.0.0', {});
+        final definition = _defNoMigrate('2.0.0');
+
+        final result = WidgetMigrator.migrate(instance, definition);
+
+        expect(result, isEmpty);
+      });
     });
 
-    test('should migrate props when migration function is provided', () {
-      const instance = WidgetInstance(
-        id: 1,
-        columnId: 1,
-        type: 'test',
-        version: '1.0.0',
-        index: 0,
-        props: {'name': 'test', 'value': 42},
-      );
+    // -----------------------------------------------------------------------
+    // migrate — with migration function
+    // -----------------------------------------------------------------------
 
-      final definition = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '2.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
-
-        defaultProps: const TestProps(name: 'default', value: 0),
-        migrate: (json) {
-          // Migration: add 100 to value
-          return TestProps(
-            name: json['name'] as String,
+    group('migrate when migrate function is defined', () {
+      test('should apply migration and return toJson output of migrated props',
+          () {
+        final instance =
+            _instanceAt('1.0.0', {'name': 'soup', 'value': 10});
+        final definition = _defWithMigrate('2.0.0', (json) {
+          return _MigrProps(
+            name: (json['name'] as String).toUpperCase(),
             value: (json['value'] as int) + 100,
           );
-        },
-      );
+        });
 
-      final migrated = WidgetMigrator.migrate(instance, definition);
+        final result = WidgetMigrator.migrate(instance, definition);
 
-      expect(migrated['name'], 'test');
-      expect(migrated['value'], 142);
+        expect(result['name'], equals('SOUP'));
+        expect(result['value'], equals(110));
+      });
+
+      test('should pass the instance props map to the migrate function', () {
+        Map<String, dynamic>? received;
+        final props = <String, dynamic>{'name': 'test', 'value': 7};
+        final instance = _instanceAt('1.0.0', props);
+        final definition = _defWithMigrate('2.0.0', (json) {
+          received = json;
+          return const _MigrProps(name: 'test', value: 7);
+        });
+
+        WidgetMigrator.migrate(instance, definition);
+
+        expect(received, equals(props));
+      });
+
+      test(
+          'should preserve fields present in migrated props in the returned map',
+          () {
+        final instance =
+            _instanceAt('1.0.0', {'name': 'wine', 'value': 20});
+        final definition = _defWithMigrate('2.0.0', (json) {
+          return const _MigrProps(name: 'wine', value: 20);
+        });
+
+        final result = WidgetMigrator.migrate(instance, definition);
+
+        expect(result.containsKey('name'), isTrue);
+        expect(result.containsKey('value'), isTrue);
+      });
     });
 
-    test('should return original props when no migration function', () {
-      const instance = WidgetInstance(
-        id: 1,
-        columnId: 1,
-        type: 'test',
-        version: '1.0.0',
-        index: 0,
-        props: {'name': 'test', 'value': 42},
-      );
+    // -----------------------------------------------------------------------
+    // migrate — migration function throws
+    // -----------------------------------------------------------------------
 
-      final definition = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '2.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
+    group('migrate when migrate function throws', () {
+      test('should return original props when migrate function throws', () {
+        final props = <String, dynamic>{'name': 'salad', 'value': 3};
+        final instance = _instanceAt('1.0.0', props);
+        final definition = _defWithMigrate('2.0.0', (_) {
+          throw Exception('migration error');
+        });
 
-        defaultProps: const TestProps(name: 'default', value: 0),
-      );
+        final result = WidgetMigrator.migrate(instance, definition);
 
-      final migrated = WidgetMigrator.migrate(instance, definition);
+        expect(result, equals(props));
+      });
 
-      expect(migrated, instance.props);
-      expect(migrated['name'], 'test');
-      expect(migrated['value'], 42);
+      test(
+          'should return map equal to original props when migrate function throws',
+          () {
+        final props = <String, dynamic>{'name': 'salad', 'value': 3};
+        final instance = _instanceAt('1.0.0', props);
+        final definition = _defWithMigrate('2.0.0', (_) {
+          throw StateError('bad state');
+        });
+
+        final result = WidgetMigrator.migrate(instance, definition);
+
+        expect(result, equals(props));
+      });
+
+      test('should preserve all original fields when migration throws', () {
+        final props = <String, dynamic>{
+          'name': 'steak',
+          'value': 42,
+          'extra': 'data',
+        };
+        final instance = _instanceAt('1.0.0', props);
+        final definition = _defWithMigrate('2.0.0', (_) {
+          throw Exception('unexpected');
+        });
+
+        final result = WidgetMigrator.migrate(instance, definition);
+
+        expect(result['name'], equals('steak'));
+        expect(result['value'], equals(42));
+        expect(result['extra'], equals('data'));
+      });
     });
 
-    test('should handle migration errors gracefully', () {
-      const instance = WidgetInstance(
-        id: 1,
-        columnId: 1,
-        type: 'test',
-        version: '1.0.0',
-        index: 0,
-        props: {'name': 'test', 'value': 42},
-      );
+    // -----------------------------------------------------------------------
+    // migrate — versions are identical (current, no migration needed)
+    // -----------------------------------------------------------------------
 
-      final definition = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '2.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
+    group('migrate when versions are the same', () {
+      test(
+          'should return props unchanged via migrate fn path when versions match and migrate fn exists',
+          () {
+        // The migrator doesn't guard on version equality — it always calls
+        // migrate if the function is present.  This test documents that
+        // calling migrate with equal versions still goes through the fn.
+        final props = <String, dynamic>{'name': 'bread', 'value': 1};
+        final instance = _instanceAt('1.0.0', props);
+        final definition = _defWithMigrate('1.0.0', (json) {
+          return _MigrProps.fromJson(json);
+        });
 
-        defaultProps: const TestProps(name: 'default', value: 0),
-        migrate: (json) {
-          // Migration that throws an error
-          throw Exception('Migration failed');
-        },
-      );
+        final result = WidgetMigrator.migrate(instance, definition);
 
-      // Should not throw and return original props
-      final migrated = WidgetMigrator.migrate(instance, definition);
-
-      expect(migrated, instance.props);
-      expect(migrated['name'], 'test');
-      expect(migrated['value'], 42);
-    });
-
-    test('should handle missing fields during migration', () {
-      const instance = WidgetInstance(
-        id: 1,
-        columnId: 1,
-        type: 'test',
-        version: '1.0.0',
-        index: 0,
-        props: {'name': 'test'},
-      );
-
-      final definition = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '2.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
-
-        defaultProps: const TestProps(name: 'default', value: 0),
-        migrate: (json) {
-          // Migration that adds missing field
-          return TestProps(
-            name: json['name'] as String,
-            value: json['value'] as int? ?? 100, // Default value
-          );
-        },
-      );
-
-      final migrated = WidgetMigrator.migrate(instance, definition);
-
-      expect(migrated['name'], 'test');
-      expect(migrated['value'], 100);
-    });
-
-    test('should preserve all original props when migration fails', () {
-      const instance = WidgetInstance(
-        id: 1,
-        columnId: 1,
-        type: 'test',
-        version: '1.0.0',
-        index: 0,
-        props: {'name': 'test', 'value': 42, 'extra': 'data'},
-      );
-
-      final definition = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '2.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
-
-        defaultProps: const TestProps(name: 'default', value: 0),
-        migrate: (json) {
-          throw Exception('Migration error');
-        },
-      );
-
-      final migrated = WidgetMigrator.migrate(instance, definition);
-
-      expect(migrated, instance.props);
-      expect(migrated['name'], 'test');
-      expect(migrated['value'], 42);
-      expect(migrated['extra'], 'data');
+        expect(result['name'], equals('bread'));
+        expect(result['value'], equals(1));
+      });
     });
   });
 }

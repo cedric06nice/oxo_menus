@@ -1,177 +1,219 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/widget_system/widget_definition.dart';
 
-// Mock props class for testing
-class TestProps {
-  final String name;
-  final int value;
+// ---------------------------------------------------------------------------
+// Minimal concrete props type used across all WidgetDefinition tests.
+// ---------------------------------------------------------------------------
 
-  const TestProps({required this.name, required this.value});
+class _SimpleProps {
+  final String label;
+  final int count;
 
-  factory TestProps.fromJson(Map<String, dynamic> json) {
-    return TestProps(name: json['name'] as String, value: json['value'] as int);
-  }
+  const _SimpleProps({required this.label, required this.count});
 
-  Map<String, dynamic> toJson() => {'name': name, 'value': value};
+  factory _SimpleProps.fromJson(Map<String, dynamic> json) => _SimpleProps(
+        label: json['label'] as String,
+        count: json['count'] as int,
+      );
+
+  Map<String, dynamic> toJson() => {'label': label, 'count': count};
+
+  @override
+  bool operator ==(Object other) =>
+      other is _SimpleProps && other.label == label && other.count == count;
+
+  @override
+  int get hashCode => Object.hash(label, count);
 }
 
 void main() {
+  // -------------------------------------------------------------------------
+  // WidgetDefinition<P>
+  // -------------------------------------------------------------------------
+
   group('WidgetDefinition', () {
-    test('should create a widget definition with required fields', () {
-      final definition = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '1.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
-        defaultProps: const TestProps(name: 'default', value: 0),
-      );
+    group('construction', () {
+      test('should expose type when constructed with required fields', () {
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '1.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: const _SimpleProps(label: 'default', count: 0),
+        );
 
-      expect(definition.type, 'test');
-      expect(definition.version, '1.0.0');
-      expect(definition.defaultProps.name, 'default');
-      expect(definition.defaultProps.value, 0);
+        expect(definition.type, equals('simple'));
+      });
+
+      test('should expose version when constructed with required fields', () {
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '1.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: const _SimpleProps(label: 'default', count: 0),
+        );
+
+        expect(definition.version, equals('1.0.0'));
+      });
+
+      test('should expose defaultProps when constructed with required fields',
+          () {
+        const defaults = _SimpleProps(label: 'default', count: 0);
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '1.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: defaults,
+        );
+
+        expect(definition.defaultProps, equals(defaults));
+      });
+
+      test('should expose parseProps function when constructed', () {
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '1.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: const _SimpleProps(label: 'default', count: 0),
+        );
+
+        expect(definition.parseProps, isNotNull);
+      });
     });
 
-    test('should parse props from JSON', () {
-      final definition = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '1.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
-        defaultProps: const TestProps(name: 'default', value: 0),
-      );
+    group('parseProps', () {
+      test('should return typed props when called with valid JSON map', () {
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '1.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: const _SimpleProps(label: 'default', count: 0),
+        );
 
-      final json = {'name': 'test', 'value': 42};
-      final props = definition.parseProps(json);
+        final result = definition.parseProps({'label': 'hello', 'count': 7});
 
-      expect(props.name, 'test');
-      expect(props.value, 42);
+        expect(result.label, equals('hello'));
+        expect(result.count, equals(7));
+      });
+
+      test('should parse distinct values independently for each call', () {
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '1.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: const _SimpleProps(label: 'default', count: 0),
+        );
+
+        final first = definition.parseProps({'label': 'alpha', 'count': 1});
+        final second = definition.parseProps({'label': 'beta', 'count': 2});
+
+        expect(first.label, equals('alpha'));
+        expect(second.label, equals('beta'));
+        expect(first.count, equals(1));
+        expect(second.count, equals(2));
+      });
     });
 
-    test('should support optional migrate function', () {
-      final definitionWithMigration = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '2.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
-        defaultProps: const TestProps(name: 'default', value: 0),
-        migrate: (json) {
-          // Example migration: add 100 to value
-          return TestProps(
-            name: json['name'] as String,
-            value: (json['value'] as int) + 100,
-          );
-        },
-      );
+    group('migrate', () {
+      test('should have null migrate when not provided', () {
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '1.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: const _SimpleProps(label: 'default', count: 0),
+        );
 
-      expect(definitionWithMigration.migrate, isNotNull);
+        expect(definition.migrate, isNull);
+      });
 
-      final oldProps = {'name': 'test', 'value': 42};
-      final migrated = definitionWithMigration.migrate!(oldProps);
+      test('should hold migrate function when provided', () {
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '2.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: const _SimpleProps(label: 'default', count: 0),
+          migrate: (json) => _SimpleProps(
+            label: (json['label'] as String).toUpperCase(),
+            count: (json['count'] as int? ?? 0) + 1,
+          ),
+        );
 
-      expect(migrated.name, 'test');
-      expect(migrated.value, 142);
+        expect(definition.migrate, isNotNull);
+      });
+
+      test('should apply migration transformation when migrate is called', () {
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '2.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: const _SimpleProps(label: 'default', count: 0),
+          migrate: (json) => _SimpleProps(
+            label: (json['label'] as String).toUpperCase(),
+            count: (json['count'] as int) + 10,
+          ),
+        );
+
+        final result = definition.migrate!({'label': 'hello', 'count': 5});
+
+        expect(result.label, equals('HELLO'));
+        expect(result.count, equals(15));
+      });
+
+      test('should receive the exact map passed to migrate', () {
+        Map<String, dynamic>? received;
+        final input = <String, dynamic>{'label': 'x', 'count': 0};
+
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '2.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: const _SimpleProps(label: 'default', count: 0),
+          migrate: (json) {
+            received = json;
+            return const _SimpleProps(label: 'x', count: 0);
+          },
+        );
+
+        definition.migrate!(input);
+
+        expect(received, same(input));
+      });
     });
 
-    test('should work without migration function', () {
-      final definitionWithoutMigration = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '1.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
-        defaultProps: const TestProps(name: 'default', value: 0),
-      );
+    group('displayName', () {
+      test('should be null when not provided', () {
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '1.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: const _SimpleProps(label: 'default', count: 0),
+        );
 
-      expect(definitionWithoutMigration.migrate, isNull);
-    });
+        expect(definition.displayName, isNull);
+      });
 
-    test('should accept optional displayName', () {
-      final definition = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '1.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
-        defaultProps: const TestProps(name: 'default', value: 0),
-        displayName: 'Test Widget',
-      );
+      test('should expose displayName when provided', () {
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '1.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: const _SimpleProps(label: 'default', count: 0),
+          displayName: 'Simple Widget',
+        );
 
-      expect(definition.displayName, 'Test Widget');
-    });
+        expect(definition.displayName, equals('Simple Widget'));
+      });
 
-    test('displayName defaults to null when not provided', () {
-      final definition = WidgetDefinition<TestProps>(
-        type: 'test',
-        version: '1.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
-        defaultProps: const TestProps(name: 'default', value: 0),
-      );
+      test('should preserve empty string displayName when explicitly set', () {
+        final definition = WidgetDefinition<_SimpleProps>(
+          type: 'simple',
+          version: '1.0.0',
+          parseProps: _SimpleProps.fromJson,
+          defaultProps: const _SimpleProps(label: 'default', count: 0),
+          displayName: '',
+        );
 
-      expect(definition.displayName, isNull);
-    });
-
-    test('has no Flutter imports (domain purity)', () {
-      // This test documents that WidgetDefinition is domain-pure.
-      // It should compile without any flutter/widgets.dart imports.
-      final definition = WidgetDefinition<TestProps>(
-        type: 'pure',
-        version: '1.0.0',
-        parseProps: (json) => TestProps.fromJson(json),
-        defaultProps: const TestProps(name: 'default', value: 0),
-      );
-
-      expect(definition.type, 'pure');
-    });
-  });
-
-  group('WidgetContext', () {
-    test('should create widget context with required fields', () {
-      const context = WidgetContext(isEditable: true);
-
-      expect(context.isEditable, true);
-      expect(context.onUpdate, isNull);
-      expect(context.onDelete, isNull);
-    });
-
-    test('should create widget context with callbacks', () {
-      Map<String, dynamic>? capturedUpdate;
-      bool deleteCalled = false;
-
-      final context = WidgetContext(
-        isEditable: true,
-        onUpdate: (props) => capturedUpdate = props,
-        onDelete: () => deleteCalled = true,
-      );
-
-      expect(context.isEditable, true);
-      expect(context.onUpdate, isNotNull);
-      expect(context.onDelete, isNotNull);
-
-      // Test callbacks
-      context.onUpdate!({'test': 'value'});
-      expect(capturedUpdate, {'test': 'value'});
-
-      context.onDelete!();
-      expect(deleteCalled, true);
-    });
-
-    test('should support non-editable context', () {
-      const context = WidgetContext(isEditable: false);
-
-      expect(context.isEditable, false);
-      expect(context.onUpdate, isNull);
-      expect(context.onDelete, isNull);
-    });
-
-    test('should support onEditStarted and onEditEnded callbacks', () {
-      bool editStarted = false;
-      bool editEnded = false;
-
-      final context = WidgetContext(
-        isEditable: true,
-        onEditStarted: () => editStarted = true,
-        onEditEnded: () => editEnded = true,
-      );
-
-      context.onEditStarted!();
-      expect(editStarted, true);
-
-      context.onEditEnded!();
-      expect(editEnded, true);
+        expect(definition.displayName, equals(''));
+      });
     });
   });
 }

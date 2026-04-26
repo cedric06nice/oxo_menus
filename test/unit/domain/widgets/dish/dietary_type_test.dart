@@ -3,41 +3,77 @@ import 'package:oxo_menus/domain/widgets/shared/dietary_type.dart';
 
 void main() {
   group('DietaryType', () {
-    test('should have exactly two values', () {
-      expect(DietaryType.values.length, 2);
+    group('values', () {
+      test('should contain exactly two values', () {
+        expect(DietaryType.values.length, 2);
+      });
+
+      test('should include vegetarian', () {
+        expect(DietaryType.values, contains(DietaryType.vegetarian));
+      });
+
+      test('should include vegan', () {
+        expect(DietaryType.values, contains(DietaryType.vegan));
+      });
     });
 
-    test('vegetarian should have correct displayName', () {
-      expect(DietaryType.vegetarian.displayName, 'Vegetarian');
+    group('displayName', () {
+      test('should return Vegetarian when type is vegetarian', () {
+        expect(DietaryType.vegetarian.displayName, 'Vegetarian');
+      });
+
+      test('should return Vegan when type is vegan', () {
+        expect(DietaryType.vegan.displayName, 'Vegan');
+      });
     });
 
-    test('vegan should have correct displayName', () {
-      expect(DietaryType.vegan.displayName, 'Vegan');
+    group('abbreviation', () {
+      test('should return (V) when type is vegetarian', () {
+        expect(DietaryType.vegetarian.abbreviation, '(V)');
+      });
+
+      test('should return (Ve) when type is vegan', () {
+        expect(DietaryType.vegan.abbreviation, '(Ve)');
+      });
     });
 
-    test('vegetarian should have abbreviation (V)', () {
-      expect(DietaryType.vegetarian.abbreviation, '(V)');
-    });
+    group('fromString', () {
+      test('should return vegetarian when input is vegetarian', () {
+        expect(DietaryType.fromString('vegetarian'), DietaryType.vegetarian);
+      });
 
-    test('vegan should have abbreviation (Ve)', () {
-      expect(DietaryType.vegan.abbreviation, '(Ve)');
-    });
+      test('should return vegan when input is vegan', () {
+        expect(DietaryType.fromString('vegan'), DietaryType.vegan);
+      });
 
-    test('fromString should parse vegetarian', () {
-      expect(DietaryType.fromString('vegetarian'), DietaryType.vegetarian);
-    });
+      test('should return vegetarian when input is uppercase VEGETARIAN', () {
+        expect(DietaryType.fromString('VEGETARIAN'), DietaryType.vegetarian);
+      });
 
-    test('fromString should parse vegan', () {
-      expect(DietaryType.fromString('vegan'), DietaryType.vegan);
-    });
+      test('should return vegan when input is uppercase VEGAN', () {
+        expect(DietaryType.fromString('VEGAN'), DietaryType.vegan);
+      });
 
-    test('fromString should return null for unknown value', () {
-      expect(DietaryType.fromString('gluten-free'), isNull);
-    });
+      test('should return vegetarian when input is mixed-case Vegetarian', () {
+        expect(DietaryType.fromString('Vegetarian'), DietaryType.vegetarian);
+      });
 
-    test('fromString should be case-insensitive', () {
-      expect(DietaryType.fromString('Vegetarian'), DietaryType.vegetarian);
-      expect(DietaryType.fromString('VEGAN'), DietaryType.vegan);
+      test('should return vegetarian when input has leading/trailing whitespace',
+          () {
+        expect(DietaryType.fromString('  vegetarian  '), DietaryType.vegetarian);
+      });
+
+      test('should return null when input is an unrecognised string', () {
+        expect(DietaryType.fromString('gluten-free'), isNull);
+      });
+
+      test('should return null when input is an empty string', () {
+        expect(DietaryType.fromString(''), isNull);
+      });
+
+      test('should return null when input is a partial match', () {
+        expect(DietaryType.fromString('veg'), isNull);
+      });
     });
   });
 }

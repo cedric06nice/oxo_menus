@@ -6,157 +6,279 @@ import 'package:oxo_menus/domain/allergens/uk_allergen.dart';
 void main() {
   group('AllergenFormatter', () {
     group('formatForDisplay', () {
-      test('should return empty string for empty list', () {
-        expect(AllergenFormatter.formatForDisplay([]), '');
+      // ------------------------------------------------------------------
+      // Empty / null-like inputs
+      // ------------------------------------------------------------------
+
+      test('should return empty string when the allergen list is empty', () {
+        final result = AllergenFormatter.formatForDisplay([]);
+        expect(result, '');
       });
 
-      test('should format single allergen', () {
-        const allergens = [AllergenInfo(allergen: UkAllergen.celery)];
-        expect(AllergenFormatter.formatForDisplay(allergens), 'CELERY');
+      // ------------------------------------------------------------------
+      // Single definite allergen (no details)
+      // ------------------------------------------------------------------
+
+      test('should return the allergen shortName in capitals for a single allergen', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.milk),
+        ]);
+        expect(result, 'MILK');
       });
 
-      test('should format multiple allergens alphabetically', () {
-        const allergens = [
-          AllergenInfo(allergen: UkAllergen.nuts),
-          AllergenInfo(allergen: UkAllergen.celery),
-          AllergenInfo(allergen: UkAllergen.eggs),
-        ];
-        expect(
-          AllergenFormatter.formatForDisplay(allergens),
-          'CELERY, EGGS, NUTS',
-        );
+      test('should return CELERY for a single celery allergen', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.celery),
+        ]);
+        expect(result, 'CELERY');
       });
 
-      test('should include details in lowercase brackets', () {
-        const allergens = [
-          AllergenInfo(allergen: UkAllergen.gluten, details: 'Wheat, Barley'),
-        ];
-        expect(
-          AllergenFormatter.formatForDisplay(allergens),
-          'GLUTEN [wheat, barley]',
-        );
+      test('should return SULPHITES for a single sulphites allergen', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.sulphites),
+        ]);
+        expect(result, 'SULPHITES');
       });
 
-      test('should format allergen with details correctly', () {
-        const allergens = [
-          AllergenInfo(allergen: UkAllergen.nuts, details: 'walnut, almond'),
-        ];
-        expect(
-          AllergenFormatter.formatForDisplay(allergens),
-          'NUTS [walnut, almond]',
-        );
+      // ------------------------------------------------------------------
+      // Multiple definite allergens — ordering
+      // ------------------------------------------------------------------
+
+      test('should sort multiple definite allergens alphabetically by shortName', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.nuts),
+          const AllergenInfo(allergen: UkAllergen.celery),
+          const AllergenInfo(allergen: UkAllergen.eggs),
+        ]);
+        // Alphabetical order: CELERY, EGGS, NUTS
+        expect(result, 'CELERY, EGGS, NUTS');
       });
 
-      test('should format may-contain allergens with prefix', () {
-        const allergens = [
-          AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
-        ];
-        expect(
-          AllergenFormatter.formatForDisplay(allergens),
-          'MAY CONTAIN EGGS',
-        );
+      test('should separate multiple definite allergens with a comma and space', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.milk),
+          const AllergenInfo(allergen: UkAllergen.fish),
+        ]);
+        expect(result, 'FISH, MILK');
       });
 
-      test('should separate definite and may-contain allergens', () {
-        const allergens = [
-          AllergenInfo(allergen: UkAllergen.celery),
-          AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
-        ];
-        expect(
-          AllergenFormatter.formatForDisplay(allergens),
-          'CELERY, MAY CONTAIN EGGS',
-        );
+      test('should produce alphabetical order when input is already reversed', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.soya),
+          const AllergenInfo(allergen: UkAllergen.celery),
+        ]);
+        expect(result, 'CELERY, SOYA');
       });
 
-      test('should format multiple may-contain allergens together', () {
-        const allergens = [
-          AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
-          AllergenInfo(allergen: UkAllergen.soya, mayContain: true),
-        ];
-        expect(
-          AllergenFormatter.formatForDisplay(allergens),
-          'MAY CONTAIN EGGS, SOYA',
-        );
+      // ------------------------------------------------------------------
+      // Details formatting
+      // ------------------------------------------------------------------
+
+      test('should append lowercase details in square brackets for gluten', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.gluten, details: 'wheat'),
+        ]);
+        expect(result, 'GLUTEN [wheat]');
       });
 
-      test('should format complex mix of allergens correctly', () {
-        // Example from requirements:
-        // "CELERY, NUTS [walnut, peanut], SULPHUR DIOXIDE, MAY CONTAIN EGGS, SOYA"
-        const allergens = [
-          AllergenInfo(allergen: UkAllergen.celery),
-          AllergenInfo(allergen: UkAllergen.nuts, details: 'walnut'),
-          AllergenInfo(allergen: UkAllergen.sulphites),
-          AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
-          AllergenInfo(allergen: UkAllergen.soya, mayContain: true),
-        ];
-        expect(
-          AllergenFormatter.formatForDisplay(allergens),
-          'CELERY, NUTS [walnut], SULPHITES, MAY CONTAIN EGGS, SOYA',
-        );
+      test('should append lowercase details in square brackets for nuts', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.nuts, details: 'walnut, almond'),
+        ]);
+        expect(result, 'NUTS [walnut, almond]');
       });
 
-      test('should format may-contain allergen with details', () {
-        const allergens = [
-          AllergenInfo(
+      test('should lowercase details that were provided in uppercase', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.gluten, details: 'Wheat, Barley'),
+        ]);
+        expect(result, 'GLUTEN [wheat, barley]');
+      });
+
+      test('should lowercase details that were provided in mixed case', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.nuts, details: 'WALNUT'),
+        ]);
+        expect(result, 'NUTS [walnut]');
+      });
+
+      test('should trim leading whitespace from details', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.gluten, details: '  wheat'),
+        ]);
+        expect(result, 'GLUTEN [wheat]');
+      });
+
+      test('should trim trailing whitespace from details', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.gluten, details: 'wheat  '),
+        ]);
+        expect(result, 'GLUTEN [wheat]');
+      });
+
+      test('should trim surrounding whitespace from details', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.gluten, details: '  wheat  '),
+        ]);
+        expect(result, 'GLUTEN [wheat]');
+      });
+
+      test('should omit brackets when details is null', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.gluten),
+        ]);
+        expect(result, 'GLUTEN');
+      });
+
+      test('should omit brackets when details is an empty string', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.gluten, details: ''),
+        ]);
+        expect(result, 'GLUTEN');
+      });
+
+      test('should omit brackets when details is whitespace only', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.gluten, details: '   '),
+        ]);
+        expect(result, 'GLUTEN');
+      });
+
+      // ------------------------------------------------------------------
+      // Single may-contain allergen
+      // ------------------------------------------------------------------
+
+      test('should prefix a single may-contain allergen with MAY CONTAIN', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
+        ]);
+        expect(result, 'MAY CONTAIN EGGS');
+      });
+
+      test('should include details in brackets for a may-contain allergen with details', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(
             allergen: UkAllergen.nuts,
             mayContain: true,
             details: 'walnut',
           ),
-        ];
-        expect(
-          AllergenFormatter.formatForDisplay(allergens),
-          'MAY CONTAIN NUTS [walnut]',
-        );
+        ]);
+        expect(result, 'MAY CONTAIN NUTS [walnut]');
       });
 
-      test(
-        'should sort both definite and may-contain groups alphabetically',
-        () {
-          const allergens = [
-            AllergenInfo(allergen: UkAllergen.soya),
-            AllergenInfo(allergen: UkAllergen.celery),
-            AllergenInfo(allergen: UkAllergen.milk, mayContain: true),
-            AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
-          ];
-          expect(
-            AllergenFormatter.formatForDisplay(allergens),
-            'CELERY, SOYA, MAY CONTAIN EGGS, MILK',
-          );
-        },
-      );
+      // ------------------------------------------------------------------
+      // Multiple may-contain allergens grouped under one MAY CONTAIN prefix
+      // ------------------------------------------------------------------
 
-      test('should ignore empty details', () {
-        const allergens = [
-          AllergenInfo(allergen: UkAllergen.gluten, details: ''),
-        ];
-        expect(AllergenFormatter.formatForDisplay(allergens), 'GLUTEN');
+      test('should group multiple may-contain allergens under one MAY CONTAIN prefix', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
+          const AllergenInfo(allergen: UkAllergen.soya, mayContain: true),
+        ]);
+        expect(result, 'MAY CONTAIN EGGS, SOYA');
       });
 
-      test('should trim whitespace in details', () {
-        const allergens = [
-          AllergenInfo(allergen: UkAllergen.gluten, details: '  wheat  '),
-        ];
-        expect(AllergenFormatter.formatForDisplay(allergens), 'GLUTEN [wheat]');
+      test('should sort multiple may-contain allergens alphabetically within the group', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.soya, mayContain: true),
+          const AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
+        ]);
+        expect(result, 'MAY CONTAIN EGGS, SOYA');
       });
 
-      test('should handle all 14 allergens', () {
-        const allergens = [
-          AllergenInfo(allergen: UkAllergen.celery),
-          AllergenInfo(allergen: UkAllergen.gluten),
-          AllergenInfo(allergen: UkAllergen.crustaceans),
-          AllergenInfo(allergen: UkAllergen.eggs),
-          AllergenInfo(allergen: UkAllergen.fish),
-          AllergenInfo(allergen: UkAllergen.lupin),
-          AllergenInfo(allergen: UkAllergen.milk),
-          AllergenInfo(allergen: UkAllergen.molluscs),
-          AllergenInfo(allergen: UkAllergen.mustard),
-          AllergenInfo(allergen: UkAllergen.nuts),
-          AllergenInfo(allergen: UkAllergen.peanuts),
-          AllergenInfo(allergen: UkAllergen.sesame),
-          AllergenInfo(allergen: UkAllergen.soya),
-          AllergenInfo(allergen: UkAllergen.sulphites),
-        ];
+      test('should separate may-contain allergens with comma and space inside the group', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.milk, mayContain: true),
+          const AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
+          const AllergenInfo(allergen: UkAllergen.soya, mayContain: true),
+        ]);
+        expect(result, 'MAY CONTAIN EGGS, MILK, SOYA');
+      });
+
+      // ------------------------------------------------------------------
+      // Mixed definite and may-contain allergens — ordering rule
+      // ------------------------------------------------------------------
+
+      test('should list definite allergens before may-contain allergens', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
+          const AllergenInfo(allergen: UkAllergen.celery),
+        ]);
+        expect(result, 'CELERY, MAY CONTAIN EGGS');
+      });
+
+      test('should place MAY CONTAIN group after all definite allergens', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.celery),
+          const AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
+          const AllergenInfo(allergen: UkAllergen.soya, mayContain: true),
+        ]);
+        expect(result, 'CELERY, MAY CONTAIN EGGS, SOYA');
+      });
+
+      test('should sort definite and may-contain groups independently', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.soya),
+          const AllergenInfo(allergen: UkAllergen.celery),
+          const AllergenInfo(allergen: UkAllergen.milk, mayContain: true),
+          const AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
+        ]);
+        expect(result, 'CELERY, SOYA, MAY CONTAIN EGGS, MILK');
+      });
+
+      // ------------------------------------------------------------------
+      // Complex multi-allergen scenarios
+      // ------------------------------------------------------------------
+
+      test('should format gluten with details alongside other allergens', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.celery),
+          const AllergenInfo(allergen: UkAllergen.gluten, details: 'wheat, barley'),
+        ]);
+        expect(result, 'CELERY, GLUTEN [wheat, barley]');
+      });
+
+      test('should format gluten and nuts each with their own details', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.gluten, details: 'wheat, barley'),
+          const AllergenInfo(allergen: UkAllergen.nuts, details: 'walnut, almond'),
+        ]);
+        expect(result, 'GLUTEN [wheat, barley], NUTS [walnut, almond]');
+      });
+
+      test('should format definite allergen with details alongside may-contain allergens', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.celery),
+          const AllergenInfo(allergen: UkAllergen.nuts, details: 'walnut'),
+          const AllergenInfo(allergen: UkAllergen.sulphites),
+          const AllergenInfo(allergen: UkAllergen.eggs, mayContain: true),
+          const AllergenInfo(allergen: UkAllergen.soya, mayContain: true),
+        ]);
+        expect(result, 'CELERY, NUTS [walnut], SULPHITES, MAY CONTAIN EGGS, SOYA');
+      });
+
+      test('should format may-contain allergen with details when mixed with definites', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.milk),
+          const AllergenInfo(
+            allergen: UkAllergen.nuts,
+            mayContain: true,
+            details: 'walnut',
+          ),
+        ]);
+        expect(result, 'MILK, MAY CONTAIN NUTS [walnut]');
+      });
+
+      // ------------------------------------------------------------------
+      // All 14 allergens present at once
+      // ------------------------------------------------------------------
+
+      test('should include all 14 allergen shortNames when all are provided', () {
+        final allergens = UkAllergen.values
+            .map((a) => AllergenInfo(allergen: a))
+            .toList();
         final result = AllergenFormatter.formatForDisplay(allergens);
+
         expect(result, contains('CELERY'));
         expect(result, contains('GLUTEN'));
         expect(result, contains('CRUSTACEANS'));
@@ -173,16 +295,70 @@ void main() {
         expect(result, contains('SULPHITES'));
       });
 
-      test('should format gluten and nuts with separate details', () {
-        // Both gluten and nuts can have their own details
-        const allergens = [
-          AllergenInfo(allergen: UkAllergen.gluten, details: 'wheat, barley'),
-          AllergenInfo(allergen: UkAllergen.nuts, details: 'walnut, almond'),
+      test('should produce a non-empty result when all 14 allergens are provided', () {
+        final allergens = UkAllergen.values
+            .map((a) => AllergenInfo(allergen: a))
+            .toList();
+        final result = AllergenFormatter.formatForDisplay(allergens);
+        expect(result, isNotEmpty);
+      });
+
+      test('should produce exactly 13 comma-separators when all 14 allergens are definite', () {
+        final allergens = UkAllergen.values
+            .map((a) => AllergenInfo(allergen: a))
+            .toList();
+        final result = AllergenFormatter.formatForDisplay(allergens);
+        final commaCount = ', '.allMatches(result).length;
+        expect(commaCount, 13);
+      });
+
+      // ------------------------------------------------------------------
+      // Input order independence — alphabetical sort verified
+      // ------------------------------------------------------------------
+
+      test('should produce the same output regardless of input order', () {
+        const set1 = [
+          AllergenInfo(allergen: UkAllergen.milk),
+          AllergenInfo(allergen: UkAllergen.celery),
+        ];
+        const set2 = [
+          AllergenInfo(allergen: UkAllergen.celery),
+          AllergenInfo(allergen: UkAllergen.milk),
         ];
         expect(
-          AllergenFormatter.formatForDisplay(allergens),
-          'GLUTEN [wheat, barley], NUTS [walnut, almond]',
+          AllergenFormatter.formatForDisplay(set1),
+          AllergenFormatter.formatForDisplay(set2),
         );
+      });
+
+      // ------------------------------------------------------------------
+      // Output format structure
+      // ------------------------------------------------------------------
+
+      test('should not contain lowercase allergen shortNames in the output', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.milk),
+          const AllergenInfo(allergen: UkAllergen.celery),
+        ]);
+        expect(result, isNot(contains('milk')));
+        expect(result, isNot(contains('celery')));
+      });
+
+      test('should not start with a comma or space', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.milk),
+        ]);
+        expect(result.startsWith(','), isFalse);
+        expect(result.startsWith(' '), isFalse);
+      });
+
+      test('should not end with a comma or space when there are multiple allergens', () {
+        final result = AllergenFormatter.formatForDisplay([
+          const AllergenInfo(allergen: UkAllergen.milk),
+          const AllergenInfo(allergen: UkAllergen.celery),
+        ]);
+        expect(result.endsWith(','), isFalse);
+        expect(result.endsWith(' '), isFalse);
       });
     });
   });
