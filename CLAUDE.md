@@ -3,7 +3,7 @@
 ## Project
 
 OXO Menus — Flutter menu template builder with Directus CMS backend.
-SDK >=3.8.0 <4.0.0 | Flutter 3.41.4 | Dart 3.11.1
+SDK >=3.8.0 <4.0.0 | Flutter 3.41.7 | Dart 3.11.5
 
 ## Architecture
 
