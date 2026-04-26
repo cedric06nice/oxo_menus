@@ -93,6 +93,8 @@ class FakeWidgetRepository implements WidgetRepository {
 
   Result<WidgetInstance, DomainError>? _createResponse;
   Result<List<WidgetInstance>, DomainError>? _getAllForColumnResponse;
+  final Map<int, Result<List<WidgetInstance>, DomainError>>
+      _getAllForColumnByIdResponses = {};
   Result<WidgetInstance, DomainError>? _getByIdResponse;
   Result<WidgetInstance, DomainError>? _updateResponse;
   Result<void, DomainError>? _deleteResponse;
@@ -112,6 +114,17 @@ class FakeWidgetRepository implements WidgetRepository {
 
   void whenGetAllForColumn(Result<List<WidgetInstance>, DomainError> response) {
     _getAllForColumnResponse = response;
+  }
+
+  /// Registers a per-[columnId] response for [getAllForColumn].
+  ///
+  /// When a call is made with a [columnId] that has a per-id entry,
+  /// that entry takes precedence over the global [whenGetAllForColumn] stub.
+  void whenGetAllForColumnForId(
+    int columnId,
+    Result<List<WidgetInstance>, DomainError> response,
+  ) {
+    _getAllForColumnByIdResponses[columnId] = response;
   }
 
   void whenGetById(Result<WidgetInstance, DomainError> response) {
@@ -170,6 +183,9 @@ class FakeWidgetRepository implements WidgetRepository {
     int columnId,
   ) async {
     calls.add(WidgetGetAllForColumnCall(columnId));
+    if (_getAllForColumnByIdResponses.containsKey(columnId)) {
+      return _getAllForColumnByIdResponses[columnId]!;
+    }
     if (_getAllForColumnResponse != null) return _getAllForColumnResponse!;
     throw StateError(
       'FakeWidgetRepository: no response configured for getAllForColumn()',

@@ -5,19 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/admin_templates_page.dart';
 import 'package:oxo_menus/presentation/pages/admin_templates/widgets/template_card.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
-class MockMenuRepository extends Mock implements MenuRepository {}
+import '../../../fakes/fake_menu_repository.dart';
 
 const _testUser = User(
   id: 'user-1',
@@ -46,7 +44,7 @@ final _templates = [
 ];
 
 Widget _buildApp({
-  required MockMenuRepository mockMenuRepository,
+  required FakeMenuRepository fakeMenuRepository,
   TargetPlatform platform = TargetPlatform.android,
 }) {
   final router = GoRouter(
@@ -71,7 +69,7 @@ Widget _buildApp({
   return ProviderScope(
     overrides: [
       currentUserProvider.overrideWithValue(_testUser),
-      menuRepositoryProvider.overrideWithValue(mockMenuRepository),
+      menuRepositoryProvider.overrideWithValue(fakeMenuRepository),
     ],
     child: MaterialApp.router(
       routerConfig: router,
@@ -81,28 +79,18 @@ Widget _buildApp({
 }
 
 void main() {
-  late MockMenuRepository mockMenuRepository;
-
-  setUp(() {
-    mockMenuRepository = MockMenuRepository();
-  });
-
   group('AdminTemplatesPage', () {
     testWidgets(
       'should display templates after loading (verifies loading path)',
       (WidgetTester tester) async {
-        // Use a completer to control when the future resolves
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: false),
-        ).thenAnswer((_) async => Success(_templates));
+        // Arrange
+        final fake = FakeMenuRepository()..whenListAll(Success(_templates));
 
-        await tester.pumpWidget(
-          _buildApp(mockMenuRepository: mockMenuRepository),
-        );
-
+        // Act
+        await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
         await tester.pumpAndSettle();
 
-        // Verifies the full loading → loaded path
+        // Assert — verifies the full loading → loaded path
         expect(find.text('Template One'), findsOneWidget);
       },
     );
@@ -110,16 +98,14 @@ void main() {
     testWidgets('should display templates after loading', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(_templates));
+      // Arrange
+      final fake = FakeMenuRepository()..whenListAll(Success(_templates));
 
-      await tester.pumpWidget(
-        _buildApp(mockMenuRepository: mockMenuRepository),
-      );
-
+      // Act
+      await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
       await tester.pumpAndSettle();
 
+      // Assert
       expect(find.text('Template One'), findsOneWidget);
       expect(find.text('Template Two'), findsOneWidget);
       expect(find.text('DRAFT'), findsOneWidget);
@@ -129,16 +115,14 @@ void main() {
     testWidgets('should show empty state when no templates', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => const Success([]));
+      // Arrange
+      final fake = FakeMenuRepository()..whenListAll(const Success([]));
 
-      await tester.pumpWidget(
-        _buildApp(mockMenuRepository: mockMenuRepository),
-      );
-
+      // Act
+      await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
       await tester.pumpAndSettle();
 
+      // Assert
       expect(find.text('No templates found'), findsOneWidget);
       expect(find.text('Create Template'), findsOneWidget);
     });
@@ -146,16 +130,15 @@ void main() {
     testWidgets('should show error state with retry button', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => const Failure(ServerError('Network error')));
+      // Arrange
+      final fake = FakeMenuRepository()
+        ..whenListAll(const Failure(ServerError('Network error')));
 
-      await tester.pumpWidget(
-        _buildApp(mockMenuRepository: mockMenuRepository),
-      );
-
+      // Act
+      await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
       await tester.pumpAndSettle();
 
+      // Assert
       expect(find.text('Error: Network error'), findsOneWidget);
       expect(find.text('Retry'), findsOneWidget);
     });
@@ -163,16 +146,14 @@ void main() {
     testWidgets('should display status filter chips', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(_templates));
+      // Arrange
+      final fake = FakeMenuRepository()..whenListAll(Success(_templates));
 
-      await tester.pumpWidget(
-        _buildApp(mockMenuRepository: mockMenuRepository),
-      );
-
+      // Act
+      await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
       await tester.pumpAndSettle();
 
+      // Assert
       expect(find.text('All'), findsOneWidget);
       expect(find.text('Draft'), findsOneWidget);
       expect(find.text('Published'), findsOneWidget);
@@ -182,32 +163,28 @@ void main() {
     testWidgets('should have create button in app bar', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(_templates));
+      // Arrange
+      final fake = FakeMenuRepository()..whenListAll(Success(_templates));
 
-      await tester.pumpWidget(
-        _buildApp(mockMenuRepository: mockMenuRepository),
-      );
-
+      // Act
+      await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
       await tester.pumpAndSettle();
 
+      // Assert
       expect(find.byIcon(Icons.add), findsOneWidget);
     });
 
     testWidgets('should show version info in template cards', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(_templates));
+      // Arrange
+      final fake = FakeMenuRepository()..whenListAll(Success(_templates));
 
-      await tester.pumpWidget(
-        _buildApp(mockMenuRepository: mockMenuRepository),
-      );
-
+      // Act
+      await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
       await tester.pumpAndSettle();
 
+      // Assert
       expect(find.text('v1.0.0'), findsOneWidget);
       expect(find.text('v2.0.0'), findsOneWidget);
     });
@@ -215,17 +192,14 @@ void main() {
     testWidgets('should show edit and delete buttons per template', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(_templates));
+      // Arrange
+      final fake = FakeMenuRepository()..whenListAll(Success(_templates));
 
-      await tester.pumpWidget(
-        _buildApp(mockMenuRepository: mockMenuRepository),
-      );
-
+      // Act
+      await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
       await tester.pumpAndSettle();
 
-      // Each template card has edit and delete icon buttons
+      // Assert — Each template card has edit and delete icon buttons
       expect(find.byIcon(Icons.delete), findsNWidgets(2));
       // Icons.edit appears in both card buttons AND the draft status badge
       expect(find.byIcon(Icons.edit), findsWidgets);
@@ -234,33 +208,28 @@ void main() {
     testWidgets('should show "Updated" text for templates with dateUpdated', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(_templates));
+      // Arrange
+      final fake = FakeMenuRepository()..whenListAll(Success(_templates));
 
-      await tester.pumpWidget(
-        _buildApp(mockMenuRepository: mockMenuRepository),
-      );
-
+      // Act
+      await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
       await tester.pumpAndSettle();
 
-      // Template Two has dateUpdated, should show "Updated: X hours ago"
+      // Assert — Template Two has dateUpdated, should show "Updated: X hours ago"
       expect(find.textContaining('Updated:'), findsOneWidget);
     });
 
     testWidgets('should use ConstrainedBox with maxWidth 1000', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(_templates));
+      // Arrange
+      final fake = FakeMenuRepository()..whenListAll(Success(_templates));
 
-      await tester.pumpWidget(
-        _buildApp(mockMenuRepository: mockMenuRepository),
-      );
-
+      // Act
+      await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
       await tester.pumpAndSettle();
 
+      // Assert
       final constrainedBox = tester.widgetList<ConstrainedBox>(
         find.byType(ConstrainedBox),
       );
@@ -270,53 +239,46 @@ void main() {
     testWidgets('should use ChoiceChip for filters', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(_templates));
+      // Arrange
+      final fake = FakeMenuRepository()..whenListAll(Success(_templates));
 
-      await tester.pumpWidget(
-        _buildApp(mockMenuRepository: mockMenuRepository),
-      );
-
+      // Act
+      await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
       await tester.pumpAndSettle();
 
+      // Assert
       expect(find.byType(ChoiceChip), findsNWidgets(4));
     });
 
     testWidgets('should use TemplateCard widgets for each template', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(_templates));
+      // Arrange
+      final fake = FakeMenuRepository()..whenListAll(Success(_templates));
 
-      await tester.pumpWidget(
-        _buildApp(mockMenuRepository: mockMenuRepository),
-      );
-
+      // Act
+      await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
       await tester.pumpAndSettle();
 
+      // Assert
       expect(find.byType(TemplateCard), findsNWidgets(2));
     });
 
     testWidgets('should show CupertinoActivityIndicator on iOS when loading', (
       WidgetTester tester,
     ) async {
+      // Arrange
       final completer = Completer<Result<List<Menu>, DomainError>>();
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) => completer.future);
+      final fake = _SlowFakeMenuRepository(completer.future);
 
+      // Act
       await tester.pumpWidget(
-        _buildApp(
-          mockMenuRepository: mockMenuRepository,
-          platform: TargetPlatform.iOS,
-        ),
+        _buildApp(fakeMenuRepository: fake, platform: TargetPlatform.iOS),
       );
-
       // Pump once to trigger loading state (don't settle)
       await tester.pump();
 
+      // Assert
       expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
 
       // Complete to avoid pending futures
@@ -327,17 +289,15 @@ void main() {
     testWidgets(
       'should show CircularProgressIndicator on Android when loading',
       (WidgetTester tester) async {
+        // Arrange
         final completer = Completer<Result<List<Menu>, DomainError>>();
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: false),
-        ).thenAnswer((_) => completer.future);
+        final fake = _SlowFakeMenuRepository(completer.future);
 
-        await tester.pumpWidget(
-          _buildApp(mockMenuRepository: mockMenuRepository),
-        );
-
+        // Act
+        await tester.pumpWidget(_buildApp(fakeMenuRepository: fake));
         await tester.pump();
 
+        // Assert
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
         // Complete to avoid pending futures
@@ -349,25 +309,41 @@ void main() {
     testWidgets('should show CupertinoAlertDialog on iOS when deleting', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(_templates));
+      // Arrange
+      final fake = FakeMenuRepository()..whenListAll(Success(_templates));
 
+      // Act
       await tester.pumpWidget(
-        _buildApp(
-          mockMenuRepository: mockMenuRepository,
-          platform: TargetPlatform.iOS,
-        ),
+        _buildApp(fakeMenuRepository: fake, platform: TargetPlatform.iOS),
       );
-
       await tester.pumpAndSettle();
 
       // Tap delete on first template
       await tester.tap(find.byIcon(CupertinoIcons.delete).first);
       await tester.pumpAndSettle();
 
+      // Assert
       expect(find.byType(CupertinoAlertDialog), findsOneWidget);
       expect(find.text('Delete Template'), findsOneWidget);
     });
   });
+}
+
+// ---------------------------------------------------------------------------
+// Helper fake for slow async responses
+// ---------------------------------------------------------------------------
+
+class _SlowFakeMenuRepository extends FakeMenuRepository {
+  final Future<Result<List<Menu>, DomainError>> _future;
+
+  _SlowFakeMenuRepository(this._future);
+
+  @override
+  Future<Result<List<Menu>, DomainError>> listAll({
+    bool onlyPublished = true,
+    List<int>? areaIds,
+  }) async {
+    calls.add(MenuListAllCall(onlyPublished: onlyPublished, areaIds: areaIds));
+    return _future;
+  }
 }

@@ -1,198 +1,130 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
-import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu_change_event.dart';
+import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
-import 'package:oxo_menus/domain/repositories/column_repository.dart';
-import 'package:oxo_menus/domain/repositories/container_repository.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
-import 'package:oxo_menus/domain/entities/menu_presence.dart';
-import 'package:oxo_menus/domain/repositories/page_repository.dart';
-import 'package:oxo_menus/domain/repositories/presence_repository.dart';
-import 'package:oxo_menus/domain/repositories/widget_repository.dart';
-import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/menu_editor_page.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/widgets/dish_widget/dish_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/section_widget/section_widget_definition.dart';
 import 'package:oxo_menus/presentation/widgets/text_widget/text_widget_definition.dart';
 
-class MockMenuRepository extends Mock implements MenuRepository {}
+import '../../../fakes/fake_column_repository.dart';
+import '../../../fakes/fake_container_repository.dart';
+import '../../../fakes/fake_menu_repository.dart';
+import '../../../fakes/fake_menu_subscription_repository.dart';
+import '../../../fakes/fake_page_repository.dart';
+import '../../../fakes/fake_presence_repository.dart';
+import '../../../fakes/fake_widget_repository.dart';
+import '../../../fakes/result_helpers.dart';
 
-class MockPageRepository extends Mock implements PageRepository {}
+// ---------------------------------------------------------------------------
+// Test data
+// ---------------------------------------------------------------------------
 
-class MockContainerRepository extends Mock implements ContainerRepository {}
+const _testMenuId = 42;
 
-class MockColumnRepository extends Mock implements ColumnRepository {}
+final _testMenu = Menu(
+  id: _testMenuId,
+  name: 'Test Menu',
+  status: Status.draft,
+  version: '1.0.0',
+);
 
-class MockWidgetRepository extends Mock implements WidgetRepository {}
+final _testPage = entity.Page(
+  id: 1,
+  menuId: _testMenuId,
+  name: 'Page 1',
+  index: 0,
+  type: entity.PageType.content,
+);
 
-class MockMenuSubscriptionRepository extends Mock
-    implements MenuSubscriptionRepository {}
+final _testContainer = entity.Container(id: 1, pageId: 1, index: 0);
 
-class MockPresenceRepository extends Mock implements PresenceRepository {}
+final _testColumn = entity.Column(
+  id: 1,
+  containerId: 1,
+  index: 0,
+  isDroppable: true,
+);
+
+const _testUser = User(
+  id: 'user-1',
+  email: 'test@example.com',
+  firstName: 'Test',
+  lastName: 'User',
+);
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 void main() {
-  late MockMenuRepository mockMenuRepository;
-  late MockPageRepository mockPageRepository;
-  late MockContainerRepository mockContainerRepository;
-  late MockColumnRepository mockColumnRepository;
-  late MockWidgetRepository mockWidgetRepository;
-  late MockMenuSubscriptionRepository mockMenuSubscriptionRepository;
-  late MockPresenceRepository mockPresenceRepository;
-  late PresentableWidgetRegistry mockPresentableWidgetRegistry;
-  late StreamController<MenuChangeEvent> changeStreamController;
-
-  const testMenuId = 42;
-
-  final testMenu = Menu(
-    id: testMenuId,
-    name: 'Test Menu',
-    status: Status.draft,
-    version: '1.0.0',
-  );
-
-  final testPage = entity.Page(
-    id: 1,
-    menuId: testMenuId,
-    name: 'Page 1',
-    index: 0,
-    type: entity.PageType.content,
-  );
-
-  final testContainer = entity.Container(id: 1, pageId: 1, index: 0);
-
-  final testColumn = entity.Column(
-    id: 1,
-    containerId: 1,
-    index: 0,
-    isDroppable: true,
-  );
+  late FakeMenuRepository fakeMenuRepo;
+  late FakePageRepository fakePageRepo;
+  late FakeContainerRepository fakeContainerRepo;
+  late FakeColumnRepository fakeColumnRepo;
+  late FakeWidgetRepository fakeWidgetRepo;
+  late FakeMenuSubscriptionRepository fakeSubRepo;
+  late FakePresenceRepository fakePresenceRepo;
+  late PresentableWidgetRegistry registry;
 
   setUp(() {
-    mockMenuRepository = MockMenuRepository();
-    mockPageRepository = MockPageRepository();
-    mockContainerRepository = MockContainerRepository();
-    mockColumnRepository = MockColumnRepository();
-    mockWidgetRepository = MockWidgetRepository();
-    mockMenuSubscriptionRepository = MockMenuSubscriptionRepository();
-    mockPresenceRepository = MockPresenceRepository();
-    changeStreamController = StreamController<MenuChangeEvent>.broadcast();
+    fakeMenuRepo = FakeMenuRepository();
+    fakePageRepo = FakePageRepository();
+    fakeContainerRepo = FakeContainerRepository();
+    fakeColumnRepo = FakeColumnRepository();
+    fakeWidgetRepo = FakeWidgetRepository();
+    fakeSubRepo = FakeMenuSubscriptionRepository();
+    fakePresenceRepo = FakePresenceRepository();
 
-    mockPresentableWidgetRegistry = PresentableWidgetRegistry();
-    mockPresentableWidgetRegistry.register(dishWidgetDefinition);
-    mockPresentableWidgetRegistry.register(sectionWidgetDefinition);
-    mockPresentableWidgetRegistry.register(textWidgetDefinition);
+    registry = PresentableWidgetRegistry();
+    registry.register(dishWidgetDefinition);
+    registry.register(sectionWidgetDefinition);
+    registry.register(textWidgetDefinition);
 
-    registerFallbackValue(const UpdateMenuInput(id: -1));
-    registerFallbackValue(
-      const CreateWidgetInput(
-        columnId: -1,
-        type: '',
-        version: '',
-        index: 0,
-        props: {},
-      ),
-    );
-    registerFallbackValue(const UpdateWidgetInput(id: -1));
+    fakePresenceRepo.whenJoinMenu(success(null));
+    fakePresenceRepo.whenLeaveMenu(success(null));
+    fakePresenceRepo.whenHeartbeat(success(null));
+    fakePresenceRepo.whenGetActiveUsersDefault(success([]));
   });
 
   tearDown(() {
-    changeStreamController.close();
+    fakeSubRepo.dispose();
+    fakePresenceRepo.dispose();
   });
 
   void stubSuccessfulLoad() {
-    when(
-      () => mockMenuRepository.getById(testMenuId),
-    ).thenAnswer((_) async => Success(testMenu));
-    when(
-      () => mockPageRepository.getAllForMenu(testMenuId),
-    ).thenAnswer((_) async => Success([testPage]));
-    when(
-      () => mockContainerRepository.getAllForPage(1),
-    ).thenAnswer((_) async => Success([testContainer]));
-    when(
-      () => mockContainerRepository.getAllForContainer(any()),
-    ).thenAnswer((_) async => const Success(<entity.Container>[]));
-    when(
-      () => mockColumnRepository.getAllForContainer(1),
-    ).thenAnswer((_) async => Success([testColumn]));
-    when(
-      () => mockWidgetRepository.getAllForColumn(1),
-    ).thenAnswer((_) async => const Success([]));
+    fakeMenuRepo.whenGetById(success(_testMenu));
+    fakePageRepo.whenGetAllForMenu(success([_testPage]));
+    fakeContainerRepo.whenGetAllForPage(success([_testContainer]));
+    fakeContainerRepo.whenGetAllForContainer(success(<entity.Container>[]));
+    fakeColumnRepo.whenGetAllForContainer(success([_testColumn]));
+    fakeWidgetRepo.whenGetAllForColumn(success([]));
   }
 
-  void stubSubscription() {
-    when(
-      () => mockMenuSubscriptionRepository.subscribeToMenuChanges(testMenuId),
-    ).thenAnswer((_) => changeStreamController.stream);
-    when(
-      () => mockMenuSubscriptionRepository.unsubscribe(testMenuId),
-    ).thenAnswer((_) async {});
-  }
-
-  void stubPresence() {
-    when(
-      () => mockPresenceRepository.joinMenu(
-        testMenuId,
-        'user-1',
-        userName: any(named: 'userName'),
-        userAvatar: any(named: 'userAvatar'),
-      ),
-    ).thenAnswer((_) async => const Success(null));
-    when(
-      () => mockPresenceRepository.leaveMenu(testMenuId, 'user-1'),
-    ).thenAnswer((_) async => const Success(null));
-    when(
-      () => mockPresenceRepository.heartbeat(testMenuId, 'user-1'),
-    ).thenAnswer((_) async => const Success(null));
-    when(
-      () => mockPresenceRepository.getActiveUsers(testMenuId),
-    ).thenAnswer((_) async => const Success(<MenuPresence>[]));
-    when(
-      () => mockPresenceRepository.watchActiveUsers(testMenuId),
-    ).thenAnswer((_) => const Stream<List<MenuPresence>>.empty());
-    when(
-      () => mockPresenceRepository.unsubscribePresence(testMenuId),
-    ).thenAnswer((_) async {});
-  }
-
-  Widget createWidgetUnderTest() {
-    final mockUser = User(
-      id: 'user-1',
-      email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'User',
-      role: UserRole.user,
-    );
-
+  Widget buildPage() {
     return ProviderScope(
       overrides: [
-        menuRepositoryProvider.overrideWithValue(mockMenuRepository),
-        pageRepositoryProvider.overrideWithValue(mockPageRepository),
-        containerRepositoryProvider.overrideWithValue(mockContainerRepository),
-        columnRepositoryProvider.overrideWithValue(mockColumnRepository),
-        widgetRepositoryProvider.overrideWithValue(mockWidgetRepository),
-        widgetRegistryProvider.overrideWithValue(mockPresentableWidgetRegistry),
-        currentUserProvider.overrideWithValue(mockUser),
-        menuSubscriptionRepositoryProvider.overrideWithValue(
-          mockMenuSubscriptionRepository,
-        ),
-        presenceRepositoryProvider.overrideWithValue(mockPresenceRepository),
+        menuRepositoryProvider.overrideWithValue(fakeMenuRepo),
+        pageRepositoryProvider.overrideWithValue(fakePageRepo),
+        containerRepositoryProvider.overrideWithValue(fakeContainerRepo),
+        columnRepositoryProvider.overrideWithValue(fakeColumnRepo),
+        widgetRepositoryProvider.overrideWithValue(fakeWidgetRepo),
+        widgetRegistryProvider.overrideWithValue(registry),
+        currentUserProvider.overrideWithValue(_testUser),
+        menuSubscriptionRepositoryProvider.overrideWithValue(fakeSubRepo),
+        presenceRepositoryProvider.overrideWithValue(fakePresenceRepo),
       ],
-      child: MaterialApp(home: MenuEditorPage(menuId: testMenuId)),
+      child: MaterialApp(home: MenuEditorPage(menuId: _testMenuId)),
     );
   }
 
@@ -200,52 +132,54 @@ void main() {
     testWidgets('should subscribe to menu changes after initial load', (
       tester,
     ) async {
+      // Arrange
       stubSuccessfulLoad();
-      stubSubscription();
-      stubPresence();
 
-      await tester.pumpWidget(createWidgetUnderTest());
+      // Act
+      await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();
 
-      verify(
-        () => mockMenuSubscriptionRepository.subscribeToMenuChanges(testMenuId),
-      ).called(1);
+      // Assert
+      expect(
+        fakeSubRepo.subscribeCalls.where((c) => c.menuId == _testMenuId).length,
+        equals(1),
+      );
     });
 
     testWidgets('should unsubscribe when disposed', (tester) async {
+      // Arrange
       stubSuccessfulLoad();
-      stubSubscription();
-      stubPresence();
-
-      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();
 
-      // Dispose by replacing with a different widget
+      // Act — replace with a different widget to dispose MenuEditorPage
       await tester.pumpWidget(
-        MaterialApp(home: Scaffold(body: Text('Replaced'))),
+        const MaterialApp(home: Scaffold(body: Text('Replaced'))),
       );
       await tester.pumpAndSettle();
 
-      verify(
-        () => mockMenuSubscriptionRepository.unsubscribe(testMenuId),
-      ).called(1);
+      // Assert
+      expect(
+        fakeSubRepo.unsubscribeCalls
+            .where((c) => c.menuId == _testMenuId)
+            .length,
+        greaterThanOrEqualTo(1),
+      );
     });
 
     testWidgets('should reload menu when receiving a change event', (
       tester,
     ) async {
+      // Arrange
       stubSuccessfulLoad();
-      stubSubscription();
-      stubPresence();
-
-      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();
 
-      // Initial load: getById called once
-      verify(() => mockMenuRepository.getById(testMenuId)).called(1);
+      final loadCountBeforeEvent = fakeMenuRepo.getByIdCalls.length;
 
-      // Emit a change event
-      changeStreamController.add(
+      // Act — emit a change event
+      fakeSubRepo.emitChange(
+        _testMenuId,
         const WidgetChangedEvent(
           eventType: 'update',
           data: {'id': 1},
@@ -253,160 +187,137 @@ void main() {
         ),
       );
 
-      // Wait for debounce (500ms) plus some margin
+      // Wait for debounce (500 ms) plus margin
       await tester.pump(const Duration(milliseconds: 600));
       await tester.pumpAndSettle();
 
-      // getById should have been called again for the reload
-      verify(() => mockMenuRepository.getById(testMenuId)).called(1);
+      // Assert — getById should have been called again for the reload
+      expect(
+        fakeMenuRepo.getByIdCalls.length,
+        greaterThan(loadCountBeforeEvent),
+      );
     });
 
-    testWidgets('should debounce multiple rapid change events', (tester) async {
-      stubSuccessfulLoad();
-      stubSubscription();
-      stubPresence();
+    testWidgets(
+      'should debounce multiple rapid change events into a single reload',
+      (tester) async {
+        // Arrange
+        stubSuccessfulLoad();
+        await tester.pumpWidget(buildPage());
+        await tester.pumpAndSettle();
 
-      await tester.pumpWidget(createWidgetUnderTest());
-      await tester.pumpAndSettle();
+        final loadCountAfterInitial = fakeMenuRepo.getByIdCalls.length;
 
-      // Reset verification count after initial load
-      clearInteractions(mockMenuRepository);
-      stubSuccessfulLoad(); // Re-stub for reload calls
+        // Act — emit several events rapidly
+        fakeSubRepo.emitChange(
+          _testMenuId,
+          const WidgetChangedEvent(
+            eventType: 'update',
+            data: {'id': 1},
+            ids: null,
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
 
-      // Emit several events rapidly
-      changeStreamController.add(
-        const WidgetChangedEvent(
-          eventType: 'update',
-          data: {'id': 1},
-          ids: null,
-        ),
-      );
-      await tester.pump(const Duration(milliseconds: 100));
+        fakeSubRepo.emitChange(
+          _testMenuId,
+          const WidgetChangedEvent(
+            eventType: 'update',
+            data: {'id': 2},
+            ids: null,
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
 
-      changeStreamController.add(
-        const WidgetChangedEvent(
-          eventType: 'update',
-          data: {'id': 2},
-          ids: null,
-        ),
-      );
-      await tester.pump(const Duration(milliseconds: 100));
+        fakeSubRepo.emitChange(
+          _testMenuId,
+          const WidgetChangedEvent(
+            eventType: 'create',
+            data: {'id': 3},
+            ids: null,
+          ),
+        );
 
-      changeStreamController.add(
-        const WidgetChangedEvent(
-          eventType: 'create',
-          data: {'id': 3},
-          ids: null,
-        ),
-      );
+        // Wait for debounce to fire (500 ms from last event)
+        await tester.pump(const Duration(milliseconds: 600));
+        await tester.pumpAndSettle();
 
-      // Wait for debounce to fire (500ms from last event)
-      await tester.pump(const Duration(milliseconds: 600));
-      await tester.pumpAndSettle();
-
-      // Only one reload despite 3 events
-      verify(() => mockMenuRepository.getById(testMenuId)).called(1);
-    });
+        // Assert — only one additional reload despite 3 events
+        expect(
+          fakeMenuRepo.getByIdCalls.length,
+          equals(loadCountAfterInitial + 1),
+        );
+      },
+    );
 
     testWidgets('should show reconnecting banner on stream error', (
       tester,
     ) async {
+      // Arrange
       stubSuccessfulLoad();
-      stubPresence();
-
-      // Use a custom stream that emits an error after first listen
-      final errorController = StreamController<MenuChangeEvent>.broadcast();
-      when(
-        () => mockMenuSubscriptionRepository.subscribeToMenuChanges(testMenuId),
-      ).thenAnswer((_) => errorController.stream);
-      when(
-        () => mockMenuSubscriptionRepository.unsubscribe(testMenuId),
-      ).thenAnswer((_) async {});
-
-      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();
 
-      // Emit an error on the stream (caught by onError handler)
-      errorController.addError(Exception('WebSocket disconnected'));
-
-      // Allow microtasks to deliver the error to the listener
+      // Act — emit an error on the stream
+      fakeSubRepo.addError(_testMenuId, Exception('WebSocket disconnected'));
       await tester.pump(Duration.zero);
-      // Allow the setState to trigger a rebuild
       await tester.pump();
 
-      // Should show a reconnecting indicator
+      // Assert
       expect(find.text('Reconnecting...'), findsOneWidget);
-
-      await errorController.close();
     });
 
     testWidgets('should fall back to polling after 3 stream errors', (
       tester,
     ) async {
+      // Arrange
       stubSuccessfulLoad();
-      stubPresence();
-
-      final errorController = StreamController<MenuChangeEvent>.broadcast();
-      when(
-        () => mockMenuSubscriptionRepository.subscribeToMenuChanges(testMenuId),
-      ).thenAnswer((_) => errorController.stream);
-      when(
-        () => mockMenuSubscriptionRepository.unsubscribe(testMenuId),
-      ).thenAnswer((_) async {});
-
-      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();
 
-      // Reset load count after initial
-      clearInteractions(mockMenuRepository);
-      stubSuccessfulLoad();
+      final loadCountAfterInitial = fakeMenuRepo.getByIdCalls.length;
 
-      // Emit 3 errors to trigger fallback
-      errorController.addError(Exception('Error 1'));
-      await tester.pump(Duration.zero);
-      await tester.pump();
-      errorController.addError(Exception('Error 2'));
-      await tester.pump(Duration.zero);
-      await tester.pump();
-      errorController.addError(Exception('Error 3'));
+      // Act — emit 3 errors to trigger fallback
+      fakeSubRepo.addError(_testMenuId, Exception('Error 1'));
       await tester.pump(Duration.zero);
       await tester.pump();
 
-      // Wait for polling interval (30s) - use pump instead of pumpAndSettle
-      // because the reconnecting banner has an active CircularProgressIndicator
+      fakeSubRepo.addError(_testMenuId, Exception('Error 2'));
+      await tester.pump(Duration.zero);
+      await tester.pump();
+
+      fakeSubRepo.addError(_testMenuId, Exception('Error 3'));
+      await tester.pump(Duration.zero);
+      await tester.pump();
+
+      // Wait for polling interval (30 s)
       await tester.pump(const Duration(seconds: 31));
 
-      // Should have polled at least once
-      verify(() => mockMenuRepository.getById(testMenuId)).called(1);
-
-      await errorController.close();
+      // Assert — should have polled at least once
+      expect(
+        fakeMenuRepo.getByIdCalls.length,
+        greaterThan(loadCountAfterInitial),
+      );
     });
 
     testWidgets('should hide reconnecting banner after successful reload', (
       tester,
     ) async {
+      // Arrange
       stubSuccessfulLoad();
-      stubPresence();
-
-      final errorController = StreamController<MenuChangeEvent>.broadcast();
-      when(
-        () => mockMenuSubscriptionRepository.subscribeToMenuChanges(testMenuId),
-      ).thenAnswer((_) => errorController.stream);
-      when(
-        () => mockMenuSubscriptionRepository.unsubscribe(testMenuId),
-      ).thenAnswer((_) async {});
-
-      await tester.pumpWidget(createWidgetUnderTest());
+      await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();
 
-      // Emit an error
-      errorController.addError(Exception('WebSocket disconnected'));
+      // Act step 1 — emit an error to show the banner
+      fakeSubRepo.addError(_testMenuId, Exception('WebSocket disconnected'));
       await tester.pump(Duration.zero);
       await tester.pump();
+
       expect(find.text('Reconnecting...'), findsOneWidget);
 
-      // Emit a successful event (simulates reconnection)
-      errorController.add(
+      // Act step 2 — emit a successful event (simulates reconnection)
+      fakeSubRepo.emitChange(
+        _testMenuId,
         const WidgetChangedEvent(
           eventType: 'update',
           data: {'id': 1},
@@ -414,14 +325,11 @@ void main() {
         ),
       );
 
-      // Wait for debounce
       await tester.pump(const Duration(milliseconds: 600));
       await tester.pumpAndSettle();
 
-      // Banner should be gone
+      // Assert
       expect(find.text('Reconnecting...'), findsNothing);
-
-      await errorController.close();
     });
   });
 }

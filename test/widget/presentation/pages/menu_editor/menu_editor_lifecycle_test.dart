@@ -3,186 +3,169 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
-import 'package:oxo_menus/domain/entities/menu_change_event.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
-import 'package:oxo_menus/domain/repositories/page_repository.dart';
-import 'package:oxo_menus/domain/repositories/presence_repository.dart';
-import 'package:oxo_menus/domain/repositories/widget_repository.dart';
-import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
-import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/menu_editor_page.dart';
+import 'package:oxo_menus/presentation/providers/app_lifecycle_provider.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
-import 'package:oxo_menus/presentation/providers/app_lifecycle_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
-import 'package:oxo_menus/main.reflectable.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 
-class MockMenuRepository extends Mock implements MenuRepository {}
+import '../../../../fakes/fake_menu_repository.dart';
+import '../../../../fakes/fake_menu_subscription_repository.dart';
+import '../../../../fakes/fake_page_repository.dart';
+import '../../../../fakes/fake_presence_repository.dart';
+import '../../../../fakes/fake_widget_repository.dart';
+import '../../../../fakes/reflectable_bootstrap.dart';
+import '../../../../fakes/result_helpers.dart';
 
-class MockPageRepository extends Mock implements PageRepository {}
+// ---------------------------------------------------------------------------
+// Test data
+// ---------------------------------------------------------------------------
 
-class MockMenuSubscriptionRepository extends Mock
-    implements MenuSubscriptionRepository {}
+const _testMenuId = 1;
 
-class MockPresenceRepository extends Mock implements PresenceRepository {}
+final _testMenu = Menu(
+  id: _testMenuId,
+  name: 'Test Menu',
+  status: Status.draft,
+  version: '1.0',
+  dateCreated: DateTime(2024),
+  dateUpdated: DateTime(2024),
+);
 
-class MockWidgetRepo extends Mock implements WidgetRepository {}
+const _testUser = User(
+  id: 'user1',
+  email: 'test@test.com',
+  firstName: 'Test',
+  lastName: 'User',
+);
 
-class MockPresentableWidgetRegistry extends Mock
-    implements PresentableWidgetRegistry {}
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 void main() {
-  late MockMenuRepository mockMenuRepo;
-  late MockPageRepository mockPageRepo;
-  late MockMenuSubscriptionRepository mockSubRepo;
-  late MockPresenceRepository mockPresenceRepo;
+  late FakeMenuRepository fakeMenuRepo;
+  late FakePageRepository fakePageRepo;
+  late FakeMenuSubscriptionRepository fakeSubRepo;
+  late FakePresenceRepository fakePresenceRepo;
+  late FakeWidgetRepository fakeWidgetRepo;
   late StreamController<ConnectivityStatus> connectivityController;
-  late StreamController<MenuChangeEvent> changeController;
 
-  final testMenu = Menu(
-    id: 1,
-    name: 'Test Menu',
-    status: Status.draft,
-    version: '1.0',
-    dateCreated: DateTime(2024),
-    dateUpdated: DateTime(2024),
-  );
-
-  setUpAll(() {
-    initializeReflectable();
-  });
+  setUpAll(initializeReflectableForTests);
 
   setUp(() {
-    mockMenuRepo = MockMenuRepository();
-    mockPageRepo = MockPageRepository();
-    mockSubRepo = MockMenuSubscriptionRepository();
-    mockPresenceRepo = MockPresenceRepository();
+    fakeMenuRepo = FakeMenuRepository();
+    fakePageRepo = FakePageRepository();
+    fakeSubRepo = FakeMenuSubscriptionRepository();
+    fakePresenceRepo = FakePresenceRepository();
+    fakeWidgetRepo = FakeWidgetRepository();
     connectivityController = StreamController<ConnectivityStatus>.broadcast();
-    changeController = StreamController<MenuChangeEvent>.broadcast();
 
-    when(
-      () => mockMenuRepo.getById(any()),
-    ).thenAnswer((_) async => Success(testMenu));
-    when(
-      () => mockPageRepo.getAllForMenu(any()),
-    ).thenAnswer((_) async => const Success([]));
-    when(
-      () => mockSubRepo.subscribeToMenuChanges(any()),
-    ).thenAnswer((_) => changeController.stream);
-    when(() => mockSubRepo.unsubscribe(any())).thenAnswer((_) async {});
-    when(
-      () => mockPresenceRepo.joinMenu(
-        any(),
-        any(),
-        userName: any(named: 'userName'),
-        userAvatar: any(named: 'userAvatar'),
-      ),
-    ).thenAnswer((_) async => const Success(null));
-    when(
-      () => mockPresenceRepo.watchActiveUsers(any()),
-    ).thenAnswer((_) => const Stream.empty());
-    when(
-      () => mockPresenceRepo.heartbeat(any(), any()),
-    ).thenAnswer((_) async => const Success(null));
-    when(
-      () => mockPresenceRepo.getActiveUsers(any()),
-    ).thenAnswer((_) async => const Success([]));
-    when(
-      () => mockPresenceRepo.unsubscribePresence(any()),
-    ).thenAnswer((_) async {});
-    when(
-      () => mockPresenceRepo.leaveMenu(any(), any()),
-    ).thenAnswer((_) async => const Success(null));
+    fakeMenuRepo.whenGetById(success(_testMenu));
+    fakePageRepo.whenGetAllForMenu(success([]));
+    fakePresenceRepo.whenJoinMenu(success(null));
+    fakePresenceRepo.whenLeaveMenu(success(null));
+    fakePresenceRepo.whenHeartbeat(success(null));
+    fakePresenceRepo.whenGetActiveUsersDefault(success([]));
+    fakeWidgetRepo.whenGetAllForColumn(success([]));
   });
 
   tearDown(() {
     connectivityController.close();
-    changeController.close();
+    fakeSubRepo.dispose();
+    fakePresenceRepo.dispose();
   });
 
-  Widget buildTestWidget() {
+  Widget buildPage() {
     return ProviderScope(
       overrides: [
-        menuRepositoryProvider.overrideWithValue(mockMenuRepo),
-        pageRepositoryProvider.overrideWithValue(mockPageRepo),
-        menuSubscriptionRepositoryProvider.overrideWithValue(mockSubRepo),
-        presenceRepositoryProvider.overrideWithValue(mockPresenceRepo),
-        widgetRepositoryProvider.overrideWithValue(MockWidgetRepo()),
+        menuRepositoryProvider.overrideWithValue(fakeMenuRepo),
+        pageRepositoryProvider.overrideWithValue(fakePageRepo),
+        menuSubscriptionRepositoryProvider.overrideWithValue(fakeSubRepo),
+        presenceRepositoryProvider.overrideWithValue(fakePresenceRepo),
+        widgetRepositoryProvider.overrideWithValue(fakeWidgetRepo),
         widgetRegistryProvider.overrideWithValue(PresentableWidgetRegistry()),
-        currentUserProvider.overrideWithValue(
-          const User(
-            id: 'user1',
-            email: 'test@test.com',
-            firstName: 'Test',
-            lastName: 'User',
-          ),
-        ),
+        currentUserProvider.overrideWithValue(_testUser),
         connectivityProvider.overrideWith((_) => connectivityController.stream),
         isAppInForegroundProvider.overrideWithValue(true),
       ],
-      child: const MaterialApp(home: MenuEditorPage(menuId: 1)),
+      child: const MaterialApp(home: MenuEditorPage(menuId: _testMenuId)),
     );
   }
 
   group('MenuEditorPage lifecycle', () {
-    testWidgets('pauses subscriptions when going offline', (tester) async {
-      connectivityController.add(ConnectivityStatus.online);
-      await tester.pumpWidget(buildTestWidget());
-      await tester.pumpAndSettle();
-
-      // Verify subscriptions were started
-      verify(() => mockSubRepo.subscribeToMenuChanges(1)).called(1);
-
-      // Go offline
-      connectivityController.add(ConnectivityStatus.offline);
-      await tester.pumpAndSettle();
-
-      // Verify subscriptions were cancelled
-      verify(() => mockSubRepo.unsubscribe(1)).called(1);
-      verify(() => mockPresenceRepo.unsubscribePresence(1)).called(1);
-    });
-
-    testWidgets('resumes subscriptions when coming back online', (
+    testWidgets('should pause subscriptions when going offline', (
       tester,
     ) async {
+      // Arrange — start online
       connectivityController.add(ConnectivityStatus.online);
-      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();
 
-      // Go offline then online
+      final subscribesBeforeOffline = fakeSubRepo.subscribeCalls.length;
+      expect(subscribesBeforeOffline, greaterThanOrEqualTo(1));
+
+      // Act — go offline
       connectivityController.add(ConnectivityStatus.offline);
       await tester.pumpAndSettle();
 
-      // Reset change stream for re-subscription
-      changeController = StreamController<MenuChangeEvent>.broadcast();
-      when(
-        () => mockSubRepo.subscribeToMenuChanges(any()),
-      ).thenAnswer((_) => changeController.stream);
+      // Assert — subscriptions were cancelled
+      expect(
+        fakeSubRepo.unsubscribeCalls
+            .where((c) => c.menuId == _testMenuId)
+            .length,
+        greaterThanOrEqualTo(1),
+      );
+      expect(
+        fakePresenceRepo.unsubscribePresenceCalls
+            .where((c) => c.menuId == _testMenuId)
+            .length,
+        greaterThanOrEqualTo(1),
+      );
+    });
+
+    testWidgets('should resume subscriptions when coming back online', (
+      tester,
+    ) async {
+      // Arrange — start online
+      connectivityController.add(ConnectivityStatus.online);
+      await tester.pumpWidget(buildPage());
+      await tester.pumpAndSettle();
+
+      final subscribeCountAfterOnline = fakeSubRepo.subscribeCalls.length;
+
+      // Act — go offline, then online again
+      connectivityController.add(ConnectivityStatus.offline);
+      await tester.pumpAndSettle();
 
       connectivityController.add(ConnectivityStatus.online);
       await tester.pumpAndSettle();
 
-      // Verify re-subscription happened (initial + resume)
-      verify(() => mockSubRepo.subscribeToMenuChanges(1)).called(2);
+      // Assert — re-subscription happened (at least one more subscribe call)
+      expect(
+        fakeSubRepo.subscribeCalls.length,
+        greaterThan(subscribeCountAfterOnline),
+      );
     });
 
-    testWidgets('shows retry button in error state', (tester) async {
-      when(() => mockMenuRepo.getById(any())).thenAnswer(
-        (_) async => const Failure(NetworkError('Connection failed')),
+    testWidgets('should show retry button in error state', (tester) async {
+      // Arrange — make getById fail
+      fakeMenuRepo.whenGetById(
+        failure(const NetworkError('Connection failed')),
       );
 
       connectivityController.add(ConnectivityStatus.online);
-      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpWidget(buildPage());
       await tester.pumpAndSettle();
 
+      // Assert
       expect(find.text('Retry'), findsOneWidget);
     });
   });

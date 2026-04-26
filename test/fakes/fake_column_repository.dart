@@ -71,6 +71,8 @@ class FakeColumnRepository implements ColumnRepository {
 
   Result<Column, DomainError>? _createResponse;
   Result<List<Column>, DomainError>? _getAllForContainerResponse;
+  final Map<int, Result<List<Column>, DomainError>>
+      _getAllForContainerByIdResponses = {};
   Result<Column, DomainError>? _getByIdResponse;
   Result<Column, DomainError>? _updateResponse;
   Result<void, DomainError>? _deleteResponse;
@@ -86,6 +88,17 @@ class FakeColumnRepository implements ColumnRepository {
 
   void whenGetAllForContainer(Result<List<Column>, DomainError> response) {
     _getAllForContainerResponse = response;
+  }
+
+  /// Registers a per-[containerId] response for [getAllForContainer].
+  ///
+  /// When a call is made with a [containerId] that has a per-id entry,
+  /// that entry takes precedence over the global [whenGetAllForContainer] stub.
+  void whenGetAllForContainerForId(
+    int containerId,
+    Result<List<Column>, DomainError> response,
+  ) {
+    _getAllForContainerByIdResponses[containerId] = response;
   }
 
   void whenGetById(Result<Column, DomainError> response) {
@@ -122,6 +135,9 @@ class FakeColumnRepository implements ColumnRepository {
     int containerId,
   ) async {
     calls.add(ColumnGetAllForContainerCall(containerId));
+    if (_getAllForContainerByIdResponses.containsKey(containerId)) {
+      return _getAllForContainerByIdResponses[containerId]!;
+    }
     if (_getAllForContainerResponse != null) return _getAllForContainerResponse!;
     throw StateError(
       'FakeColumnRepository: no response configured for getAllForContainer()',
