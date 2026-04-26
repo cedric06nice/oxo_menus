@@ -1,174 +1,321 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/data/mappers/size_mapper.dart';
 import 'package:oxo_menus/data/models/size_dto.dart';
-import 'package:oxo_menus/domain/entities/size.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
 
 void main() {
   group('SizeMapper', () {
     group('toEntity', () {
-      test('should convert SizeDto to Size entity with all fields', () {
+      test('should map all fields from a fully-populated DTO', () {
+        // Arrange
         final dto = SizeDto({
-          'id': 1,
-          'name': 'A4',
+          'id': '3',
+          'name': 'A4 Portrait',
           'width': 210.0,
           'height': 297.0,
           'status': 'published',
           'direction': 'portrait',
         });
 
-        final result = SizeMapper.toEntity(dto);
+        // Act
+        final entity = SizeMapper.toEntity(dto);
 
-        expect(result, isA<Size>());
-        expect(result.id, 1);
-        expect(result.name, 'A4');
-        expect(result.width, 210.0);
-        expect(result.height, 297.0);
-        expect(result.status, Status.published);
-        expect(result.direction, 'portrait');
+        // Assert
+        expect(entity.id, 3);
+        expect(entity.name, 'A4 Portrait');
+        expect(entity.width, 210.0);
+        expect(entity.height, 297.0);
+        expect(entity.status, Status.published);
+        expect(entity.direction, 'portrait');
       });
 
-      test('should parse id from string', () {
+      test('should parse string id to int', () {
+        // Arrange
         final dto = SizeDto({
-          'id': 42,
+          'id': '88',
           'name': 'Letter',
           'width': 215.9,
           'height': 279.4,
           'status': 'draft',
+          'direction': 'portrait',
+        });
+
+        // Act
+        final entity = SizeMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.id, 88);
+      });
+
+      test('should parse a large integer id correctly', () {
+        // Arrange
+        final dto = SizeDto({
+          'id': '1000',
+          'name': 'Custom',
+          'width': 100.0,
+          'height': 150.0,
+          'status': 'draft',
+          'direction': 'portrait',
+        });
+
+        // Act
+        final entity = SizeMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.id, 1000);
+      });
+
+      test('should map status "draft" to Status.draft', () {
+        // Arrange
+        final dto = SizeDto({
+          'id': '1',
+          'name': 'S',
+          'width': 100.0,
+          'height': 100.0,
+          'status': 'draft',
+          'direction': 'square',
+        });
+
+        // Act
+        final entity = SizeMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.status, Status.draft);
+      });
+
+      test('should map status "published" to Status.published', () {
+        // Arrange
+        final dto = SizeDto({
+          'id': '1',
+          'name': 'S',
+          'width': 100.0,
+          'height': 100.0,
+          'status': 'published',
+          'direction': 'square',
+        });
+
+        // Act
+        final entity = SizeMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.status, Status.published);
+      });
+
+      test('should map status "archived" to Status.archived', () {
+        // Arrange
+        final dto = SizeDto({
+          'id': '1',
+          'name': 'S',
+          'width': 100.0,
+          'height': 100.0,
+          'status': 'archived',
+          'direction': 'square',
+        });
+
+        // Act
+        final entity = SizeMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.status, Status.archived);
+      });
+
+      test('should map integer width and height as double', () {
+        // Arrange
+        final dto = SizeDto({
+          'id': '1',
+          'name': 'A5',
+          'width': 148,
+          'height': 210,
+          'status': 'draft',
+          'direction': 'portrait',
+        });
+
+        // Act
+        final entity = SizeMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.width, isA<double>());
+        expect(entity.height, isA<double>());
+        expect(entity.width, 148.0);
+        expect(entity.height, 210.0);
+      });
+
+      test('should map direction string exactly as stored', () {
+        // Arrange
+        final dto = SizeDto({
+          'id': '1',
+          'name': 'Landscape',
+          'width': 297.0,
+          'height': 210.0,
+          'status': 'draft',
           'direction': 'landscape',
         });
 
-        final result = SizeMapper.toEntity(dto);
+        // Act
+        final entity = SizeMapper.toEntity(dto);
 
-        expect(result.id, 42);
-        expect(result.name, 'Letter');
-        expect(result.status, Status.draft);
-        expect(result.direction, 'landscape');
-      });
-
-      test('should handle numeric id correctly', () {
-        final dto = SizeDto({
-          'id': 5,
-          'name': 'Custom',
-          'width': 100.0,
-          'height': 200.0,
-          'status': 'archived',
-          'direction': 'portrait',
-        });
-
-        final result = SizeMapper.toEntity(dto);
-
-        expect(result.id, 5);
-        expect(result.name, 'Custom');
-        expect(result.status, Status.archived);
-      });
-
-      test('should handle integer width and height values', () {
-        final dto = SizeDto({
-          'id': 1,
-          'name': 'Square',
-          'width': 100,
-          'height': 100,
-          'status': 'published',
-          'direction': 'portrait',
-        });
-
-        final result = SizeMapper.toEntity(dto);
-
-        expect(result.width, 100.0);
-        expect(result.height, 100.0);
-      });
-
-      test('should default unknown status to draft', () {
-        final dto = SizeDto({
-          'id': 1,
-          'name': 'Test',
-          'width': 100.0,
-          'height': 200.0,
-          'status': 'unknown_status',
-          'direction': 'portrait',
-        });
-
-        final result = SizeMapper.toEntity(dto);
-
-        expect(result.status, Status.draft);
+        // Assert
+        expect(entity.direction, 'landscape');
       });
     });
 
     group('toCreateDto', () {
-      test('should convert CreateSizeInput to map with all fields', () {
+      test('should map all fields from CreateSizeInput', () {
+        // Arrange
         const input = CreateSizeInput(
-          name: 'A4',
+          name: 'A3',
+          width: 297.0,
+          height: 420.0,
+          status: Status.published,
+          direction: 'portrait',
+        );
+
+        // Act
+        final payload = SizeMapper.toCreateDto(input);
+
+        // Assert
+        expect(payload['name'], 'A3');
+        expect(payload['width'], 297.0);
+        expect(payload['height'], 420.0);
+        expect(payload['status'], 'published');
+        expect(payload['direction'], 'portrait');
+        expect(payload, hasLength(5));
+      });
+
+      test('should serialize Status.draft as "draft"', () {
+        // Arrange
+        const input = CreateSizeInput(
+          name: 'X',
+          width: 100.0,
+          height: 100.0,
+          status: Status.draft,
+          direction: 'square',
+        );
+
+        // Act
+        final payload = SizeMapper.toCreateDto(input);
+
+        // Assert
+        expect(payload['status'], 'draft');
+      });
+
+      test('should serialize Status.archived as "archived"', () {
+        // Arrange
+        const input = CreateSizeInput(
+          name: 'Old',
+          width: 50.0,
+          height: 80.0,
+          status: Status.archived,
+          direction: 'portrait',
+        );
+
+        // Act
+        final payload = SizeMapper.toCreateDto(input);
+
+        // Assert
+        expect(payload['status'], 'archived');
+      });
+    });
+
+    group('toUpdateDto', () {
+      test('should include all fields when all are provided', () {
+        // Arrange
+        const input = UpdateSizeInput(
+          id: 1,
+          name: 'Updated A4',
           width: 210.0,
           height: 297.0,
           status: Status.published,
           direction: 'portrait',
         );
 
-        final result = SizeMapper.toCreateDto(input);
+        // Act
+        final payload = SizeMapper.toUpdateDto(input);
 
-        expect(result['name'], 'A4');
-        expect(result['width'], 210.0);
-        expect(result['height'], 297.0);
-        expect(result['status'], 'published');
-        expect(result['direction'], 'portrait');
+        // Assert
+        expect(payload['name'], 'Updated A4');
+        expect(payload['width'], 210.0);
+        expect(payload['height'], 297.0);
+        expect(payload['status'], 'published');
+        expect(payload['direction'], 'portrait');
       });
 
-      test('should convert draft status correctly', () {
-        const input = CreateSizeInput(
-          name: 'Letter',
-          width: 215.9,
-          height: 279.4,
-          status: Status.draft,
-          direction: 'landscape',
-        );
+      test('should omit name when name is null', () {
+        // Arrange
+        const input = UpdateSizeInput(id: 1, width: 200.0);
 
-        final result = SizeMapper.toCreateDto(input);
+        // Act
+        final payload = SizeMapper.toUpdateDto(input);
 
-        expect(result['status'], 'draft');
-        expect(result['direction'], 'landscape');
-      });
-    });
-
-    group('toUpdateDto', () {
-      test('should only include non-null fields', () {
-        const input = UpdateSizeInput(id: 1, name: 'Updated A4');
-
-        final result = SizeMapper.toUpdateDto(input);
-
-        expect(result['name'], 'Updated A4');
-        expect(result.containsKey('width'), false);
-        expect(result.containsKey('height'), false);
-        expect(result.containsKey('status'), false);
-        expect(result.containsKey('direction'), false);
+        // Assert
+        expect(payload.containsKey('name'), false);
       });
 
-      test('should include all provided fields', () {
-        const input = UpdateSizeInput(
-          id: 1,
-          name: 'A5',
-          width: 148.0,
-          height: 210.0,
-          status: Status.archived,
-          direction: 'landscape',
-        );
+      test('should omit width when width is null', () {
+        // Arrange
+        const input = UpdateSizeInput(id: 1, name: 'Sized');
 
-        final result = SizeMapper.toUpdateDto(input);
+        // Act
+        final payload = SizeMapper.toUpdateDto(input);
 
-        expect(result['name'], 'A5');
-        expect(result['width'], 148.0);
-        expect(result['height'], 210.0);
-        expect(result['status'], 'archived');
-        expect(result['direction'], 'landscape');
+        // Assert
+        expect(payload.containsKey('width'), false);
+      });
+
+      test('should omit height when height is null', () {
+        // Arrange
+        const input = UpdateSizeInput(id: 1, name: 'Sized');
+
+        // Act
+        final payload = SizeMapper.toUpdateDto(input);
+
+        // Assert
+        expect(payload.containsKey('height'), false);
+      });
+
+      test('should omit status when status is null', () {
+        // Arrange
+        const input = UpdateSizeInput(id: 1, name: 'Sized');
+
+        // Act
+        final payload = SizeMapper.toUpdateDto(input);
+
+        // Assert
+        expect(payload.containsKey('status'), false);
+      });
+
+      test('should omit direction when direction is null', () {
+        // Arrange
+        const input = UpdateSizeInput(id: 1, name: 'Sized');
+
+        // Act
+        final payload = SizeMapper.toUpdateDto(input);
+
+        // Assert
+        expect(payload.containsKey('direction'), false);
       });
 
       test('should return empty map when only id is provided', () {
-        const input = UpdateSizeInput(id: 1);
+        // Arrange
+        const input = UpdateSizeInput(id: 99);
 
-        final result = SizeMapper.toUpdateDto(input);
+        // Act
+        final payload = SizeMapper.toUpdateDto(input);
 
-        expect(result, isEmpty);
+        // Assert
+        expect(payload, isEmpty);
+      });
+
+      test('should never include id in the payload', () {
+        // Arrange
+        const input = UpdateSizeInput(id: 5, name: 'X');
+
+        // Act
+        final payload = SizeMapper.toUpdateDto(input);
+
+        // Assert
+        expect(payload.containsKey('id'), false);
       });
     });
   });

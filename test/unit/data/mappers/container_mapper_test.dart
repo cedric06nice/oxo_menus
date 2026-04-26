@@ -1,74 +1,186 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/data/mappers/container_mapper.dart';
 import 'package:oxo_menus/data/models/container_dto.dart';
-import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/container.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 
 void main() {
   group('ContainerMapper', () {
     group('toEntity', () {
-      test('should convert ContainerDto to Container with all fields', () {
+      test('should map all core fields from a fully-populated DTO', () {
         // Arrange
         final dto = ContainerDto({
-          'id': 1,
-          'index': 0,
+          'id': '15',
+          'index': 3,
           'status': 'published',
-          'direction': 'row',
-          'page': 5,
-          'style_json': {
-            'direction': 'row',
-            'alignment': 'center',
-            'spacing': 16.0,
-          },
-          'date_created': '2025-01-15T10:00:00Z',
-          'date_updated': '2025-01-15T11:00:00Z',
+          'page': {'id': '7'},
+          'date_created': '2025-02-10T09:00:00Z',
+          'date_updated': '2025-02-11T10:00:00Z',
         });
 
         // Act
         final entity = ContainerMapper.toEntity(dto);
 
         // Assert
-        expect(entity.id, 1);
-        expect(entity.pageId, 5);
-        expect(entity.index, 0);
-        expect(entity.name, 'Container 1');
-        expect(entity.layout, isNotNull);
-        expect(entity.layout!.direction, 'row');
-        expect(entity.layout!.alignment, 'center');
-        expect(entity.layout!.spacing, 16.0);
-        expect(entity.dateCreated, isA<DateTime>());
-        expect(entity.dateUpdated, isA<DateTime>());
+        expect(entity.id, 15);
+        expect(entity.pageId, 7);
+        expect(entity.index, 3);
+        expect(entity.name, 'Container 15');
+        expect(entity.dateCreated, DateTime.parse('2025-02-10T09:00:00Z'));
+        expect(entity.dateUpdated, DateTime.parse('2025-02-11T10:00:00Z'));
       });
 
-      test('should convert ContainerDto with minimal fields', () {
+      test('should parse string id to int', () {
         // Arrange
-        final dto = ContainerDto({'id': 2, 'index': 1, 'status': 'draft'});
+        final dto = ContainerDto({'id': '99', 'index': 0, 'status': 'draft'});
 
         // Act
         final entity = ContainerMapper.toEntity(dto);
 
         // Assert
-        expect(entity.id, 2);
-        expect(entity.pageId, 0); // Defaults to 0
-        expect(entity.index, 1);
-        expect(entity.name, 'Container 2');
-        expect(entity.layout, isNull);
+        expect(entity.id, 99);
       });
 
-      test('should parse styleConfig from style_json', () {
+      test('should parse integer id from raw data when id is provided as int', () {
+        // Arrange
+        final dto = ContainerDto({'id': 500, 'index': 0, 'status': 'draft'});
+
+        // Act
+        final entity = ContainerMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.id, 500);
+      });
+
+      test('should default pageId to 0 when page is null', () {
+        // Arrange
+        final dto = ContainerDto({'id': '1', 'index': 0, 'status': 'draft'});
+
+        // Act
+        final entity = ContainerMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.pageId, 0);
+      });
+
+      test('should resolve pageId when page is an int reference', () {
         // Arrange
         final dto = ContainerDto({
-          'id': 4,
+          'id': '1',
           'index': 0,
-          'status': 'published',
-          'page': 1,
+          'status': 'draft',
+          'page': 8,
+        });
+
+        // Act
+        final entity = ContainerMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.pageId, 8);
+      });
+
+      test('should resolve pageId when page is an expanded map', () {
+        // Arrange
+        final dto = ContainerDto({
+          'id': '1',
+          'index': 0,
+          'status': 'draft',
+          'page': {'id': '13'},
+        });
+
+        // Act
+        final entity = ContainerMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.pageId, 13);
+      });
+
+      test('should build name as "Container {id}"', () {
+        // Arrange
+        final dto = ContainerDto({'id': '42', 'index': 0, 'status': 'draft'});
+
+        // Act
+        final entity = ContainerMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.name, 'Container 42');
+      });
+
+      test('should set parentContainerId from int parent_container', () {
+        // Arrange
+        final dto = ContainerDto({
+          'id': '2',
+          'index': 0,
+          'status': 'draft',
+          'parent_container': 10,
+        });
+
+        // Act
+        final entity = ContainerMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.parentContainerId, 10);
+      });
+
+      test('should set parentContainerId from map parent_container with int id', () {
+        // Arrange
+        final dto = ContainerDto({
+          'id': '2',
+          'index': 0,
+          'status': 'draft',
+          'parent_container': {'id': 20},
+        });
+
+        // Act
+        final entity = ContainerMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.parentContainerId, 20);
+      });
+
+      test('should set parentContainerId to null when absent', () {
+        // Arrange
+        final dto = ContainerDto({'id': '3', 'index': 0, 'status': 'draft'});
+
+        // Act
+        final entity = ContainerMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.parentContainerId, isNull);
+      });
+
+      test('should parse layout fields from style_json', () {
+        // Arrange
+        final dto = ContainerDto({
+          'id': '5',
+          'index': 0,
+          'status': 'draft',
           'style_json': {
             'direction': 'row',
-            'marginTop': 10.0,
-            'paddingLeft': 8.0,
-            'borderType': 'plain_thin',
+            'alignment': 'start',
+            'mainAxisAlignment': 'spaceBetween',
+            'spacing': 8.0,
           },
+        });
+
+        // Act
+        final entity = ContainerMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.layout, isNotNull);
+        expect(entity.layout!.direction, 'row');
+        expect(entity.layout!.alignment, 'start');
+        expect(entity.layout!.mainAxisAlignment, 'spaceBetween');
+        expect(entity.layout!.spacing, 8.0);
+      });
+
+      test('should parse styleConfig fields from style_json', () {
+        // Arrange
+        final dto = ContainerDto({
+          'id': '6',
+          'index': 0,
+          'status': 'draft',
+          'style_json': {'marginTop': 12.0, 'backgroundColor': '#EFEFEF'},
         });
 
         // Act
@@ -76,189 +188,106 @@ void main() {
 
         // Assert
         expect(entity.styleConfig, isNotNull);
-        expect(entity.styleConfig!.marginTop, 10.0);
-        expect(entity.styleConfig!.paddingLeft, 8.0);
-        expect(entity.styleConfig!.borderType, BorderType.plainThin);
-        // Layout should still be parsed too
-        expect(entity.layout, isNotNull);
-        expect(entity.layout!.direction, 'row');
+        expect(entity.styleConfig!.marginTop, 12.0);
+        expect(entity.styleConfig!.backgroundColor, '#EFEFEF');
       });
 
-      test('should have null styleConfig when style_json is empty', () {
+      test('should set layout and styleConfig to null when style_json is absent', () {
         // Arrange
-        final dto = ContainerDto({
-          'id': 5,
-          'index': 0,
-          'status': 'published',
-          'page': 1,
-        });
+        final dto = ContainerDto({'id': '7', 'index': 0, 'status': 'draft'});
 
         // Act
         final entity = ContainerMapper.toEntity(dto);
 
         // Assert
+        expect(entity.layout, isNull);
         expect(entity.styleConfig, isNull);
       });
 
-      test('should handle null layout_json', () {
+      test('should map null dateCreated and dateUpdated to null', () {
         // Arrange
-        final dto = ContainerDto({
-          'id': 3,
-          'index': 0,
-          'status': 'published',
-          'page': 1,
-        });
+        final dto = ContainerDto({'id': '8', 'index': 0, 'status': 'draft'});
 
         // Act
         final entity = ContainerMapper.toEntity(dto);
 
         // Assert
-        expect(entity.id, 3);
-        expect(entity.layout, isNull);
-      });
-
-      test('should map parent_container as int to parentContainerId', () {
-        final dto = ContainerDto({
-          'id': 10,
-          'index': 0,
-          'status': 'published',
-          'page': 1,
-          'parent_container': 5,
-        });
-
-        final entity = ContainerMapper.toEntity(dto);
-
-        expect(entity.parentContainerId, 5);
-      });
-
-      test('should map parent_container as map to parentContainerId', () {
-        final dto = ContainerDto({
-          'id': 10,
-          'index': 0,
-          'status': 'published',
-          'page': 1,
-          'parent_container': {'id': 7},
-        });
-
-        final entity = ContainerMapper.toEntity(dto);
-
-        expect(entity.parentContainerId, 7);
-      });
-
-      test('should default parentContainerId to null when absent', () {
-        final dto = ContainerDto({
-          'id': 10,
-          'index': 0,
-          'status': 'published',
-          'page': 1,
-        });
-
-        final entity = ContainerMapper.toEntity(dto);
-
-        expect(entity.parentContainerId, isNull);
-      });
-
-      test('should parse mainAxisAlignment from style_json', () {
-        final dto = ContainerDto({
-          'id': 10,
-          'index': 0,
-          'status': 'published',
-          'page': 1,
-          'style_json': {
-            'direction': 'row',
-            'mainAxisAlignment': 'spaceBetween',
-          },
-        });
-
-        final entity = ContainerMapper.toEntity(dto);
-
-        expect(entity.layout!.mainAxisAlignment, 'spaceBetween');
+        expect(entity.dateCreated, isNull);
+        expect(entity.dateUpdated, isNull);
       });
     });
 
     group('toDto', () {
-      test('should convert Container to ContainerDto with all fields', () {
+      test('should map id, pageId, and index correctly', () {
         // Arrange
-        final entity = Container(
-          id: 1,
-          pageId: 5,
-          index: 0,
-          name: 'Main Container',
-          layout: LayoutConfig(
-            direction: 'row',
-            alignment: 'center',
-            spacing: 16.0,
-          ),
-          dateCreated: DateTime.parse('2025-01-15T10:00:00Z'),
-          dateUpdated: DateTime.parse('2025-01-15T11:00:00Z'),
-        );
+        final entity = Container(id: 10, pageId: 5, index: 2, name: 'My Container');
 
         // Act
         final dto = ContainerMapper.toDto(entity);
 
         // Assert
-        expect(dto.id, '1');
+        expect(dto.id, '10');
         expect(dto.page?.id, '5');
-        expect(dto.index, 0);
-        expect(dto.styleJson, isNotNull);
-        expect(dto.styleJson['direction'], 'row');
-        expect(dto.styleJson['alignment'], 'center');
-        expect(dto.styleJson['spacing'], 16.0);
-        expect(dto.dateCreated, isA<DateTime>());
-        expect(dto.dateUpdated, isA<DateTime>());
+        expect(dto.index, 2);
       });
 
-      test('should convert Container with minimal fields', () {
+      test('should produce empty style_json when layout and styleConfig are null', () {
         // Arrange
-        final entity = Container(
-          id: 2,
-          pageId: 3,
-          index: 1,
-          name: 'Simple Container',
-        );
+        final entity = Container(id: 1, pageId: 2, index: 0, name: 'Empty');
 
         // Act
         final dto = ContainerMapper.toDto(entity);
 
         // Assert
-        expect(dto.id, '2');
-        expect(dto.page?.id, '3');
-        expect(dto.index, 1);
         expect(dto.styleJson, isEmpty);
       });
 
-      test('should serialize styleConfig into style_json', () {
+      test('should serialize layout fields into style_json', () {
+        // Arrange
+        final entity = Container(
+          id: 2,
+          pageId: 1,
+          index: 0,
+          name: 'Layout Container',
+          layout: const LayoutConfig(direction: 'row', alignment: 'center', spacing: 4.0),
+        );
+
+        // Act
+        final dto = ContainerMapper.toDto(entity);
+
+        // Assert
+        expect(dto.styleJson['direction'], 'row');
+        expect(dto.styleJson['alignment'], 'center');
+        expect(dto.styleJson['spacing'], 4.0);
+      });
+
+      test('should serialize styleConfig fields into style_json', () {
+        // Arrange
+        final entity = Container(
+          id: 3,
+          pageId: 1,
+          index: 0,
+          name: 'Styled',
+          styleConfig: const StyleConfig(fontFamily: 'Georgia', fontSize: 16.0),
+        );
+
+        // Act
+        final dto = ContainerMapper.toDto(entity);
+
+        // Assert
+        expect(dto.styleJson['fontFamily'], 'Georgia');
+        expect(dto.styleJson['fontSize'], 16.0);
+      });
+
+      test('should merge layout and styleConfig into a single style_json', () {
         // Arrange
         final entity = Container(
           id: 4,
           pageId: 1,
           index: 0,
-          name: 'Styled Container',
-          layout: LayoutConfig(direction: 'row'),
-          styleConfig: StyleConfig(
-            marginTop: 10.0,
-            borderType: BorderType.dropShadow,
-          ),
-        );
-
-        // Act
-        final dto = ContainerMapper.toDto(entity);
-
-        // Assert
-        expect(dto.styleJson['marginTop'], 10.0);
-        expect(dto.styleJson['borderType'], 'drop_shadow');
-        // Layout fields should also be present
-        expect(dto.styleJson['direction'], 'row');
-      });
-
-      test('should serialize only layout when styleConfig is null', () {
-        // Arrange
-        final entity = Container(
-          id: 5,
-          pageId: 1,
-          index: 0,
-          name: 'Layout Only',
-          layout: LayoutConfig(direction: 'column', spacing: 8.0),
+          name: 'Merged',
+          layout: const LayoutConfig(direction: 'column'),
+          styleConfig: const StyleConfig(marginTop: 5.0),
         );
 
         // Act
@@ -266,94 +295,38 @@ void main() {
 
         // Assert
         expect(dto.styleJson['direction'], 'column');
-        expect(dto.styleJson['spacing'], 8.0);
-        expect(dto.styleJson.containsKey('marginTop'), false);
+        expect(dto.styleJson['marginTop'], 5.0);
       });
 
-      test('should handle null layout', () {
+      test('should serialize parentContainerId into raw data', () {
         // Arrange
-        final entity = Container(
-          id: 3,
-          pageId: 1,
-          index: 0,
-          name: 'No Layout Container',
-          layout: null,
-        );
+        final entity = Container(id: 5, pageId: 1, index: 0, name: 'Child', parentContainerId: 99);
 
         // Act
         final dto = ContainerMapper.toDto(entity);
+        final raw = dto.getRawData();
 
         // Assert
-        expect(dto.id, '3');
-        expect(dto.styleJson, isEmpty);
+        expect(raw['parent_container'], 99);
       });
 
-      test('should serialize parentContainerId to parent_container', () {
-        final entity = Container(
-          id: 10,
-          pageId: 1,
-          index: 0,
-          name: 'Child',
-          parentContainerId: 5,
-        );
+      test('should store null for parent_container when parentContainerId is null', () {
+        // Arrange
+        final entity = Container(id: 6, pageId: 1, index: 0, name: 'Root');
 
+        // Act
         final dto = ContainerMapper.toDto(entity);
+        final raw = dto.getRawData();
 
-        expect(dto.getValue(forKey: 'parent_container'), 5);
-      });
-
-      test('should serialize null parentContainerId as null', () {
-        final entity = Container(
-          id: 10,
-          pageId: 1,
-          index: 0,
-          name: 'Top-level',
-        );
-
-        final dto = ContainerMapper.toDto(entity);
-
-        expect(dto.getValue(forKey: 'parent_container'), isNull);
-      });
-
-      test('should serialize mainAxisAlignment in style_json', () {
-        final entity = Container(
-          id: 10,
-          pageId: 1,
-          index: 0,
-          name: 'Group',
-          layout: LayoutConfig(
-            direction: 'column',
-            mainAxisAlignment: 'spaceEvenly',
-          ),
-        );
-
-        final dto = ContainerMapper.toDto(entity);
-
-        expect(dto.styleJson['mainAxisAlignment'], 'spaceEvenly');
+        // Assert
+        expect(raw['parent_container'], isNull);
       });
     });
 
     group('layoutConfigToJson', () {
-      test('should convert LayoutConfig to JSON with all fields', () {
+      test('should only include non-null layout fields', () {
         // Arrange
-        final config = LayoutConfig(
-          direction: 'column',
-          alignment: 'start',
-          spacing: 8.0,
-        );
-
-        // Act
-        final json = ContainerMapper.layoutConfigToJson(config);
-
-        // Assert
-        expect(json['direction'], 'column');
-        expect(json['alignment'], 'start');
-        expect(json['spacing'], 8.0);
-      });
-
-      test('should handle partial LayoutConfig', () {
-        // Arrange
-        final config = LayoutConfig(direction: 'row');
+        const config = LayoutConfig(direction: 'row');
 
         // Act
         final json = ContainerMapper.layoutConfigToJson(config);
@@ -361,26 +334,39 @@ void main() {
         // Assert
         expect(json['direction'], 'row');
         expect(json.containsKey('alignment'), false);
+        expect(json.containsKey('mainAxisAlignment'), false);
         expect(json.containsKey('spacing'), false);
       });
 
-      test('should serialize mainAxisAlignment to JSON', () {
-        final config = LayoutConfig(
-          direction: 'row',
-          mainAxisAlignment: 'center',
-        );
+      test('should return empty map when all layout fields are null', () {
+        // Arrange
+        const config = LayoutConfig();
 
+        // Act
         final json = ContainerMapper.layoutConfigToJson(config);
 
-        expect(json['mainAxisAlignment'], 'center');
+        // Assert
+        expect(json, isEmpty);
       });
 
-      test('should omit mainAxisAlignment when null', () {
-        final config = LayoutConfig(direction: 'row');
+      test('should include all four fields when all are provided', () {
+        // Arrange
+        const config = LayoutConfig(
+          direction: 'column',
+          alignment: 'end',
+          mainAxisAlignment: 'center',
+          spacing: 12.0,
+        );
 
+        // Act
         final json = ContainerMapper.layoutConfigToJson(config);
 
-        expect(json.containsKey('mainAxisAlignment'), false);
+        // Assert
+        expect(json, hasLength(4));
+        expect(json['direction'], 'column');
+        expect(json['alignment'], 'end');
+        expect(json['mainAxisAlignment'], 'center');
+        expect(json['spacing'], 12.0);
       });
     });
   });

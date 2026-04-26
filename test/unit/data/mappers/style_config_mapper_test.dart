@@ -7,174 +7,337 @@ import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 void main() {
   group('StyleConfigMapper', () {
     group('fromJson', () {
-      test('should parse all StyleConfig fields from JSON', () {
-        final json = <String, dynamic>{
-          'fontFamily': 'Futura',
+      test('should parse all typography fields', () {
+        // Arrange
+        final json = {
+          'fontFamily': 'Georgia',
           'fontSize': 16.0,
-          'primaryColor': '#000000',
-          'secondaryColor': '#FFFFFF',
-          'backgroundColor': '#F5F5F5',
-          'marginTop': 20.0,
-          'marginBottom': 30.0,
-          'marginLeft': 15.0,
-          'marginRight': 15.0,
-          'padding': 10.0,
-          'paddingTop': 12.0,
-          'paddingBottom': 14.0,
-          'paddingLeft': 8.0,
-          'paddingRight': 8.0,
-          'borderType': 'plain_thin',
+          'primaryColor': '#111111',
+          'secondaryColor': '#222222',
+          'backgroundColor': '#FAFAFA',
         };
 
+        // Act
         final config = StyleConfigMapper.fromJson(json);
 
-        expect(config.fontFamily, 'Futura');
+        // Assert
+        expect(config.fontFamily, 'Georgia');
         expect(config.fontSize, 16.0);
-        expect(config.primaryColor, '#000000');
-        expect(config.secondaryColor, '#FFFFFF');
-        expect(config.backgroundColor, '#F5F5F5');
-        expect(config.marginTop, 20.0);
-        expect(config.marginBottom, 30.0);
-        expect(config.marginLeft, 15.0);
-        expect(config.marginRight, 15.0);
-        expect(config.padding, 10.0);
-        expect(config.paddingTop, 12.0);
-        expect(config.paddingBottom, 14.0);
-        expect(config.paddingLeft, 8.0);
+        expect(config.primaryColor, '#111111');
+        expect(config.secondaryColor, '#222222');
+        expect(config.backgroundColor, '#FAFAFA');
+      });
+
+      test('should parse all margin fields', () {
+        // Arrange
+        final json = {
+          'marginTop': 10.0,
+          'marginBottom': 12.0,
+          'marginLeft': 8.0,
+          'marginRight': 8.0,
+        };
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
+        expect(config.marginTop, 10.0);
+        expect(config.marginBottom, 12.0);
+        expect(config.marginLeft, 8.0);
+        expect(config.marginRight, 8.0);
+      });
+
+      test('should parse all padding fields', () {
+        // Arrange
+        final json = {
+          'padding': 4.0,
+          'paddingTop': 5.0,
+          'paddingBottom': 6.0,
+          'paddingLeft': 7.0,
+          'paddingRight': 8.0,
+        };
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
+        expect(config.padding, 4.0);
+        expect(config.paddingTop, 5.0);
+        expect(config.paddingBottom, 6.0);
+        expect(config.paddingLeft, 7.0);
         expect(config.paddingRight, 8.0);
+      });
+
+      test('should parse borderType "none"', () {
+        // Arrange
+        final json = {'borderType': 'none'};
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
+        expect(config.borderType, BorderType.none);
+      });
+
+      test('should parse borderType "plain_thin"', () {
+        // Arrange
+        final json = {'borderType': 'plain_thin'};
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
         expect(config.borderType, BorderType.plainThin);
       });
 
-      test('should handle empty JSON', () {
-        final config = StyleConfigMapper.fromJson(<String, dynamic>{});
+      test('should parse borderType "plain_thick"', () {
+        // Arrange
+        final json = {'borderType': 'plain_thick'};
 
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
+        expect(config.borderType, BorderType.plainThick);
+      });
+
+      test('should parse borderType "double_offset"', () {
+        // Arrange
+        final json = {'borderType': 'double_offset'};
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
+        expect(config.borderType, BorderType.doubleOffset);
+      });
+
+      test('should parse borderType "drop_shadow"', () {
+        // Arrange
+        final json = {'borderType': 'drop_shadow'};
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
+        expect(config.borderType, BorderType.dropShadow);
+      });
+
+      test('should set borderType to null when key is absent', () {
+        // Arrange
+        final json = <String, dynamic>{};
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
+        expect(config.borderType, isNull);
+      });
+
+      test('should parse verticalAlignment "top"', () {
+        // Arrange
+        final json = {'verticalAlignment': 'top'};
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
+        expect(config.verticalAlignment, VerticalAlignment.top);
+      });
+
+      test('should parse verticalAlignment "center"', () {
+        // Arrange
+        final json = {'verticalAlignment': 'center'};
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
+        expect(config.verticalAlignment, VerticalAlignment.center);
+      });
+
+      test('should parse verticalAlignment "bottom"', () {
+        // Arrange
+        final json = {'verticalAlignment': 'bottom'};
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
+        expect(config.verticalAlignment, VerticalAlignment.bottom);
+      });
+
+      test('should set verticalAlignment to null when key is absent', () {
+        // Arrange
+        final json = <String, dynamic>{};
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
+        expect(config.verticalAlignment, isNull);
+      });
+
+      test('should coerce integer numeric fields to double', () {
+        // Arrange
+        final json = {'fontSize': 14, 'marginTop': 10, 'padding': 8};
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
+        expect(config.fontSize, isA<double>());
+        expect(config.marginTop, isA<double>());
+        expect(config.padding, isA<double>());
+        expect(config.fontSize, 14.0);
+      });
+
+      test('should set all fields to null when JSON is empty', () {
+        // Arrange
+        final json = <String, dynamic>{};
+
+        // Act
+        final config = StyleConfigMapper.fromJson(json);
+
+        // Assert
         expect(config.fontFamily, isNull);
         expect(config.fontSize, isNull);
+        expect(config.primaryColor, isNull);
+        expect(config.secondaryColor, isNull);
+        expect(config.backgroundColor, isNull);
         expect(config.marginTop, isNull);
+        expect(config.marginBottom, isNull);
+        expect(config.marginLeft, isNull);
+        expect(config.marginRight, isNull);
+        expect(config.padding, isNull);
+        expect(config.paddingTop, isNull);
+        expect(config.paddingBottom, isNull);
+        expect(config.paddingLeft, isNull);
+        expect(config.paddingRight, isNull);
         expect(config.borderType, isNull);
-      });
-
-      test('should handle null borderType', () {
-        final json = <String, dynamic>{'marginTop': 10.0};
-
-        final config = StyleConfigMapper.fromJson(json);
-
-        expect(config.marginTop, 10.0);
-        expect(config.borderType, isNull);
-      });
-
-      test('should parse integer margins as double', () {
-        final json = <String, dynamic>{'marginTop': 10, 'paddingLeft': 5};
-
-        final config = StyleConfigMapper.fromJson(json);
-
-        expect(config.marginTop, 10.0);
-        expect(config.paddingLeft, 5.0);
+        expect(config.verticalAlignment, isNull);
       });
     });
 
     group('toJson', () {
-      test('should serialize all non-null fields', () {
-        const config = StyleConfig(
-          fontFamily: 'Futura',
-          fontSize: 16.0,
-          primaryColor: '#000000',
-          marginTop: 20.0,
-          marginBottom: 30.0,
-          paddingTop: 12.0,
-          borderType: BorderType.plainThin,
-        );
-
-        final json = StyleConfigMapper.toJson(config);
-
-        expect(json['fontFamily'], 'Futura');
-        expect(json['fontSize'], 16.0);
-        expect(json['primaryColor'], '#000000');
-        expect(json['marginTop'], 20.0);
-        expect(json['marginBottom'], 30.0);
-        expect(json['paddingTop'], 12.0);
-        expect(json['borderType'], 'plain_thin');
-      });
-
-      test('should omit null fields', () {
-        const config = StyleConfig(marginTop: 10.0);
-
-        final json = StyleConfigMapper.toJson(config);
-
-        expect(json.containsKey('marginTop'), true);
-        expect(json.containsKey('fontFamily'), false);
-        expect(json.containsKey('borderType'), false);
-        expect(json.containsKey('fontSize'), false);
-      });
-
-      test('should return empty map for default StyleConfig', () {
+      test('should omit all null fields producing an empty map', () {
+        // Arrange
         const config = StyleConfig();
 
+        // Act
         final json = StyleConfigMapper.toJson(config);
 
+        // Assert
         expect(json, isEmpty);
       });
 
-      test('should round-trip correctly', () {
-        const original = StyleConfig(
-          marginTop: 20.0,
-          paddingLeft: 8.0,
-          borderType: BorderType.dropShadow,
-          fontSize: 14.0,
+      test('should include only non-null fields', () {
+        // Arrange
+        const config = StyleConfig(fontFamily: 'Arial', fontSize: 14.0);
+
+        // Act
+        final json = StyleConfigMapper.toJson(config);
+
+        // Assert
+        expect(json, hasLength(2));
+        expect(json['fontFamily'], 'Arial');
+        expect(json['fontSize'], 14.0);
+      });
+
+      test('should serialize borderType as its string representation', () {
+        // Arrange
+        const config = StyleConfig(borderType: BorderType.dropShadow);
+
+        // Act
+        final json = StyleConfigMapper.toJson(config);
+
+        // Assert
+        expect(json['borderType'], 'drop_shadow');
+      });
+
+      test('should serialize verticalAlignment as its string representation', () {
+        // Arrange
+        const config = StyleConfig(verticalAlignment: VerticalAlignment.center);
+
+        // Act
+        final json = StyleConfigMapper.toJson(config);
+
+        // Assert
+        expect(json['verticalAlignment'], 'center');
+      });
+
+      test('should serialize all margin and padding fields when provided', () {
+        // Arrange
+        const config = StyleConfig(
+          marginTop: 5.0,
+          marginBottom: 6.0,
+          marginLeft: 7.0,
+          marginRight: 8.0,
+          padding: 3.0,
+          paddingTop: 1.0,
+          paddingBottom: 2.0,
+          paddingLeft: 3.0,
+          paddingRight: 4.0,
         );
 
-        final json = StyleConfigMapper.toJson(original);
-        final restored = StyleConfigMapper.fromJson(json);
+        // Act
+        final json = StyleConfigMapper.toJson(config);
 
-        expect(restored.marginTop, original.marginTop);
-        expect(restored.paddingLeft, original.paddingLeft);
-        expect(restored.borderType, original.borderType);
-        expect(restored.fontSize, original.fontSize);
+        // Assert
+        expect(json['marginTop'], 5.0);
+        expect(json['marginBottom'], 6.0);
+        expect(json['marginLeft'], 7.0);
+        expect(json['marginRight'], 8.0);
+        expect(json['padding'], 3.0);
+        expect(json['paddingTop'], 1.0);
+        expect(json['paddingBottom'], 2.0);
+        expect(json['paddingLeft'], 3.0);
+        expect(json['paddingRight'], 4.0);
+      });
+
+      test('should serialize all color fields when provided', () {
+        // Arrange
+        const config = StyleConfig(
+          primaryColor: '#FF0000',
+          secondaryColor: '#00FF00',
+          backgroundColor: '#0000FF',
+        );
+
+        // Act
+        final json = StyleConfigMapper.toJson(config);
+
+        // Assert
+        expect(json['primaryColor'], '#FF0000');
+        expect(json['secondaryColor'], '#00FF00');
+        expect(json['backgroundColor'], '#0000FF');
       });
     });
 
-    group('verticalAlignment', () {
-      test('should parse verticalAlignment from JSON', () {
-        final json = <String, dynamic>{'verticalAlignment': 'center'};
+    group('round-trip', () {
+      test('should preserve a fully-populated config through fromJson then toJson', () {
+        // Arrange
+        final original = {
+          'fontFamily': 'Helvetica',
+          'fontSize': 12.0,
+          'primaryColor': '#AABBCC',
+          'marginTop': 10.0,
+          'paddingLeft': 4.0,
+          'borderType': 'plain_thin',
+          'verticalAlignment': 'bottom',
+        };
 
-        final config = StyleConfigMapper.fromJson(json);
+        // Act
+        final config = StyleConfigMapper.fromJson(original);
+        final serialized = StyleConfigMapper.toJson(config);
 
-        expect(config.verticalAlignment, VerticalAlignment.center);
-      });
-
-      test('should handle null verticalAlignment', () {
-        final config = StyleConfigMapper.fromJson(<String, dynamic>{});
-
-        expect(config.verticalAlignment, isNull);
-      });
-
-      test('should serialize verticalAlignment to JSON', () {
-        const config = StyleConfig(verticalAlignment: VerticalAlignment.bottom);
-
-        final json = StyleConfigMapper.toJson(config);
-
-        expect(json['verticalAlignment'], 'bottom');
-      });
-
-      test('should omit verticalAlignment when null', () {
-        const config = StyleConfig();
-
-        final json = StyleConfigMapper.toJson(config);
-
-        expect(json.containsKey('verticalAlignment'), false);
-      });
-
-      test('should round-trip verticalAlignment', () {
-        const original = StyleConfig(
-          verticalAlignment: VerticalAlignment.center,
-          marginTop: 10.0,
-        );
-
-        final json = StyleConfigMapper.toJson(original);
-        final restored = StyleConfigMapper.fromJson(json);
-
-        expect(restored.verticalAlignment, original.verticalAlignment);
-        expect(restored.marginTop, original.marginTop);
+        // Assert
+        expect(serialized['fontFamily'], 'Helvetica');
+        expect(serialized['fontSize'], 12.0);
+        expect(serialized['primaryColor'], '#AABBCC');
+        expect(serialized['marginTop'], 10.0);
+        expect(serialized['paddingLeft'], 4.0);
+        expect(serialized['borderType'], 'plain_thin');
+        expect(serialized['verticalAlignment'], 'bottom');
       });
     });
   });

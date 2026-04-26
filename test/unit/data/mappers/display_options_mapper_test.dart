@@ -5,80 +5,151 @@ import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 void main() {
   group('DisplayOptionsMapper', () {
     group('fromJson', () {
-      test('parses full JSON correctly', () {
-        final json = {'showPrices': true, 'showAllergens': false};
+      test('should parse showPrices and showAllergens from JSON', () {
+        // Arrange
+        final json = {'showPrices': false, 'showAllergens': true};
 
+        // Act
         final options = DisplayOptionsMapper.fromJson(json);
 
-        expect(options.showPrices, true);
-        expect(options.showAllergens, false);
-      });
-
-      test('parses empty JSON using defaults', () {
-        final json = <String, dynamic>{};
-
-        final options = DisplayOptionsMapper.fromJson(json);
-
-        expect(options.showPrices, true);
+        // Assert
+        expect(options.showPrices, false);
         expect(options.showAllergens, true);
       });
 
-      test('handles missing keys with defaults', () {
+      test('should default showPrices to true when key is absent', () {
+        // Arrange
+        final json = {'showAllergens': false};
+
+        // Act
+        final options = DisplayOptionsMapper.fromJson(json);
+
+        // Assert
+        expect(options.showPrices, true);
+      });
+
+      test('should default showAllergens to true when key is absent', () {
+        // Arrange
         final json = {'showPrices': false};
 
+        // Act
         final options = DisplayOptionsMapper.fromJson(json);
 
-        expect(options.showPrices, false);
-        expect(options.showAllergens, true); // Default
+        // Assert
+        expect(options.showAllergens, true);
       });
 
-      test('handles null values with defaults', () {
-        final json = {'showPrices': null, 'showAllergens': null};
+      test('should default both fields to true when JSON is empty', () {
+        // Arrange
+        final json = <String, dynamic>{};
 
+        // Act
         final options = DisplayOptionsMapper.fromJson(json);
 
+        // Assert
         expect(options.showPrices, true);
         expect(options.showAllergens, true);
+      });
+
+      test('should default showPrices to true when value is null', () {
+        // Arrange
+        final json = <String, dynamic>{'showPrices': null, 'showAllergens': true};
+
+        // Act
+        final options = DisplayOptionsMapper.fromJson(json);
+
+        // Assert
+        expect(options.showPrices, true);
+      });
+
+      test('should default showAllergens to true when value is null', () {
+        // Arrange
+        final json = <String, dynamic>{'showPrices': true, 'showAllergens': null};
+
+        // Act
+        final options = DisplayOptionsMapper.fromJson(json);
+
+        // Assert
+        expect(options.showAllergens, true);
+      });
+
+      test('should parse both fields as false', () {
+        // Arrange
+        final json = {'showPrices': false, 'showAllergens': false};
+
+        // Act
+        final options = DisplayOptionsMapper.fromJson(json);
+
+        // Assert
+        expect(options.showPrices, false);
+        expect(options.showAllergens, false);
       });
     });
 
     group('toJson', () {
-      test('serializes correctly', () {
-        const options = MenuDisplayOptions(
-          showPrices: true,
-          showAllergens: false,
-        );
+      test('should serialize showPrices and showAllergens', () {
+        // Arrange
+        const options = MenuDisplayOptions(showPrices: true, showAllergens: false);
 
+        // Act
         final json = DisplayOptionsMapper.toJson(options);
 
+        // Assert
         expect(json['showPrices'], true);
         expect(json['showAllergens'], false);
       });
 
-      test('includes all fields even with defaults', () {
-        const options = MenuDisplayOptions(
-          showPrices: true,
-          showAllergens: true,
-        );
+      test('should always include both keys even when both are true', () {
+        // Arrange
+        const options = MenuDisplayOptions(showPrices: true, showAllergens: true);
 
+        // Act
         final json = DisplayOptionsMapper.toJson(options);
 
-        expect(json, containsPair('showPrices', true));
-        expect(json, containsPair('showAllergens', true));
+        // Assert
+        expect(json.containsKey('showPrices'), true);
+        expect(json.containsKey('showAllergens'), true);
+        expect(json, hasLength(2));
+      });
+
+      test('should always include both keys even when both are false', () {
+        // Arrange
+        const options = MenuDisplayOptions(showPrices: false, showAllergens: false);
+
+        // Act
+        final json = DisplayOptionsMapper.toJson(options);
+
+        // Assert
+        expect(json['showPrices'], false);
+        expect(json['showAllergens'], false);
       });
     });
 
     group('round-trip', () {
-      test('preserves data through fromJson/toJson cycle', () {
-        const original = MenuDisplayOptions(
-          showPrices: false,
-          showAllergens: true,
-        );
+      test('should preserve values through fromJson then toJson', () {
+        // Arrange
+        final original = {'showPrices': false, 'showAllergens': true};
 
-        final json = DisplayOptionsMapper.toJson(original);
-        final restored = DisplayOptionsMapper.fromJson(json);
+        // Act
+        final entity = DisplayOptionsMapper.fromJson(original);
+        final serialized = DisplayOptionsMapper.toJson(entity);
 
-        expect(restored, original);
+        // Assert
+        expect(serialized['showPrices'], false);
+        expect(serialized['showAllergens'], true);
+      });
+
+      test('should preserve default values through round-trip starting from empty JSON', () {
+        // Arrange
+        final empty = <String, dynamic>{};
+
+        // Act
+        final entity = DisplayOptionsMapper.fromJson(empty);
+        final serialized = DisplayOptionsMapper.toJson(entity);
+
+        // Assert
+        expect(serialized['showPrices'], true);
+        expect(serialized['showAllergens'], true);
       });
     });
   });

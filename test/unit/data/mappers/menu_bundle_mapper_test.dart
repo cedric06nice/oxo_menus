@@ -6,91 +6,236 @@ import 'package:oxo_menus/domain/repositories/menu_bundle_repository.dart';
 void main() {
   group('MenuBundleMapper', () {
     group('toEntity', () {
-      test('converts full DTO (with list of int menu_ids)', () {
+      test('should map all fields from a fully-populated DTO', () {
+        // Arrange
         final dto = MenuBundleDto({
-          'id': 7,
-          'name': 'SampleRestaurantMenu',
-          'menu_ids': [10, 20, 30],
-          'pdf_file_id': 'file-xyz',
-          'date_created': '2026-04-20T12:00:00Z',
-          'date_updated': '2026-04-20T13:00:00Z',
+          'id': '5',
+          'name': 'Summer Menus',
+          'menu_ids': [1, 2, 3],
+          'pdf_file_id': 'file-abc-123',
+          'date_created': '2025-03-01T09:00:00Z',
+          'date_updated': '2025-03-02T10:00:00Z',
         });
 
+        // Act
         final entity = MenuBundleMapper.toEntity(dto);
 
-        expect(entity.id, 7);
-        expect(entity.name, 'SampleRestaurantMenu');
-        expect(entity.menuIds, [10, 20, 30]);
-        expect(entity.pdfFileId, 'file-xyz');
-        expect(entity.dateCreated, DateTime.utc(2026, 4, 20, 12));
-        expect(entity.dateUpdated, DateTime.utc(2026, 4, 20, 13));
+        // Assert
+        expect(entity.id, 5);
+        expect(entity.name, 'Summer Menus');
+        expect(entity.menuIds, [1, 2, 3]);
+        expect(entity.pdfFileId, 'file-abc-123');
+        expect(entity.dateCreated, DateTime.parse('2025-03-01T09:00:00Z'));
+        expect(entity.dateUpdated, DateTime.parse('2025-03-02T10:00:00Z'));
       });
 
-      test('defaults to empty menu_ids when missing or null', () {
-        final dto = MenuBundleDto({'id': 7, 'name': 'Empty'});
+      test('should parse string id to int', () {
+        // Arrange
+        final dto = MenuBundleDto({'id': '42', 'name': 'Bundle', 'menu_ids': <int>[]});
 
+        // Act
         final entity = MenuBundleMapper.toEntity(dto);
 
+        // Assert
+        expect(entity.id, 42);
+      });
+
+      test('should parse a large integer id correctly', () {
+        // Arrange
+        final dto = MenuBundleDto({'id': '100', 'name': 'Bundle', 'menu_ids': <int>[]});
+
+        // Act
+        final entity = MenuBundleMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.id, 100);
+      });
+
+      test('should default menuIds to empty list when field is absent', () {
+        // Arrange
+        final dto = MenuBundleDto({'id': '1', 'name': 'Bundle'});
+
+        // Act
+        final entity = MenuBundleMapper.toEntity(dto);
+
+        // Assert
         expect(entity.menuIds, isEmpty);
+      });
+
+      test('should default menuIds to empty list when field is null', () {
+        // Arrange
+        final dto = MenuBundleDto({'id': '1', 'name': 'Bundle', 'menu_ids': null});
+
+        // Act
+        final entity = MenuBundleMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.menuIds, isEmpty);
+      });
+
+      test('should coerce string-encoded menu ids to int', () {
+        // Arrange
+        final dto = MenuBundleDto({
+          'id': '1',
+          'name': 'Bundle',
+          'menu_ids': ['10', '20', '30'],
+        });
+
+        // Act
+        final entity = MenuBundleMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.menuIds, [10, 20, 30]);
+      });
+
+      test('should coerce double menu ids to int', () {
+        // Arrange
+        final dto = MenuBundleDto({
+          'id': '1',
+          'name': 'Bundle',
+          'menu_ids': [1.0, 2.0],
+        });
+
+        // Act
+        final entity = MenuBundleMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.menuIds, [1, 2]);
+      });
+
+      test('should map null pdfFileId as null', () {
+        // Arrange
+        final dto = MenuBundleDto({'id': '1', 'name': 'Bundle', 'menu_ids': <int>[]});
+
+        // Act
+        final entity = MenuBundleMapper.toEntity(dto);
+
+        // Assert
         expect(entity.pdfFileId, isNull);
       });
 
-      test('coerces menu_ids stored as strings or doubles into int', () {
-        final dto = MenuBundleDto({
-          'id': 7,
-          'name': 'Mixed',
-          'menu_ids': ['10', 20.0, 30],
-        });
+      test('should map null dateCreated and dateUpdated as null', () {
+        // Arrange
+        final dto = MenuBundleDto({'id': '1', 'name': 'Bundle', 'menu_ids': <int>[]});
 
+        // Act
         final entity = MenuBundleMapper.toEntity(dto);
 
-        expect(entity.menuIds, [10, 20, 30]);
+        // Assert
+        expect(entity.dateCreated, isNull);
+        expect(entity.dateUpdated, isNull);
+      });
+
+      test('should handle a single-item menuIds list', () {
+        // Arrange
+        final dto = MenuBundleDto({'id': '1', 'name': 'Bundle', 'menu_ids': [99]});
+
+        // Act
+        final entity = MenuBundleMapper.toEntity(dto);
+
+        // Assert
+        expect(entity.menuIds, [99]);
       });
     });
 
     group('toCreatePayload', () {
-      test('emits name and menu_ids', () {
-        const input = CreateMenuBundleInput(name: 'Sample', menuIds: [1, 2]);
+      test('should emit name and menu_ids', () {
+        // Arrange
+        const input = CreateMenuBundleInput(name: 'New Bundle', menuIds: [4, 5, 6]);
 
-        final map = MenuBundleMapper.toCreatePayload(input);
+        // Act
+        final payload = MenuBundleMapper.toCreatePayload(input);
 
-        expect(map['name'], 'Sample');
-        expect(map['menu_ids'], [1, 2]);
+        // Assert
+        expect(payload['name'], 'New Bundle');
+        expect(payload['menu_ids'], [4, 5, 6]);
+        expect(payload, hasLength(2));
+      });
+
+      test('should emit empty menu_ids list when none provided', () {
+        // Arrange
+        const input = CreateMenuBundleInput(name: 'Empty Bundle');
+
+        // Act
+        final payload = MenuBundleMapper.toCreatePayload(input);
+
+        // Assert
+        expect(payload['menu_ids'], isEmpty);
       });
     });
 
     group('toUpdatePayload', () {
-      test('only includes non-null fields', () {
-        const input = UpdateMenuBundleInput(id: 1, name: 'Renamed');
-
-        final map = MenuBundleMapper.toUpdatePayload(input);
-
-        expect(map['name'], 'Renamed');
-        expect(map.containsKey('menu_ids'), false);
-        expect(map.containsKey('pdf_file_id'), false);
-      });
-
-      test('includes all fields when provided', () {
+      test('should include name, menu_ids, and pdfFileId when all provided', () {
+        // Arrange
         const input = UpdateMenuBundleInput(
           id: 1,
-          name: 'Renamed',
-          menuIds: [5, 6],
-          pdfFileId: 'file-abc',
+          name: 'Updated Bundle',
+          menuIds: [7, 8],
+          pdfFileId: 'new-file-id',
         );
 
-        final map = MenuBundleMapper.toUpdatePayload(input);
+        // Act
+        final payload = MenuBundleMapper.toUpdatePayload(input);
 
-        expect(map['name'], 'Renamed');
-        expect(map['menu_ids'], [5, 6]);
-        expect(map['pdf_file_id'], 'file-abc');
+        // Assert
+        expect(payload['name'], 'Updated Bundle');
+        expect(payload['menu_ids'], [7, 8]);
+        expect(payload['pdf_file_id'], 'new-file-id');
       });
 
-      test('returns empty map when only id is provided', () {
-        const input = UpdateMenuBundleInput(id: 1);
+      test('should omit name when name is null', () {
+        // Arrange
+        const input = UpdateMenuBundleInput(id: 1, menuIds: [1, 2]);
 
-        final map = MenuBundleMapper.toUpdatePayload(input);
+        // Act
+        final payload = MenuBundleMapper.toUpdatePayload(input);
 
-        expect(map, isEmpty);
+        // Assert
+        expect(payload.containsKey('name'), false);
+      });
+
+      test('should omit menu_ids when menuIds is null', () {
+        // Arrange
+        const input = UpdateMenuBundleInput(id: 1, name: 'Bundle');
+
+        // Act
+        final payload = MenuBundleMapper.toUpdatePayload(input);
+
+        // Assert
+        expect(payload.containsKey('menu_ids'), false);
+      });
+
+      test('should omit pdf_file_id when pdfFileId is null', () {
+        // Arrange
+        const input = UpdateMenuBundleInput(id: 1, name: 'Bundle');
+
+        // Act
+        final payload = MenuBundleMapper.toUpdatePayload(input);
+
+        // Assert
+        expect(payload.containsKey('pdf_file_id'), false);
+      });
+
+      test('should return empty map when only id is provided', () {
+        // Arrange
+        const input = UpdateMenuBundleInput(id: 99);
+
+        // Act
+        final payload = MenuBundleMapper.toUpdatePayload(input);
+
+        // Assert
+        expect(payload, isEmpty);
+      });
+
+      test('should never include id in payload', () {
+        // Arrange
+        const input = UpdateMenuBundleInput(id: 1, name: 'Bundle');
+
+        // Act
+        final payload = MenuBundleMapper.toUpdatePayload(input);
+
+        // Assert
+        expect(payload.containsKey('id'), false);
       });
     });
   });
