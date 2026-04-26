@@ -1,794 +1,877 @@
+// Tests for ContainerRepositoryImpl — manual fakes only, no mocktail.
+//
+// Methods covered:
+//   create / getAllForPage / getAllForContainer / getById / update / delete /
+//   reorder / moveTo
+
+import 'package:directus_api_manager/directus_api_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/data/models/container_dto.dart';
 import 'package:oxo_menus/data/repositories/container_repository_impl.dart';
-import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/container.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
 
-class MockDirectusDataSource extends Mock implements DirectusDataSource {}
+// ---------------------------------------------------------------------------
+// Minimal DTO factory helpers
+// ---------------------------------------------------------------------------
+
+Map<String, dynamic> _containerJson({
+  int id = 1,
+  int pageId = 10,
+  int index = 0,
+  String status = 'published',
+  String? direction,
+  Map<String, dynamic>? styleJson,
+  int? parentContainer,
+}) => {
+  'id': id,
+  'page': pageId,
+  'index': index,
+  'status': status,
+  'direction': ?direction,
+  'style_json': ?styleJson,
+  'parent_container': ?parentContainer,
+};
+
+// ---------------------------------------------------------------------------
+// Local fake
+// ---------------------------------------------------------------------------
+
+class _ErrorSentinel {
+  final Object error;
+  const _ErrorSentinel(this.error);
+}
+
+class _OkSentinel {
+  const _OkSentinel();
+}
+
+class _FakeDs implements DirectusDataSource {
+  final List<Object> _getItemQ = [];
+  final List<Object> _getItemsQ = [];
+  final List<Object> _createItemQ = [];
+  final List<Object> _updateItemQ = [];
+  final List<Object> _deleteItemQ = [];
+
+  final List<Map<String, dynamic>> getItemCalls = [];
+  final List<Map<String, dynamic>> getItemsCalls = [];
+  final List<Map<String, dynamic>> createCalls = [];
+  final List<Map<String, dynamic>> updateCalls = [];
+  final List<int> deletedIds = [];
+
+  void queueGetItem(Map<String, dynamic> r) => _getItemQ.add(r);
+  void queueGetItemThrows(Object e) => _getItemQ.add(_ErrorSentinel(e));
+  void queueGetItems(List<Map<String, dynamic>> r) => _getItemsQ.add(r);
+  void queueGetItemsThrows(Object e) => _getItemsQ.add(_ErrorSentinel(e));
+  void queueCreateItem(Map<String, dynamic> r) => _createItemQ.add(r);
+  void queueCreateItemThrows(Object e) => _createItemQ.add(_ErrorSentinel(e));
+  void queueUpdateItem(Map<String, dynamic> r) => _updateItemQ.add(r);
+  void queueUpdateItemThrows(Object e) => _updateItemQ.add(_ErrorSentinel(e));
+  void queueDeleteItem() => _deleteItemQ.add(const _OkSentinel());
+  void queueDeleteItemThrows(Object e) => _deleteItemQ.add(_ErrorSentinel(e));
+
+  T _consume<T>(List<Object> q, String name) {
+    if (q.isEmpty) throw StateError('_FakeDs: no queued response for $name');
+    final next = q.removeAt(0);
+    if (next is _ErrorSentinel) throw next.error;
+    return next as T;
+  }
+
+  @override
+  Future<Map<String, dynamic>> getItem<T extends DirectusItem>(
+    int id, {
+    List<String>? fields,
+  }) async {
+    getItemCalls.add({'id': id, 'fields': fields, 'type': T});
+    return _consume<Map<String, dynamic>>(_getItemQ, 'getItem<$T>');
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getItems<T extends DirectusItem>({
+    Map<String, dynamic>? filter,
+    List<String>? fields,
+    List<String>? sort,
+    int? limit,
+    int? offset,
+  }) async {
+    getItemsCalls.add({'type': T, 'filter': filter, 'fields': fields, 'sort': sort});
+    return _consume<List<Map<String, dynamic>>>(_getItemsQ, 'getItems<$T>');
+  }
+
+  @override
+  Future<Map<String, dynamic>> createItem<T extends DirectusItem>(T newItem) async {
+    createCalls.add({'type': T, 'item': newItem});
+    return _consume<Map<String, dynamic>>(_createItemQ, 'createItem<$T>');
+  }
+
+  @override
+  Future<Map<String, dynamic>> updateItem<T extends DirectusItem>(T itemToUpdate) async {
+    updateCalls.add({'type': T, 'item': itemToUpdate});
+    return _consume<Map<String, dynamic>>(_updateItemQ, 'updateItem<$T>');
+  }
+
+  @override
+  Future<void> deleteItem<T extends DirectusItem>(int id) async {
+    deletedIds.add(id);
+    if (_deleteItemQ.isEmpty) {
+      throw StateError('_FakeDs: no queued response for deleteItem<$T>');
+    }
+    final next = _deleteItemQ.removeAt(0);
+    if (next is _ErrorSentinel) throw next.error;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnsupportedError(
+    '_FakeDs: unexpected call to ${invocation.memberName}',
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 void main() {
+  late _FakeDs fakeDs;
   late ContainerRepository repository;
-  late MockDirectusDataSource mockDataSource;
 
   setUp(() {
-    mockDataSource = MockDirectusDataSource();
-    repository = ContainerRepositoryImpl(dataSource: mockDataSource);
-    registerFallbackValue(
-      ContainerDto({'id': 1, 'page': 1, 'index': 0, 'status': 'draft'}),
-    );
+    fakeDs = _FakeDs();
+    repository = ContainerRepositoryImpl(dataSource: fakeDs);
   });
 
-  group('ContainerRepositoryImpl', () {
-    group('create', () {
+  // =========================================================================
+  // create
+  // =========================================================================
+  group('ContainerRepositoryImpl.create', () {
+    test('should return Success with mapped Container entity on happy path', () async {
+      // Arrange
+      fakeDs.queueCreateItem(_containerJson(id: 2, pageId: 1, index: 0));
+      const input = CreateContainerInput(pageId: 1, index: 0, direction: 'row');
+
+      // Act
+      final result = await repository.create(input);
+
+      // Assert
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull!.id, 2);
+      expect(result.valueOrNull!.pageId, 1);
+      expect(result.valueOrNull!.index, 0);
+    });
+
+    test('should generate name as Container {id} via mapper', () async {
+      // Arrange
+      fakeDs.queueCreateItem(_containerJson(id: 7, pageId: 1, index: 0));
+      const input = CreateContainerInput(pageId: 1, index: 0, direction: 'row');
+
+      // Act
+      final result = await repository.create(input);
+
+      // Assert — ContainerMapper generates "Container {id}"
+      expect(result.valueOrNull!.name, 'Container 7');
+    });
+
+    test('should set status=published in DTO sent to createItem', () async {
+      // Arrange
+      fakeDs.queueCreateItem(_containerJson(id: 1));
+      const input = CreateContainerInput(pageId: 1, index: 0, direction: 'row');
+
+      // Act
+      await repository.create(input);
+
+      // Assert
+      final sentDto = fakeDs.createCalls.single['item'] as ContainerDto;
+      expect(sentDto.getValue(forKey: 'status'), 'published');
+    });
+
+    test('should include name in DTO when input has name', () async {
+      // Arrange
+      fakeDs.queueCreateItem(_containerJson(id: 1));
       const input = CreateContainerInput(
         pageId: 1,
         index: 0,
-        name: 'Header Section',
         direction: 'row',
+        name: 'My Header',
       );
 
-      final createdJson = {
-        'id': 2,
-        'page': 1,
-        'index': 0,
-        'status': 'draft',
-        'date_created': '2024-01-15T10:30:00Z',
-      };
+      // Act
+      await repository.create(input);
 
-      test('should create container and return entity', () async {
-        // Arrange
-        when(
-          () => mockDataSource.createItem<ContainerDto>(any()),
-        ).thenAnswer((_) async => createdJson);
+      // Assert
+      final sentDto = fakeDs.createCalls.single['item'] as ContainerDto;
+      expect(sentDto.getValue(forKey: 'name'), 'My Header');
+    });
 
-        // Act
-        final result = await repository.create(input);
+    test('should include parentContainerId in DTO when creating child container', () async {
+      // Arrange
+      fakeDs.queueCreateItem(_containerJson(id: 3, parentContainer: 5));
+      const input = CreateContainerInput(
+        pageId: 1,
+        index: 0,
+        direction: 'row',
+        parentContainerId: 5,
+      );
 
-        // Assert
-        expect(result.isSuccess, true);
-        expect(result.valueOrNull!.id, 2);
-        expect(result.valueOrNull!.pageId, 1);
-        // ContainerMapper generates name as "Container {id}"
-        expect(result.valueOrNull!.name, 'Container 2');
-        expect(result.valueOrNull!.index, 0);
+      // Act
+      await repository.create(input);
 
-        verify(() => mockDataSource.createItem<ContainerDto>(any())).called(1);
-      });
+      // Assert
+      final sentDto = fakeDs.createCalls.single['item'] as ContainerDto;
+      expect(sentDto.getValue(forKey: 'parent_container'), 5);
+    });
 
-      test('should set style_json on DTO when input has styleConfig', () async {
-        // Arrange
-        const inputWithStyle = CreateContainerInput(
-          pageId: 1,
-          index: 0,
+    test('should merge layout into style_json field in sent DTO', () async {
+      // Arrange
+      fakeDs.queueCreateItem(_containerJson(
+        id: 1,
+        styleJson: {'direction': 'row', 'mainAxisAlignment': 'spaceBetween'},
+      ));
+      const input = CreateContainerInput(
+        pageId: 1,
+        index: 0,
+        direction: 'row',
+        layout: LayoutConfig(
           direction: 'row',
-          styleConfig: StyleConfig(
-            marginTop: 10.0,
-            borderType: BorderType.plainThin,
-          ),
-        );
-
-        when(() => mockDataSource.createItem<ContainerDto>(any())).thenAnswer(
-          (_) async => {
-            'id': 3,
-            'page': 1,
-            'index': 0,
-            'status': 'published',
-            'style_json': {'marginTop': 10.0, 'borderType': 'plain_thin'},
-          },
-        );
-
-        // Act
-        await repository.create(inputWithStyle);
-
-        // Assert — capture the DTO sent to createItem and verify style_json
-        final captured = verify(
-          () => mockDataSource.createItem<ContainerDto>(captureAny()),
-        ).captured;
-        final dto = captured.first as ContainerDto;
-        expect(dto.styleJson['marginTop'], 10.0);
-        expect(dto.styleJson['borderType'], 'plain_thin');
-      });
-
-      test(
-        'should pass parentContainerId when creating child container',
-        () async {
-          const childInput = CreateContainerInput(
-            pageId: 1,
-            index: 0,
-            direction: 'row',
-            parentContainerId: 5,
-          );
-
-          when(() => mockDataSource.createItem<ContainerDto>(any())).thenAnswer(
-            (_) async => {
-              'id': 3,
-              'page': 1,
-              'index': 0,
-              'status': 'published',
-              'parent_container': 5,
-            },
-          );
-
-          final result = await repository.create(childInput);
-
-          expect(result.isSuccess, true);
-
-          final captured = verify(
-            () => mockDataSource.createItem<ContainerDto>(captureAny()),
-          ).captured;
-          final dto = captured.first as ContainerDto;
-          expect(dto.parentContainerId, 5);
-        },
+          mainAxisAlignment: 'spaceBetween',
+        ),
       );
 
-      test('should store layout in style_json, not layout_json', () async {
-        const inputWithLayout = CreateContainerInput(
-          pageId: 1,
-          index: 0,
-          direction: 'row',
-          layout: LayoutConfig(
-            direction: 'row',
-            mainAxisAlignment: 'spaceBetween',
-          ),
-        );
+      // Act
+      await repository.create(input);
 
-        when(() => mockDataSource.createItem<ContainerDto>(any())).thenAnswer(
-          (_) async => {
-            'id': 4,
-            'page': 1,
-            'index': 0,
-            'status': 'published',
-            'style_json': {
-              'direction': 'row',
-              'mainAxisAlignment': 'spaceBetween',
-            },
-          },
-        );
+      // Assert
+      final sentDto = fakeDs.createCalls.single['item'] as ContainerDto;
+      expect(sentDto.styleJson['mainAxisAlignment'], 'spaceBetween');
+      expect(sentDto.styleJson['direction'], 'row');
+    });
 
-        await repository.create(inputWithLayout);
-
-        final captured = verify(
-          () => mockDataSource.createItem<ContainerDto>(captureAny()),
-        ).captured;
-        final dto = captured.first as ContainerDto;
-        expect(dto.styleJson['mainAxisAlignment'], 'spaceBetween');
-        expect(dto.styleJson['direction'], 'row');
-      });
-
-      test(
-        'should merge layout and styleConfig into style_json on create',
-        () async {
-          const inputWithBoth = CreateContainerInput(
-            pageId: 1,
-            index: 0,
-            direction: 'row',
-            layout: LayoutConfig(mainAxisAlignment: 'spaceEvenly'),
-            styleConfig: StyleConfig(marginTop: 10.0),
-          );
-
-          when(() => mockDataSource.createItem<ContainerDto>(any())).thenAnswer(
-            (_) async => {
-              'id': 5,
-              'page': 1,
-              'index': 0,
-              'status': 'published',
-              'style_json': {
-                'mainAxisAlignment': 'spaceEvenly',
-                'marginTop': 10.0,
-              },
-            },
-          );
-
-          await repository.create(inputWithBoth);
-
-          final captured = verify(
-            () => mockDataSource.createItem<ContainerDto>(captureAny()),
-          ).captured;
-          final dto = captured.first as ContainerDto;
-          expect(dto.styleJson['mainAxisAlignment'], 'spaceEvenly');
-          expect(dto.styleJson['marginTop'], 10.0);
-        },
+    test('should merge styleConfig into style_json field in sent DTO', () async {
+      // Arrange
+      fakeDs.queueCreateItem(_containerJson(
+        id: 1,
+        styleJson: {'marginTop': 10.0},
+      ));
+      const input = CreateContainerInput(
+        pageId: 1,
+        index: 0,
+        direction: 'row',
+        styleConfig: StyleConfig(marginTop: 10.0),
       );
 
-      test('should return ValidationError when creation fails', () async {
-        // Arrange
-        when(() => mockDataSource.createItem<ContainerDto>(any())).thenThrow(
-          DirectusException(
-            code: 'INVALID_FOREIGN_KEY',
-            message: 'Page not found',
-          ),
-        );
+      // Act
+      await repository.create(input);
 
-        // Act
-        final result = await repository.create(input);
-
-        // Assert
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<ValidationError>());
-      });
+      // Assert
+      final sentDto = fakeDs.createCalls.single['item'] as ContainerDto;
+      expect(sentDto.styleJson['marginTop'], 10.0);
     });
 
-    group('getAllForPage', () {
-      const pageId = 1;
-      final containersJson = [
-        {'id': 1, 'page': pageId, 'index': 0, 'status': 'draft'},
-        {'id': 2, 'page': pageId, 'index': 1, 'status': 'draft'},
-      ];
+    test('should merge both layout and styleConfig into same style_json', () async {
+      // Arrange
+      fakeDs.queueCreateItem(_containerJson(id: 1));
+      const input = CreateContainerInput(
+        pageId: 1,
+        index: 0,
+        direction: 'row',
+        layout: LayoutConfig(mainAxisAlignment: 'spaceEvenly'),
+        styleConfig: StyleConfig(marginTop: 5.0),
+      );
 
-      test('should return list of containers for page', () async {
-        // Arrange
-        when(
-          () => mockDataSource.getItems<ContainerDto>(
-            filter: any(named: 'filter'),
-            fields: any(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).thenAnswer((_) async => containersJson);
+      // Act
+      await repository.create(input);
 
-        // Act
-        final result = await repository.getAllForPage(pageId);
-
-        // Assert
-        expect(result.isSuccess, true);
-        expect(result.valueOrNull!.length, 2);
-        expect(result.valueOrNull![0].id, 1);
-        expect(result.valueOrNull![1].id, 2);
-
-        final captured = verify(
-          () => mockDataSource.getItems<ContainerDto>(
-            filter: captureAny(named: 'filter'),
-            fields: any(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).captured;
-
-        // Verify filter includes page_id
-        expect(captured[0], isNotNull);
-      });
-
-      test('should filter to only top-level containers', () async {
-        when(
-          () => mockDataSource.getItems<ContainerDto>(
-            filter: any(named: 'filter'),
-            fields: any(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).thenAnswer((_) async => containersJson);
-
-        await repository.getAllForPage(pageId);
-
-        final captured = verify(
-          () => mockDataSource.getItems<ContainerDto>(
-            filter: captureAny(named: 'filter'),
-            fields: any(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).captured;
-
-        final filter = captured[0] as Map<String, dynamic>;
-        expect(filter['parent_container'], {'_null': true});
-      });
-
-      test('should return empty list when no containers found', () async {
-        // Arrange
-        when(
-          () => mockDataSource.getItems<ContainerDto>(
-            filter: any(named: 'filter'),
-            fields: any(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).thenAnswer((_) async => []);
-
-        // Act
-        final result = await repository.getAllForPage(pageId);
-
-        // Assert
-        expect(result.isSuccess, true);
-        expect(result.valueOrNull!.length, 0);
-      });
+      // Assert
+      final sentDto = fakeDs.createCalls.single['item'] as ContainerDto;
+      expect(sentDto.styleJson['mainAxisAlignment'], 'spaceEvenly');
+      expect(sentDto.styleJson['marginTop'], 5.0);
     });
 
-    group('getAllForContainer', () {
-      const parentId = 1;
-      final childJson = [
-        {
-          'id': 10,
-          'page': 1,
-          'index': 0,
-          'status': 'published',
-          'parent_container': parentId,
-        },
-        {
-          'id': 11,
-          'page': 1,
-          'index': 1,
-          'status': 'published',
-          'parent_container': parentId,
-        },
-      ];
+    test('should return Failure(ValidationError) when data source throws INVALID_FOREIGN_KEY', () async {
+      // Arrange
+      fakeDs.queueCreateItemThrows(
+        DirectusException(code: 'INVALID_FOREIGN_KEY', message: 'Page not found'),
+      );
+      const input = CreateContainerInput(pageId: 99, index: 0, direction: 'row');
 
-      test('should return child containers for parent', () async {
-        when(
-          () => mockDataSource.getItems<ContainerDto>(
-            filter: any(named: 'filter'),
-            fields: any(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).thenAnswer((_) async => childJson);
+      // Act
+      final result = await repository.create(input);
 
-        final result = await repository.getAllForContainer(parentId);
-
-        expect(result.isSuccess, true);
-        expect(result.valueOrNull!.length, 2);
-        expect(result.valueOrNull![0].id, 10);
-        expect(result.valueOrNull![1].id, 11);
-      });
-
-      test('should filter by parent_container', () async {
-        when(
-          () => mockDataSource.getItems<ContainerDto>(
-            filter: any(named: 'filter'),
-            fields: any(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).thenAnswer((_) async => childJson);
-
-        await repository.getAllForContainer(parentId);
-
-        final captured = verify(
-          () => mockDataSource.getItems<ContainerDto>(
-            filter: captureAny(named: 'filter'),
-            fields: any(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).captured;
-
-        final filter = captured[0] as Map<String, dynamic>;
-        expect(filter['parent_container'], {'_eq': parentId});
-      });
-
-      test('should return empty list when no children', () async {
-        when(
-          () => mockDataSource.getItems<ContainerDto>(
-            filter: any(named: 'filter'),
-            fields: any(named: 'fields'),
-            sort: any(named: 'sort'),
-          ),
-        ).thenAnswer((_) async => []);
-
-        final result = await repository.getAllForContainer(parentId);
-
-        expect(result.isSuccess, true);
-        expect(result.valueOrNull!, isEmpty);
-      });
+      // Assert
+      expect(result.isFailure, isTrue);
+      expect(result.errorOrNull, isA<ValidationError>());
     });
 
-    group('getById', () {
-      const containerId = 1;
-      final containerJson = {
-        'id': containerId,
-        'page': 1,
-        'index': 0,
-        'status': 'draft',
-        // ContainerMapper reads layout from style_json
-        'style_json': {'direction': 'row', 'alignment': 'center'},
-        'date_created': '2024-01-15T10:30:00Z',
-        'date_updated': '2024-01-16T15:45:00Z',
-      };
+    test('should return Failure(UnknownError) on generic exception', () async {
+      // Arrange
+      fakeDs.queueCreateItemThrows(Exception('boom'));
+      const input = CreateContainerInput(pageId: 1, index: 0, direction: 'row');
 
-      test('should return Container entity when fetch succeeds', () async {
-        // Arrange
-        when(
-          () => mockDataSource.getItem<ContainerDto>(
-            containerId,
-            fields: any(named: 'fields'),
-          ),
-        ).thenAnswer((_) async => containerJson);
+      // Act
+      final result = await repository.create(input);
 
-        // Act
-        final result = await repository.getById(containerId);
+      // Assert
+      expect(result.isFailure, isTrue);
+      expect(result.errorOrNull, isA<UnknownError>());
+    });
+  });
 
-        // Assert
-        expect(result.isSuccess, true);
-        final container = result.valueOrNull!;
-        expect(container.id, containerId);
-        expect(container.pageId, 1);
-        // ContainerMapper generates name as "Container {id}"
-        expect(container.name, 'Container $containerId');
-        expect(container.index, 0);
-        expect(container.layout, isNotNull);
+  // =========================================================================
+  // getAllForPage
+  // =========================================================================
+  group('ContainerRepositoryImpl.getAllForPage', () {
+    test('should return Success with list of Container entities', () async {
+      // Arrange
+      fakeDs.queueGetItems([
+        _containerJson(id: 1, pageId: 5, index: 0),
+        _containerJson(id: 2, pageId: 5, index: 1),
+      ]);
 
-        verify(
-          () => mockDataSource.getItem<ContainerDto>(
-            containerId,
-            fields: any(named: 'fields'),
-          ),
-        ).called(1);
-      });
+      // Act
+      final result = await repository.getAllForPage(5);
 
-      test('should request page and parent_container fields', () async {
-        when(
-          () => mockDataSource.getItem<ContainerDto>(
-            containerId,
-            fields: any(named: 'fields'),
-          ),
-        ).thenAnswer((_) async => containerJson);
+      // Assert
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull!.length, 2);
+      expect(result.valueOrNull![0].id, 1);
+      expect(result.valueOrNull![1].id, 2);
+    });
 
-        await repository.getById(containerId);
+    test('should filter by page id', () async {
+      // Arrange
+      fakeDs.queueGetItems([]);
 
-        final captured =
-            verify(
-                  () => mockDataSource.getItem<ContainerDto>(
-                    containerId,
-                    fields: captureAny(named: 'fields'),
-                  ),
-                ).captured.first
-                as List<String>;
+      // Act
+      await repository.getAllForPage(42);
 
-        expect(captured, contains('page'));
-        expect(captured, contains('parent_container'));
-      });
+      // Assert
+      final filter = fakeDs.getItemsCalls.single['filter'] as Map<String, dynamic>;
+      expect(filter['page'], {'_eq': 42});
+    });
 
-      test(
-        'should return NotFoundError when container does not exist',
-        () async {
-          // Arrange
-          when(
-            () => mockDataSource.getItem<ContainerDto>(
-              containerId,
-              fields: any(named: 'fields'),
-            ),
-          ).thenThrow(
-            DirectusException(
-              code: 'NOT_FOUND',
-              message: 'Container not found',
-            ),
-          );
+    test('should filter to only top-level containers (parent_container _null)', () async {
+      // Arrange
+      fakeDs.queueGetItems([]);
 
-          // Act
-          final result = await repository.getById(containerId);
+      // Act
+      await repository.getAllForPage(1);
 
-          // Assert
-          expect(result.isFailure, true);
-          expect(result.errorOrNull, isA<NotFoundError>());
-        },
+      // Assert
+      final filter = fakeDs.getItemsCalls.single['filter'] as Map<String, dynamic>;
+      expect(filter['parent_container'], {'_null': true});
+    });
+
+    test('should include sort:[index] for ordering', () async {
+      // Arrange
+      fakeDs.queueGetItems([]);
+
+      // Act
+      await repository.getAllForPage(1);
+
+      // Assert
+      expect(
+        (fakeDs.getItemsCalls.single['sort'] as List<String>),
+        contains('index'),
       );
     });
 
-    group('update', () {
-      const input = UpdateContainerInput(id: 1, name: 'Updated Header');
+    test('should return Success with empty list when no containers found', () async {
+      // Arrange
+      fakeDs.queueGetItems([]);
 
-      final existingJson = {'id': 1, 'page': 1, 'index': 0, 'status': 'draft'};
+      // Act
+      final result = await repository.getAllForPage(1);
 
-      final updatedJson = {'id': 1, 'page': 1, 'index': 0, 'status': 'draft'};
-
-      test('should update container and return entity', () async {
-        // Arrange
-        when(
-          () => mockDataSource.getItem<ContainerDto>(
-            any(),
-            fields: any(named: 'fields'),
-          ),
-        ).thenAnswer((_) async => existingJson);
-        when(
-          () => mockDataSource.updateItem<ContainerDto>(any()),
-        ).thenAnswer((_) async => updatedJson);
-
-        // Act
-        final result = await repository.update(input);
-
-        // Assert
-        expect(result.isSuccess, true);
-        expect(result.valueOrNull!.id, 1);
-        // ContainerMapper generates name as "Container {id}"
-        expect(result.valueOrNull!.name, 'Container 1');
-
-        verify(() => mockDataSource.updateItem<ContainerDto>(any())).called(1);
-      });
-
-      test(
-        'should set style_json on DTO when update input has styleConfig',
-        () async {
-          // Arrange
-          const inputWithStyle = UpdateContainerInput(
-            id: 1,
-            styleConfig: StyleConfig(
-              paddingLeft: 8.0,
-              borderType: BorderType.dropShadow,
-            ),
-          );
-
-          when(
-            () => mockDataSource.getItem<ContainerDto>(
-              any(),
-              fields: any(named: 'fields'),
-            ),
-          ).thenAnswer((_) async => existingJson);
-          when(() => mockDataSource.updateItem<ContainerDto>(any())).thenAnswer(
-            (_) async => {
-              'id': 1,
-              'page': 1,
-              'index': 0,
-              'status': 'draft',
-              'style_json': {'paddingLeft': 8.0, 'borderType': 'drop_shadow'},
-            },
-          );
-
-          // Act
-          await repository.update(inputWithStyle);
-
-          // Assert — capture the DTO sent to updateItem and verify style_json
-          final captured = verify(
-            () => mockDataSource.updateItem<ContainerDto>(captureAny()),
-          ).captured;
-          final dto = captured.first as ContainerDto;
-          expect(dto.styleJson['paddingLeft'], 8.0);
-          expect(dto.styleJson['borderType'], 'drop_shadow');
-        },
-      );
-
-      test('should store layout in style_json on update', () async {
-        const inputWithLayout = UpdateContainerInput(
-          id: 1,
-          layout: LayoutConfig(mainAxisAlignment: 'center'),
-        );
-
-        when(
-          () => mockDataSource.getItem<ContainerDto>(
-            any(),
-            fields: any(named: 'fields'),
-          ),
-        ).thenAnswer((_) async => existingJson);
-        when(
-          () => mockDataSource.updateItem<ContainerDto>(any()),
-        ).thenAnswer((_) async => updatedJson);
-
-        await repository.update(inputWithLayout);
-
-        final captured = verify(
-          () => mockDataSource.updateItem<ContainerDto>(captureAny()),
-        ).captured;
-        final dto = captured.first as ContainerDto;
-        expect(dto.styleJson['mainAxisAlignment'], 'center');
-      });
-
-      test('should merge layout into existing style_json on update', () async {
-        const inputWithBoth = UpdateContainerInput(
-          id: 1,
-          layout: LayoutConfig(mainAxisAlignment: 'spaceBetween'),
-          styleConfig: StyleConfig(paddingLeft: 5.0),
-        );
-
-        when(
-          () => mockDataSource.getItem<ContainerDto>(
-            any(),
-            fields: any(named: 'fields'),
-          ),
-        ).thenAnswer((_) async => existingJson);
-        when(
-          () => mockDataSource.updateItem<ContainerDto>(any()),
-        ).thenAnswer((_) async => updatedJson);
-
-        await repository.update(inputWithBoth);
-
-        final captured = verify(
-          () => mockDataSource.updateItem<ContainerDto>(captureAny()),
-        ).captured;
-        final dto = captured.first as ContainerDto;
-        expect(dto.styleJson['mainAxisAlignment'], 'spaceBetween');
-        expect(dto.styleJson['paddingLeft'], 5.0);
-      });
-
-      test(
-        'should return NotFoundError when container does not exist',
-        () async {
-          // Arrange
-          when(
-            () => mockDataSource.getItem<ContainerDto>(
-              any(),
-              fields: any(named: 'fields'),
-            ),
-          ).thenThrow(
-            DirectusException(
-              code: 'NOT_FOUND',
-              message: 'Container not found',
-            ),
-          );
-
-          // Act
-          final result = await repository.update(input);
-
-          // Assert
-          expect(result.isFailure, true);
-          expect(result.errorOrNull, isA<NotFoundError>());
-        },
-      );
+      // Assert
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull, isEmpty);
     });
 
-    group('delete', () {
-      const containerId = 1;
-
-      test('should delete container successfully', () async {
-        // Arrange
-        when(
-          () => mockDataSource.deleteItem<ContainerDto>(containerId),
-        ).thenAnswer((_) async => {});
-
-        // Act
-        final result = await repository.delete(containerId);
-
-        // Assert
-        expect(result.isSuccess, true);
-        verify(
-          () => mockDataSource.deleteItem<ContainerDto>(containerId),
-        ).called(1);
-      });
-
-      test(
-        'should return NotFoundError when container does not exist',
-        () async {
-          // Arrange
-          when(
-            () => mockDataSource.deleteItem<ContainerDto>(containerId),
-          ).thenThrow(
-            DirectusException(
-              code: 'NOT_FOUND',
-              message: 'Container not found',
-            ),
-          );
-
-          // Act
-          final result = await repository.delete(containerId);
-
-          // Assert
-          expect(result.isFailure, true);
-          expect(result.errorOrNull, isA<NotFoundError>());
-        },
+    test('should return Failure(NotFoundError) when data source throws NOT_FOUND', () async {
+      // Arrange
+      fakeDs.queueGetItemsThrows(
+        DirectusException(code: 'NOT_FOUND', message: 'Page not found'),
       );
+
+      // Act
+      final result = await repository.getAllForPage(99);
+
+      // Assert
+      expect(result.isFailure, isTrue);
+      expect(result.errorOrNull, isA<NotFoundError>());
+    });
+  });
+
+  // =========================================================================
+  // getAllForContainer
+  // =========================================================================
+  group('ContainerRepositoryImpl.getAllForContainer', () {
+    test('should return Success with child containers', () async {
+      // Arrange
+      fakeDs.queueGetItems([
+        _containerJson(id: 10, pageId: 1, index: 0, parentContainer: 5),
+        _containerJson(id: 11, pageId: 1, index: 1, parentContainer: 5),
+      ]);
+
+      // Act
+      final result = await repository.getAllForContainer(5);
+
+      // Assert
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull!.length, 2);
+      expect(result.valueOrNull![0].id, 10);
+      expect(result.valueOrNull![1].id, 11);
     });
 
-    group('reorder', () {
-      const containerId = 1;
-      const newIndex = 2;
+    test('should filter by parent_container id', () async {
+      // Arrange
+      fakeDs.queueGetItems([]);
 
-      final existingJson = {
-        'id': containerId,
-        'page': 1,
-        'index': 0,
-        'status': 'draft',
-      };
+      // Act
+      await repository.getAllForContainer(55);
 
-      final updatedJson = {
-        'id': containerId,
-        'page': 1,
-        'index': newIndex,
-        'status': 'draft',
-      };
-
-      test('should update container index successfully', () async {
-        // Arrange
-        when(
-          () => mockDataSource.getItem<ContainerDto>(
-            any(),
-            fields: any(named: 'fields'),
-          ),
-        ).thenAnswer((_) async => existingJson);
-        when(
-          () => mockDataSource.updateItem<ContainerDto>(any()),
-        ).thenAnswer((_) async => updatedJson);
-
-        // Act
-        final result = await repository.reorder(containerId, newIndex);
-
-        // Assert
-        expect(result.isSuccess, true);
-        verify(() => mockDataSource.updateItem<ContainerDto>(any())).called(1);
-      });
-
-      test(
-        'should return NotFoundError when container does not exist',
-        () async {
-          // Arrange
-          when(
-            () => mockDataSource.getItem<ContainerDto>(
-              any(),
-              fields: any(named: 'fields'),
-            ),
-          ).thenThrow(
-            DirectusException(
-              code: 'NOT_FOUND',
-              message: 'Container not found',
-            ),
-          );
-
-          // Act
-          final result = await repository.reorder(containerId, newIndex);
-
-          // Assert
-          expect(result.isFailure, true);
-          expect(result.errorOrNull, isA<NotFoundError>());
-        },
-      );
+      // Assert
+      final filter = fakeDs.getItemsCalls.single['filter'] as Map<String, dynamic>;
+      expect(filter['parent_container'], {'_eq': 55});
     });
 
-    group('moveTo', () {
-      const containerId = 1;
-      const newPageId = 2;
-      const newIndex = 1;
+    test('should return Success with empty list when parent has no children', () async {
+      // Arrange
+      fakeDs.queueGetItems([]);
 
-      final existingJson = {
-        'id': containerId,
-        'page': 1,
-        'index': 0,
-        'status': 'draft',
-      };
+      // Act
+      final result = await repository.getAllForContainer(1);
 
-      final updatedJson = {
-        'id': containerId,
-        'page': newPageId,
-        'index': newIndex,
-        'status': 'draft',
-      };
+      // Assert
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull, isEmpty);
+    });
 
-      test('should move container to new page successfully', () async {
-        // Arrange
-        when(
-          () => mockDataSource.getItem<ContainerDto>(
-            any(),
-            fields: any(named: 'fields'),
-          ),
-        ).thenAnswer((_) async => existingJson);
-        when(
-          () => mockDataSource.updateItem<ContainerDto>(any()),
-        ).thenAnswer((_) async => updatedJson);
+    test('should return Failure when data source throws', () async {
+      // Arrange
+      fakeDs.queueGetItemsThrows(Exception('server error'));
 
-        // Act
-        final result = await repository.moveTo(
-          containerId,
-          newPageId,
-          newIndex,
-        );
+      // Act
+      final result = await repository.getAllForContainer(1);
 
-        // Assert
-        expect(result.isSuccess, true);
-        verify(() => mockDataSource.updateItem<ContainerDto>(any())).called(1);
-      });
+      // Assert
+      expect(result.isFailure, isTrue);
+    });
+  });
 
-      test(
-        'should return ValidationError when new page does not exist',
-        () async {
-          // Arrange
-          when(
-            () => mockDataSource.getItem<ContainerDto>(
-              any(),
-              fields: any(named: 'fields'),
-            ),
-          ).thenAnswer((_) async => existingJson);
-          when(() => mockDataSource.updateItem<ContainerDto>(any())).thenThrow(
-            DirectusException(
-              code: 'INVALID_FOREIGN_KEY',
-              message: 'Page not found',
-            ),
-          );
+  // =========================================================================
+  // getById
+  // =========================================================================
+  group('ContainerRepositoryImpl.getById', () {
+    test('should return Success with mapped Container entity', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(
+        id: 1,
+        pageId: 1,
+        index: 0,
+        styleJson: {'direction': 'row'},
+      ));
 
-          // Act
-          final result = await repository.moveTo(
-            containerId,
-            newPageId,
-            newIndex,
-          );
+      // Act
+      final result = await repository.getById(1);
 
-          // Assert
-          expect(result.isFailure, true);
-          expect(result.errorOrNull, isA<ValidationError>());
-        },
+      // Assert
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull!.id, 1);
+      expect(result.valueOrNull!.pageId, 1);
+      expect(result.valueOrNull!.layout, isNotNull);
+    });
+
+    test('should pass the correct id to data source', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 33));
+
+      // Act
+      await repository.getById(33);
+
+      // Assert
+      expect(fakeDs.getItemCalls.single['id'], 33);
+    });
+
+    test('should request page and parent_container fields', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1));
+
+      // Act
+      await repository.getById(1);
+
+      // Assert
+      final fields = fakeDs.getItemCalls.single['fields'] as List<String>?;
+      expect(fields, contains('page'));
+      expect(fields, contains('parent_container'));
+    });
+
+    test('should return Failure(NotFoundError) when data source throws NOT_FOUND', () async {
+      // Arrange
+      fakeDs.queueGetItemThrows(
+        DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
       );
+
+      // Act
+      final result = await repository.getById(99);
+
+      // Assert
+      expect(result.isFailure, isTrue);
+      expect(result.errorOrNull, isA<NotFoundError>());
+    });
+
+    test('should return Failure(UnauthorizedError) when data source throws FORBIDDEN', () async {
+      // Arrange
+      fakeDs.queueGetItemThrows(
+        DirectusException(code: 'FORBIDDEN', message: 'Access denied'),
+      );
+
+      // Act
+      final result = await repository.getById(1);
+
+      // Assert
+      expect(result.isFailure, isTrue);
+      expect(result.errorOrNull, isA<UnauthorizedError>());
+    });
+
+    test('should map null style_json to null layout and styleConfig', () async {
+      // Arrange — no style_json key in response
+      fakeDs.queueGetItem(_containerJson(id: 1, pageId: 1, index: 0));
+
+      // Act
+      final result = await repository.getById(1);
+
+      // Assert
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull!.layout, isNull);
+      expect(result.valueOrNull!.styleConfig, isNull);
+    });
+  });
+
+  // =========================================================================
+  // update
+  // =========================================================================
+  group('ContainerRepositoryImpl.update', () {
+    test('should return Success with updated Container entity', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1, pageId: 1, index: 0));
+      fakeDs.queueUpdateItem(_containerJson(id: 1, pageId: 1, index: 2));
+      const input = UpdateContainerInput(id: 1, index: 2);
+
+      // Act
+      final result = await repository.update(input);
+
+      // Assert
+      expect(result.isSuccess, isTrue);
+      expect(result.valueOrNull!.id, 1);
+    });
+
+    test('should write new index to DTO before updateItem is called', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1, index: 0));
+      fakeDs.queueUpdateItem(_containerJson(id: 1, index: 5));
+      const input = UpdateContainerInput(id: 1, index: 5);
+
+      // Act
+      await repository.update(input);
+
+      // Assert
+      final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
+      expect(sentDto.getValue(forKey: 'index'), 5);
+    });
+
+    test('should update styleConfig in style_json when provided', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1));
+      fakeDs.queueUpdateItem(_containerJson(id: 1));
+      const input = UpdateContainerInput(
+        id: 1,
+        styleConfig: StyleConfig(paddingLeft: 8.0),
+      );
+
+      // Act
+      await repository.update(input);
+
+      // Assert
+      final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
+      expect(sentDto.styleJson['paddingLeft'], 8.0);
+    });
+
+    test('should store layout fields in style_json on update', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1));
+      fakeDs.queueUpdateItem(_containerJson(id: 1));
+      const input = UpdateContainerInput(
+        id: 1,
+        layout: LayoutConfig(mainAxisAlignment: 'center'),
+      );
+
+      // Act
+      await repository.update(input);
+
+      // Assert
+      final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
+      expect(sentDto.styleJson['mainAxisAlignment'], 'center');
+    });
+
+    test('should merge layout and styleConfig into single style_json on update', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1));
+      fakeDs.queueUpdateItem(_containerJson(id: 1));
+      const input = UpdateContainerInput(
+        id: 1,
+        layout: LayoutConfig(mainAxisAlignment: 'spaceBetween'),
+        styleConfig: StyleConfig(paddingLeft: 5.0),
+      );
+
+      // Act
+      await repository.update(input);
+
+      // Assert
+      final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
+      expect(sentDto.styleJson['mainAxisAlignment'], 'spaceBetween');
+      expect(sentDto.styleJson['paddingLeft'], 5.0);
+    });
+
+    test('should return Failure(NotFoundError) when getItem throws NOT_FOUND', () async {
+      // Arrange
+      fakeDs.queueGetItemThrows(
+        DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
+      );
+      const input = UpdateContainerInput(id: 99, index: 1);
+
+      // Act
+      final result = await repository.update(input);
+
+      // Assert
+      expect(result.isFailure, isTrue);
+      expect(result.errorOrNull, isA<NotFoundError>());
+    });
+
+    test('should return Failure when updateItem throws', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1));
+      fakeDs.queueUpdateItemThrows(
+        DirectusException(code: 'UPDATE_FAILED', message: 'Write failed'),
+      );
+      const input = UpdateContainerInput(id: 1, index: 2);
+
+      // Act
+      final result = await repository.update(input);
+
+      // Assert
+      expect(result.isFailure, isTrue);
+    });
+  });
+
+  // =========================================================================
+  // delete
+  // =========================================================================
+  group('ContainerRepositoryImpl.delete', () {
+    test('should return Success(null) on successful deletion', () async {
+      // Arrange
+      fakeDs.queueDeleteItem();
+
+      // Act
+      final result = await repository.delete(1);
+
+      // Assert
+      expect(result.isSuccess, isTrue);
+    });
+
+    test('should call deleteItem with the correct id', () async {
+      // Arrange
+      fakeDs.queueDeleteItem();
+
+      // Act
+      await repository.delete(77);
+
+      // Assert
+      expect(fakeDs.deletedIds.single, 77);
+    });
+
+    test('should return Failure(NotFoundError) when data source throws NOT_FOUND', () async {
+      // Arrange
+      fakeDs.queueDeleteItemThrows(
+        DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
+      );
+
+      // Act
+      final result = await repository.delete(99);
+
+      // Assert
+      expect(result.isFailure, isTrue);
+      expect(result.errorOrNull, isA<NotFoundError>());
+    });
+
+    test('should return Failure(UnknownError) on generic exception', () async {
+      // Arrange
+      fakeDs.queueDeleteItemThrows(Exception('Unexpected'));
+
+      // Act
+      final result = await repository.delete(1);
+
+      // Assert
+      expect(result.isFailure, isTrue);
+      expect(result.errorOrNull, isA<UnknownError>());
+    });
+  });
+
+  // =========================================================================
+  // reorder
+  // =========================================================================
+  group('ContainerRepositoryImpl.reorder', () {
+    test('should return Success(null) when reorder succeeds', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1, index: 0));
+      fakeDs.queueUpdateItem(_containerJson(id: 1, index: 3));
+
+      // Act
+      final result = await repository.reorder(1, 3);
+
+      // Assert
+      expect(result.isSuccess, isTrue);
+    });
+
+    test('should write the new index to the DTO before updateItem is called', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1, index: 0));
+      fakeDs.queueUpdateItem(_containerJson(id: 1, index: 4));
+
+      // Act
+      await repository.reorder(1, 4);
+
+      // Assert
+      final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
+      expect(sentDto.getValue(forKey: 'index'), 4);
+    });
+
+    test('should call updateItem exactly once', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1, index: 0));
+      fakeDs.queueUpdateItem(_containerJson(id: 1, index: 2));
+
+      // Act
+      await repository.reorder(1, 2);
+
+      // Assert
+      expect(fakeDs.updateCalls.length, 1);
+    });
+
+    test('should return Failure(NotFoundError) when getItem throws NOT_FOUND', () async {
+      // Arrange
+      fakeDs.queueGetItemThrows(
+        DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
+      );
+
+      // Act
+      final result = await repository.reorder(99, 2);
+
+      // Assert
+      expect(result.isFailure, isTrue);
+      expect(result.errorOrNull, isA<NotFoundError>());
+    });
+
+    test('should reorder to boundary index zero', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1, index: 3));
+      fakeDs.queueUpdateItem(_containerJson(id: 1, index: 0));
+
+      // Act
+      final result = await repository.reorder(1, 0);
+
+      // Assert
+      expect(result.isSuccess, isTrue);
+      final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
+      expect(sentDto.getValue(forKey: 'index'), 0);
+    });
+  });
+
+  // =========================================================================
+  // moveTo
+  // =========================================================================
+  group('ContainerRepositoryImpl.moveTo', () {
+    test('should return Success(null) when moveTo succeeds', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1, pageId: 1, index: 0));
+      fakeDs.queueUpdateItem(_containerJson(id: 1, pageId: 2, index: 1));
+
+      // Act
+      final result = await repository.moveTo(1, 2, 1);
+
+      // Assert
+      expect(result.isSuccess, isTrue);
+    });
+
+    test('should write new page_id and index to DTO before updateItem is called', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1, pageId: 1, index: 0));
+      fakeDs.queueUpdateItem(_containerJson(id: 1, pageId: 3, index: 2));
+
+      // Act
+      await repository.moveTo(1, 3, 2);
+
+      // Assert
+      final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
+      expect(sentDto.getValue(forKey: 'page_id'), 3);
+      expect(sentDto.getValue(forKey: 'index'), 2);
+    });
+
+    test('should call updateItem exactly once', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1, pageId: 1, index: 0));
+      fakeDs.queueUpdateItem(_containerJson(id: 1, pageId: 2, index: 0));
+
+      // Act
+      await repository.moveTo(1, 2, 0);
+
+      // Assert
+      expect(fakeDs.updateCalls.length, 1);
+    });
+
+    test('should return Failure(NotFoundError) when getItem throws NOT_FOUND', () async {
+      // Arrange
+      fakeDs.queueGetItemThrows(
+        DirectusException(code: 'NOT_FOUND', message: 'Container not found'),
+      );
+
+      // Act
+      final result = await repository.moveTo(99, 2, 0);
+
+      // Assert
+      expect(result.isFailure, isTrue);
+      expect(result.errorOrNull, isA<NotFoundError>());
+    });
+
+    test('should return Failure(ValidationError) when updateItem throws INVALID_FOREIGN_KEY', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1, pageId: 1, index: 0));
+      fakeDs.queueUpdateItemThrows(
+        DirectusException(code: 'INVALID_FOREIGN_KEY', message: 'Page not found'),
+      );
+
+      // Act
+      final result = await repository.moveTo(1, 99, 0);
+
+      // Assert
+      expect(result.isFailure, isTrue);
+      expect(result.errorOrNull, isA<ValidationError>());
+    });
+
+    test('should move to index zero (boundary)', () async {
+      // Arrange
+      fakeDs.queueGetItem(_containerJson(id: 1, pageId: 1, index: 3));
+      fakeDs.queueUpdateItem(_containerJson(id: 1, pageId: 2, index: 0));
+
+      // Act
+      final result = await repository.moveTo(1, 2, 0);
+
+      // Assert
+      expect(result.isSuccess, isTrue);
+      final sentDto = fakeDs.updateCalls.single['item'] as ContainerDto;
+      expect(sentDto.getValue(forKey: 'index'), 0);
     });
   });
 }

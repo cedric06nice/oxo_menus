@@ -3,1010 +3,1183 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/data/repositories/connectivity_repository_impl.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/domain/repositories/connectivity_repository.dart';
 
-class MockConnectivity extends Mock implements Connectivity {}
+// ---------------------------------------------------------------------------
+// Manual fake for Connectivity (connectivity_plus)
+// ---------------------------------------------------------------------------
+
+/// Fake implementation of [Connectivity] that avoids real platform channels.
+///
+/// Tests drive connectivity change events by calling [emitChange] or by
+/// directly using the [changeController] stream.
+class FakeConnectivity implements Connectivity {
+  final StreamController<List<ConnectivityResult>> changeController =
+      StreamController<List<ConnectivityResult>>.broadcast();
+
+  List<ConnectivityResult> _nextResult = [ConnectivityResult.wifi];
+  Object? _nextError;
+
+  /// Configures the result returned by [checkConnectivity].
+  void setCheckResult(List<ConnectivityResult> result) {
+    _nextResult = result;
+    _nextError = null;
+  }
+
+  /// Configures [checkConnectivity] to throw [error] on the next call.
+  void setCheckError(Object error) {
+    _nextError = error;
+    _nextResult = [];
+  }
+
+  /// Pushes a connectivity-change event to [onConnectivityChanged].
+  void emitChange(List<ConnectivityResult> results) {
+    changeController.add(results);
+  }
+
+  @override
+  Future<List<ConnectivityResult>> checkConnectivity() async {
+    if (_nextError != null) throw _nextError!;
+    return _nextResult;
+  }
+
+  @override
+  Stream<List<ConnectivityResult>> get onConnectivityChanged =>
+      changeController.stream;
+}
+
+// ---------------------------------------------------------------------------
+// Builder shorthand
+// ---------------------------------------------------------------------------
+
+/// Creates a [ConnectivityRepositoryImpl] with a synchronous fake probe and
+/// the given [fake] connectivity source.
+ConnectivityRepositoryImpl _repo(
+  FakeConnectivity fake, {
+  Future<bool> Function()? probe,
+}) {
+  return ConnectivityRepositoryImpl(
+    connectivity: fake,
+    dnsProbe: probe ?? () async => true,
+  );
+}
 
 void main() {
-  late MockConnectivity mockConnectivity;
-  late ConnectivityRepositoryImpl repository;
+  late FakeConnectivity fakeConnectivity;
 
   setUp(() {
-    mockConnectivity = MockConnectivity();
-    repository = ConnectivityRepositoryImpl(
-      connectivity: mockConnectivity,
-      dnsProbe: () async => true,
-    );
+    fakeConnectivity = FakeConnectivity();
+  });
+
+  tearDown(() async {
+    await fakeConnectivity.changeController.close();
   });
 
   group('ConnectivityRepositoryImpl', () {
-    test('implements ConnectivityRepository', () {
+    // ========================================================================
+    // implements ConnectivityRepository
+    // ========================================================================
+
+    test('should implement ConnectivityRepository', () {
+      final repository = _repo(fakeConnectivity);
       expect(repository, isA<ConnectivityRepository>());
     });
 
+    // ========================================================================
+    // checkConnectivity
+    // ========================================================================
+
     group('checkConnectivity', () {
-      test('returns online when wifi is available', () async {
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-
-        final result = await repository.checkConnectivity();
-
-        expect(result, ConnectivityStatus.online);
-      });
-
-      test('returns online when mobile is available', () async {
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => [ConnectivityResult.mobile]);
-
-        final result = await repository.checkConnectivity();
-
-        expect(result, ConnectivityStatus.online);
-      });
-
-      test('returns online when ethernet is available', () async {
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => [ConnectivityResult.ethernet]);
-
-        final result = await repository.checkConnectivity();
-
-        expect(result, ConnectivityStatus.online);
-      });
-
-      test('returns offline when none', () async {
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => [ConnectivityResult.none]);
-
-        final result = await repository.checkConnectivity();
-
-        expect(result, ConnectivityStatus.offline);
-      });
-
-      test('returns offline when results list is empty', () async {
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => []);
-
-        final result = await repository.checkConnectivity();
-
-        expect(result, ConnectivityStatus.offline);
-      });
-
-      test('returns offline when wifi available but DNS probe fails', () async {
-        final repo = ConnectivityRepositoryImpl(
-          connectivity: mockConnectivity,
-          dnsProbe: () async => false,
-        );
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-
-        final result = await repo.checkConnectivity();
-
-        expect(result, ConnectivityStatus.offline);
-      });
-
       test(
-        'returns online when wifi available and DNS probe succeeds',
+        'should return online when wifi interface is available and DNS probe succeeds',
         () async {
-          final repo = ConnectivityRepositoryImpl(
-            connectivity: mockConnectivity,
-            dnsProbe: () async => true,
-          );
-          when(
-            () => mockConnectivity.checkConnectivity(),
-          ).thenAnswer((_) async => [ConnectivityResult.wifi]);
+          // Arrange
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(fakeConnectivity, probe: () async => true);
 
-          final result = await repo.checkConnectivity();
+          // Act
+          final status = await repository.checkConnectivity();
 
-          expect(result, ConnectivityStatus.online);
+          // Assert
+          expect(status, equals(ConnectivityStatus.online));
         },
       );
 
       test(
-        'skips DNS probe when no network interface (returns offline immediately)',
+        'should return online when mobile interface is available and DNS probe succeeds',
         () async {
-          var dnsProbeCallCount = 0;
-          final repo = ConnectivityRepositoryImpl(
-            connectivity: mockConnectivity,
-            dnsProbe: () async {
-              dnsProbeCallCount++;
+          // Arrange
+          fakeConnectivity.setCheckResult([ConnectivityResult.mobile]);
+          final repository = _repo(fakeConnectivity, probe: () async => true);
+
+          // Act
+          final status = await repository.checkConnectivity();
+
+          // Assert
+          expect(status, equals(ConnectivityStatus.online));
+        },
+      );
+
+      test(
+        'should return online when ethernet interface is available and DNS probe succeeds',
+        () async {
+          // Arrange
+          fakeConnectivity.setCheckResult([ConnectivityResult.ethernet]);
+          final repository = _repo(fakeConnectivity, probe: () async => true);
+
+          // Act
+          final status = await repository.checkConnectivity();
+
+          // Assert
+          expect(status, equals(ConnectivityStatus.online));
+        },
+      );
+
+      test(
+        'should return offline immediately when results list contains only none',
+        () async {
+          // Arrange
+          fakeConnectivity.setCheckResult([ConnectivityResult.none]);
+          final repository = _repo(fakeConnectivity);
+
+          // Act
+          final status = await repository.checkConnectivity();
+
+          // Assert
+          expect(status, equals(ConnectivityStatus.offline));
+        },
+      );
+
+      test(
+        'should return offline immediately when results list is empty',
+        () async {
+          // Arrange
+          fakeConnectivity.setCheckResult([]);
+          final repository = _repo(fakeConnectivity);
+
+          // Act
+          final status = await repository.checkConnectivity();
+
+          // Assert
+          expect(status, equals(ConnectivityStatus.offline));
+        },
+      );
+
+      test(
+        'should return offline when interface is available but DNS probe fails',
+        () async {
+          // Arrange
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(fakeConnectivity, probe: () async => false);
+
+          // Act
+          final status = await repository.checkConnectivity();
+
+          // Assert
+          expect(status, equals(ConnectivityStatus.offline));
+        },
+      );
+
+      test(
+        'should not invoke DNS probe when no network interface is available',
+        () async {
+          // Arrange
+          var probeCallCount = 0;
+          fakeConnectivity.setCheckResult([ConnectivityResult.none]);
+          final repository = _repo(
+            fakeConnectivity,
+            probe: () async {
+              probeCallCount++;
               return true;
             },
           );
-          when(
-            () => mockConnectivity.checkConnectivity(),
-          ).thenAnswer((_) async => [ConnectivityResult.none]);
 
-          final result = await repo.checkConnectivity();
+          // Act
+          await repository.checkConnectivity();
 
-          expect(result, ConnectivityStatus.offline);
-          expect(dnsProbeCallCount, 0);
+          // Assert — probe is short-circuited by the interface check
+          expect(probeCallCount, equals(0));
         },
       );
     });
 
-    group('DNS probe retries', () {
+    // ========================================================================
+    // DNS probe retry behaviour
+    // ========================================================================
+
+    group('DNS probe retry behaviour', () {
       test(
-        'retries DNS probe up to 3 times before declaring offline',
+        'should attempt the DNS probe 3 times before declaring offline (1 initial + 2 retries)',
         () async {
+          // Arrange
           var callCount = 0;
-          final repo = ConnectivityRepositoryImpl(
-            connectivity: mockConnectivity,
-            dnsProbe: () async {
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(
+            fakeConnectivity,
+            probe: () async {
               callCount++;
               return false;
             },
           );
-          when(
-            () => mockConnectivity.checkConnectivity(),
-          ).thenAnswer((_) async => [ConnectivityResult.wifi]);
 
-          final result = await repo.checkConnectivity();
+          // Act
+          final status = await repository.checkConnectivity();
 
-          expect(result, ConnectivityStatus.offline);
-          expect(callCount, 3); // 1 initial + 2 retries
+          // Assert
+          expect(status, equals(ConnectivityStatus.offline));
+          expect(callCount, equals(3));
         },
       );
 
-      test('succeeds on second attempt', () async {
-        var callCount = 0;
-        final repo = ConnectivityRepositoryImpl(
-          connectivity: mockConnectivity,
-          dnsProbe: () async {
-            callCount++;
-            return callCount >= 2;
-          },
-        );
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => [ConnectivityResult.wifi]);
+      test(
+        'should return online and stop retrying as soon as the first probe succeeds',
+        () async {
+          // Arrange — succeeds on the first attempt
+          var callCount = 0;
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(
+            fakeConnectivity,
+            probe: () async {
+              callCount++;
+              return true;
+            },
+          );
 
-        final result = await repo.checkConnectivity();
+          // Act
+          final status = await repository.checkConnectivity();
 
-        expect(result, ConnectivityStatus.online);
-        expect(callCount, 2);
-      });
-    });
-
-    group('watchConnectivity', () {
-      test('emits online when connectivity changes to wifi', () async {
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-        final controller = StreamController<List<ConnectivityResult>>();
-        when(
-          () => mockConnectivity.onConnectivityChanged,
-        ).thenAnswer((_) => controller.stream);
-
-        final results = <ConnectivityStatus>[];
-        final sub = repository.watchConnectivity().listen(results.add);
-        await Future<void>.delayed(Duration.zero);
-
-        expect(results.first, ConnectivityStatus.online);
-
-        await sub.cancel();
-        await controller.close();
-      });
-
-      test('emits offline when connectivity changes to none', () async {
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => [ConnectivityResult.none]);
-        final controller = StreamController<List<ConnectivityResult>>();
-        when(
-          () => mockConnectivity.onConnectivityChanged,
-        ).thenAnswer((_) => controller.stream);
-
-        final results = <ConnectivityStatus>[];
-        final sub = repository.watchConnectivity().listen(results.add);
-        await Future<void>.delayed(Duration.zero);
-
-        expect(results.first, ConnectivityStatus.offline);
-
-        await sub.cancel();
-        await controller.close();
-      });
-
-      test('applies distinct to avoid duplicate emissions', () async {
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-        final controller = StreamController<List<ConnectivityResult>>();
-        when(
-          () => mockConnectivity.onConnectivityChanged,
-        ).thenAnswer((_) => controller.stream);
-
-        final results = <ConnectivityStatus>[];
-        final subscription = repository.watchConnectivity().listen(results.add);
-
-        // Wait for initial emission from checkConnectivity
-        await Future<void>.delayed(Duration.zero);
-
-        controller.add([ConnectivityResult.wifi]); // same as initial, deduped
-        controller.add([
-          ConnectivityResult.mobile,
-        ]); // still online, should be deduped
-        controller.add([ConnectivityResult.none]);
-
-        // Give time for stream events to propagate
-        await Future<void>.delayed(Duration.zero);
-        await Future<void>.delayed(Duration.zero);
-
-        expect(results, [
-          ConnectivityStatus.online,
-          ConnectivityStatus.offline,
-        ]);
-
-        await subscription.cancel();
-        await controller.close();
-      });
+          // Assert
+          expect(status, equals(ConnectivityStatus.online));
+          expect(callCount, equals(1));
+        },
+      );
 
       test(
-        'emits initial state from checkConnectivity before change events',
+        'should return online when probe succeeds on the second attempt',
         () async {
-          when(
-            () => mockConnectivity.checkConnectivity(),
-          ).thenAnswer((_) async => [ConnectivityResult.none]);
-          final controller = StreamController<List<ConnectivityResult>>();
-          when(
-            () => mockConnectivity.onConnectivityChanged,
-          ).thenAnswer((_) => controller.stream);
+          // Arrange
+          var callCount = 0;
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(
+            fakeConnectivity,
+            probe: () async {
+              callCount++;
+              return callCount >= 2;
+            },
+          );
 
+          // Act
+          final status = await repository.checkConnectivity();
+
+          // Assert
+          expect(status, equals(ConnectivityStatus.online));
+          expect(callCount, equals(2));
+        },
+      );
+
+      test(
+        'should return online when probe succeeds on the third attempt',
+        () async {
+          // Arrange
+          var callCount = 0;
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(
+            fakeConnectivity,
+            probe: () async {
+              callCount++;
+              return callCount >= 3;
+            },
+          );
+
+          // Act
+          final status = await repository.checkConnectivity();
+
+          // Assert
+          expect(status, equals(ConnectivityStatus.online));
+          expect(callCount, equals(3));
+        },
+      );
+    });
+
+    // ========================================================================
+    // watchConnectivity — initial state emission
+    // ========================================================================
+
+    group('watchConnectivity — initial state', () {
+      test(
+        'should emit online as the first event when interface and DNS are available',
+        () async {
+          // Arrange
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(fakeConnectivity, probe: () async => true);
+
+          // Act
           final results = <ConnectivityStatus>[];
           final sub = repository.watchConnectivity().listen(results.add);
-
-          // Wait for initial emission
           await Future<void>.delayed(Duration.zero);
 
-          // Initial state should be offline (from checkConnectivity)
+          // Assert
+          expect(results.first, equals(ConnectivityStatus.online));
+
+          await sub.cancel();
+        },
+      );
+
+      test(
+        'should emit offline as the first event when no interface is available',
+        () async {
+          // Arrange
+          fakeConnectivity.setCheckResult([ConnectivityResult.none]);
+          final repository = _repo(fakeConnectivity);
+
+          // Act
+          final results = <ConnectivityStatus>[];
+          final sub = repository.watchConnectivity().listen(results.add);
+          await Future<void>.delayed(Duration.zero);
+
+          // Assert
+          expect(results.first, equals(ConnectivityStatus.offline));
+
+          await sub.cancel();
+        },
+      );
+
+      test(
+        'should emit offline as the first event when interface is present but DNS probe fails',
+        () async {
+          // Arrange
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(fakeConnectivity, probe: () async => false);
+
+          // Act
+          final results = <ConnectivityStatus>[];
+          final sub = repository.watchConnectivity().listen(results.add);
+          await Future<void>.delayed(Duration.zero);
+
+          // Assert
+          expect(results.first, equals(ConnectivityStatus.offline));
+
+          await sub.cancel();
+        },
+      );
+
+      test(
+        'should emit online as fallback when initial checkConnectivity throws',
+        () async {
+          // Arrange
+          fakeConnectivity.setCheckError(Exception('platform channel error'));
+          final repository = _repo(fakeConnectivity);
+
+          // Act
+          final results = <ConnectivityStatus>[];
+          final sub = repository.watchConnectivity().listen(results.add);
+          await Future<void>.delayed(Duration.zero);
+
+          // Assert
+          expect(results.first, equals(ConnectivityStatus.online));
+
+          await sub.cancel();
+        },
+      );
+    });
+
+    // ========================================================================
+    // watchConnectivity — connectivity change events
+    // ========================================================================
+
+    group('watchConnectivity — connectivity change events', () {
+      test(
+        'should emit online when a connectivity-change event shows a wifi interface and DNS succeeds',
+        () async {
+          // Arrange — start offline so the change is from none → wifi
+          fakeConnectivity.setCheckResult([ConnectivityResult.none]);
+          final repository = _repo(fakeConnectivity, probe: () async => true);
+          final results = <ConnectivityStatus>[];
+          final sub = repository.watchConnectivity().listen(results.add);
+          await Future<void>.delayed(Duration.zero);
+
+          // Act
+          fakeConnectivity.emitChange([ConnectivityResult.wifi]);
+          await Future<void>.delayed(Duration.zero);
+
+          // Assert
+          expect(results.last, equals(ConnectivityStatus.online));
+
+          await sub.cancel();
+        },
+      );
+
+      test(
+        'should emit offline immediately when a connectivity-change event shows no interface',
+        () async {
+          // Arrange — start online
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(fakeConnectivity, probe: () async => true);
+          final results = <ConnectivityStatus>[];
+          final sub = repository.watchConnectivity().listen(results.add);
+          await Future<void>.delayed(Duration.zero);
+
+          // Act
+          fakeConnectivity.emitChange([ConnectivityResult.none]);
+          await Future<void>.delayed(Duration.zero);
+
+          // Assert
+          expect(results.last, equals(ConnectivityStatus.offline));
+
+          await sub.cancel();
+        },
+      );
+
+      test(
+        'should emit offline when a connectivity-change event shows interface but DNS fails',
+        () async {
+          // Arrange — start offline so the change produces a meaningful probe
+          fakeConnectivity.setCheckResult([ConnectivityResult.none]);
+          final repository = _repo(fakeConnectivity, probe: () async => false);
+          final results = <ConnectivityStatus>[];
+          final sub = repository.watchConnectivity().listen(results.add);
+          await Future<void>.delayed(Duration.zero);
+
+          // Act — interface present but DNS still fails
+          fakeConnectivity.emitChange([ConnectivityResult.wifi]);
+          await Future<void>.delayed(Duration.zero);
+
+          // Assert — no new emission (distinct deduplicates offline → offline)
           expect(results, [ConnectivityStatus.offline]);
 
-          // Then a change event
-          controller.add([ConnectivityResult.wifi]);
+          await sub.cancel();
+        },
+      );
+
+      test(
+        'should not invoke DNS probe when connectivity-change event shows no interface',
+        () async {
+          // Arrange
+          var probeCallCount = 0;
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(
+            fakeConnectivity,
+            probe: () async {
+              probeCallCount++;
+              return true;
+            },
+          );
+          final sub = repository.watchConnectivity().listen((_) {});
+          await Future<void>.delayed(Duration.zero);
+          final probeCountAfterInit = probeCallCount;
+
+          // Act — disconnect (no interface)
+          fakeConnectivity.emitChange([ConnectivityResult.none]);
           await Future<void>.delayed(Duration.zero);
 
+          // Assert — no additional probe
+          expect(probeCallCount, equals(probeCountAfterInit));
+
+          await sub.cancel();
+        },
+      );
+
+      test(
+        'should invoke DNS probe when connectivity-change event shows an interface',
+        () async {
+          // Arrange
+          var probeCallCount = 0;
+          fakeConnectivity.setCheckResult([ConnectivityResult.none]);
+          final repository = _repo(
+            fakeConnectivity,
+            probe: () async {
+              probeCallCount++;
+              return true;
+            },
+          );
+          final sub = repository.watchConnectivity().listen((_) {});
+          await Future<void>.delayed(Duration.zero);
+
+          // Act — interface appears
+          fakeConnectivity.emitChange([ConnectivityResult.wifi]);
+          await Future<void>.delayed(Duration.zero);
+
+          // Assert
+          expect(probeCallCount, greaterThan(0));
+
+          await sub.cancel();
+        },
+      );
+    });
+
+    // ========================================================================
+    // watchConnectivity — distinct deduplication
+    // ========================================================================
+
+    group('watchConnectivity — distinct deduplication', () {
+      test(
+        'should deduplicate consecutive identical status emissions',
+        () async {
+          // Arrange
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(fakeConnectivity, probe: () async => true);
+          final results = <ConnectivityStatus>[];
+          final sub = repository.watchConnectivity().listen(results.add);
+          await Future<void>.delayed(Duration.zero);
+
+          // Act — emit the same state twice in a row
+          fakeConnectivity.emitChange([ConnectivityResult.wifi]);
+          await Future<void>.delayed(Duration.zero);
+          fakeConnectivity.emitChange([ConnectivityResult.mobile]);
+          await Future<void>.delayed(Duration.zero);
+
+          // Assert — still online after both changes, deduped to one total emission
+          expect(results, [ConnectivityStatus.online]);
+
+          await sub.cancel();
+        },
+      );
+
+      test(
+        'should emit both online and offline when status genuinely transitions',
+        () async {
+          // Arrange
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(fakeConnectivity, probe: () async => true);
+          final results = <ConnectivityStatus>[];
+          final sub = repository.watchConnectivity().listen(results.add);
+          await Future<void>.delayed(Duration.zero);
+
+          // Act — go offline then back online
+          fakeConnectivity.emitChange([ConnectivityResult.none]);
+          await Future<void>.delayed(Duration.zero);
+          fakeConnectivity.emitChange([ConnectivityResult.wifi]);
+          await Future<void>.delayed(Duration.zero);
+
+          // Assert
           expect(results, [
+            ConnectivityStatus.online,
             ConnectivityStatus.offline,
             ConnectivityStatus.online,
           ]);
 
           await sub.cancel();
-          await controller.close();
         },
       );
+    });
 
+    // ========================================================================
+    // watchConnectivity — stream lifecycle
+    // ========================================================================
+
+    group('watchConnectivity — stream lifecycle', () {
       test(
-        'deduplicates initial state if same as first change event',
+        'should cancel successfully without errors when the stream is cancelled',
         () async {
-          when(
-            () => mockConnectivity.checkConnectivity(),
-          ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-          final controller = StreamController<List<ConnectivityResult>>();
-          when(
-            () => mockConnectivity.onConnectivityChanged,
-          ).thenAnswer((_) => controller.stream);
-
-          final results = <ConnectivityStatus>[];
-          final sub = repository.watchConnectivity().listen(results.add);
-
-          await Future<void>.delayed(Duration.zero);
-
-          // Emit same status — should be deduped
-          controller.add([ConnectivityResult.wifi]);
-          await Future<void>.delayed(Duration.zero);
-
-          expect(results, [ConnectivityStatus.online]); // only one emission
-
-          await sub.cancel();
-          await controller.close();
-        },
-      );
-
-      test(
-        'emits online after offline when connectivity is restored',
-        () async {
-          when(
-            () => mockConnectivity.checkConnectivity(),
-          ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-          final controller = StreamController<List<ConnectivityResult>>();
-          when(
-            () => mockConnectivity.onConnectivityChanged,
-          ).thenAnswer((_) => controller.stream);
-
-          final results = <ConnectivityStatus>[];
-          final sub = repository.watchConnectivity().listen(results.add);
-          await Future<void>.delayed(Duration.zero);
-
-          // Go offline
-          controller.add([ConnectivityResult.none]);
-          await Future<void>.delayed(Duration.zero);
-
-          // Come back online
-          controller.add([ConnectivityResult.wifi]);
-          await Future<void>.delayed(Duration.zero);
-
-          expect(results, [
-            ConnectivityStatus.online, // initial
-            ConnectivityStatus.offline, // disconnected
-            ConnectivityStatus.online, // reconnected
-          ]);
-
-          await sub.cancel();
-          await controller.close();
-        },
-      );
-
-      test(
-        'falls back to online if initial checkConnectivity throws',
-        () async {
-          when(
-            () => mockConnectivity.checkConnectivity(),
-          ).thenThrow(Exception('fail'));
-          final controller = StreamController<List<ConnectivityResult>>();
-          when(
-            () => mockConnectivity.onConnectivityChanged,
-          ).thenAnswer((_) => controller.stream);
-
-          final results = <ConnectivityStatus>[];
-          final sub = repository.watchConnectivity().listen(results.add);
-          await Future<void>.delayed(Duration.zero);
-
-          expect(results, [ConnectivityStatus.online]);
-
-          await sub.cancel();
-          await controller.close();
-        },
-      );
-
-      test('runs DNS probe when connectivity changes to connected', () async {
-        var dnsCallCount = 0;
-        final repo = ConnectivityRepositoryImpl(
-          connectivity: mockConnectivity,
-          dnsProbe: () async {
-            dnsCallCount++;
-            return true;
-          },
-        );
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => [ConnectivityResult.none]);
-        final controller = StreamController<List<ConnectivityResult>>();
-        when(
-          () => mockConnectivity.onConnectivityChanged,
-        ).thenAnswer((_) => controller.stream);
-
-        final results = <ConnectivityStatus>[];
-        final sub = repo.watchConnectivity().listen(results.add);
-        await Future<void>.delayed(Duration.zero);
-
-        // No DNS probe for initial offline (no network interface)
-        expect(dnsCallCount, 0);
-
-        // Change to wifi → should trigger DNS probe
-        controller.add([ConnectivityResult.wifi]);
-        await Future<void>.delayed(Duration.zero);
-
-        expect(dnsCallCount, greaterThan(0));
-        expect(results.last, ConnectivityStatus.online);
-
-        await sub.cancel();
-        await controller.close();
-      });
-
-      test('emits offline on connected event when DNS probe fails', () async {
-        final repo = ConnectivityRepositoryImpl(
-          connectivity: mockConnectivity,
-          dnsProbe: () async => false,
-        );
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => [ConnectivityResult.none]);
-        final controller = StreamController<List<ConnectivityResult>>();
-        when(
-          () => mockConnectivity.onConnectivityChanged,
-        ).thenAnswer((_) => controller.stream);
-
-        final results = <ConnectivityStatus>[];
-        final sub = repo.watchConnectivity().listen(results.add);
-        await Future<void>.delayed(Duration.zero);
-
-        // Start offline
-        expect(results, [ConnectivityStatus.offline]);
-
-        // Change to wifi but DNS fails → still offline (deduped by distinct)
-        controller.add([ConnectivityResult.wifi]);
-        await Future<void>.delayed(Duration.zero);
-
-        // Should remain offline (distinct deduplicates)
-        expect(results, [ConnectivityStatus.offline]);
-
-        await sub.cancel();
-        await controller.close();
-      });
-
-      test('skips DNS probe when connectivity changes to none', () async {
-        var dnsCallCount = 0;
-        final repo = ConnectivityRepositoryImpl(
-          connectivity: mockConnectivity,
-          dnsProbe: () async {
-            dnsCallCount++;
-            return true;
-          },
-        );
-        when(
-          () => mockConnectivity.checkConnectivity(),
-        ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-        final controller = StreamController<List<ConnectivityResult>>();
-        when(
-          () => mockConnectivity.onConnectivityChanged,
-        ).thenAnswer((_) => controller.stream);
-
-        final results = <ConnectivityStatus>[];
-        final sub = repo.watchConnectivity().listen(results.add);
-        await Future<void>.delayed(Duration.zero);
-
-        final dnsCountAfterInit = dnsCallCount;
-
-        // Change to none → should NOT trigger DNS probe
-        controller.add([ConnectivityResult.none]);
-        await Future<void>.delayed(Duration.zero);
-
-        expect(dnsCallCount, dnsCountAfterInit);
-        expect(results.last, ConnectivityStatus.offline);
-
-        await sub.cancel();
-        await controller.close();
-      });
-
-      group('periodic probing', () {
-        test('cancels periodic probe on stream cancel', () async {
-          when(
-            () => mockConnectivity.checkConnectivity(),
-          ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-          final controller = StreamController<List<ConnectivityResult>>();
-          when(
-            () => mockConnectivity.onConnectivityChanged,
-          ).thenAnswer((_) => controller.stream);
-
+          // Arrange
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(fakeConnectivity);
           final sub = repository.watchConnectivity().listen((_) {});
           await Future<void>.delayed(Duration.zero);
 
-          // Cancelling should not throw or leak timers
+          // Act & Assert — should not throw
+          await expectLater(sub.cancel(), completes);
+        },
+      );
+
+      test(
+        'should stop emitting events after the stream is cancelled',
+        () async {
+          // Arrange
+          fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+          final repository = _repo(fakeConnectivity, probe: () async => true);
+          final results = <ConnectivityStatus>[];
+          final sub = repository.watchConnectivity().listen(results.add);
+          await Future<void>.delayed(Duration.zero);
           await sub.cancel();
-          await controller.close();
-        });
-      });
 
-      group('recovery probing', () {
-        test(
-          'emits online after recovery probe succeeds when DNS was failing',
-          () {
-            fakeAsync((async) {
-              var dnsSucceeds = false;
-              final repo = ConnectivityRepositoryImpl(
-                connectivity: mockConnectivity,
-                dnsProbe: () async => dnsSucceeds,
-              );
-              when(
-                () => mockConnectivity.checkConnectivity(),
-              ).thenAnswer((_) async => [ConnectivityResult.none]);
-              final controller = StreamController<List<ConnectivityResult>>();
-              when(
-                () => mockConnectivity.onConnectivityChanged,
-              ).thenAnswer((_) => controller.stream);
+          // Act — emit a change after cancel
+          fakeConnectivity.emitChange([ConnectivityResult.none]);
+          await Future<void>.delayed(Duration.zero);
 
-              final results = <ConnectivityStatus>[];
-              final sub = repo.watchConnectivity().listen(results.add);
-              async.flushMicrotasks();
+          // Assert — only the initial online emission exists
+          expect(results, [ConnectivityStatus.online]);
+        },
+      );
+    });
 
-              // Initial: offline (no interface)
-              expect(results, [ConnectivityStatus.offline]);
+    // ========================================================================
+    // watchConnectivity — periodic probing (fake_async)
+    // ========================================================================
 
-              // WiFi connects but DNS fails → offline, recovery probe starts
-              controller.add([ConnectivityResult.wifi]);
-              async.flushMicrotasks();
-              expect(results, [ConnectivityStatus.offline]);
-
-              // DNS starts succeeding, advance 5s for recovery probe
-              dnsSucceeds = true;
-              async.elapse(const Duration(seconds: 5));
-
-              expect(results.last, ConnectivityStatus.online);
-
-              sub.cancel();
-              controller.close();
-            });
-          },
-        );
-
-        test(
-          'replaces previous recovery probes with new ones when interface is lost',
-          () {
-            fakeAsync((async) {
-              var dnsSucceeds = false;
-              final repo = ConnectivityRepositoryImpl(
-                connectivity: mockConnectivity,
-                dnsProbe: () async => dnsSucceeds,
-              );
-              when(
-                () => mockConnectivity.checkConnectivity(),
-              ).thenAnswer((_) async => [ConnectivityResult.none]);
-              final controller = StreamController<List<ConnectivityResult>>();
-              when(
-                () => mockConnectivity.onConnectivityChanged,
-              ).thenAnswer((_) => controller.stream);
-
-              final results = <ConnectivityStatus>[];
-              final sub = repo.watchConnectivity().listen(results.add);
-              async.flushMicrotasks();
-
-              // WiFi connects but DNS fails → recovery starts
-              controller.add([ConnectivityResult.wifi]);
-              async.flushMicrotasks();
-              // Interface lost → previous recovery replaced by new recovery
-              controller.add([ConnectivityResult.none]);
-              async.flushMicrotasks();
-
-              // DNS starts succeeding — new recovery probes should detect it
-              dnsSucceeds = true;
-              async.elapse(const Duration(seconds: 5));
-
-              expect(
-                results.last,
-                ConnectivityStatus.online,
-                reason:
-                    'new recovery probes should fire after no-interface offline and detect recovery',
-              );
-
-              sub.cancel();
-              controller.close();
-            });
-          },
-        );
-
-        test('recovery probe switches to periodic probe on success', () {
-          fakeAsync((async) {
-            var dnsSucceeds = false;
-            var dnsCallCount = 0;
-            final repo = ConnectivityRepositoryImpl(
-              connectivity: mockConnectivity,
-              dnsProbe: () async {
-                dnsCallCount++;
-                return dnsSucceeds;
-              },
-            );
-            when(
-              () => mockConnectivity.checkConnectivity(),
-            ).thenAnswer((_) async => [ConnectivityResult.none]);
-            final controller = StreamController<List<ConnectivityResult>>();
-            when(
-              () => mockConnectivity.onConnectivityChanged,
-            ).thenAnswer((_) => controller.stream);
-
-            final results = <ConnectivityStatus>[];
-            final sub = repo.watchConnectivity().listen(results.add);
-            async.flushMicrotasks();
-
-            // WiFi connects, DNS fails → recovery mode
-            controller.add([ConnectivityResult.wifi]);
-            async.flushMicrotasks();
-
-            // DNS succeeds on recovery probe
-            dnsSucceeds = true;
-            async.elapse(const Duration(seconds: 5));
-            expect(results.last, ConnectivityStatus.online);
-
-            final dnsCountAfterRecovery = dnsCallCount;
-
-            // Should now be in 30s periodic mode, not 5s
-            // Advance 10s — no new probe (5s recovery would have fired)
-            async.elapse(const Duration(seconds: 10));
-            expect(dnsCallCount, dnsCountAfterRecovery);
-
-            // Advance to 30s mark — periodic probe fires
-            async.elapse(const Duration(seconds: 20));
-            expect(dnsCallCount, greaterThan(dnsCountAfterRecovery));
-
-            sub.cancel();
-            controller.close();
-          });
-        });
-      });
-
-      group('initial offline with network interface', () {
-        test(
-          'starts recovery probe when initial state is offline with network interface',
-          () {
-            fakeAsync((async) {
-              var dnsSucceeds = false;
-              final repo = ConnectivityRepositoryImpl(
-                connectivity: mockConnectivity,
-                dnsProbe: () async => dnsSucceeds,
-              );
-              // WiFi present but DNS fails (captive portal scenario)
-              when(
-                () => mockConnectivity.checkConnectivity(),
-              ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-              final controller = StreamController<List<ConnectivityResult>>();
-              when(
-                () => mockConnectivity.onConnectivityChanged,
-              ).thenAnswer((_) => controller.stream);
-
-              final results = <ConnectivityStatus>[];
-              final sub = repo.watchConnectivity().listen(results.add);
-              async.flushMicrotasks();
-
-              // Initial: offline (WiFi present but DNS fails)
-              expect(results, [ConnectivityStatus.offline]);
-
-              // DNS recovers, advance 5s for recovery probe to fire
-              dnsSucceeds = true;
-              async.elapse(const Duration(seconds: 5));
-
-              expect(
-                results.last,
-                ConnectivityStatus.online,
-                reason:
-                    'recovery probe should detect DNS recovery and emit online',
-              );
-
-              sub.cancel();
-              controller.close();
-            });
-          },
-        );
-      });
-
-      group('periodic probe failure recovery', () {
-        test('periodic probe switches to recovery mode when DNS fails', () {
+    group('watchConnectivity — periodic probing', () {
+      test(
+        'should fire a periodic probe after 30 seconds when online and emit offline on DNS failure',
+        () {
           fakeAsync((async) {
             var dnsSucceeds = true;
-            var dnsCallCount = 0;
-            final repo = ConnectivityRepositoryImpl(
-              connectivity: mockConnectivity,
-              dnsProbe: () async {
-                dnsCallCount++;
-                return dnsSucceeds;
-              },
+            fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () async => dnsSucceeds,
             );
-            when(
-              () => mockConnectivity.checkConnectivity(),
-            ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-            final controller = StreamController<List<ConnectivityResult>>();
-            when(
-              () => mockConnectivity.onConnectivityChanged,
-            ).thenAnswer((_) => controller.stream);
 
             final results = <ConnectivityStatus>[];
-            final sub = repo.watchConnectivity().listen(results.add);
+            final sub = repository.watchConnectivity().listen(results.add);
             async.flushMicrotasks();
+            expect(results.last, equals(ConnectivityStatus.online));
 
-            // Initial: online, periodic probe starts
-            expect(results.last, ConnectivityStatus.online);
             // DNS starts failing
             dnsSucceeds = false;
 
-            // Advance 30s — periodic probe fires, detects failure
+            // Advance 30 seconds — periodic probe fires
             async.elapse(const Duration(seconds: 30));
-            expect(results.last, ConnectivityStatus.offline);
-            final dnsCountAfterPeriodicFail = dnsCallCount;
+            expect(results.last, equals(ConnectivityStatus.offline));
 
-            // Now it should be in recovery mode (5s interval), not dead
-            // DNS starts succeeding again
+            sub.cancel();
+          });
+        },
+      );
+
+      test(
+        'should not fire a periodic probe before 30 seconds have elapsed',
+        () {
+          fakeAsync((async) {
+            var probeCallCount = 0;
+            fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () async {
+                probeCallCount++;
+                return true;
+              },
+            );
+
+            final sub = repository.watchConnectivity().listen((_) {});
+            async.flushMicrotasks();
+            final callsAfterInit = probeCallCount;
+
+            // Advance only 29 seconds — probe must NOT fire yet
+            async.elapse(const Duration(seconds: 29));
+            expect(probeCallCount, equals(callsAfterInit));
+
+            sub.cancel();
+          });
+        },
+      );
+
+      test(
+        'should fire periodic probes at 30-second intervals when staying online',
+        () {
+          fakeAsync((async) {
+            var probeCallCount = 0;
+            fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () async {
+                probeCallCount++;
+                return true;
+              },
+            );
+
+            final sub = repository.watchConnectivity().listen((_) {});
+            async.flushMicrotasks();
+            final callsAfterInit = probeCallCount;
+
+            // First 30-second interval
+            async.elapse(const Duration(seconds: 30));
+            expect(probeCallCount, equals(callsAfterInit + 1));
+
+            // Second 30-second interval
+            async.elapse(const Duration(seconds: 30));
+            expect(probeCallCount, equals(callsAfterInit + 2));
+
+            sub.cancel();
+          });
+        },
+      );
+
+      test(
+        'should stop periodic probing when stream is cancelled',
+        () {
+          fakeAsync((async) {
+            var probeCallCount = 0;
+            fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () async {
+                probeCallCount++;
+                return true;
+              },
+            );
+
+            final sub = repository.watchConnectivity().listen((_) {});
+            async.flushMicrotasks();
+            sub.cancel();
+            async.flushMicrotasks();
+            final callsAtCancel = probeCallCount;
+
+            // Advance well past a probe interval — no new probes
+            async.elapse(const Duration(seconds: 60));
+            expect(probeCallCount, equals(callsAtCancel));
+          });
+        },
+      );
+    });
+
+    // ========================================================================
+    // watchConnectivity — recovery probing (fake_async)
+    // ========================================================================
+
+    group('watchConnectivity — recovery probing', () {
+      test(
+        'should start 5-second recovery probes when initial state is offline',
+        () {
+          fakeAsync((async) {
+            var dnsSucceeds = false;
+            fakeConnectivity.setCheckResult([ConnectivityResult.none]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () async => dnsSucceeds,
+            );
+
+            final results = <ConnectivityStatus>[];
+            final sub = repository.watchConnectivity().listen(results.add);
+            async.flushMicrotasks();
+            expect(results.last, equals(ConnectivityStatus.offline));
+
+            // DNS recovers; advance 5 seconds for recovery probe
             dnsSucceeds = true;
             async.elapse(const Duration(seconds: 5));
-            expect(
-              dnsCallCount,
-              greaterThan(dnsCountAfterPeriodicFail),
-              reason: 'recovery probe should fire at 5s',
-            );
-            expect(results.last, ConnectivityStatus.online);
+            expect(results.last, equals(ConnectivityStatus.online));
 
             sub.cancel();
-            controller.close();
           });
-        });
-      });
+        },
+      );
 
-      group('connectivity change probe guard', () {
-        test(
-          'stops existing probes and starts fresh DNS check on connectivity change',
-          () {
-            fakeAsync((async) {
-              var dnsCallCount = 0;
-              var dnsCompleter = Completer<bool>();
-              final repo = ConnectivityRepositoryImpl(
-                connectivity: mockConnectivity,
-                dnsProbe: () {
-                  dnsCallCount++;
-                  return dnsCompleter.future;
-                },
-              );
-              when(
-                () => mockConnectivity.checkConnectivity(),
-              ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-              final controller = StreamController<List<ConnectivityResult>>();
-              when(
-                () => mockConnectivity.onConnectivityChanged,
-              ).thenAnswer((_) => controller.stream);
-
-              final results = <ConnectivityStatus>[];
-              final sub = repo.watchConnectivity().listen(results.add);
-
-              // Complete initial checkConnectivity DNS probes
-              dnsCompleter.complete(true);
-              async.flushMicrotasks();
-              expect(results, [ConnectivityStatus.online]);
-
-              // Now a periodic probe is running at 30s intervals.
-              // Trigger periodic probe at 30s with a slow completer
-              dnsCompleter = Completer<bool>();
-              async.elapse(const Duration(seconds: 30));
-              final dnsCountAfterPeriodicStart = dnsCallCount;
-              expect(
-                dnsCountAfterPeriodicStart,
-                greaterThan(1),
-                reason: 'periodic probe should have started a DNS check',
-              );
-
-              // While periodic probe is in-flight, trigger a connectivity change
-              // This should stop probes, invalidate in-flight probe, and start fresh DNS
-              dnsCompleter = Completer<bool>();
-              controller.add([ConnectivityResult.mobile]);
-              async.flushMicrotasks();
-
-              expect(
-                dnsCallCount,
-                greaterThan(dnsCountAfterPeriodicStart),
-                reason:
-                    'connectivity change should start fresh DNS check, not be blocked by stale probe',
-              );
-
-              // Complete the fresh probe
-              dnsCompleter.complete(true);
-              async.flushMicrotasks();
-
-              expect(results.last, ConnectivityStatus.online);
-
-              sub.cancel();
-              controller.close();
-            });
-          },
-        );
-      });
-
-      group('stale probe invalidation', () {
-        test('connectivity change proceeds even when stale probe is in-flight', () {
+      test(
+        'should start 5-second recovery probes when interface present but DNS fails initially',
+        () {
           fakeAsync((async) {
-            var dnsCompleter = Completer<bool>();
-            final repo = ConnectivityRepositoryImpl(
-              connectivity: mockConnectivity,
-              dnsProbe: () => dnsCompleter.future,
+            var dnsSucceeds = false;
+            fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () async => dnsSucceeds,
             );
-            when(
-              () => mockConnectivity.checkConnectivity(),
-            ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-            final controller = StreamController<List<ConnectivityResult>>();
-            when(
-              () => mockConnectivity.onConnectivityChanged,
-            ).thenAnswer((_) => controller.stream);
 
             final results = <ConnectivityStatus>[];
-            final sub = repo.watchConnectivity().listen(results.add);
-
-            // Complete initial check → online
-            dnsCompleter.complete(true);
+            final sub = repository.watchConnectivity().listen(results.add);
             async.flushMicrotasks();
-            expect(results, [ConnectivityStatus.online]);
+            expect(results.last, equals(ConnectivityStatus.offline));
 
-            // Periodic probe fires at 30s with a slow completer (stays in-flight)
-            dnsCompleter = Completer<bool>();
+            // DNS recovers; advance 5 seconds
+            dnsSucceeds = true;
+            async.elapse(const Duration(seconds: 5));
+            expect(results.last, equals(ConnectivityStatus.online));
+
+            sub.cancel();
+          });
+        },
+      );
+
+      test(
+        'should not fire a recovery probe before 5 seconds have elapsed',
+        () {
+          fakeAsync((async) {
+            var probeCallCount = 0;
+            fakeConnectivity.setCheckResult([ConnectivityResult.none]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () async {
+                probeCallCount++;
+                return false;
+              },
+            );
+
+            final sub = repository.watchConnectivity().listen((_) {});
+            async.flushMicrotasks();
+            final callsAfterInit = probeCallCount;
+
+            // Advance only 4 seconds — no recovery probe yet
+            async.elapse(const Duration(seconds: 4));
+            expect(probeCallCount, equals(callsAfterInit));
+
+            sub.cancel();
+          });
+        },
+      );
+
+      test(
+        'should switch from recovery (5s) to periodic (30s) probing after recovery succeeds',
+        () {
+          fakeAsync((async) {
+            var dnsSucceeds = false;
+            var probeCallCount = 0;
+            fakeConnectivity.setCheckResult([ConnectivityResult.none]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () async {
+                probeCallCount++;
+                return dnsSucceeds;
+              },
+            );
+
+            final results = <ConnectivityStatus>[];
+            final sub = repository.watchConnectivity().listen(results.add);
+            async.flushMicrotasks();
+
+            // DNS recovers at the 5-second mark
+            dnsSucceeds = true;
+            async.elapse(const Duration(seconds: 5));
+            expect(results.last, equals(ConnectivityStatus.online));
+            final callsAfterRecovery = probeCallCount;
+
+            // Advance 10 seconds — still in 30s periodic mode, probe should NOT fire
+            async.elapse(const Duration(seconds: 10));
+            expect(probeCallCount, equals(callsAfterRecovery));
+
+            // Advance to 30s mark — periodic probe fires
+            async.elapse(const Duration(seconds: 20));
+            expect(probeCallCount, greaterThan(callsAfterRecovery));
+
+            sub.cancel();
+          });
+        },
+      );
+
+      test(
+        'should switch from periodic (30s) to recovery (5s) probing when DNS fails mid-session',
+        () {
+          fakeAsync((async) {
+            var dnsSucceeds = true;
+            var probeCallCount = 0;
+            fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () async {
+                probeCallCount++;
+                return dnsSucceeds;
+              },
+            );
+
+            final results = <ConnectivityStatus>[];
+            final sub = repository.watchConnectivity().listen(results.add);
+            async.flushMicrotasks();
+            expect(results.last, equals(ConnectivityStatus.online));
+
+            // DNS starts failing
+            dnsSucceeds = false;
+
+            // Periodic probe fires at 30s → switches to recovery mode
             async.elapse(const Duration(seconds: 30));
+            expect(results.last, equals(ConnectivityStatus.offline));
+            final callsAfterSwitch = probeCallCount;
 
-            // WiFi OFF while probe is in-flight
-            controller.add([ConnectivityResult.none]);
-            async.flushMicrotasks();
-            expect(results.last, ConnectivityStatus.offline);
-
-            // WiFi ON — should start fresh DNS check despite stale probe
-            dnsCompleter = Completer<bool>();
-            controller.add([ConnectivityResult.wifi]);
-            async.flushMicrotasks();
-
-            // Complete the fresh DNS check
-            dnsCompleter.complete(true);
-            async.flushMicrotasks();
-
-            expect(
-              results.last,
-              ConnectivityStatus.online,
-              reason:
-                  'handler should proceed with fresh DNS check, not be blocked by stale isProbing flag',
-            );
+            // DNS recovers; recovery probe fires at 5s
+            dnsSucceeds = true;
+            async.elapse(const Duration(seconds: 5));
+            expect(probeCallCount, greaterThan(callsAfterSwitch));
+            expect(results.last, equals(ConnectivityStatus.online));
 
             sub.cancel();
-            controller.close();
           });
-        });
+        },
+      );
 
-        test('stale in-flight probe result is discarded after epoch change', () {
+      test(
+        'should replace a previous recovery probe with a fresh one when interface is lost',
+        () {
           fakeAsync((async) {
-            var dnsCompleter = Completer<bool>();
-            final repo = ConnectivityRepositoryImpl(
-              connectivity: mockConnectivity,
-              dnsProbe: () => dnsCompleter.future,
+            var dnsSucceeds = false;
+            fakeConnectivity.setCheckResult([ConnectivityResult.none]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () async => dnsSucceeds,
             );
-            when(
-              () => mockConnectivity.checkConnectivity(),
-            ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-            final controller = StreamController<List<ConnectivityResult>>();
-            when(
-              () => mockConnectivity.onConnectivityChanged,
-            ).thenAnswer((_) => controller.stream);
 
             final results = <ConnectivityStatus>[];
-            final sub = repo.watchConnectivity().listen(results.add);
+            final sub = repository.watchConnectivity().listen(results.add);
+            async.flushMicrotasks();
+
+            // WiFi connects but DNS still fails → recovery starts
+            fakeConnectivity.emitChange([ConnectivityResult.wifi]);
+            async.flushMicrotasks();
+
+            // Interface lost → previous recovery replaced by new one
+            fakeConnectivity.emitChange([ConnectivityResult.none]);
+            async.flushMicrotasks();
+
+            // DNS recovers; new recovery probe should detect it
+            dnsSucceeds = true;
+            async.elapse(const Duration(seconds: 5));
+            expect(results.last, equals(ConnectivityStatus.online));
+
+            sub.cancel();
+          });
+        },
+      );
+
+      test(
+        'should skip a recovery probe tick when a previous probe is still in flight',
+        () {
+          fakeAsync((async) {
+            final probeCalls = <int>[];
+            var probeCompleter = Completer<bool>();
+            fakeConnectivity.setCheckResult([ConnectivityResult.none]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () {
+                probeCalls.add(probeCalls.length);
+                return probeCompleter.future;
+              },
+            );
+
+            final sub = repository.watchConnectivity().listen((_) {});
+            async.flushMicrotasks();
+
+            // WiFi connects — completes the initial DNS checks to enter recovery mode
+            probeCompleter.complete(false);
+            async.flushMicrotasks();
+            probeCompleter = Completer<bool>()..complete(false);
+            async.flushMicrotasks();
+            probeCompleter = Completer<bool>()..complete(false);
+            async.flushMicrotasks();
+
+            fakeConnectivity.emitChange([ConnectivityResult.wifi]);
+            async.flushMicrotasks();
+            // The connectivity-change DNS probes complete as false → recovery mode
+            probeCompleter = Completer<bool>()..complete(false);
+            async.flushMicrotasks();
+            probeCompleter = Completer<bool>()..complete(false);
+            async.flushMicrotasks();
+            probeCompleter = Completer<bool>()..complete(false);
+            async.flushMicrotasks();
+
+            // Clear tracking and enter the recovery-probe guard test
+            probeCalls.clear();
+
+            // First recovery tick at 5s — start a slow probe
+            probeCompleter = Completer<bool>();
+            async.elapse(const Duration(seconds: 5));
+            expect(probeCalls.length, equals(1));
+
+            // Second recovery tick at 10s — probe still in flight → tick skipped
+            async.elapse(const Duration(seconds: 5));
+            expect(probeCalls.length, equals(1));
+
+            // Complete the slow probe
+            probeCompleter.complete(true);
+            async.flushMicrotasks();
+
+            sub.cancel();
+          });
+        },
+      );
+    });
+
+    // ========================================================================
+    // watchConnectivity — stale probe invalidation via epoch (fake_async)
+    // ========================================================================
+
+    group('watchConnectivity — stale probe invalidation', () {
+      test(
+        'should discard the result of a stale in-flight probe after an epoch change',
+        () {
+          fakeAsync((async) {
+            var dnsCompleter = Completer<bool>();
+            fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () => dnsCompleter.future,
+            );
+
+            final results = <ConnectivityStatus>[];
+            final sub = repository.watchConnectivity().listen(results.add);
 
             // Complete initial check → online
             dnsCompleter.complete(true);
             async.flushMicrotasks();
             expect(results, [ConnectivityStatus.online]);
 
-            // Periodic probe fires at 30s with a slow completer
+            // Periodic probe at 30s — keep it in flight
             final staleCompleter = Completer<bool>();
             dnsCompleter = staleCompleter;
             async.elapse(const Duration(seconds: 30));
 
-            // WiFi OFF while periodic probe in-flight
-            controller.add([ConnectivityResult.none]);
+            // WiFi OFF → offline
+            fakeConnectivity.emitChange([ConnectivityResult.none]);
             async.flushMicrotasks();
-            expect(results.last, ConnectivityStatus.offline);
+            expect(results.last, equals(ConnectivityStatus.offline));
 
-            // WiFi ON → fresh DNS check → online
+            // WiFi ON → fresh probe → online
             dnsCompleter = Completer<bool>();
-            controller.add([ConnectivityResult.wifi]);
+            fakeConnectivity.emitChange([ConnectivityResult.wifi]);
             async.flushMicrotasks();
             dnsCompleter.complete(true);
             async.flushMicrotasks();
-            expect(results.last, ConnectivityStatus.online);
+            expect(results.last, equals(ConnectivityStatus.online));
 
-            // Now complete the STALE probe with false
+            // Complete the stale probe with false — must NOT emit offline
             staleCompleter.complete(false);
             async.flushMicrotasks();
 
-            // Should NOT emit offline from stale result
             expect(
               results.last,
-              ConnectivityStatus.online,
-              reason:
-                  'stale probe result should be discarded, not emit outdated offline status',
+              equals(ConnectivityStatus.online),
+              reason: 'stale probe result must be discarded by epoch guard',
             );
 
             sub.cancel();
-            controller.close();
           });
-        });
-      });
+        },
+      );
 
-      group('recovery probe on no-interface offline', () {
-        test('starts recovery probes when connectivity changes to none', () {
+      test(
+        'should allow a fresh connectivity-change probe to proceed when a stale probe is in flight',
+        () {
           fakeAsync((async) {
-            var dnsSucceeds = false;
-            final repo = ConnectivityRepositoryImpl(
-              connectivity: mockConnectivity,
-              dnsProbe: () async => dnsSucceeds,
+            var dnsCompleter = Completer<bool>();
+            fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () => dnsCompleter.future,
             );
-            when(
-              () => mockConnectivity.checkConnectivity(),
-            ).thenAnswer((_) async => [ConnectivityResult.wifi]);
-            final controller = StreamController<List<ConnectivityResult>>();
-            when(
-              () => mockConnectivity.onConnectivityChanged,
-            ).thenAnswer((_) => controller.stream);
 
             final results = <ConnectivityStatus>[];
-            final sub = repo.watchConnectivity().listen(results.add);
+            final sub = repository.watchConnectivity().listen(results.add);
+
+            // Complete initial check → online
+            dnsCompleter.complete(true);
+            async.flushMicrotasks();
+            expect(results, [ConnectivityStatus.online]);
+
+            // Periodic probe at 30s — stays in flight
+            dnsCompleter = Completer<bool>();
+            async.elapse(const Duration(seconds: 30));
+
+            // WiFi OFF while in-flight
+            fakeConnectivity.emitChange([ConnectivityResult.none]);
+            async.flushMicrotasks();
+            expect(results.last, equals(ConnectivityStatus.offline));
+
+            // WiFi ON — must start a fresh DNS check despite in-flight stale probe
+            dnsCompleter = Completer<bool>();
+            fakeConnectivity.emitChange([ConnectivityResult.wifi]);
             async.flushMicrotasks();
 
-            // Initial: offline (WiFi but DNS fails)
-            expect(results, [ConnectivityStatus.offline]);
+            // Complete fresh probe → online
+            dnsCompleter.complete(true);
+            async.flushMicrotasks();
+
+            expect(
+              results.last,
+              equals(ConnectivityStatus.online),
+              reason:
+                  'fresh connectivity-change probe should not be blocked by stale isProbing flag',
+            );
+
+            sub.cancel();
+          });
+        },
+      );
+    });
+
+    // ========================================================================
+    // watchConnectivity — recovery after no-interface offline
+    // ========================================================================
+
+    group('watchConnectivity — recovery after no-interface offline', () {
+      test(
+        'should start recovery probes when connectivity changes to none while online',
+        () {
+          fakeAsync((async) {
+            var dnsSucceeds = false;
+            fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () async => dnsSucceeds,
+            );
+
+            final results = <ConnectivityStatus>[];
+            final sub = repository.watchConnectivity().listen(results.add);
+            async.flushMicrotasks();
+
+            // Initial: offline (wifi present but DNS fails)
+            expect(results.last, equals(ConnectivityStatus.offline));
 
             // WiFi OFF → no interface → offline (deduped by distinct)
-            controller.add([ConnectivityResult.none]);
+            fakeConnectivity.emitChange([ConnectivityResult.none]);
             async.flushMicrotasks();
 
-            // DNS starts succeeding, advance 5s for recovery probe
+            // DNS starts succeeding; advance 5s for recovery probe
             dnsSucceeds = true;
             async.elapse(const Duration(seconds: 5));
 
             expect(
               results.last,
-              ConnectivityStatus.online,
-              reason:
-                  'recovery probe should fire after no-interface offline and detect DNS recovery',
+              equals(ConnectivityStatus.online),
+              reason: 'recovery probe should detect DNS recovery after no-interface offline',
             );
 
             sub.cancel();
-            controller.close();
           });
-        });
-      });
+        },
+      );
+    });
 
-      group('probing overlap guard', () {
-        test(
-          'skips recovery probe tick when previous probe is still in progress',
-          () {
-            fakeAsync((async) {
-              final probeCalls = <int>[];
-              var probeCompleter = Completer<bool>();
-              final repo = ConnectivityRepositoryImpl(
-                connectivity: mockConnectivity,
-                dnsProbe: () {
-                  probeCalls.add(probeCalls.length);
-                  return probeCompleter.future;
-                },
-              );
-              when(
-                () => mockConnectivity.checkConnectivity(),
-              ).thenAnswer((_) async => [ConnectivityResult.none]);
-              final controller = StreamController<List<ConnectivityResult>>();
-              when(
-                () => mockConnectivity.onConnectivityChanged,
-              ).thenAnswer((_) => controller.stream);
+    // ========================================================================
+    // watchConnectivity — connectivity change probe guard
+    // ========================================================================
 
-              final results = <ConnectivityStatus>[];
-              final sub = repo.watchConnectivity().listen(results.add);
-              async.flushMicrotasks();
+    group('watchConnectivity — connectivity change probe guard', () {
+      test(
+        'should cancel existing periodic probes and start a fresh DNS check on connectivity change',
+        () {
+          fakeAsync((async) {
+            var dnsCallCount = 0;
+            var dnsCompleter = Completer<bool>();
+            fakeConnectivity.setCheckResult([ConnectivityResult.wifi]);
+            final repository = _repo(
+              fakeConnectivity,
+              probe: () {
+                dnsCallCount++;
+                return dnsCompleter.future;
+              },
+            );
 
-              // WiFi connects, DNS fails → recovery mode starts
-              probeCompleter = Completer<bool>();
-              controller.add([ConnectivityResult.wifi]);
-              async.flushMicrotasks();
-              // First DNS probe started (from change event), complete it as fail
-              probeCompleter.complete(false);
-              async.flushMicrotasks();
-              // Second retry
-              probeCompleter = Completer<bool>();
-              probeCompleter.complete(false);
-              async.flushMicrotasks();
-              // Third retry
-              probeCompleter = Completer<bool>();
-              probeCompleter.complete(false);
-              async.flushMicrotasks();
+            final results = <ConnectivityStatus>[];
+            final sub = repository.watchConnectivity().listen(results.add);
 
-              // Now in recovery mode. Clear probe call tracking.
-              probeCalls.clear();
+            // Complete initial check → online
+            dnsCompleter.complete(true);
+            async.flushMicrotasks();
+            expect(results, [ConnectivityStatus.online]);
 
-              // First recovery tick at 5s — start a slow probe
-              probeCompleter = Completer<bool>();
-              async.elapse(const Duration(seconds: 5));
-              expect(probeCalls.length, 1, reason: 'first recovery tick fires');
+            // Periodic probe fires at 30s — stays in flight
+            dnsCompleter = Completer<bool>();
+            async.elapse(const Duration(seconds: 30));
+            final callsAfterPeriodicStart = dnsCallCount;
+            expect(callsAfterPeriodicStart, greaterThan(1));
 
-              // Second recovery tick at 10s — probe still running
-              async.elapse(const Duration(seconds: 5));
-              expect(
-                probeCalls.length,
-                1,
-                reason: 'second tick skipped because first probe still running',
-              );
+            // Connectivity change while in-flight — should start fresh DNS
+            dnsCompleter = Completer<bool>();
+            fakeConnectivity.emitChange([ConnectivityResult.mobile]);
+            async.flushMicrotasks();
 
-              // Complete the slow probe
-              probeCompleter.complete(true);
-              async.flushMicrotasks();
+            expect(
+              dnsCallCount,
+              greaterThan(callsAfterPeriodicStart),
+              reason: 'connectivity change should initiate a fresh DNS check',
+            );
 
-              sub.cancel();
-              controller.close();
-            });
-          },
-        );
-      });
+            // Complete the fresh probe → online
+            dnsCompleter.complete(true);
+            async.flushMicrotasks();
+            expect(results.last, equals(ConnectivityStatus.online));
+
+            sub.cancel();
+          });
+        },
+      );
     });
   });
 }
