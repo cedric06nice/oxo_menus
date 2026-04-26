@@ -96,6 +96,7 @@ class FakeWidgetRepository implements WidgetRepository {
   Result<WidgetInstance, DomainError>? _getByIdResponse;
   Result<WidgetInstance, DomainError>? _updateResponse;
   Result<void, DomainError>? _deleteResponse;
+  Future<Result<void, DomainError>>? _deleteFutureResponse;
   Result<void, DomainError>? _reorderResponse;
   Result<void, DomainError>? _moveToResponse;
   Result<void, DomainError>? _lockForEditingResponse;
@@ -123,6 +124,14 @@ class FakeWidgetRepository implements WidgetRepository {
 
   void whenDelete(Result<void, DomainError> response) {
     _deleteResponse = response;
+    _deleteFutureResponse = null;
+  }
+
+  /// Configures delete to return a controlled [Future], allowing tests to
+  /// inspect optimistic state updates before the async operation completes.
+  void whenDeleteWithFuture(Future<Result<void, DomainError>> future) {
+    _deleteFutureResponse = future;
+    _deleteResponse = null;
   }
 
   void whenReorder(Result<void, DomainError> response) {
@@ -190,6 +199,7 @@ class FakeWidgetRepository implements WidgetRepository {
   @override
   Future<Result<void, DomainError>> delete(int id) async {
     calls.add(WidgetDeleteCall(id));
+    if (_deleteFutureResponse != null) return _deleteFutureResponse!;
     if (_deleteResponse != null) return _deleteResponse!;
     throw StateError(
       'FakeWidgetRepository: no response configured for delete()',

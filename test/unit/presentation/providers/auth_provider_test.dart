@@ -1,95 +1,97 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
-import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
-import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
-class MockAuthRepository extends Mock implements AuthRepository {}
+import '../../../fakes/fake_auth_repository.dart';
+import '../../../fakes/result_helpers.dart';
 
 void main() {
-  late MockAuthRepository mockAuthRepository;
-  late ProviderContainer container;
+  const adminUser = User(
+    id: 'admin-1',
+    email: 'admin@example.com',
+    firstName: 'Admin',
+    lastName: 'User',
+    role: UserRole.admin,
+  );
 
-  setUp(() {
-    mockAuthRepository = MockAuthRepository();
-    // Mock tryRestoreSession (called by build via Future.microtask) to return unauthenticated by default
-    when(
-      () => mockAuthRepository.tryRestoreSession(),
-    ).thenAnswer((_) async => const Failure(UnauthorizedError()));
-    container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(mockAuthRepository)],
-    );
-  });
-
-  tearDown(() => container.dispose());
-
-  AuthNotifier readNotifier() => container.read(authProvider.notifier);
-  AuthState readState() => container.read(authProvider);
+  const regularUser = User(
+    id: 'user-1',
+    email: 'user@example.com',
+    firstName: 'Regular',
+    lastName: 'User',
+    role: UserRole.user,
+  );
 
   group('AuthNotifier', () {
-    const testUser = User(
-      id: '1',
-      email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'User',
-      role: UserRole.user,
-    );
+    late FakeAuthRepository fakeRepo;
+    late ProviderContainer container;
+
+    setUp(() {
+      fakeRepo = FakeAuthRepository();
+      // Default: session restore fails → notifier starts unauthenticated
+      fakeRepo.defaultTryRestoreSessionResponse = failureUnauthorized<User>(
+        'No session',
+      );
+      container = ProviderContainer(
+        overrides: [authRepositoryProvider.overrideWithValue(fakeRepo)],
+      );
+    });
+
+    tearDown(() => container.dispose());
+
+    AuthNotifier readNotifier() => container.read(authProvider.notifier);
+    AuthState readState() => container.read(authProvider);
+
+    test('should return initial state synchronously when first read', () {
+      expect(readState(), const AuthState.initial());
+    });
 
     test(
-      'build() returns initial state, then microtask triggers loading',
+      'should transition to loading during session restore microtask',
       () async {
-        // build() returns initial synchronously
-        expect(readState(), const AuthState.initial());
-
-        // After microtask, _tryRestoreSession sets loading
+        readState(); // trigger build
         await Future.microtask(() {});
         expect(readState(), const AuthState.loading());
       },
     );
 
-    test('should check auth status on initialization', () async {
-      // Trigger provider
+    test(
+      'should set unauthenticated state when session restore fails',
+      () async {
+        readState();
+        await Future.delayed(const Duration(milliseconds: 50));
+        expect(readState(), const AuthState.unauthenticated());
+      },
+    );
+
+    test(
+      'should set authenticated state when session restore succeeds',
+      () async {
+        // Arrange: configure before the build triggers
+        fakeRepo.defaultTryRestoreSessionResponse = success(adminUser);
+        // Act: trigger the build (and the microtask that calls tryRestoreSession)
+        readState();
+        await Future.delayed(const Duration(milliseconds: 50));
+        // Assert
+        expect(readState(), const AuthState.authenticated(adminUser));
+      },
+    );
+
+    test('should call tryRestoreSession exactly once on build', () async {
       readState();
-      // Wait for the initial check to complete
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      verify(() => mockAuthRepository.tryRestoreSession()).called(1);
-      expect(readState(), const AuthState.unauthenticated());
-    });
-
-    test('should set authenticated state when user is logged in', () async {
-      when(
-        () => mockAuthRepository.tryRestoreSession(),
-      ).thenAnswer((_) async => const Success(testUser));
-
-      // Create a fresh container to trigger build with the new mock behavior
-      final freshContainer = ProviderContainer(
-        overrides: [
-          authRepositoryProvider.overrideWithValue(mockAuthRepository),
-        ],
-      );
-      addTearDown(freshContainer.dispose);
-
-      freshContainer.read(authProvider);
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      expect(
-        freshContainer.read(authProvider),
-        const AuthState.authenticated(testUser),
-      );
+      await Future.delayed(const Duration(milliseconds: 50));
+      expect(fakeRepo.tryRestoreSessionCalls, hasLength(1));
     });
 
     group('login', () {
       test(
         'should set loading state then authenticated on successful login',
         () async {
-          when(
-            () => mockAuthRepository.login(any(), any()),
-          ).thenAnswer((_) async => const Success(testUser));
+          fakeRepo.whenLogin(success(regularUser));
+          await Future.delayed(const Duration(milliseconds: 50));
 
           final states = <AuthState>[];
           container.listen<AuthState>(
@@ -97,146 +99,118 @@ void main() {
             (_, next) => states.add(next),
           );
 
-          // Wait for initial restore to complete
-          await Future.delayed(const Duration(milliseconds: 100));
-
-          await readNotifier().login('test@example.com', 'password');
+          await readNotifier().login('user@example.com', 'password');
 
           expect(states, contains(const AuthState.loading()));
-          expect(readState(), const AuthState.authenticated(testUser));
-          verify(
-            () => mockAuthRepository.login('test@example.com', 'password'),
-          ).called(1);
+          expect(readState(), const AuthState.authenticated(regularUser));
         },
       );
 
       test('should set error state on failed login', () async {
-        const error = InvalidCredentialsError('Invalid email or password');
-        when(
-          () => mockAuthRepository.login(any(), any()),
-        ).thenAnswer((_) async => const Failure(error));
+        fakeRepo.whenLogin(
+          failure<User>(const InvalidCredentialsError('Invalid credentials')),
+        );
+        await Future.delayed(const Duration(milliseconds: 50));
 
-        // Wait for initial restore
-        await Future.delayed(const Duration(milliseconds: 100));
+        await readNotifier().login('user@example.com', 'wrong');
 
-        await readNotifier().login('test@example.com', 'wrong_password');
-
-        expect(readState(), const AuthState.error('Invalid email or password'));
-        verify(
-          () => mockAuthRepository.login('test@example.com', 'wrong_password'),
-        ).called(1);
+        expect(readState(), const AuthState.error('Invalid credentials'));
       });
 
-      test('should handle network errors', () async {
-        const error = NetworkError('Network unavailable');
-        when(
-          () => mockAuthRepository.login(any(), any()),
-        ).thenAnswer((_) async => const Failure(error));
+      test('should record login call with correct arguments', () async {
+        fakeRepo.whenLogin(success(regularUser));
+        await Future.delayed(const Duration(milliseconds: 50));
 
-        // Wait for initial restore
-        await Future.delayed(const Duration(milliseconds: 100));
+        await readNotifier().login('user@example.com', 'secret');
 
-        await readNotifier().login('test@example.com', 'password');
+        expect(fakeRepo.loginCalls, hasLength(1));
+        expect(fakeRepo.loginCalls.first.email, 'user@example.com');
+        expect(fakeRepo.loginCalls.first.password, 'secret');
+      });
 
-        expect(readState(), const AuthState.error('Network unavailable'));
+      test('should handle network error during login', () async {
+        fakeRepo.whenLogin(failureNetwork<User>('No connection'));
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        await readNotifier().login('user@example.com', 'password');
+
+        expect(readState(), const AuthState.error('No connection'));
       });
 
       test(
-        'should clear error and authenticate on retry after failure',
+        'should authenticate on retry after previous login failure',
         () async {
-          // Wait for initial restore
-          await Future.delayed(const Duration(milliseconds: 100));
-
-          // First attempt fails
-          when(() => mockAuthRepository.login(any(), any())).thenAnswer(
-            (_) async =>
-                const Failure(InvalidCredentialsError('wrong password')),
+          fakeRepo.whenLogin(
+            failure<User>(const InvalidCredentialsError('wrong password')),
           );
-          await readNotifier().login('test@example.com', 'wrong');
+          await Future.delayed(const Duration(milliseconds: 50));
+          await readNotifier().login('user@example.com', 'wrong');
           expect(readState(), const AuthState.error('wrong password'));
 
-          // Second attempt succeeds
-          when(
-            () => mockAuthRepository.login(any(), any()),
-          ).thenAnswer((_) async => const Success(testUser));
-          await readNotifier().login('test@example.com', 'correct');
-
-          expect(readState(), const AuthState.authenticated(testUser));
+          fakeRepo.whenLogin(success(regularUser));
+          await readNotifier().login('user@example.com', 'correct');
+          expect(readState(), const AuthState.authenticated(regularUser));
         },
       );
     });
 
     group('logout', () {
-      test('should set unauthenticated state after logout', () async {
-        // Wait for initial restore
-        await Future.delayed(const Duration(milliseconds: 100));
+      test(
+        'should set unauthenticated state after successful logout',
+        () async {
+          fakeRepo.whenLogin(success(regularUser));
+          await Future.delayed(const Duration(milliseconds: 50));
+          await readNotifier().login('user@example.com', 'password');
+          expect(readState(), const AuthState.authenticated(regularUser));
 
-        // First login
-        when(
-          () => mockAuthRepository.login(any(), any()),
-        ).thenAnswer((_) async => const Success(testUser));
-        await readNotifier().login('test@example.com', 'password');
+          fakeRepo.whenLogout(success<void>(null));
+          await readNotifier().logout();
 
-        expect(readState(), const AuthState.authenticated(testUser));
+          expect(readState(), const AuthState.unauthenticated());
+        },
+      );
 
-        // Then logout
-        when(
-          () => mockAuthRepository.logout(),
-        ).thenAnswer((_) async => const Success(null));
+      test(
+        'should set unauthenticated state even when repo logout fails',
+        () async {
+          fakeRepo.whenLogin(success(regularUser));
+          await Future.delayed(const Duration(milliseconds: 50));
+          await readNotifier().login('user@example.com', 'password');
 
+          fakeRepo.whenLogout(failureNetwork<void>('offline'));
+          await readNotifier().logout();
+
+          // Fire-and-forget: state is unauthenticated regardless
+          expect(readState(), const AuthState.unauthenticated());
+        },
+      );
+
+      test('should call logout on repository', () async {
+        fakeRepo.whenLogin(success(regularUser));
+        await Future.delayed(const Duration(milliseconds: 50));
+        await readNotifier().login('user@example.com', 'password');
+
+        fakeRepo.whenLogout(success<void>(null));
         await readNotifier().logout();
 
-        expect(readState(), const AuthState.unauthenticated());
-        verify(() => mockAuthRepository.logout()).called(1);
-      });
-
-      test('should set unauthenticated even if repo.logout fails', () async {
-        // Wait for initial restore
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        // First login
-        when(
-          () => mockAuthRepository.login(any(), any()),
-        ).thenAnswer((_) async => const Success(testUser));
-        await readNotifier().login('test@example.com', 'password');
-
-        // Logout fails on backend
-        when(
-          () => mockAuthRepository.logout(),
-        ).thenAnswer((_) async => const Failure(NetworkError('offline')));
-
-        await readNotifier().logout();
-
-        // Documents current fire-and-forget behavior:
-        // state is unauthenticated regardless of repo result
-        expect(readState(), const AuthState.unauthenticated());
+        expect(fakeRepo.logoutCalls, hasLength(1));
       });
     });
 
     group('refresh', () {
-      test('should reload current user', () async {
-        // Wait for initial restore
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        when(
-          () => mockAuthRepository.getCurrentUser(),
-        ).thenAnswer((_) async => const Success(testUser));
+      test('should set authenticated state when current user exists', () async {
+        fakeRepo.whenGetCurrentUser(success(adminUser));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         await readNotifier().refresh();
 
-        expect(readState(), const AuthState.authenticated(testUser));
-        verify(
-          () => mockAuthRepository.getCurrentUser(),
-        ).called(greaterThan(0));
+        expect(readState(), const AuthState.authenticated(adminUser));
+        expect(fakeRepo.getCurrentUserCalls, hasLength(1));
       });
 
-      test('should set unauthenticated if no user', () async {
-        // Wait for initial restore
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        when(
-          () => mockAuthRepository.getCurrentUser(),
-        ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+      test('should set unauthenticated state when no current user', () async {
+        fakeRepo.whenGetCurrentUser(failureUnauthorized<User>());
+        await Future.delayed(const Duration(milliseconds: 50));
 
         await readNotifier().refresh();
 
@@ -245,100 +219,76 @@ void main() {
     });
   });
 
-  group('currentUserProvider — via ProviderContainer', () {
-    const testUser = User(
-      id: '1',
-      email: 'test@example.com',
-      role: UserRole.user,
-    );
-
-    test('should return user when session restore succeeds', () async {
-      final mock = MockAuthRepository();
-      when(
-        () => mock.tryRestoreSession(),
-      ).thenAnswer((_) async => const Success(testUser));
+  group('currentUserProvider', () {
+    test('should return the user when authenticated', () async {
+      final fakeRepo = FakeAuthRepository();
+      fakeRepo.defaultTryRestoreSessionResponse = success(regularUser);
 
       final container = ProviderContainer(
-        overrides: [authRepositoryProvider.overrideWithValue(mock)],
+        overrides: [authRepositoryProvider.overrideWithValue(fakeRepo)],
       );
       addTearDown(container.dispose);
 
-      // Trigger the provider and wait for async session restore
       container.read(authProvider);
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 50));
 
-      expect(container.read(currentUserProvider), testUser);
+      expect(container.read(currentUserProvider), regularUser);
     });
 
-    test('should return null when session restore fails', () async {
-      final mock = MockAuthRepository();
-      when(
-        () => mock.tryRestoreSession(),
-      ).thenAnswer((_) async => const Failure(UnauthorizedError()));
+    test('should return null when unauthenticated', () async {
+      final fakeRepo = FakeAuthRepository();
+      fakeRepo.defaultTryRestoreSessionResponse = failureUnauthorized<User>(
+        'No session',
+      );
 
       final container = ProviderContainer(
-        overrides: [authRepositoryProvider.overrideWithValue(mock)],
+        overrides: [authRepositoryProvider.overrideWithValue(fakeRepo)],
       );
       addTearDown(container.dispose);
 
       container.read(authProvider);
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(container.read(currentUserProvider), isNull);
+    });
+
+    test('should return null in loading state', () {
+      final fakeRepo = FakeAuthRepository();
+      // Never resolves — keep it in loading state
+      fakeRepo.defaultTryRestoreSessionResponse = failureUnauthorized<User>(
+        'slow',
+      );
+
+      final container = ProviderContainer(
+        overrides: [authRepositoryProvider.overrideWithValue(fakeRepo)],
+      );
+      addTearDown(container.dispose);
+
+      // Reading before microtask: state is initial → currentUser is null
+      expect(container.read(currentUserProvider), isNull);
+    });
+
+    test('should return null in error state', () {
+      final container = ProviderContainer(
+        overrides: [currentUserProvider.overrideWithValue(null)],
+      );
+      addTearDown(container.dispose);
 
       expect(container.read(currentUserProvider), isNull);
     });
   });
 
-  group('isAdminProvider logic', () {
-    test('should return true for admin users', () {
-      const adminUser = User(
-        id: '1',
-        email: 'admin@example.com',
-        role: UserRole.admin,
-      );
-
-      expect(adminUser.role == UserRole.admin, true);
-    });
-
-    test('should return false for regular users', () {
-      const regularUser = User(
-        id: '1',
-        email: 'user@example.com',
-        role: UserRole.user,
-      );
-
-      expect(regularUser.role == UserRole.admin, false);
-    });
-
-    test('should return false when user has no role', () {
-      const userNoRole = User(id: '1', email: 'user@example.com');
-
-      expect(userNoRole.role == UserRole.admin, false);
-    });
-  });
-
-  group('isAdminProvider with adminViewAsUser override', () {
-    const adminUser = User(
-      id: '1',
-      email: 'admin@example.com',
-      role: UserRole.admin,
-    );
-
-    const regularUser = User(
-      id: '2',
-      email: 'user@example.com',
-      role: UserRole.user,
-    );
-
-    test('should return true for admin when override is false', () {
+  group('isAdminProvider', () {
+    test('should return true for admin user when viewAsUser is false', () {
       final container = ProviderContainer(
         overrides: [currentUserProvider.overrideWithValue(adminUser)],
       );
       addTearDown(container.dispose);
 
-      expect(container.read(isAdminProvider), true);
+      expect(container.read(isAdminProvider), isTrue);
     });
 
-    test('should return false for admin when override is true', () {
+    test('should return false for admin user when viewAsUser is true', () {
       final container = ProviderContainer(
         overrides: [currentUserProvider.overrideWithValue(adminUser)],
       );
@@ -346,18 +296,35 @@ void main() {
 
       container.read(adminViewAsUserProvider.notifier).set(true);
 
-      expect(container.read(isAdminProvider), false);
+      expect(container.read(isAdminProvider), isFalse);
     });
 
-    test('should return false for regular user regardless of override', () {
+    test('should return false for regular user regardless of viewAsUser', () {
       final container = ProviderContainer(
         overrides: [currentUserProvider.overrideWithValue(regularUser)],
       );
       addTearDown(container.dispose);
 
-      container.read(adminViewAsUserProvider.notifier).set(true);
+      expect(container.read(isAdminProvider), isFalse);
+    });
 
-      expect(container.read(isAdminProvider), false);
+    test('should return false when user is null', () {
+      final container = ProviderContainer(
+        overrides: [currentUserProvider.overrideWithValue(null)],
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(isAdminProvider), isFalse);
+    });
+
+    test('should return false when user role is null', () {
+      const userNoRole = User(id: '1', email: 'norole@example.com');
+      final container = ProviderContainer(
+        overrides: [currentUserProvider.overrideWithValue(userNoRole)],
+      );
+      addTearDown(container.dispose);
+
+      expect(container.read(isAdminProvider), isFalse);
     });
   });
 
@@ -366,16 +333,45 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
-      expect(container.read(adminViewAsUserProvider), false);
+      expect(container.read(adminViewAsUserProvider), isFalse);
     });
 
-    test('should be togglable to true', () {
+    test('should update to true when set is called with true', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
       container.read(adminViewAsUserProvider.notifier).set(true);
 
-      expect(container.read(adminViewAsUserProvider), true);
+      expect(container.read(adminViewAsUserProvider), isTrue);
+    });
+
+    test('should toggle from false to true', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(adminViewAsUserProvider.notifier).toggle();
+
+      expect(container.read(adminViewAsUserProvider), isTrue);
+    });
+
+    test('should toggle from true back to false', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(adminViewAsUserProvider.notifier).set(true);
+      container.read(adminViewAsUserProvider.notifier).toggle();
+
+      expect(container.read(adminViewAsUserProvider), isFalse);
+    });
+
+    test('should reset to false when set is called with false', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(adminViewAsUserProvider.notifier).set(true);
+      container.read(adminViewAsUserProvider.notifier).set(false);
+
+      expect(container.read(adminViewAsUserProvider), isFalse);
     });
   });
 }

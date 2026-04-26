@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/area.dart';
@@ -12,527 +11,460 @@ import 'package:oxo_menus/presentation/providers/menu_list_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
-class MockMenuRepository extends Mock implements MenuRepository {}
+import '../../../fakes/fake_column_repository.dart';
+import '../../../fakes/fake_container_repository.dart';
+import '../../../fakes/fake_fetch_menu_tree_usecase.dart';
+import '../../../fakes/fake_menu_repository.dart';
+import '../../../fakes/fake_page_repository.dart';
+import '../../../fakes/fake_size_repository.dart';
+import '../../../fakes/fake_widget_repository.dart';
+import '../../../fakes/result_helpers.dart';
 
-class MockDuplicateMenuUseCase extends Mock implements DuplicateMenuUseCase {}
+// ---------------------------------------------------------------------------
+// Inline fake for DuplicateMenuUseCase
+// ---------------------------------------------------------------------------
+
+/// A fake [DuplicateMenuUseCase] that intercepts [execute] and returns a
+/// pre-configured result without touching any real repositories.
+class FakeDuplicateMenuUseCase extends DuplicateMenuUseCase {
+  FakeDuplicateMenuUseCase()
+    : super(
+        fetchMenuTreeUseCase: FakeFetchMenuTreeUseCase(),
+        menuRepository: FakeMenuRepository(),
+        pageRepository: FakePageRepository(),
+        containerRepository: FakeContainerRepository(),
+        columnRepository: FakeColumnRepository(),
+        widgetRepository: FakeWidgetRepository(),
+        sizeRepository: FakeSizeRepository(),
+      );
+
+  final List<int> executeCalls = [];
+  Result<Menu, DomainError>? _duplicateResult;
+
+  void whenDuplicate(Result<Menu, DomainError> result) {
+    _duplicateResult = result;
+  }
+
+  @override
+  Future<Result<Menu, DomainError>> execute(int sourceMenuId) async {
+    executeCalls.add(sourceMenuId);
+    if (_duplicateResult != null) return _duplicateResult!;
+    throw StateError(
+      'FakeDuplicateMenuUseCase: no response configured — call whenDuplicate()',
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 void main() {
-  late MockMenuRepository mockMenuRepository;
-  late MockDuplicateMenuUseCase mockDuplicateMenuUseCase;
-  late ProviderContainer container;
+  const menu1 = Menu(
+    id: 1,
+    name: 'Summer Menu',
+    status: Status.published,
+    version: '1.0.0',
+  );
 
-  setUpAll(() {
-    registerFallbackValue(
-      const CreateMenuInput(name: 'fallback', version: '1.0.0'),
-    );
+  const menu2 = Menu(
+    id: 2,
+    name: 'Winter Menu',
+    status: Status.published,
+    version: '1.0.0',
+  );
+
+  const menu3 = Menu(
+    id: 3,
+    name: 'Draft Menu',
+    status: Status.draft,
+    version: '1.0.0',
+  );
+
+  final testMenus = [menu1, menu2, menu3];
+
+  group('MenuListState', () {
+    test('should have empty menus, no loading, no error by default', () {
+      const state = MenuListState();
+
+      expect(state.menus, isEmpty);
+      expect(state.isLoading, isFalse);
+      expect(state.errorMessage, isNull);
+    });
+
+    test('should support copyWith for all fields', () {
+      const original = MenuListState();
+      final updated = original.copyWith(
+        menus: [menu1],
+        isLoading: true,
+        errorMessage: 'Error',
+      );
+
+      expect(updated.menus, [menu1]);
+      expect(updated.isLoading, isTrue);
+      expect(updated.errorMessage, 'Error');
+    });
+
+    test('should preserve equality for same field values', () {
+      final state1 = MenuListState(menus: [menu1]);
+      final state2 = MenuListState(menus: [menu1]);
+
+      expect(state1, equals(state2));
+    });
+
+    test('should not equal state with different isLoading', () {
+      const state1 = MenuListState(isLoading: false);
+      const state2 = MenuListState(isLoading: true);
+
+      expect(state1, isNot(equals(state2)));
+    });
   });
-
-  setUp(() {
-    mockMenuRepository = MockMenuRepository();
-    mockDuplicateMenuUseCase = MockDuplicateMenuUseCase();
-    container = ProviderContainer(
-      overrides: [
-        menuRepositoryProvider.overrideWithValue(mockMenuRepository),
-        duplicateMenuUseCaseProvider.overrideWithValue(
-          mockDuplicateMenuUseCase,
-        ),
-      ],
-    );
-  });
-
-  tearDown(() => container.dispose());
-
-  MenuListNotifier readNotifier() => container.read(menuListProvider.notifier);
-  MenuListState readState() => container.read(menuListProvider);
 
   group('MenuListNotifier', () {
-    final testMenus = [
-      const Menu(
-        id: 1,
-        name: 'Test Menu 1',
-        status: Status.published,
-        version: '1.0.0',
-      ),
-      const Menu(
-        id: 2,
-        name: 'Test Menu 2',
-        status: Status.published,
-        version: '1.0.0',
-      ),
-      const Menu(
-        id: 3,
-        name: 'Draft Menu',
-        status: Status.draft,
-        version: '1.0.0',
-      ),
-    ];
+    late FakeMenuRepository fakeMenuRepo;
+    late FakeDuplicateMenuUseCase fakeDuplicate;
+    late ProviderContainer container;
+
+    setUp(() {
+      fakeMenuRepo = FakeMenuRepository();
+      fakeDuplicate = FakeDuplicateMenuUseCase();
+      container = ProviderContainer(
+        overrides: [
+          menuRepositoryProvider.overrideWithValue(fakeMenuRepo),
+          duplicateMenuUseCaseProvider.overrideWithValue(fakeDuplicate),
+        ],
+      );
+    });
+
+    tearDown(() => container.dispose());
+
+    MenuListNotifier readNotifier() =>
+        container.read(menuListProvider.notifier);
+    MenuListState readState() => container.read(menuListProvider);
 
     test('should start with empty state', () {
       expect(readState().menus, isEmpty);
-      expect(readState().isLoading, false);
-      expect(readState().errorMessage, null);
+      expect(readState().isLoading, isFalse);
+      expect(readState().errorMessage, isNull);
     });
 
     group('loadMenus', () {
-      test('should load menus successfully', () async {
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: true),
-        ).thenAnswer((_) async => Success(testMenus));
+      test('should load menus successfully with onlyPublished true', () async {
+        fakeMenuRepo.whenListAll(success(testMenus));
 
         await readNotifier().loadMenus(onlyPublished: true);
 
         expect(readState().menus, testMenus);
-        expect(readState().isLoading, false);
-        expect(readState().errorMessage, null);
-        verify(() => mockMenuRepository.listAll(onlyPublished: true)).called(1);
+        expect(readState().isLoading, isFalse);
+        expect(readState().errorMessage, isNull);
       });
 
-      test('should load all menus when onlyPublished is false', () async {
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: false),
-        ).thenAnswer((_) async => Success(testMenus));
+      test('should pass onlyPublished false to the repository', () async {
+        fakeMenuRepo.whenListAll(success(testMenus));
 
         await readNotifier().loadMenus(onlyPublished: false);
 
-        expect(readState().menus, testMenus);
-        expect(readState().isLoading, false);
-        verify(
-          () => mockMenuRepository.listAll(onlyPublished: false),
-        ).called(1);
+        expect(fakeMenuRepo.listAllCalls.first.onlyPublished, isFalse);
       });
 
       test('should set loading state during load', () async {
-        when(() => mockMenuRepository.listAll(onlyPublished: true)).thenAnswer((
-          _,
-        ) async {
-          await Future.delayed(const Duration(milliseconds: 100));
-          return Success(testMenus);
-        });
-
+        fakeMenuRepo.whenListAll(success(testMenus));
         final states = <MenuListState>[];
         container.listen<MenuListState>(
           menuListProvider,
           (_, next) => states.add(next),
         );
 
-        final future = readNotifier().loadMenus(onlyPublished: true);
+        await readNotifier().loadMenus(onlyPublished: true);
 
-        // Check that loading state was set
-        await Future.delayed(const Duration(milliseconds: 50));
-        expect(readState().isLoading, true);
-
-        await future;
-
-        expect(states.any((s) => s.isLoading), true);
-        expect(readState().isLoading, false);
+        expect(states.any((s) => s.isLoading), isTrue);
+        expect(readState().isLoading, isFalse);
       });
 
-      test('should handle errors when loading fails', () async {
-        const error = NetworkError('Failed to fetch menus');
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: true),
-        ).thenAnswer((_) async => const Failure(error));
+      test('should set error message when load fails', () async {
+        fakeMenuRepo.whenListAll(failureNetwork<List<Menu>>('Connection lost'));
 
         await readNotifier().loadMenus(onlyPublished: true);
 
         expect(readState().menus, isEmpty);
-        expect(readState().isLoading, false);
-        expect(readState().errorMessage, 'Failed to fetch menus');
-        verify(() => mockMenuRepository.listAll(onlyPublished: true)).called(1);
+        expect(readState().isLoading, isFalse);
+        expect(readState().errorMessage, 'Connection lost');
       });
 
-      test('should clear error message when loading succeeds', () async {
-        // First fail
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: true),
-        ).thenAnswer((_) async => const Failure(NetworkError('Error')));
+      test('should clear previous error when load succeeds', () async {
+        fakeMenuRepo.whenListAll(failureNetwork<List<Menu>>('Error'));
         await readNotifier().loadMenus(onlyPublished: true);
         expect(readState().errorMessage, 'Error');
 
-        // Then succeed
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: true),
-        ).thenAnswer((_) async => Success(testMenus));
+        fakeMenuRepo.whenListAll(success(testMenus));
         await readNotifier().loadMenus(onlyPublished: true);
 
-        expect(readState().errorMessage, null);
+        expect(readState().errorMessage, isNull);
         expect(readState().menus, testMenus);
+      });
+
+      test('should pass areaIds to repository', () async {
+        fakeMenuRepo.whenListAll(success([menu1]));
+
+        await readNotifier().loadMenus(onlyPublished: true, areaIds: [1]);
+
+        expect(fakeMenuRepo.listAllCalls.first.areaIds, [1]);
+      });
+
+      test('should pass null areaIds when not specified', () async {
+        fakeMenuRepo.whenListAll(success(testMenus));
+
+        await readNotifier().loadMenus(onlyPublished: true);
+
+        expect(fakeMenuRepo.listAllCalls.first.areaIds, isNull);
+      });
+
+      test('should pass empty areaIds list to repository', () async {
+        fakeMenuRepo.whenListAll(success(<Menu>[]));
+
+        await readNotifier().loadMenus(onlyPublished: true, areaIds: []);
+
+        expect(fakeMenuRepo.listAllCalls.first.areaIds, isEmpty);
       });
     });
 
     group('deleteMenu', () {
-      test('should delete menu successfully', () async {
-        // First load some menus
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: true),
-        ).thenAnswer((_) async => Success(testMenus));
+      test('should remove menu from state when delete succeeds', () async {
+        fakeMenuRepo.whenListAll(success(testMenus));
         await readNotifier().loadMenus(onlyPublished: true);
+        expect(readState().menus, hasLength(3));
 
-        expect(readState().menus.length, 3);
-
-        // Then delete one
-        when(
-          () => mockMenuRepository.delete(1),
-        ).thenAnswer((_) async => const Success(null));
-
+        fakeMenuRepo.whenDelete(success<void>(null));
         await readNotifier().deleteMenu(1);
 
-        expect(readState().menus.length, 2);
-        expect(readState().menus.any((m) => m.id == 1), false);
-        expect(readState().errorMessage, null);
-        verify(() => mockMenuRepository.delete(1)).called(1);
+        expect(readState().menus, hasLength(2));
+        expect(readState().menus.any((m) => m.id == 1), isFalse);
       });
 
-      test('should handle delete errors', () async {
-        // First load some menus
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: true),
-        ).thenAnswer((_) async => Success(testMenus));
+      test('should set error message when delete fails', () async {
+        fakeMenuRepo.whenListAll(success(testMenus));
         await readNotifier().loadMenus(onlyPublished: true);
 
-        // Then fail to delete
-        const error = ServerError('Failed to delete menu');
-        when(
-          () => mockMenuRepository.delete(1),
-        ).thenAnswer((_) async => const Failure(error));
-
+        fakeMenuRepo.whenDelete(failureServer<void>('Delete failed'));
         await readNotifier().deleteMenu(1);
 
-        // Menu should still be in the list
-        expect(readState().menus.length, 3);
-        expect(readState().menus.any((m) => m.id == 1), true);
-        expect(readState().errorMessage, 'Failed to delete menu');
-        verify(() => mockMenuRepository.delete(1)).called(1);
+        expect(readState().menus, hasLength(3));
+        expect(readState().errorMessage, 'Delete failed');
       });
 
-      test('should handle deleting non-existent menu', () async {
-        // Load menus
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: true),
-        ).thenAnswer((_) async => Success(testMenus));
+      test(
+        'should not change menu count when deleting non-existent id',
+        () async {
+          fakeMenuRepo.whenListAll(success(testMenus));
+          await readNotifier().loadMenus(onlyPublished: true);
+
+          fakeMenuRepo.whenDelete(success<void>(null));
+          await readNotifier().deleteMenu(999);
+
+          expect(readState().menus, hasLength(3));
+          expect(readState().errorMessage, isNull);
+        },
+      );
+
+      test('should record delete call with correct id', () async {
+        fakeMenuRepo.whenListAll(success(testMenus));
         await readNotifier().loadMenus(onlyPublished: true);
+        fakeMenuRepo.whenDelete(success<void>(null));
 
-        // Delete a menu that doesn't exist in local state
-        when(
-          () => mockMenuRepository.delete(999),
-        ).thenAnswer((_) async => const Success(null));
+        await readNotifier().deleteMenu(2);
 
-        await readNotifier().deleteMenu(999);
-
-        // State should be unchanged
-        expect(readState().menus.length, 3);
-        expect(readState().errorMessage, null);
+        expect(fakeMenuRepo.deleteCalls.first.id, 2);
       });
     });
 
     group('refresh', () {
-      test('should reload menus', () async {
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: true),
-        ).thenAnswer((_) async => Success(testMenus));
+      test('should reload menus with same defaults', () async {
+        fakeMenuRepo.whenListAll(success(testMenus));
 
         await readNotifier().refresh(onlyPublished: true);
 
         expect(readState().menus, testMenus);
-        expect(readState().isLoading, false);
-        verify(() => mockMenuRepository.listAll(onlyPublished: true)).called(1);
       });
 
-      test('should pass onlyPublished parameter', () async {
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: false),
-        ).thenAnswer((_) async => Success(testMenus));
+      test('should pass onlyPublished false through refresh', () async {
+        fakeMenuRepo.whenListAll(success(testMenus));
 
         await readNotifier().refresh(onlyPublished: false);
 
-        verify(
-          () => mockMenuRepository.listAll(onlyPublished: false),
-        ).called(1);
+        expect(fakeMenuRepo.listAllCalls.first.onlyPublished, isFalse);
+      });
+
+      test('should pass areaIds through refresh', () async {
+        fakeMenuRepo.whenListAll(success([menu1]));
+
+        await readNotifier().refresh(onlyPublished: true, areaIds: [1, 2]);
+
+        expect(fakeMenuRepo.listAllCalls.first.areaIds, [1, 2]);
       });
     });
 
     group('clearError', () {
-      test('should clear error message', () async {
-        // Set an error
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: true),
-        ).thenAnswer((_) async => const Failure(NetworkError('Error')));
+      test('should clear the error message', () async {
+        fakeMenuRepo.whenListAll(failureNetwork<List<Menu>>('Error'));
         await readNotifier().loadMenus(onlyPublished: true);
-
         expect(readState().errorMessage, 'Error');
 
-        // Clear the error
         readNotifier().clearError();
 
-        expect(readState().errorMessage, null);
+        expect(readState().errorMessage, isNull);
       });
 
-      test('should not affect other state properties', () async {
-        // Load menus
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: true),
-        ).thenAnswer((_) async => Success(testMenus));
+      test(
+        'should not affect menus or loading state when clearing error',
+        () async {
+          fakeMenuRepo.whenListAll(success(testMenus));
+          await readNotifier().loadMenus(onlyPublished: true);
+          fakeMenuRepo.whenDelete(failureServer<void>('Error'));
+          await readNotifier().deleteMenu(1);
+          final menusBefore = readState().menus;
+
+          readNotifier().clearError();
+
+          expect(readState().menus, menusBefore);
+          expect(readState().isLoading, isFalse);
+        },
+      );
+    });
+
+    group('createMenu', () {
+      const newMenu = Menu(
+        id: 10,
+        name: 'New Menu',
+        status: Status.draft,
+        version: '1.0.0',
+      );
+
+      test(
+        'should prepend created menu to list and return it on success',
+        () async {
+          fakeMenuRepo.whenListAll(success([menu1]));
+          await readNotifier().loadMenus(onlyPublished: true);
+
+          fakeMenuRepo.whenCreate(success(newMenu));
+          final result = await readNotifier().createMenu(
+            const CreateMenuInput(name: 'New Menu', version: '1.0.0'),
+          );
+
+          expect(result, newMenu);
+          expect(readState().menus.first, newMenu);
+          expect(readState().menus, hasLength(2));
+        },
+      );
+
+      test('should return null and set error on create failure', () async {
+        fakeMenuRepo.whenCreate(
+          failure<Menu>(const ValidationError('Name required')),
+        );
+
+        final result = await readNotifier().createMenu(
+          const CreateMenuInput(name: '', version: '1.0.0'),
+        );
+
+        expect(result, isNull);
+        expect(readState().errorMessage, 'Name required');
+        expect(readState().isLoading, isFalse);
+      });
+
+      test('should set loading state during creation', () async {
+        fakeMenuRepo.whenCreate(success(newMenu));
+        final states = <MenuListState>[];
+        container.listen<MenuListState>(
+          menuListProvider,
+          (_, next) => states.add(next),
+        );
+
+        await readNotifier().createMenu(
+          const CreateMenuInput(name: 'New Menu', version: '1.0.0'),
+        );
+
+        expect(states.any((s) => s.isLoading), isTrue);
+        expect(readState().isLoading, isFalse);
+      });
+
+      test('should prepend new menu at first position in list', () async {
+        fakeMenuRepo.whenListAll(success([menu1]));
         await readNotifier().loadMenus(onlyPublished: true);
 
-        // Set an error
-        when(
-          () => mockMenuRepository.delete(1),
-        ).thenAnswer((_) async => const Failure(ServerError('Error')));
-        await readNotifier().deleteMenu(1);
+        fakeMenuRepo.whenCreate(success(newMenu));
+        await readNotifier().createMenu(
+          const CreateMenuInput(name: 'New Menu', version: '1.0.0'),
+        );
 
-        expect(readState().errorMessage, 'Error');
-        final menusBefore = readState().menus;
-
-        // Clear error
-        readNotifier().clearError();
-
-        expect(readState().errorMessage, null);
-        expect(readState().menus, menusBefore);
-        expect(readState().isLoading, false);
+        expect(readState().menus.first.id, 10);
+        expect(readState().menus[1].id, 1);
       });
     });
-  });
 
-  group('createMenu', () {
-    const createInput = CreateMenuInput(name: 'New Menu', version: '1.0.0');
-
-    const createdMenu = Menu(
-      id: 10,
-      name: 'New Menu',
-      status: Status.draft,
-      version: '1.0.0',
-    );
-
-    final existingMenus = [
-      const Menu(
-        id: 1,
-        name: 'Existing Menu',
-        status: Status.published,
+    group('duplicateMenu', () {
+      const duplicatedMenu = Menu(
+        id: 20,
+        name: 'Summer Menu (copy)',
+        status: Status.draft,
         version: '1.0.0',
-      ),
-    ];
+      );
 
-    test('should return created menu and prepend to list on success', () async {
-      // Load existing menus first
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: true),
-      ).thenAnswer((_) async => Success(existingMenus));
-      await readNotifier().loadMenus(onlyPublished: true);
+      test('should prepend duplicated menu and return it on success', () async {
+        fakeMenuRepo.whenListAll(success([menu1]));
+        await readNotifier().loadMenus(onlyPublished: true);
 
-      when(
-        () => mockMenuRepository.create(any()),
-      ).thenAnswer((_) async => const Success(createdMenu));
+        fakeDuplicate.whenDuplicate(success(duplicatedMenu));
+        final result = await readNotifier().duplicateMenu(1);
 
-      final result = await readNotifier().createMenu(createInput);
-
-      expect(result, createdMenu);
-      expect(readState().menus.length, 2);
-      expect(readState().menus.first, createdMenu);
-      expect(readState().isLoading, false);
-      expect(readState().errorMessage, isNull);
-    });
-
-    test('should return null and set error on failure', () async {
-      const error = ValidationError('Name is required');
-      when(
-        () => mockMenuRepository.create(any()),
-      ).thenAnswer((_) async => const Failure(error));
-
-      final result = await readNotifier().createMenu(createInput);
-
-      expect(result, isNull);
-      expect(readState().isLoading, false);
-      expect(readState().errorMessage, 'Name is required');
-    });
-
-    test('should set loading state during creation', () async {
-      when(() => mockMenuRepository.create(any())).thenAnswer((_) async {
-        await Future.delayed(const Duration(milliseconds: 100));
-        return const Success(createdMenu);
+        expect(result, duplicatedMenu);
+        expect(readState().menus.first, duplicatedMenu);
+        expect(readState().menus, hasLength(2));
       });
 
-      final states = <MenuListState>[];
-      container.listen(menuListProvider, (_, next) => states.add(next));
+      test('should return null and set error on duplicate failure', () async {
+        fakeDuplicate.whenDuplicate(failureServer<Menu>('Duplicate failed'));
 
-      final future = readNotifier().createMenu(createInput);
-      await Future.delayed(const Duration(milliseconds: 50));
-      expect(readState().isLoading, true);
+        final result = await readNotifier().duplicateMenu(1);
 
-      await future;
-      expect(states.any((s) => s.isLoading), true);
-      expect(readState().isLoading, false);
+        expect(result, isNull);
+        expect(readState().errorMessage, 'Duplicate failed');
+        expect(readState().isLoading, isFalse);
+      });
+
+      test('should call duplicate use case with the correct menu id', () async {
+        fakeDuplicate.whenDuplicate(success(duplicatedMenu));
+        await readNotifier().duplicateMenu(42);
+
+        expect(fakeDuplicate.executeCalls, contains(42));
+      });
     });
 
-    test('should prepend new menu at first position', () async {
-      // Load existing menus
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: true),
-      ).thenAnswer((_) async => Success(existingMenus));
-      await readNotifier().loadMenus(onlyPublished: true);
-
-      when(
-        () => mockMenuRepository.create(any()),
-      ).thenAnswer((_) async => const Success(createdMenu));
-
-      await readNotifier().createMenu(createInput);
-
-      expect(readState().menus[0].id, 10);
-      expect(readState().menus[1].id, 1);
-    });
-  });
-
-  group('area filtering', () {
-    final menusWithAreas = [
-      const Menu(
-        id: 1,
-        name: 'Dining Menu',
-        status: Status.published,
-        version: '1.0.0',
-        area: Area(id: 1, name: 'Dining'),
-      ),
-      const Menu(
-        id: 2,
-        name: 'Bar Menu',
-        status: Status.published,
-        version: '1.0.0',
-        area: Area(id: 2, name: 'Bar'),
-      ),
-    ];
-
-    test('should not pass areaIds when null (admin)', () async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false, areaIds: null),
-      ).thenAnswer((_) async => Success(menusWithAreas));
-
-      await readNotifier().loadMenus(onlyPublished: false, areaIds: null);
-
-      expect(readState().menus.length, 2);
-      verify(
-        () => mockMenuRepository.listAll(onlyPublished: false, areaIds: null),
-      ).called(1);
-    });
-
-    test(
-      'should pass areaIds to repository for server-side filtering',
-      () async {
-        when(
-          () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
-        ).thenAnswer((_) async => Success([menusWithAreas[0]]));
-
-        await readNotifier().loadMenus(onlyPublished: true, areaIds: [1]);
-
-        expect(readState().menus.length, 1);
-        expect(readState().menus.first.name, 'Dining Menu');
-        verify(
-          () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1]),
-        ).called(1);
-      },
-    );
-
-    test('should forward empty areaIds to repository', () async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: []),
-      ).thenAnswer((_) async => const Success([]));
-
-      await readNotifier().loadMenus(onlyPublished: true, areaIds: []);
-
-      expect(readState().menus, isEmpty);
-      verify(
-        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: []),
-      ).called(1);
-    });
-
-    test('should pass areaIds through refresh', () async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1, 2]),
-      ).thenAnswer((_) async => Success(menusWithAreas));
-
-      await readNotifier().refresh(onlyPublished: true, areaIds: [1, 2]);
-
-      verify(
-        () => mockMenuRepository.listAll(onlyPublished: true, areaIds: [1, 2]),
-      ).called(1);
-    });
-  });
-
-  group('MenuListState', () {
-    test('should create state with default values', () {
-      const state = MenuListState();
-
-      expect(state.menus, isEmpty);
-      expect(state.isLoading, false);
-      expect(state.errorMessage, null);
-    });
-
-    test('should create state with custom values', () {
-      final menus = [
+    group('area filtering', () {
+      final menusWithAreas = [
         const Menu(
           id: 1,
-          name: 'Test',
+          name: 'Dining Menu',
           status: Status.published,
           version: '1.0.0',
+          area: Area(id: 1, name: 'Dining'),
+        ),
+        const Menu(
+          id: 2,
+          name: 'Bar Menu',
+          status: Status.published,
+          version: '1.0.0',
+          area: Area(id: 2, name: 'Bar'),
         ),
       ];
 
-      final state = MenuListState(
-        menus: menus,
-        isLoading: true,
-        errorMessage: 'Error',
-      );
+      test('should pass multiple areaIds for server-side filtering', () async {
+        fakeMenuRepo.whenListAll(success(menusWithAreas));
 
-      expect(state.menus, menus);
-      expect(state.isLoading, true);
-      expect(state.errorMessage, 'Error');
-    });
+        await readNotifier().loadMenus(onlyPublished: true, areaIds: [1, 2]);
 
-    test('should support copyWith', () {
-      const original = MenuListState(
-        menus: [],
-        isLoading: false,
-        errorMessage: null,
-      );
-
-      final modified = original.copyWith(
-        isLoading: true,
-        errorMessage: 'Loading...',
-      );
-
-      expect(original.isLoading, false);
-      expect(original.errorMessage, null);
-      expect(modified.isLoading, true);
-      expect(modified.errorMessage, 'Loading...');
-    });
-
-    test('should support equality', () {
-      final menus = [
-        const Menu(
-          id: 1,
-          name: 'Test',
-          status: Status.published,
-          version: '1.0.0',
-        ),
-      ];
-
-      final state1 = MenuListState(
-        menus: menus,
-        isLoading: false,
-        errorMessage: null,
-      );
-
-      final state2 = MenuListState(
-        menus: menus,
-        isLoading: false,
-        errorMessage: null,
-      );
-
-      final state3 = MenuListState(
-        menus: menus,
-        isLoading: true,
-        errorMessage: null,
-      );
-
-      expect(state1, equals(state2));
-      expect(state1, isNot(equals(state3)));
+        final call = fakeMenuRepo.listAllCalls.first;
+        expect(call.areaIds, [1, 2]);
+        expect(readState().menus, hasLength(2));
+      });
     });
   });
 }

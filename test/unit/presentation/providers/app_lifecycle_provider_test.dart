@@ -12,28 +12,58 @@ void main() {
       container = ProviderContainer();
     });
 
-    tearDown(() {
-      container.dispose();
+    tearDown(() => container.dispose());
+
+    test('should have resumed as initial state', () {
+      expect(container.read(appLifecycleProvider), AppLifecycleState.resumed);
     });
 
-    test('initial state is resumed', () {
-      final state = container.read(appLifecycleProvider);
-      expect(state, AppLifecycleState.resumed);
+    test('should update state to paused when lifecycle changes', () {
+      container
+          .read(appLifecycleProvider.notifier)
+          .didChangeAppLifecycleState(AppLifecycleState.paused);
+
+      expect(container.read(appLifecycleProvider), AppLifecycleState.paused);
     });
 
-    test('updates state when didChangeAppLifecycleState is called', () {
-      final notifier = container.read(appLifecycleProvider.notifier);
-      notifier.didChangeAppLifecycleState(AppLifecycleState.paused);
-
-      final state = container.read(appLifecycleProvider);
-      expect(state, AppLifecycleState.paused);
-    });
-
-    test('updates to inactive state', () {
-      final notifier = container.read(appLifecycleProvider.notifier);
-      notifier.didChangeAppLifecycleState(AppLifecycleState.inactive);
+    test('should update state to inactive when lifecycle changes', () {
+      container
+          .read(appLifecycleProvider.notifier)
+          .didChangeAppLifecycleState(AppLifecycleState.inactive);
 
       expect(container.read(appLifecycleProvider), AppLifecycleState.inactive);
+    });
+
+    test('should update state to hidden when lifecycle changes', () {
+      container
+          .read(appLifecycleProvider.notifier)
+          .didChangeAppLifecycleState(AppLifecycleState.hidden);
+
+      expect(container.read(appLifecycleProvider), AppLifecycleState.hidden);
+    });
+
+    test('should update state back to resumed from paused', () {
+      final notifier = container.read(appLifecycleProvider.notifier);
+      notifier.didChangeAppLifecycleState(AppLifecycleState.paused);
+      expect(container.read(appLifecycleProvider), AppLifecycleState.paused);
+
+      notifier.didChangeAppLifecycleState(AppLifecycleState.resumed);
+
+      expect(container.read(appLifecycleProvider), AppLifecycleState.resumed);
+    });
+
+    test('should notify listeners when state changes', () {
+      final states = <AppLifecycleState>[];
+      container.listen<AppLifecycleState>(
+        appLifecycleProvider,
+        (_, next) => states.add(next),
+      );
+
+      container
+          .read(appLifecycleProvider.notifier)
+          .didChangeAppLifecycleState(AppLifecycleState.paused);
+
+      expect(states, [AppLifecycleState.paused]);
     });
   });
 
@@ -45,45 +75,71 @@ void main() {
       container = ProviderContainer();
     });
 
-    tearDown(() {
-      container.dispose();
+    tearDown(() => container.dispose());
+
+    test('should return true when app is resumed', () {
+      expect(container.read(isAppInForegroundProvider), isTrue);
     });
 
-    test('returns true when app is resumed', () {
-      expect(container.read(isAppInForegroundProvider), true);
-    });
-
-    test('returns false when app is paused', () {
+    test('should return false when app is paused', () {
       container
           .read(appLifecycleProvider.notifier)
           .didChangeAppLifecycleState(AppLifecycleState.paused);
 
-      expect(container.read(isAppInForegroundProvider), false);
+      expect(container.read(isAppInForegroundProvider), isFalse);
     });
 
-    test('returns false when app is inactive', () {
+    test('should return false when app is inactive', () {
       container
           .read(appLifecycleProvider.notifier)
           .didChangeAppLifecycleState(AppLifecycleState.inactive);
 
-      expect(container.read(isAppInForegroundProvider), false);
+      expect(container.read(isAppInForegroundProvider), isFalse);
     });
 
-    test('returns false when app is hidden', () {
+    test('should return false when app is hidden', () {
       container
           .read(appLifecycleProvider.notifier)
           .didChangeAppLifecycleState(AppLifecycleState.hidden);
 
-      expect(container.read(isAppInForegroundProvider), false);
+      expect(container.read(isAppInForegroundProvider), isFalse);
     });
 
-    test('returns true again when app is resumed after pause', () {
+    test('should return true again after resuming from paused', () {
       final notifier = container.read(appLifecycleProvider.notifier);
       notifier.didChangeAppLifecycleState(AppLifecycleState.paused);
-      expect(container.read(isAppInForegroundProvider), false);
+      expect(container.read(isAppInForegroundProvider), isFalse);
 
       notifier.didChangeAppLifecycleState(AppLifecycleState.resumed);
-      expect(container.read(isAppInForegroundProvider), true);
+
+      expect(container.read(isAppInForegroundProvider), isTrue);
+    });
+
+    test('should be derived from appLifecycleProvider state', () {
+      // Override the lifecycle provider directly with a fixed paused state
+      // to verify isAppInForegroundProvider derives from it.
+      final container2 = ProviderContainer(
+        overrides: [
+          appLifecycleProvider.overrideWith(
+            () => _FixedLifecycleNotifier(AppLifecycleState.paused),
+          ),
+        ],
+      );
+      addTearDown(container2.dispose);
+
+      expect(container2.read(isAppInForegroundProvider), isFalse);
     });
   });
+}
+
+class _FixedLifecycleNotifier extends AppLifecycleNotifier {
+  final AppLifecycleState _fixed;
+  _FixedLifecycleNotifier(this._fixed);
+
+  @override
+  AppLifecycleState build() {
+    WidgetsBinding.instance.addObserver(this);
+    ref.onDispose(() => WidgetsBinding.instance.removeObserver(this));
+    return _fixed;
+  }
 }

@@ -1,50 +1,95 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_notifier.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
-class MockSizeRepository extends Mock implements SizeRepository {}
+import '../../../../fakes/fake_size_repository.dart';
 
 void main() {
   group('adminSizesProvider', () {
-    test('should create AdminSizesNotifier with SizeRepository', () {
-      final mockSizeRepository = MockSizeRepository();
-
+    test('should create an AdminSizesNotifier instance', () {
+      final fakeSizeRepository = FakeSizeRepository();
       final container = ProviderContainer(
         overrides: [
-          sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+          sizeRepositoryProvider.overrideWithValue(fakeSizeRepository),
         ],
       );
-
       addTearDown(container.dispose);
 
       final notifier = container.read(adminSizesProvider.notifier);
-      final state = container.read(adminSizesProvider);
 
       expect(notifier, isA<AdminSizesNotifier>());
+    });
+
+    test('should return default AdminSizesState on build', () {
+      final fakeSizeRepository = FakeSizeRepository();
+      final container = ProviderContainer(
+        overrides: [
+          sizeRepositoryProvider.overrideWithValue(fakeSizeRepository),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final state = container.read(adminSizesProvider);
+
       expect(state, const AdminSizesState());
     });
 
-    test('build() returns default AdminSizesState', () {
-      final mockSizeRepository = MockSizeRepository();
-
+    test('should have empty sizes in default state', () {
+      final fakeSizeRepository = FakeSizeRepository();
       final container = ProviderContainer(
         overrides: [
-          sizeRepositoryProvider.overrideWithValue(mockSizeRepository),
+          sizeRepositoryProvider.overrideWithValue(fakeSizeRepository),
         ],
       );
-
       addTearDown(container.dispose);
 
       final state = container.read(adminSizesProvider);
 
       expect(state.sizes, isEmpty);
-      expect(state.isLoading, false);
+    });
+
+    test('should have isLoading false in default state', () {
+      final fakeSizeRepository = FakeSizeRepository();
+      final container = ProviderContainer(
+        overrides: [
+          sizeRepositoryProvider.overrideWithValue(fakeSizeRepository),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final state = container.read(adminSizesProvider);
+
+      expect(state.isLoading, isFalse);
+    });
+
+    test('should have null errorMessage in default state', () {
+      final fakeSizeRepository = FakeSizeRepository();
+      final container = ProviderContainer(
+        overrides: [
+          sizeRepositoryProvider.overrideWithValue(fakeSizeRepository),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final state = container.read(adminSizesProvider);
+
       expect(state.errorMessage, isNull);
+    });
+
+    test('should have statusFilter set to all in default state', () {
+      final fakeSizeRepository = FakeSizeRepository();
+      final container = ProviderContainer(
+        overrides: [
+          sizeRepositoryProvider.overrideWithValue(fakeSizeRepository),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final state = container.read(adminSizesProvider);
+
       expect(state.statusFilter, 'all');
     });
   });

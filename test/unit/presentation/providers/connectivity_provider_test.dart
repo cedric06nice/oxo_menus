@@ -1,57 +1,87 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
-import 'package:oxo_menus/domain/repositories/connectivity_repository.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
-class MockConnectivityRepository extends Mock
-    implements ConnectivityRepository {}
+import '../../../fakes/fake_connectivity_repository.dart';
 
 void main() {
-  late MockConnectivityRepository mockRepo;
-
-  setUp(() {
-    mockRepo = MockConnectivityRepository();
-  });
-
   group('connectivityProvider', () {
-    test('emits connectivity status from repository stream', () async {
-      final controller = StreamController<ConnectivityStatus>.broadcast();
-      when(
-        () => mockRepo.watchConnectivity(),
-      ).thenAnswer((_) => controller.stream);
+    late FakeConnectivityRepository fakeRepo;
+    late ProviderContainer container;
 
-      final container = ProviderContainer(
-        overrides: [connectivityRepositoryProvider.overrideWithValue(mockRepo)],
+    setUp(() {
+      fakeRepo = FakeConnectivityRepository();
+      container = ProviderContainer(
+        overrides: [connectivityRepositoryProvider.overrideWithValue(fakeRepo)],
       );
-      addTearDown(container.dispose);
+    });
 
+    tearDown(() async {
+      container.dispose();
+      await fakeRepo.dispose();
+    });
+
+    test('should be a StreamProvider of ConnectivityStatus', () {
+      expect(connectivityProvider, isA<StreamProvider<ConnectivityStatus>>());
+    });
+
+    test('should call watchConnectivity on the repository', () {
+      container.listen(connectivityProvider, (_, _) {});
+      expect(fakeRepo.watchCalls, hasLength(1));
+    });
+
+    test('should emit online status when repository emits online', () async {
       final values = <ConnectivityStatus?>[];
-      container.listen(connectivityProvider, (_, next) {
-        values.add(next.value);
-      });
+      container.listen<AsyncValue<ConnectivityStatus>>(
+        connectivityProvider,
+        (_, next) => values.add(next.value),
+      );
 
-      controller.add(ConnectivityStatus.online);
-      await Future<void>.delayed(Duration.zero);
+      fakeRepo.statusController.add(ConnectivityStatus.online);
       await Future<void>.delayed(Duration.zero);
 
       expect(values, contains(ConnectivityStatus.online));
+    });
 
-      controller.add(ConnectivityStatus.offline);
-      await Future<void>.delayed(Duration.zero);
+    test('should emit offline status when repository emits offline', () async {
+      final values = <ConnectivityStatus?>[];
+      container.listen<AsyncValue<ConnectivityStatus>>(
+        connectivityProvider,
+        (_, next) => values.add(next.value),
+      );
+
+      fakeRepo.statusController.add(ConnectivityStatus.offline);
       await Future<void>.delayed(Duration.zero);
 
       expect(values, contains(ConnectivityStatus.offline));
-
-      await controller.close();
     });
 
-    test('is a StreamProvider of ConnectivityStatus', () {
-      expect(connectivityProvider, isA<StreamProvider<ConnectivityStatus>>());
+    test('should track multiple status transitions in sequence', () async {
+      final values = <ConnectivityStatus?>[];
+      container.listen<AsyncValue<ConnectivityStatus>>(
+        connectivityProvider,
+        (_, next) => values.add(next.value),
+      );
+
+      fakeRepo.statusController.add(ConnectivityStatus.online);
+      await Future<void>.delayed(Duration.zero);
+      fakeRepo.statusController.add(ConnectivityStatus.offline);
+      await Future<void>.delayed(Duration.zero);
+      fakeRepo.statusController.add(ConnectivityStatus.online);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(values, [
+        ConnectivityStatus.online,
+        ConnectivityStatus.offline,
+        ConnectivityStatus.online,
+      ]);
+    });
+
+    test('should start in loading state before first emission', () {
+      final state = container.read(connectivityProvider);
+      expect(state, const AsyncValue<ConnectivityStatus>.loading());
     });
   });
 }

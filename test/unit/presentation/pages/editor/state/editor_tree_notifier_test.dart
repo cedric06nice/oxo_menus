@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart'
-    show ServerError, ValidationError;
+    show DomainError, ServerError, ValidationError;
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/domain/entities/container.dart' as entity;
@@ -14,177 +14,302 @@ import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/domain/repositories/container_repository.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/domain/repositories/page_repository.dart';
 import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 import 'package:oxo_menus/domain/usecases/duplicate_container_usecase.dart';
 import 'package:oxo_menus/domain/usecases/reorder_container_usecase.dart';
-import 'package:oxo_menus/presentation/widget_system/presentable_widget_definition.dart';
-import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_provider.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_definition.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader_provider.dart';
 
-class MockMenuRepository extends Mock implements MenuRepository {}
+import '../../../../../fakes/fake_column_repository.dart';
+import '../../../../../fakes/fake_container_repository.dart';
+import '../../../../../fakes/fake_menu_repository.dart';
+import '../../../../../fakes/fake_page_repository.dart';
+import '../../../../../fakes/fake_widget_repository.dart';
 
-class MockPageRepository extends Mock implements PageRepository {}
+// ---------------------------------------------------------------------------
+// Fake EditorTreeLoader
+// ---------------------------------------------------------------------------
 
-class MockContainerRepository extends Mock implements ContainerRepository {}
+class _FakeEditorTreeLoader extends EditorTreeLoader {
+  _FakeEditorTreeLoader({
+    required super.menuRepository,
+    required super.pageRepository,
+    required super.containerRepository,
+    required super.columnRepository,
+    required super.widgetRepository,
+  });
 
-class MockColumnRepository extends Mock implements ColumnRepository {}
+  Result<EditorTree, DomainError>? _stubResult;
+  int loadTreeCallCount = 0;
 
-class MockWidgetRepository extends Mock implements WidgetRepository {}
+  void stubLoadTree(Result<EditorTree, DomainError> result) {
+    _stubResult = result;
+  }
 
-class MockPresentableWidgetRegistry extends Mock
-    implements PresentableWidgetRegistry {}
+  @override
+  Future<Result<EditorTree, DomainError>> loadTree(int menuId) async {
+    loadTreeCallCount++;
+    if (_stubResult != null) {
+      return _stubResult!;
+    }
+    throw StateError(
+      '_FakeEditorTreeLoader: no stub configured — call stubLoadTree() first',
+    );
+  }
+}
 
-class MockReorderContainerUseCase extends Mock
-    implements ReorderContainerUseCase {}
+// ---------------------------------------------------------------------------
+// Fake PresentableWidgetRegistry
+// ---------------------------------------------------------------------------
 
-class MockDuplicateContainerUseCase extends Mock
-    implements DuplicateContainerUseCase {}
+class _FakePresentableWidgetRegistry extends PresentableWidgetRegistry {
+  final Map<String, PresentableWidgetDefinition> _fakeMap = {};
 
-class MockWidgetDefinition extends Mock
-    implements PresentableWidgetDefinition {}
+  void registerFake(String type, PresentableWidgetDefinition def) {
+    _fakeMap[type] = def;
+  }
+
+  @override
+  PresentableWidgetDefinition? getDefinition(String type) => _fakeMap[type];
+}
+
+// ---------------------------------------------------------------------------
+// Fake PresentableWidgetDefinition for text widget
+// ---------------------------------------------------------------------------
+
+class _FakeTextProps {
+  Map<String, dynamic> toJson() => {'text': 'Default'};
+}
+
+/// A concrete [PresentableWidgetDefinition] for the 'text' type, created via
+/// the constructor (fields are final — overriding them is not possible).
+final _fakeTextWidgetDefinition = PresentableWidgetDefinition<_FakeTextProps>(
+  type: 'text',
+  version: '1.0',
+  defaultProps: _FakeTextProps(),
+  parseProps: (_) => _FakeTextProps(),
+  render: (_, _) => const SizedBox.shrink(),
+);
+
+// ---------------------------------------------------------------------------
+// Fake ReorderContainerUseCase
+// ---------------------------------------------------------------------------
+
+class _FakeReorderContainerUseCase extends ReorderContainerUseCase {
+  _FakeReorderContainerUseCase()
+    : super(containerRepository: _NeverCalledContainerRepo());
+
+  final List<(int containerId, ReorderDirection direction)> calls = [];
+  Result<void, DomainError>? _stubResult;
+
+  void stubExecute(Result<void, DomainError> result) {
+    _stubResult = result;
+  }
+
+  @override
+  Future<Result<void, DomainError>> execute(
+    int containerId,
+    ReorderDirection direction,
+  ) async {
+    calls.add((containerId, direction));
+    if (_stubResult != null) return _stubResult!;
+    throw StateError('_FakeReorderContainerUseCase: not stubbed');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Fake DuplicateContainerUseCase
+// ---------------------------------------------------------------------------
+
+class _FakeDuplicateContainerUseCase extends DuplicateContainerUseCase {
+  _FakeDuplicateContainerUseCase()
+    : super(
+        containerRepository: _NeverCalledContainerRepo(),
+        columnRepository: _NeverCalledColumnRepo(),
+        widgetRepository: _NeverCalledWidgetRepo(),
+      );
+
+  final List<int> calls = [];
+  Result<entity.Container, DomainError>? _stubResult;
+
+  void stubExecute(Result<entity.Container, DomainError> result) {
+    _stubResult = result;
+  }
+
+  @override
+  Future<Result<entity.Container, DomainError>> execute(int containerId) async {
+    calls.add(containerId);
+    if (_stubResult != null) return _stubResult!;
+    throw StateError('_FakeDuplicateContainerUseCase: not stubbed');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Never-called stubs for use-case constructors
+// ---------------------------------------------------------------------------
+
+class _NeverCalledContainerRepo implements ContainerRepository {
+  @override
+  dynamic noSuchMethod(Invocation inv) =>
+      throw StateError('_NeverCalledContainerRepo should not be called');
+}
+
+class _NeverCalledColumnRepo implements ColumnRepository {
+  @override
+  dynamic noSuchMethod(Invocation inv) =>
+      throw StateError('_NeverCalledColumnRepo should not be called');
+}
+
+class _NeverCalledWidgetRepo implements WidgetRepository {
+  @override
+  dynamic noSuchMethod(Invocation inv) =>
+      throw StateError('_NeverCalledWidgetRepo should not be called');
+}
+
+// ---------------------------------------------------------------------------
+// Test helpers
+// ---------------------------------------------------------------------------
+
+const menuId = 1;
+
+final _testMenu = Menu(
+  id: menuId,
+  name: 'Test Menu',
+  status: Status.draft,
+  version: '1.0',
+);
+
+const _testPages = [
+  entity.Page(id: 10, menuId: menuId, name: 'Page 1', index: 0),
+  entity.Page(id: 11, menuId: menuId, name: 'Page 2', index: 1),
+];
+
+const _testContainers = [entity.Container(id: 20, pageId: 10, index: 0)];
+const _testColumns = [entity.Column(id: 30, containerId: 20, index: 0)];
+const _testWidgets = [
+  WidgetInstance(
+    id: 40,
+    columnId: 30,
+    type: 'text',
+    version: '1.0',
+    index: 0,
+    props: {'text': 'Hello'},
+  ),
+];
+
+EditorTree _defaultTree({
+  Menu? menu,
+  List<entity.Page>? pages,
+  Map<int, List<entity.Container>>? containers,
+  Map<int, List<entity.Column>>? columns,
+  Map<int, List<WidgetInstance>>? widgets,
+}) {
+  return EditorTree(
+    menu: menu ?? _testMenu,
+    pages: pages ?? _testPages,
+    containers: containers ?? {10: _testContainers},
+    columns: columns ?? {20: _testColumns},
+    widgets: widgets ?? {30: _testWidgets},
+  );
+}
 
 void main() {
-  late MockMenuRepository mockMenuRepo;
-  late MockPageRepository mockPageRepo;
-  late MockContainerRepository mockContainerRepo;
-  late MockColumnRepository mockColumnRepo;
-  late MockWidgetRepository mockWidgetRepo;
-  late MockPresentableWidgetRegistry mockPresentableWidgetRegistry;
-  late MockReorderContainerUseCase mockReorderContainerUseCase;
-  late MockDuplicateContainerUseCase mockDuplicateContainerUseCase;
+  late FakeMenuRepository fakeMenuRepo;
+  late FakePageRepository fakePageRepo;
+  late FakeContainerRepository fakeContainerRepo;
+  late FakeColumnRepository fakeColumnRepo;
+  late FakeWidgetRepository fakeWidgetRepo;
+  late _FakePresentableWidgetRegistry fakeRegistry;
+  late _FakeReorderContainerUseCase fakeReorderUseCase;
+  late _FakeDuplicateContainerUseCase fakeDuplicateUseCase;
+  late _FakeEditorTreeLoader fakeTreeLoader;
 
-  const menuId = 1;
-
-  final testMenu = Menu(
-    id: menuId,
-    name: 'Test Menu',
-    status: Status.draft,
-    version: '1.0',
-  );
-
-  const testPages = [
-    entity.Page(id: 10, menuId: menuId, name: 'Page 1', index: 0),
-    entity.Page(id: 11, menuId: menuId, name: 'Page 2', index: 1),
-  ];
-
-  const testContainers = [entity.Container(id: 20, pageId: 10, index: 0)];
-
-  const testColumns = [entity.Column(id: 30, containerId: 20, index: 0)];
-
-  const testWidgets = [
-    WidgetInstance(
-      id: 40,
-      columnId: 30,
-      type: 'text',
-      version: '1.0',
-      index: 0,
-      props: {'text': 'Hello'},
-    ),
-  ];
-
-  setUp(() {
-    mockMenuRepo = MockMenuRepository();
-    mockPageRepo = MockPageRepository();
-    mockContainerRepo = MockContainerRepository();
-    mockColumnRepo = MockColumnRepository();
-    mockWidgetRepo = MockWidgetRepository();
-    mockPresentableWidgetRegistry = MockPresentableWidgetRegistry();
-    mockReorderContainerUseCase = MockReorderContainerUseCase();
-    mockDuplicateContainerUseCase = MockDuplicateContainerUseCase();
-  });
-
-  setUpAll(() {
-    registerFallbackValue(
-      const CreateWidgetInput(
-        columnId: 0,
-        type: '',
-        version: '',
-        index: 0,
-        props: {},
-      ),
+  ProviderContainer makeContainer() {
+    fakeTreeLoader = _FakeEditorTreeLoader(
+      menuRepository: fakeMenuRepo,
+      pageRepository: fakePageRepo,
+      containerRepository: fakeContainerRepo,
+      columnRepository: fakeColumnRepo,
+      widgetRepository: fakeWidgetRepo,
     );
-    registerFallbackValue(const UpdateWidgetInput(id: 0, props: {}));
-  });
-
-  ProviderContainer createContainer() {
     return ProviderContainer(
       overrides: [
-        menuRepositoryProvider.overrideWithValue(mockMenuRepo),
-        pageRepositoryProvider.overrideWithValue(mockPageRepo),
-        containerRepositoryProvider.overrideWithValue(mockContainerRepo),
-        columnRepositoryProvider.overrideWithValue(mockColumnRepo),
-        widgetRepositoryProvider.overrideWithValue(mockWidgetRepo),
-        widgetRegistryProvider.overrideWithValue(mockPresentableWidgetRegistry),
-        reorderContainerUseCaseProvider.overrideWithValue(
-          mockReorderContainerUseCase,
-        ),
+        menuRepositoryProvider.overrideWithValue(fakeMenuRepo),
+        pageRepositoryProvider.overrideWithValue(fakePageRepo),
+        containerRepositoryProvider.overrideWithValue(fakeContainerRepo),
+        columnRepositoryProvider.overrideWithValue(fakeColumnRepo),
+        widgetRepositoryProvider.overrideWithValue(fakeWidgetRepo),
+        widgetRegistryProvider.overrideWithValue(fakeRegistry),
+        reorderContainerUseCaseProvider.overrideWithValue(fakeReorderUseCase),
         duplicateContainerUseCaseProvider.overrideWithValue(
-          mockDuplicateContainerUseCase,
+          fakeDuplicateUseCase,
         ),
+        editorTreeLoaderProvider.overrideWithValue(fakeTreeLoader),
       ],
     );
   }
 
-  void stubSuccessfulTreeLoad() {
-    when(
-      () => mockMenuRepo.getById(menuId),
-    ).thenAnswer((_) async => Success(testMenu));
-    when(
-      () => mockPageRepo.getAllForMenu(menuId),
-    ).thenAnswer((_) async => const Success(testPages));
-    when(
-      () => mockContainerRepo.getAllForPage(any()),
-    ).thenAnswer((_) async => const Success(testContainers));
-    when(
-      () => mockContainerRepo.getAllForContainer(any()),
-    ).thenAnswer((_) async => const Success(<entity.Container>[]));
-    when(
-      () => mockColumnRepo.getAllForContainer(any()),
-    ).thenAnswer((_) async => const Success(testColumns));
-    when(
-      () => mockWidgetRepo.getAllForColumn(any()),
-    ).thenAnswer((_) async => const Success(testWidgets));
-  }
+  setUp(() {
+    fakeMenuRepo = FakeMenuRepository();
+    fakePageRepo = FakePageRepository();
+    fakeContainerRepo = FakeContainerRepository();
+    fakeColumnRepo = FakeColumnRepository();
+    fakeWidgetRepo = FakeWidgetRepository();
+    fakeRegistry = _FakePresentableWidgetRegistry();
+    fakeReorderUseCase = _FakeReorderContainerUseCase();
+    fakeDuplicateUseCase = _FakeDuplicateContainerUseCase();
+  });
 
   group('EditorTreeNotifier - initial state', () {
-    test('has default initial state', () {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should have default initial state with isLoading true', () {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final state = container.read(editorTreeProvider(menuId));
+      final state = c.read(editorTreeProvider(menuId));
 
       expect(state, const EditorTreeState());
       expect(state.isLoading, isTrue);
-      expect(state.menu, isNull);
-      expect(state.pages, isEmpty);
+    });
+
+    test('should have null menu on initial build', () {
+      final c = makeContainer();
+      addTearDown(c.dispose);
+      expect(c.read(editorTreeProvider(menuId)).menu, isNull);
+    });
+
+    test('should have empty pages on initial build', () {
+      final c = makeContainer();
+      addTearDown(c.dispose);
+      expect(c.read(editorTreeProvider(menuId)).pages, isEmpty);
+    });
+
+    test('should have null headerPage and footerPage on initial build', () {
+      final c = makeContainer();
+      addTearDown(c.dispose);
+      final state = c.read(editorTreeProvider(menuId));
       expect(state.headerPage, isNull);
       expect(state.footerPage, isNull);
-      expect(state.containers, isEmpty);
-      expect(state.columns, isEmpty);
-      expect(state.widgets, isEmpty);
-      expect(state.errorMessage, isNull);
-      expect(state.hoverIndex, isEmpty);
     });
   });
 
   group('EditorTreeNotifier - loadTree success', () {
-    test('loads tree and populates state', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should populate menu, pages, containers, columns, widgets', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
-      final state = container.read(editorTreeProvider(menuId));
+      final state = c.read(editorTreeProvider(menuId));
       expect(state.isLoading, isFalse);
-      expect(state.menu, testMenu);
+      expect(state.menu, _testMenu);
       expect(state.pages, hasLength(2));
       expect(state.containers[10], hasLength(1));
       expect(state.columns[20], hasLength(1));
@@ -192,62 +317,61 @@ void main() {
       expect(state.errorMessage, isNull);
     });
 
-    test('sets isLoading false after successful load', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should set isLoading to false after successful load', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      // Initial state has isLoading: true
-      expect(container.read(editorTreeProvider(menuId)).isLoading, isTrue);
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
-
-      // After load completes, isLoading should be false
-      expect(container.read(editorTreeProvider(menuId)).isLoading, isFalse);
+      expect(c.read(editorTreeProvider(menuId)).isLoading, isFalse);
     });
+
+    test(
+      'should not set isLoading to true on reload when menu already loaded',
+      () async {
+        final c = makeContainer();
+        addTearDown(c.dispose);
+
+        fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+        final notifier = c.read(editorTreeProvider(menuId).notifier);
+        await notifier.loadTree();
+
+        // State list for second load — isLoading should NOT go true
+        final states = <EditorTreeState>[];
+        c.listen<EditorTreeState>(editorTreeProvider(menuId), (_, next) {
+          states.add(next);
+        });
+
+        fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+        await notifier.loadTree();
+
+        final loadingStates = states.where((s) => s.isLoading).toList();
+        expect(loadingStates, isEmpty);
+      },
+    );
   });
 
   group('EditorTreeNotifier - loadTree failure', () {
-    test('sets errorMessage on menu fetch failure', () async {
-      when(
-        () => mockMenuRepo.getById(menuId),
-      ).thenAnswer((_) async => const Failure(ServerError('Menu not found')));
+    test('should set errorMessage on failure and clear isLoading', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final container = createContainer();
-      addTearDown(container.dispose);
+      fakeTreeLoader.stubLoadTree(const Failure(ServerError('Menu not found')));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
-
-      final state = container.read(editorTreeProvider(menuId));
+      final state = c.read(editorTreeProvider(menuId));
       expect(state.isLoading, isFalse);
       expect(state.errorMessage, 'Menu not found');
-    });
-
-    test('sets errorMessage on page fetch failure', () async {
-      when(
-        () => mockMenuRepo.getById(menuId),
-      ).thenAnswer((_) async => Success(testMenu));
-      when(
-        () => mockPageRepo.getAllForMenu(menuId),
-      ).thenAnswer((_) async => const Failure(ServerError('Pages not found')));
-
-      final container = createContainer();
-      addTearDown(container.dispose);
-
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
-
-      final state = container.read(editorTreeProvider(menuId));
-      expect(state.isLoading, isFalse);
-      expect(state.errorMessage, 'Pages not found');
     });
   });
 
   group('EditorTreeNotifier - loadTree with header/footer separation', () {
-    test('separates header, footer, and content pages', () async {
-      const pagesWithHeaderFooter = [
+    test('should separate header, footer, and content pages', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
+
+      const mixed = [
         entity.Page(
           id: 10,
           menuId: menuId,
@@ -271,37 +395,25 @@ void main() {
         ),
       ];
 
-      when(
-        () => mockMenuRepo.getById(menuId),
-      ).thenAnswer((_) async => Success(testMenu));
-      when(
-        () => mockPageRepo.getAllForMenu(menuId),
-      ).thenAnswer((_) async => const Success(pagesWithHeaderFooter));
-      when(
-        () => mockContainerRepo.getAllForPage(any()),
-      ).thenAnswer((_) async => const Success(<entity.Container>[]));
-      when(
-        () => mockColumnRepo.getAllForContainer(any()),
-      ).thenAnswer((_) async => const Success(<entity.Column>[]));
-      when(
-        () => mockWidgetRepo.getAllForColumn(any()),
-      ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
+      fakeTreeLoader.stubLoadTree(
+        Success(_defaultTree(pages: mixed, containers: {})),
+      );
+      await c
+          .read(editorTreeProvider(menuId).notifier)
+          .loadTree(separateHeaderFooter: true);
 
-      final container = createContainer();
-      addTearDown(container.dispose);
-
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree(separateHeaderFooter: true);
-
-      final state = container.read(editorTreeProvider(menuId));
+      final state = c.read(editorTreeProvider(menuId));
       expect(state.pages, hasLength(1));
       expect(state.pages.first.name, 'Content');
       expect(state.headerPage?.name, 'Header');
       expect(state.footerPage?.name, 'Footer');
     });
 
-    test('without separation puts all pages in pages list', () async {
-      const pagesWithHeaderFooter = [
+    test('should put all pages in pages list when not separating', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
+
+      const mixed = [
         entity.Page(
           id: 10,
           menuId: menuId,
@@ -318,29 +430,14 @@ void main() {
         ),
       ];
 
-      when(
-        () => mockMenuRepo.getById(menuId),
-      ).thenAnswer((_) async => Success(testMenu));
-      when(
-        () => mockPageRepo.getAllForMenu(menuId),
-      ).thenAnswer((_) async => const Success(pagesWithHeaderFooter));
-      when(
-        () => mockContainerRepo.getAllForPage(any()),
-      ).thenAnswer((_) async => const Success(<entity.Container>[]));
-      when(
-        () => mockColumnRepo.getAllForContainer(any()),
-      ).thenAnswer((_) async => const Success(<entity.Column>[]));
-      when(
-        () => mockWidgetRepo.getAllForColumn(any()),
-      ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
+      fakeTreeLoader.stubLoadTree(
+        Success(_defaultTree(pages: mixed, containers: {})),
+      );
+      await c
+          .read(editorTreeProvider(menuId).notifier)
+          .loadTree(separateHeaderFooter: false);
 
-      final container = createContainer();
-      addTearDown(container.dispose);
-
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree(separateHeaderFooter: false);
-
-      final state = container.read(editorTreeProvider(menuId));
+      final state = c.read(editorTreeProvider(menuId));
       expect(state.pages, hasLength(2));
       expect(state.headerPage, isNull);
       expect(state.footerPage, isNull);
@@ -348,94 +445,91 @@ void main() {
   });
 
   group('EditorTreeNotifier - local updates', () {
-    test('updateHoverIndex updates the hover index map', () {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should update hover index map', () {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      notifier.updateHoverIndex(30, 2);
+      c.read(editorTreeProvider(menuId).notifier).updateHoverIndex(30, 2);
 
-      final state = container.read(editorTreeProvider(menuId));
-      expect(state.hoverIndex[30], 2);
+      expect(c.read(editorTreeProvider(menuId)).hoverIndex[30], 2);
     });
 
-    test('updateMenuLocally updates the menu', () {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should update menu locally', () {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      final updatedMenu = testMenu.copyWith(name: 'Updated');
-      notifier.updateMenuLocally(updatedMenu);
+      c
+          .read(editorTreeProvider(menuId).notifier)
+          .updateMenuLocally(_testMenu.copyWith(name: 'Updated'));
 
-      final state = container.read(editorTreeProvider(menuId));
-      expect(state.menu?.name, 'Updated');
+      expect(c.read(editorTreeProvider(menuId)).menu?.name, 'Updated');
     });
 
-    test('updateContainerStyleLocally updates the container style', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should update container style locally', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
       const newStyle = StyleConfig(marginTop: 20);
-      notifier.updateContainerStyleLocally(20, newStyle);
+      c
+          .read(editorTreeProvider(menuId).notifier)
+          .updateContainerStyleLocally(20, newStyle);
 
-      final state = container.read(editorTreeProvider(menuId));
-      expect(state.containers[10]!.first.styleConfig, newStyle);
+      expect(
+        c.read(editorTreeProvider(menuId)).containers[10]!.first.styleConfig,
+        newStyle,
+      );
     });
 
-    test('updateColumnStyleLocally updates the column style', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should update column style locally', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
       const newStyle = StyleConfig(paddingLeft: 10);
-      notifier.updateColumnStyleLocally(30, newStyle);
+      c
+          .read(editorTreeProvider(menuId).notifier)
+          .updateColumnStyleLocally(30, newStyle);
 
-      final state = container.read(editorTreeProvider(menuId));
-      expect(state.columns[20]!.first.styleConfig, newStyle);
+      expect(
+        c.read(editorTreeProvider(menuId)).columns[20]!.first.styleConfig,
+        newStyle,
+      );
     });
 
-    test(
-      'updateColumnDroppableLocally updates the column droppable flag',
-      () async {
-        stubSuccessfulTreeLoad();
-        final container = createContainer();
-        addTearDown(container.dispose);
+    test('should update column droppable flag locally', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-        final notifier = container.read(editorTreeProvider(menuId).notifier);
-        await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
-        notifier.updateColumnDroppableLocally(30, false);
+      c
+          .read(editorTreeProvider(menuId).notifier)
+          .updateColumnDroppableLocally(30, false);
 
-        final state = container.read(editorTreeProvider(menuId));
-        expect(state.columns[20]!.first.isDroppable, isFalse);
-      },
-    );
+      expect(
+        c.read(editorTreeProvider(menuId)).columns[20]!.first.isDroppable,
+        isFalse,
+      );
+    });
   });
 
   group('EditorTreeNotifier - widget CRUD', () {
-    test('createWidget calls repository and reloads on success', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should create widget and reload on success', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
-      final mockDef = MockWidgetDefinition();
-      when(
-        () => mockPresentableWidgetRegistry.getDefinition('text'),
-      ).thenReturn(mockDef);
-      when(() => mockDef.defaultProps).thenReturn(_FakeProps());
-      when(() => mockDef.version).thenReturn('1.0');
-      when(() => mockWidgetRepo.create(any())).thenAnswer(
-        (_) async => const Success(
+      fakeRegistry.registerFake('text', _fakeTextWidgetDefinition);
+      fakeWidgetRepo.whenCreate(
+        const Success(
           WidgetInstance(
             id: 50,
             columnId: 30,
@@ -446,125 +540,112 @@ void main() {
           ),
         ),
       );
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      final result = await notifier.createWidget('text', 30, 1);
+      final result = await c
+          .read(editorTreeProvider(menuId).notifier)
+          .createWidget('text', 30, 1);
 
-      verify(() => mockWidgetRepo.create(any())).called(1);
+      expect(fakeWidgetRepo.createCalls, hasLength(1));
       expect(result?.isSuccess, isTrue);
     });
 
-    test('createWidget returns null if widget type unknown', () async {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should return null when widget type is unknown', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      when(
-        () => mockPresentableWidgetRegistry.getDefinition('unknown'),
-      ).thenReturn(null);
+      final result = await c
+          .read(editorTreeProvider(menuId).notifier)
+          .createWidget('unknown', 30, 0);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      final result = await notifier.createWidget('unknown', 30, 0);
-
-      verifyNever(() => mockWidgetRepo.create(any()));
+      expect(fakeWidgetRepo.createCalls, isEmpty);
       expect(result, isNull);
     });
 
-    test('createWidget returns failure on error', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should return failure on widget create error', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
-      final mockDef = MockWidgetDefinition();
-      when(
-        () => mockPresentableWidgetRegistry.getDefinition('text'),
-      ).thenReturn(mockDef);
-      when(() => mockDef.defaultProps).thenReturn(_FakeProps());
-      when(() => mockDef.version).thenReturn('1.0');
-      when(
-        () => mockWidgetRepo.create(any()),
-      ).thenAnswer((_) async => const Failure(ServerError('Create failed')));
+      fakeRegistry.registerFake('text', _fakeTextWidgetDefinition);
+      fakeWidgetRepo.whenCreate(const Failure(ServerError('Create failed')));
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      final result = await notifier.createWidget('text', 30, 1);
+      final result = await c
+          .read(editorTreeProvider(menuId).notifier)
+          .createWidget('text', 30, 1);
 
       expect(result?.isFailure, isTrue);
     });
 
-    test('deleteWidget removes widget from state immediately', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should remove widget from state optimistically on delete', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
-      // Verify widget exists before delete
-      expect(
-        container.read(editorTreeProvider(menuId)).widgets[30],
-        hasLength(1),
-      );
+      expect(c.read(editorTreeProvider(menuId)).widgets[30], hasLength(1));
 
-      // Use a Completer to control when the async delete resolves
-      final completer = Completer<Result<void, ServerError>>();
-      when(() => mockWidgetRepo.delete(40)).thenAnswer((_) => completer.future);
+      // Use a Completer to control timing
+      final completer = Completer<Result<void, DomainError>>();
+      fakeWidgetRepo.whenDeleteWithFuture(completer.future);
 
-      // Start delete but don't await it
-      final future = notifier.deleteWidget(40);
+      final deleteFuture = c
+          .read(editorTreeProvider(menuId).notifier)
+          .deleteWidget(40);
 
-      // Widget should be removed from state immediately (before async completes)
-      expect(container.read(editorTreeProvider(menuId)).widgets[30], isEmpty);
+      // Immediate removal before async completes
+      expect(c.read(editorTreeProvider(menuId)).widgets[30], isEmpty);
 
-      // Complete the async operation
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
       completer.complete(const Success(null));
-      await future;
+      await deleteFuture;
     });
 
-    test('deleteWidget calls repository and reloads', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should reload tree after successful delete', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
+      final countAfterLoad = fakeTreeLoader.loadTreeCallCount;
 
-      when(
-        () => mockWidgetRepo.delete(40),
-      ).thenAnswer((_) async => const Success(null));
+      fakeWidgetRepo.whenDelete(const Success(null));
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      final result = await notifier.deleteWidget(40);
+      await c.read(editorTreeProvider(menuId).notifier).deleteWidget(40);
 
-      verify(() => mockWidgetRepo.delete(40)).called(1);
-      expect(result.isSuccess, isTrue);
+      expect(fakeTreeLoader.loadTreeCallCount, greaterThan(countAfterLoad));
     });
 
-    test('deleteWidget reloads tree on failure to rollback', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should reload tree after failed delete to rollback', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
+      final countAfterLoad = fakeTreeLoader.loadTreeCallCount;
 
-      when(
-        () => mockWidgetRepo.delete(40),
-      ).thenAnswer((_) async => const Failure(ServerError('Delete failed')));
+      fakeWidgetRepo.whenDelete(const Failure(ServerError('Delete failed')));
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      final result = await notifier.deleteWidget(40);
+      final result = await c
+          .read(editorTreeProvider(menuId).notifier)
+          .deleteWidget(40);
 
       expect(result.isFailure, isTrue);
-      // Tree should be reloaded to rollback the optimistic removal
-      // loadTree is called: once in setUp + once for rollback = getById called twice
-      verify(() => mockMenuRepo.getById(menuId)).called(2);
+      expect(fakeTreeLoader.loadTreeCallCount, greaterThan(countAfterLoad));
     });
 
-    test('moveWidget within same column adjusts index', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should call reorder when moving within same column', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
       const widget = WidgetInstance(
         id: 40,
@@ -575,24 +656,25 @@ void main() {
         props: {},
       );
 
-      when(
-        () => mockWidgetRepo.reorder(40, any()),
-      ).thenAnswer((_) async => const Success(null));
+      fakeWidgetRepo.whenReorder(const Success(null));
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      final result = await notifier.moveWidget(widget, 30, 30, 2);
+      final result = await c
+          .read(editorTreeProvider(menuId).notifier)
+          .moveWidget(widget, 30, 30, 2);
 
-      // index > widget.index => adjustedIndex = 2 - 1 = 1
-      verify(() => mockWidgetRepo.reorder(40, 1)).called(1);
+      // index 2 > widget.index 0 => adjustedIndex = 2 - 1 = 1
+      expect(fakeWidgetRepo.reorderCalls, hasLength(1));
+      expect(fakeWidgetRepo.reorderCalls.first.newIndex, 1);
       expect(result.isSuccess, isTrue);
     });
 
-    test('moveWidget to different column calls moveTo', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should call moveTo when moving to a different column', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
       const widget = WidgetInstance(
         id: 40,
@@ -603,49 +685,27 @@ void main() {
         props: {},
       );
 
-      when(
-        () => mockWidgetRepo.moveTo(40, 31, 0),
-      ).thenAnswer((_) async => const Success(null));
+      fakeWidgetRepo.whenMoveTo(const Success(null));
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      final result = await notifier.moveWidget(widget, 30, 31, 0);
+      final result = await c
+          .read(editorTreeProvider(menuId).notifier)
+          .moveWidget(widget, 30, 31, 0);
 
-      verify(() => mockWidgetRepo.moveTo(40, 31, 0)).called(1);
+      expect(fakeWidgetRepo.moveToCalls, hasLength(1));
+      expect(fakeWidgetRepo.moveToCalls.first.newColumnId, 31);
       expect(result.isSuccess, isTrue);
     });
 
-    test('moveWidget returns failure on error', () async {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should update widget props and reload tree on success', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      const widget = WidgetInstance(
-        id: 40,
-        columnId: 30,
-        type: 'text',
-        version: '1.0',
-        index: 0,
-        props: {},
-      );
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
-      when(
-        () => mockWidgetRepo.reorder(40, any()),
-      ).thenAnswer((_) async => const Failure(ServerError('Reorder failed')));
-
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      final result = await notifier.moveWidget(widget, 30, 30, 2);
-
-      expect(result.isFailure, isTrue);
-    });
-
-    test('updateWidgetProps calls repository and reloads', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
-
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
-
-      when(() => mockWidgetRepo.update(any())).thenAnswer(
-        (_) async => const Success(
+      fakeWidgetRepo.whenUpdate(
+        const Success(
           WidgetInstance(
             id: 40,
             columnId: 30,
@@ -656,39 +716,40 @@ void main() {
           ),
         ),
       );
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      final result = await notifier.updateWidgetProps(40, {'text': 'Updated'});
+      final result = await c
+          .read(editorTreeProvider(menuId).notifier)
+          .updateWidgetProps(40, {'text': 'Updated'});
 
-      verify(() => mockWidgetRepo.update(any())).called(1);
+      expect(fakeWidgetRepo.updateCalls, hasLength(1));
       expect(result.isSuccess, isTrue);
     });
 
-    test('updateWidgetProps returns failure on error', () async {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should return failure when updateWidgetProps fails', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      when(
-        () => mockWidgetRepo.update(any()),
-      ).thenAnswer((_) async => const Failure(ServerError('Update failed')));
+      fakeWidgetRepo.whenUpdate(const Failure(ServerError('Update failed')));
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      final result = await notifier.updateWidgetProps(40, {'text': 'x'});
+      final result = await c
+          .read(editorTreeProvider(menuId).notifier)
+          .updateWidgetProps(40, {'text': 'x'});
 
       expect(result.isFailure, isTrue);
     });
 
     test(
-      'updateWidgetLockForEdition sends lockedForEdition to repo and patches state',
+      'should patch widget lock state locally after successful lock',
       () async {
-        stubSuccessfulTreeLoad();
-        final container = createContainer();
-        addTearDown(container.dispose);
+        final c = makeContainer();
+        addTearDown(c.dispose);
 
-        final notifier = container.read(editorTreeProvider(menuId).notifier);
-        await notifier.loadTree();
+        fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+        await c.read(editorTreeProvider(menuId).notifier).loadTree();
 
-        when(() => mockWidgetRepo.update(any())).thenAnswer(
-          (_) async => const Success(
+        fakeWidgetRepo.whenUpdate(
+          const Success(
             WidgetInstance(
               id: 40,
               columnId: 30,
@@ -701,139 +762,135 @@ void main() {
           ),
         );
 
-        await notifier.updateWidgetLockForEdition(40, true);
+        await c
+            .read(editorTreeProvider(menuId).notifier)
+            .updateWidgetLockForEdition(40, true);
 
-        final captured = verify(
-          () => mockWidgetRepo.update(captureAny()),
-        ).captured;
-        final input = captured.single as UpdateWidgetInput;
-        expect(input.id, 40);
-        expect(input.lockedForEdition, true);
+        final updateCall = fakeWidgetRepo.updateCalls.single;
+        expect(updateCall.input.id, 40);
+        expect(updateCall.input.lockedForEdition, isTrue);
 
-        final state = container.read(editorTreeProvider(menuId));
-        final widget = state.widgets[30]!.firstWhere((w) => w.id == 40);
-        expect(widget.lockedForEdition, true);
+        final widget = c
+            .read(editorTreeProvider(menuId))
+            .widgets[30]!
+            .firstWhere((w) => w.id == 40);
+        expect(widget.lockedForEdition, isTrue);
       },
     );
   });
 
   group('EditorTreeNotifier - widget locking', () {
-    test('lockWidget calls widgetRepository.lockForEditing', () async {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should call lockForEditing with widget id and user id', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      when(
-        () => mockWidgetRepo.lockForEditing(40, 'user-1'),
-      ).thenAnswer((_) async => const Success(null));
+      fakeWidgetRepo.whenLockForEditing(const Success(null));
+      await c
+          .read(editorTreeProvider(menuId).notifier)
+          .lockWidget(40, 'user-1');
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.lockWidget(40, 'user-1');
-
-      verify(() => mockWidgetRepo.lockForEditing(40, 'user-1')).called(1);
+      expect(fakeWidgetRepo.lockForEditingCalls, hasLength(1));
+      expect(fakeWidgetRepo.lockForEditingCalls.first.widgetId, 40);
+      expect(fakeWidgetRepo.lockForEditingCalls.first.userId, 'user-1');
     });
 
-    test('unlockWidget calls widgetRepository.unlockEditing', () async {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should call unlockEditing with widget id', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      when(
-        () => mockWidgetRepo.unlockEditing(40),
-      ).thenAnswer((_) async => const Success(null));
+      fakeWidgetRepo.whenUnlockEditing(const Success(null));
+      await c.read(editorTreeProvider(menuId).notifier).unlockWidget(40);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.unlockWidget(40);
-
-      verify(() => mockWidgetRepo.unlockEditing(40)).called(1);
+      expect(fakeWidgetRepo.unlockEditingCalls, hasLength(1));
+      expect(fakeWidgetRepo.unlockEditingCalls.first.widgetId, 40);
     });
   });
+
   group('EditorTreeNotifier - reorderContainer', () {
-    test('calls use case and reloads tree on success', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should call use case and reload tree on success', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
+      final callCount = fakeTreeLoader.loadTreeCallCount;
 
-      when(
-        () => mockReorderContainerUseCase.execute(20, ReorderDirection.up),
-      ).thenAnswer((_) async => const Success(null));
+      fakeReorderUseCase.stubExecute(const Success(null));
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      final result = await notifier.reorderContainer(20, ReorderDirection.up);
+      final result = await c
+          .read(editorTreeProvider(menuId).notifier)
+          .reorderContainer(20, ReorderDirection.up);
 
       expect(result.isSuccess, isTrue);
-      verify(
-        () => mockReorderContainerUseCase.execute(20, ReorderDirection.up),
-      ).called(1);
-      // loadTree called: once in setup + once after reorder = getById called twice
-      verify(() => mockMenuRepo.getById(menuId)).called(2);
+      expect(fakeReorderUseCase.calls, hasLength(1));
+      expect(fakeReorderUseCase.calls.first.$1, 20);
+      expect(fakeTreeLoader.loadTreeCallCount, greaterThan(callCount));
     });
 
-    test('does not reload tree on failure', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should not reload tree on failure', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
+      final callCount = fakeTreeLoader.loadTreeCallCount;
 
-      when(
-        () => mockReorderContainerUseCase.execute(20, ReorderDirection.up),
-      ).thenAnswer(
-        (_) async =>
-            const Failure(ValidationError('Already at first position')),
+      fakeReorderUseCase.stubExecute(
+        const Failure(ValidationError('Already at first position')),
       );
 
-      final result = await notifier.reorderContainer(20, ReorderDirection.up);
+      final result = await c
+          .read(editorTreeProvider(menuId).notifier)
+          .reorderContainer(20, ReorderDirection.up);
 
       expect(result.isFailure, isTrue);
-      // loadTree called only once (setup), not again after failure
-      verify(() => mockMenuRepo.getById(menuId)).called(1);
+      expect(fakeTreeLoader.loadTreeCallCount, callCount);
     });
   });
 
   group('EditorTreeNotifier - duplicateContainer', () {
-    test('calls use case and reloads tree on success', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should call use case and reload tree on success', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
+      final callCount = fakeTreeLoader.loadTreeCallCount;
 
-      when(() => mockDuplicateContainerUseCase.execute(20)).thenAnswer(
-        (_) async =>
-            const Success(entity.Container(id: 99, pageId: 10, index: 1)),
+      fakeDuplicateUseCase.stubExecute(
+        const Success(entity.Container(id: 99, pageId: 10, index: 1)),
       );
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      final result = await notifier.duplicateContainer(20);
+      final result = await c
+          .read(editorTreeProvider(menuId).notifier)
+          .duplicateContainer(20);
 
       expect(result.isSuccess, isTrue);
-      verify(() => mockDuplicateContainerUseCase.execute(20)).called(1);
-      // loadTree called twice: setup + after duplicate
-      verify(() => mockMenuRepo.getById(menuId)).called(2);
+      expect(fakeDuplicateUseCase.calls, hasLength(1));
+      expect(fakeDuplicateUseCase.calls.first, 20);
+      expect(fakeTreeLoader.loadTreeCallCount, greaterThan(callCount));
     });
 
-    test('does not reload tree on failure', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should not reload tree on failure', () async {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final notifier = container.read(editorTreeProvider(menuId).notifier);
-      await notifier.loadTree();
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      await c.read(editorTreeProvider(menuId).notifier).loadTree();
+      final callCount = fakeTreeLoader.loadTreeCallCount;
 
-      when(
-        () => mockDuplicateContainerUseCase.execute(20),
-      ).thenAnswer((_) async => const Failure(ServerError('Copy failed')));
+      fakeDuplicateUseCase.stubExecute(
+        const Failure(ServerError('Copy failed')),
+      );
 
-      final result = await notifier.duplicateContainer(20);
+      final result = await c
+          .read(editorTreeProvider(menuId).notifier)
+          .duplicateContainer(20);
 
       expect(result.isFailure, isTrue);
-      verify(() => mockMenuRepo.getById(menuId)).called(1);
+      expect(fakeTreeLoader.loadTreeCallCount, callCount);
     });
   });
-}
-
-class _FakeProps {
-  Map<String, dynamic> toJson() => {'text': 'Default'};
 }

@@ -1,86 +1,94 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:oxo_menus/core/errors/domain_errors.dart';
-import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/image_file_info.dart';
-import 'package:oxo_menus/domain/usecases/list_image_files_usecase.dart';
 import 'package:oxo_menus/presentation/providers/image_files/image_files_notifier.dart';
 import 'package:oxo_menus/presentation/providers/image_files/image_files_provider.dart';
 import 'package:oxo_menus/presentation/providers/image_files/image_files_state.dart';
-import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
+import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
-class MockListImageFilesUseCase extends Mock implements ListImageFilesUseCase {}
+import '../../../../fakes/fake_file_repository.dart';
+import '../../../../fakes/result_helpers.dart';
 
 void main() {
-  late ProviderContainer container;
-  late MockListImageFilesUseCase mockUseCase;
-
-  setUp(() {
-    mockUseCase = MockListImageFilesUseCase();
-    container = ProviderContainer(
-      overrides: [listImageFilesUseCaseProvider.overrideWithValue(mockUseCase)],
-    );
-  });
-
-  tearDown(() => container.dispose());
-
-  const testFile1 = ImageFileInfo(id: 'file-1', title: 'Logo');
-  const testFile2 = ImageFileInfo(
-    id: 'file-2',
-    title: 'Banner',
-    type: 'image/png',
-  );
-
-  ImageFilesNotifier readNotifier() =>
-      container.read(imageFilesProvider.notifier);
-  ImageFilesState readState() => container.read(imageFilesProvider);
-
   group('ImageFilesNotifier', () {
+    late FakeFileRepository fakeFileRepo;
+    late ProviderContainer container;
+
+    const testFile1 = ImageFileInfo(id: 'file-1', title: 'Logo');
+    const testFile2 = ImageFileInfo(
+      id: 'file-2',
+      title: 'Banner',
+      type: 'image/png',
+    );
+
+    setUp(() {
+      fakeFileRepo = FakeFileRepository();
+      container = ProviderContainer(
+        overrides: [fileRepositoryProvider.overrideWithValue(fakeFileRepo)],
+      );
+    });
+
+    tearDown(() => container.dispose());
+
+    ImageFilesNotifier readNotifier() =>
+        container.read(imageFilesProvider.notifier);
+    ImageFilesState readState() => container.read(imageFilesProvider);
+
     test('should have correct initial state', () {
       expect(readState(), const ImageFilesState());
       expect(readState().files, isEmpty);
-      expect(readState().isLoading, false);
+      expect(readState().isLoading, isFalse);
       expect(readState().errorMessage, isNull);
     });
 
     group('loadImageFiles', () {
       test('should load image files successfully', () async {
-        when(
-          () => mockUseCase.execute(),
-        ).thenAnswer((_) async => const Success([testFile1, testFile2]));
-
+        fakeFileRepo.whenListImageFiles(success([testFile1, testFile2]));
         await readNotifier().loadImageFiles();
-
         expect(readState().files, [testFile1, testFile2]);
-        expect(readState().isLoading, false);
+        expect(readState().isLoading, isFalse);
         expect(readState().errorMessage, isNull);
       });
 
-      test('should set error message on failure', () async {
-        when(() => mockUseCase.execute()).thenAnswer(
-          (_) async => const Failure(ServerError('Failed to load images')),
-        );
-
-        await readNotifier().loadImageFiles();
-
-        expect(readState().files, isEmpty);
-        expect(readState().isLoading, false);
-        expect(readState().errorMessage, isNotNull);
+      test('should set isLoading true during request', () async {
+        fakeFileRepo.whenListImageFiles(success([testFile1]));
+        final future = readNotifier().loadImageFiles();
+        expect(readState().isLoading, isTrue);
+        await future;
+        expect(readState().isLoading, isFalse);
       });
 
-      test('should set isLoading while loading', () async {
-        when(
-          () => mockUseCase.execute(),
-        ).thenAnswer((_) async => const Success([testFile1]));
+      test('should set error message when listing fails', () async {
+        fakeFileRepo.whenListImageFiles(
+          failureServer<List<ImageFileInfo>>('Server error'),
+        );
+        await readNotifier().loadImageFiles();
+        expect(readState().files, isEmpty);
+        expect(readState().isLoading, isFalse);
+        expect(readState().errorMessage, 'Server error');
+      });
 
-        final future = readNotifier().loadImageFiles();
+      test('should clear error on successful reload', () async {
+        fakeFileRepo.whenListImageFiles(
+          failureNetwork<List<ImageFileInfo>>('Error'),
+        );
+        await readNotifier().loadImageFiles();
+        fakeFileRepo.whenListImageFiles(success([testFile1]));
+        await readNotifier().loadImageFiles();
+        expect(readState().errorMessage, isNull);
+      });
 
-        expect(readState().isLoading, true);
+      test('should call listImageFiles on the file repository', () async {
+        fakeFileRepo.whenListImageFiles(success([testFile1]));
+        await readNotifier().loadImageFiles();
+        expect(fakeFileRepo.listImageFilesCalls, hasLength(1));
+      });
 
-        await future;
-
-        expect(readState().isLoading, false);
+      test('should return empty list when no files exist', () async {
+        fakeFileRepo.whenListImageFiles(success(<ImageFileInfo>[]));
+        await readNotifier().loadImageFiles();
+        expect(readState().files, isEmpty);
+        expect(readState().isLoading, isFalse);
       });
     });
   });

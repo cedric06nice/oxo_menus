@@ -1,32 +1,32 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:oxo_menus/domain/repositories/column_repository.dart';
-import 'package:oxo_menus/domain/repositories/container_repository.dart';
-import 'package:oxo_menus/domain/repositories/file_repository.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/domain/repositories/page_repository.dart';
-import 'package:oxo_menus/domain/repositories/size_repository.dart';
-import 'package:oxo_menus/domain/repositories/widget_repository.dart';
+import 'package:oxo_menus/domain/usecases/create_menu_bundle_usecase.dart';
+import 'package:oxo_menus/domain/usecases/delete_menu_bundle_usecase.dart';
+import 'package:oxo_menus/domain/usecases/duplicate_container_usecase.dart';
 import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
+import 'package:oxo_menus/domain/usecases/get_menu_bundle_usecase.dart';
+import 'package:oxo_menus/domain/usecases/list_image_files_usecase.dart';
+import 'package:oxo_menus/domain/usecases/list_menu_bundles_usecase.dart';
+import 'package:oxo_menus/domain/usecases/list_sizes_usecase.dart';
+import 'package:oxo_menus/domain/usecases/list_templates_usecase.dart';
+import 'package:oxo_menus/domain/usecases/publish_bundles_for_menu_usecase.dart';
+import 'package:oxo_menus/domain/usecases/publish_menu_bundle_usecase.dart';
+import 'package:oxo_menus/domain/usecases/reorder_container_usecase.dart';
+import 'package:oxo_menus/domain/usecases/update_menu_bundle_usecase.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
-class MockMenuRepository extends Mock implements MenuRepository {}
-
-class MockPageRepository extends Mock implements PageRepository {}
-
-class MockContainerRepository extends Mock implements ContainerRepository {}
-
-class MockColumnRepository extends Mock implements ColumnRepository {}
-
-class MockWidgetRepository extends Mock implements WidgetRepository {}
-
-class MockSizeRepository extends Mock implements SizeRepository {}
-
-class MockFileRepository extends Mock implements FileRepository {}
+import '../../../fakes/fake_asset_loader_repository.dart';
+import '../../../fakes/fake_column_repository.dart';
+import '../../../fakes/fake_container_repository.dart';
+import '../../../fakes/fake_file_repository.dart';
+import '../../../fakes/fake_menu_bundle_repository.dart';
+import '../../../fakes/fake_menu_repository.dart';
+import '../../../fakes/fake_page_repository.dart';
+import '../../../fakes/fake_size_repository.dart';
+import '../../../fakes/fake_widget_repository.dart';
 
 void main() {
   group('usecases_provider', () {
@@ -35,34 +35,172 @@ void main() {
     setUp(() {
       container = ProviderContainer(
         overrides: [
-          menuRepositoryProvider.overrideWithValue(MockMenuRepository()),
-          pageRepositoryProvider.overrideWithValue(MockPageRepository()),
+          menuRepositoryProvider.overrideWithValue(FakeMenuRepository()),
+          pageRepositoryProvider.overrideWithValue(FakePageRepository()),
           containerRepositoryProvider.overrideWithValue(
-            MockContainerRepository(),
+            FakeContainerRepository(),
           ),
-          columnRepositoryProvider.overrideWithValue(MockColumnRepository()),
-          widgetRepositoryProvider.overrideWithValue(MockWidgetRepository()),
-          sizeRepositoryProvider.overrideWithValue(MockSizeRepository()),
-          fileRepositoryProvider.overrideWithValue(MockFileRepository()),
+          columnRepositoryProvider.overrideWithValue(FakeColumnRepository()),
+          widgetRepositoryProvider.overrideWithValue(FakeWidgetRepository()),
+          sizeRepositoryProvider.overrideWithValue(FakeSizeRepository()),
+          fileRepositoryProvider.overrideWithValue(FakeFileRepository()),
+          menuBundleRepositoryProvider.overrideWithValue(
+            FakeMenuBundleRepository(),
+          ),
+          assetLoaderRepositoryProvider.overrideWithValue(
+            FakeAssetLoaderRepository(),
+          ),
         ],
       );
     });
 
     tearDown(() => container.dispose());
 
-    test('fetchMenuTreeUseCaseProvider should return FetchMenuTreeUseCase', () {
-      final useCase = container.read(fetchMenuTreeUseCaseProvider);
-      expect(useCase, isA<FetchMenuTreeUseCase>());
+    test(
+      'fetchMenuTreeUseCaseProvider should return a FetchMenuTreeUseCase',
+      () {
+        expect(
+          container.read(fetchMenuTreeUseCaseProvider),
+          isA<FetchMenuTreeUseCase>(),
+        );
+      },
+    );
+
+    test('generatePdfUseCaseProvider should return a GeneratePdfUseCase', () {
+      expect(
+        container.read(generatePdfUseCaseProvider),
+        isA<GeneratePdfUseCase>(),
+      );
     });
 
-    test('generatePdfUseCaseProvider should return GeneratePdfUseCase', () {
-      final useCase = container.read(generatePdfUseCaseProvider);
-      expect(useCase, isA<GeneratePdfUseCase>());
+    test(
+      'listImageFilesUseCaseProvider should return a ListImageFilesUseCase',
+      () {
+        expect(
+          container.read(listImageFilesUseCaseProvider),
+          isA<ListImageFilesUseCase>(),
+        );
+      },
+    );
+
+    test('listSizesUseCaseProvider should return a ListSizesUseCase', () {
+      expect(container.read(listSizesUseCaseProvider), isA<ListSizesUseCase>());
     });
 
-    test('duplicateMenuUseCaseProvider should return DuplicateMenuUseCase', () {
-      final useCase = container.read(duplicateMenuUseCaseProvider);
-      expect(useCase, isA<DuplicateMenuUseCase>());
+    test(
+      'listTemplatesUseCaseProvider should return a ListTemplatesUseCase',
+      () {
+        expect(
+          container.read(listTemplatesUseCaseProvider),
+          isA<ListTemplatesUseCase>(),
+        );
+      },
+    );
+
+    test(
+      'reorderContainerUseCaseProvider should return a ReorderContainerUseCase',
+      () {
+        expect(
+          container.read(reorderContainerUseCaseProvider),
+          isA<ReorderContainerUseCase>(),
+        );
+      },
+    );
+
+    test(
+      'duplicateContainerUseCaseProvider should return a DuplicateContainerUseCase',
+      () {
+        expect(
+          container.read(duplicateContainerUseCaseProvider),
+          isA<DuplicateContainerUseCase>(),
+        );
+      },
+    );
+
+    test(
+      'duplicateMenuUseCaseProvider should return a DuplicateMenuUseCase',
+      () {
+        expect(
+          container.read(duplicateMenuUseCaseProvider),
+          isA<DuplicateMenuUseCase>(),
+        );
+      },
+    );
+
+    test(
+      'listMenuBundlesUseCaseProvider should return a ListMenuBundlesUseCase',
+      () {
+        expect(
+          container.read(listMenuBundlesUseCaseProvider),
+          isA<ListMenuBundlesUseCase>(),
+        );
+      },
+    );
+
+    test(
+      'getMenuBundleUseCaseProvider should return a GetMenuBundleUseCase',
+      () {
+        expect(
+          container.read(getMenuBundleUseCaseProvider),
+          isA<GetMenuBundleUseCase>(),
+        );
+      },
+    );
+
+    test(
+      'createMenuBundleUseCaseProvider should return a CreateMenuBundleUseCase',
+      () {
+        expect(
+          container.read(createMenuBundleUseCaseProvider),
+          isA<CreateMenuBundleUseCase>(),
+        );
+      },
+    );
+
+    test(
+      'updateMenuBundleUseCaseProvider should return an UpdateMenuBundleUseCase',
+      () {
+        expect(
+          container.read(updateMenuBundleUseCaseProvider),
+          isA<UpdateMenuBundleUseCase>(),
+        );
+      },
+    );
+
+    test(
+      'deleteMenuBundleUseCaseProvider should return a DeleteMenuBundleUseCase',
+      () {
+        expect(
+          container.read(deleteMenuBundleUseCaseProvider),
+          isA<DeleteMenuBundleUseCase>(),
+        );
+      },
+    );
+
+    test(
+      'publishMenuBundleUseCaseProvider should return a PublishMenuBundleUseCase',
+      () {
+        expect(
+          container.read(publishMenuBundleUseCaseProvider),
+          isA<PublishMenuBundleUseCase>(),
+        );
+      },
+    );
+
+    test(
+      'publishBundlesForMenuUseCaseProvider should return a PublishBundlesForMenuUseCase',
+      () {
+        expect(
+          container.read(publishBundlesForMenuUseCaseProvider),
+          isA<PublishBundlesForMenuUseCase>(),
+        );
+      },
+    );
+
+    test('should return same use case instance on multiple reads', () {
+      final uc1 = container.read(fetchMenuTreeUseCaseProvider);
+      final uc2 = container.read(fetchMenuTreeUseCaseProvider);
+      expect(identical(uc1, uc2), isTrue);
     });
   });
 }

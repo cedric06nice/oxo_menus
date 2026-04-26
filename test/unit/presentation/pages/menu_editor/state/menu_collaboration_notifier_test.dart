@@ -1,341 +1,717 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
+import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/menu_change_event.dart';
 import 'package:oxo_menus/domain/entities/menu_presence.dart';
+import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/entities/user.dart';
 import 'package:oxo_menus/domain/entities/widget_instance.dart';
-import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
-import 'package:oxo_menus/domain/repositories/presence_repository.dart';
 import 'package:oxo_menus/presentation/pages/menu_editor/state/menu_collaboration_provider.dart';
 import 'package:oxo_menus/presentation/providers/app_lifecycle_provider.dart';
 import 'package:oxo_menus/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader_provider.dart';
 
-class MockMenuSubscriptionRepository extends Mock
-    implements MenuSubscriptionRepository {}
+import '../../../../../fakes/fake_column_repository.dart';
+import '../../../../../fakes/fake_container_repository.dart';
+import '../../../../../fakes/fake_menu_repository.dart';
+import '../../../../../fakes/fake_menu_subscription_repository.dart';
+import '../../../../../fakes/fake_page_repository.dart';
+import '../../../../../fakes/fake_presence_repository.dart';
+import '../../../../../fakes/fake_widget_repository.dart';
 
-class MockPresenceRepository extends Mock implements PresenceRepository {}
+// ---------------------------------------------------------------------------
+// Inline fake: EditorTreeLoader that never delegates to real repositories
+// ---------------------------------------------------------------------------
+
+/// Overrides [loadTree] so that [MenuCollaborationNotifier._reloadTree] does
+/// not need real repositories wired up.  The constructor still receives typed
+/// stubs so it satisfies the parent's required parameters.
+class _FakeEditorTreeLoader extends EditorTreeLoader {
+  _FakeEditorTreeLoader({
+    required FakeMenuRepository menuRepo,
+    required FakePageRepository pageRepo,
+    required FakeContainerRepository containerRepo,
+    required FakeColumnRepository columnRepo,
+    required FakeWidgetRepository widgetRepo,
+  }) : super(
+         menuRepository: menuRepo,
+         pageRepository: pageRepo,
+         containerRepository: containerRepo,
+         columnRepository: columnRepo,
+         widgetRepository: widgetRepo,
+       );
+
+  int loadTreeCallCount = 0;
+  Result<EditorTree, DomainError>? _stub;
+
+  void stubLoadTree(Result<EditorTree, DomainError> result) {
+    _stub = result;
+  }
+
+  @override
+  Future<Result<EditorTree, DomainError>> loadTree(int menuId) async {
+    loadTreeCallCount++;
+    if (_stub != null) return _stub!;
+    // Default: return a minimal tree so _reloadTree completes without error.
+    return const Success(
+      EditorTree(
+        menu: Menu(
+          id: 1,
+          name: 'Test Menu',
+          status: Status.draft,
+          version: '1',
+        ),
+        pages: [],
+        containers: {},
+        columns: {},
+        widgets: {},
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Shared test constants
+// ---------------------------------------------------------------------------
+
+const _menuId = 1;
+const _testUser = User(id: 'user-1', email: 'test@example.com');
+
+final _testPresence = MenuPresence(
+  id: 1,
+  userId: 'user-1',
+  menuId: _menuId,
+  lastSeen: DateTime(2024, 1, 1),
+  userName: 'Test User',
+);
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 void main() {
-  late MockMenuSubscriptionRepository mockSubRepo;
-  late MockPresenceRepository mockPresenceRepo;
+  late FakeMenuSubscriptionRepository fakeSubRepo;
+  late FakePresenceRepository fakePresenceRepo;
+  late _FakeEditorTreeLoader fakeLoader;
 
-  const menuId = 1;
-
-  const testUser = User(id: 'user-1', email: 'test@example.com');
+  void setupDefaultPresenceStubs() {
+    fakePresenceRepo.whenJoinMenu(const Success(null));
+    fakePresenceRepo.whenGetActiveUsers(_menuId, const Success([]));
+    fakePresenceRepo.whenLeaveMenu(const Success(null));
+  }
 
   setUp(() {
-    mockSubRepo = MockMenuSubscriptionRepository();
-    mockPresenceRepo = MockPresenceRepository();
+    fakeSubRepo = FakeMenuSubscriptionRepository();
+    fakePresenceRepo = FakePresenceRepository();
+    fakeLoader = _FakeEditorTreeLoader(
+      menuRepo: FakeMenuRepository(),
+      pageRepo: FakePageRepository(),
+      containerRepo: FakeContainerRepository(),
+      columnRepo: FakeColumnRepository(),
+      widgetRepo: FakeWidgetRepository(),
+    );
+    setupDefaultPresenceStubs();
+  });
 
-    // Default stubs for cleanup (called on every container.dispose)
-    when(() => mockSubRepo.unsubscribe(any())).thenAnswer((_) async {});
-    when(
-      () => mockPresenceRepo.unsubscribePresence(any()),
-    ).thenAnswer((_) async {});
-    when(
-      () => mockPresenceRepo.leaveMenu(any(), any()),
-    ).thenAnswer((_) async => const Success(null));
+  tearDown(() {
+    fakeSubRepo.dispose();
+    fakePresenceRepo.dispose();
   });
 
   ProviderContainer createContainer({
-    User? currentUser = testUser,
-    AsyncValue<ConnectivityStatus>? connectivity,
+    User? currentUser = _testUser,
     bool isForeground = true,
+    AsyncValue<ConnectivityStatus>? connectivity,
   }) {
     return ProviderContainer(
       overrides: [
-        menuSubscriptionRepositoryProvider.overrideWithValue(mockSubRepo),
-        presenceRepositoryProvider.overrideWithValue(mockPresenceRepo),
+        menuSubscriptionRepositoryProvider.overrideWithValue(fakeSubRepo),
+        presenceRepositoryProvider.overrideWithValue(fakePresenceRepo),
         currentUserProvider.overrideWithValue(currentUser),
         isAppInForegroundProvider.overrideWithValue(isForeground),
+        editorTreeLoaderProvider.overrideWithValue(fakeLoader),
         if (connectivity != null)
           connectivityProvider.overrideWithValue(connectivity),
       ],
     );
   }
 
-  group('MenuCollaborationNotifier - initial state', () {
-    test('has default empty state', () {
-      final container = createContainer();
-      addTearDown(container.dispose);
+  /// Creates a container, calls [startTracking], and returns it ready for
+  /// further assertions.
+  Future<ProviderContainer> startAndTrack({
+    User? currentUser = _testUser,
+    bool isForeground = true,
+    AsyncValue<ConnectivityStatus>? connectivity,
+  }) async {
+    final container = createContainer(
+      currentUser: currentUser,
+      isForeground: isForeground,
+      connectivity: connectivity,
+    );
+    await container
+        .read(menuCollaborationProvider(_menuId).notifier)
+        .startTracking();
+    return container;
+  }
 
-      final state = container.read(menuCollaborationProvider(menuId));
-      expect(state.presences, isEmpty);
-      expect(state.isReconnecting, isFalse);
-      expect(state.isPaused, isFalse);
-      expect(state.currentUserId, isNull);
-    });
-  });
+  group('MenuCollaborationNotifier', () {
+    // -----------------------------------------------------------------------
+    group('initial state', () {
+      test('should have empty presences list', () {
+        final container = createContainer();
+        addTearDown(container.dispose);
 
-  group('MenuCollaborationNotifier - startTracking', () {
-    test('subscribes to changes and starts presence tracking', () async {
-      final changeController = StreamController<MenuChangeEvent>.broadcast();
-      when(
-        () => mockSubRepo.subscribeToMenuChanges(menuId),
-      ).thenAnswer((_) => changeController.stream);
-      when(
-        () => mockPresenceRepo.joinMenu(
-          menuId,
-          'user-1',
-          userName: any(named: 'userName'),
-          userAvatar: any(named: 'userAvatar'),
-        ),
-      ).thenAnswer((_) async => const Success(null));
-      when(
-        () => mockPresenceRepo.getActiveUsers(menuId),
-      ).thenAnswer((_) async => const Success(<MenuPresence>[]));
-      when(
-        () => mockPresenceRepo.watchActiveUsers(menuId),
-      ).thenAnswer((_) => const Stream.empty());
-
-      final container = createContainer();
-      addTearDown(() {
-        container.dispose();
-        changeController.close();
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).presences,
+          isEmpty,
+        );
       });
 
-      await container
-          .read(menuCollaborationProvider(menuId).notifier)
-          .startTracking();
+      test('should have isReconnecting false', () {
+        final container = createContainer();
+        addTearDown(container.dispose);
 
-      verify(() => mockSubRepo.subscribeToMenuChanges(menuId)).called(1);
-      verify(
-        () => mockPresenceRepo.joinMenu(
-          menuId,
-          'user-1',
-          userName: any(named: 'userName'),
-          userAvatar: any(named: 'userAvatar'),
-        ),
-      ).called(1);
-
-      final state = container.read(menuCollaborationProvider(menuId));
-      expect(state.currentUserId, 'user-1');
-    });
-  });
-
-  group('MenuCollaborationNotifier - WS error fallback', () {
-    test('increments wsErrorCount in state on stream error', () async {
-      final changeController = StreamController<MenuChangeEvent>.broadcast();
-      when(
-        () => mockSubRepo.subscribeToMenuChanges(menuId),
-      ).thenAnswer((_) => changeController.stream);
-      when(
-        () => mockPresenceRepo.joinMenu(
-          menuId,
-          'user-1',
-          userName: any(named: 'userName'),
-          userAvatar: any(named: 'userAvatar'),
-        ),
-      ).thenAnswer((_) async => const Success(null));
-      when(
-        () => mockPresenceRepo.getActiveUsers(menuId),
-      ).thenAnswer((_) async => const Success(<MenuPresence>[]));
-      when(
-        () => mockPresenceRepo.watchActiveUsers(menuId),
-      ).thenAnswer((_) => const Stream.empty());
-
-      final container = createContainer();
-      addTearDown(() {
-        container.dispose();
-        changeController.close();
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).isReconnecting,
+          isFalse,
+        );
       });
 
-      await container
-          .read(menuCollaborationProvider(menuId).notifier)
-          .startTracking();
+      test('should have isPaused false', () {
+        final container = createContainer();
+        addTearDown(container.dispose);
 
-      expect(container.read(menuCollaborationProvider(menuId)).wsErrorCount, 0);
-
-      changeController.addError('WS error 1');
-      await Future<void>.delayed(Duration.zero);
-
-      expect(container.read(menuCollaborationProvider(menuId)).wsErrorCount, 1);
-
-      changeController.addError('WS error 2');
-      await Future<void>.delayed(Duration.zero);
-
-      expect(container.read(menuCollaborationProvider(menuId)).wsErrorCount, 2);
-    });
-
-    test('sets isReconnecting on stream error', () async {
-      final changeController = StreamController<MenuChangeEvent>.broadcast();
-      when(
-        () => mockSubRepo.subscribeToMenuChanges(menuId),
-      ).thenAnswer((_) => changeController.stream);
-      when(
-        () => mockPresenceRepo.joinMenu(
-          menuId,
-          'user-1',
-          userName: any(named: 'userName'),
-          userAvatar: any(named: 'userAvatar'),
-        ),
-      ).thenAnswer((_) async => const Success(null));
-      when(
-        () => mockPresenceRepo.getActiveUsers(menuId),
-      ).thenAnswer((_) async => const Success(<MenuPresence>[]));
-      when(
-        () => mockPresenceRepo.watchActiveUsers(menuId),
-      ).thenAnswer((_) => const Stream.empty());
-
-      final container = createContainer();
-      addTearDown(() {
-        container.dispose();
-        changeController.close();
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).isPaused,
+          isFalse,
+        );
       });
 
-      await container
-          .read(menuCollaborationProvider(menuId).notifier)
-          .startTracking();
+      test('should have null currentUserId', () {
+        final container = createContainer();
+        addTearDown(container.dispose);
 
-      // Emit an error
-      changeController.addError('WebSocket error');
-      await Future<void>.delayed(Duration.zero);
-
-      final state = container.read(menuCollaborationProvider(menuId));
-      expect(state.isReconnecting, isTrue);
-    });
-  });
-
-  group('MenuCollaborationNotifier - pause/resume', () {
-    test('onConnectivityChanged pauses when offline', () async {
-      final changeController = StreamController<MenuChangeEvent>.broadcast();
-      when(
-        () => mockSubRepo.subscribeToMenuChanges(menuId),
-      ).thenAnswer((_) => changeController.stream);
-      when(() => mockSubRepo.unsubscribe(menuId)).thenAnswer((_) async {});
-      when(
-        () => mockPresenceRepo.joinMenu(
-          menuId,
-          'user-1',
-          userName: any(named: 'userName'),
-          userAvatar: any(named: 'userAvatar'),
-        ),
-      ).thenAnswer((_) async => const Success(null));
-      when(
-        () => mockPresenceRepo.getActiveUsers(menuId),
-      ).thenAnswer((_) async => const Success(<MenuPresence>[]));
-      when(
-        () => mockPresenceRepo.watchActiveUsers(menuId),
-      ).thenAnswer((_) => const Stream.empty());
-      when(
-        () => mockPresenceRepo.unsubscribePresence(menuId),
-      ).thenAnswer((_) async {});
-
-      final container = createContainer();
-      addTearDown(() {
-        container.dispose();
-        changeController.close();
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).currentUserId,
+          isNull,
+        );
       });
 
-      await container
-          .read(menuCollaborationProvider(menuId).notifier)
-          .startTracking();
+      test('should have wsErrorCount of zero', () {
+        final container = createContainer();
+        addTearDown(container.dispose);
 
-      container
-          .read(menuCollaborationProvider(menuId).notifier)
-          .onConnectivityChanged(
-            ConnectivityStatus.online,
-            ConnectivityStatus.offline,
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).wsErrorCount,
+          0,
+        );
+      });
+
+      test('should have isLoadingMenu false', () {
+        final container = createContainer();
+        addTearDown(container.dispose);
+
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).isLoadingMenu,
+          isFalse,
+        );
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    group('startTracking', () {
+      test('should set currentUserId to the logged-in user id', () async {
+        final container = await startAndTrack();
+        addTearDown(container.dispose);
+
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).currentUserId,
+          'user-1',
+        );
+      });
+
+      test('should call joinMenu with the correct menuId and userId', () async {
+        final container = await startAndTrack();
+        addTearDown(container.dispose);
+
+        expect(fakePresenceRepo.joinMenuCalls, hasLength(1));
+        expect(fakePresenceRepo.joinMenuCalls.first.menuId, _menuId);
+        expect(fakePresenceRepo.joinMenuCalls.first.userId, 'user-1');
+      });
+
+      test('should call subscribeToMenuChanges with the menuId', () async {
+        final container = await startAndTrack();
+        addTearDown(container.dispose);
+
+        expect(fakeSubRepo.subscribeCalls, hasLength(1));
+        expect(fakeSubRepo.subscribeCalls.first.menuId, _menuId);
+      });
+
+      test('should populate presences from getActiveUsers on start', () async {
+        fakePresenceRepo.whenGetActiveUsers(_menuId, Success([_testPresence]));
+
+        final container = await startAndTrack();
+        addTearDown(container.dispose);
+
+        expect(fakePresenceRepo.getActiveUsersCalls, hasLength(1));
+        expect(container.read(menuCollaborationProvider(_menuId)).presences, [
+          _testPresence,
+        ]);
+      });
+
+      test('should not call joinMenu when currentUser is null', () async {
+        final container = await startAndTrack(currentUser: null);
+        addTearDown(container.dispose);
+
+        expect(fakePresenceRepo.joinMenuCalls, isEmpty);
+      });
+
+      test(
+        'should have null currentUserId when no user is logged in',
+        () async {
+          final container = await startAndTrack(currentUser: null);
+          addTearDown(container.dispose);
+
+          expect(
+            container.read(menuCollaborationProvider(_menuId)).currentUserId,
+            isNull,
+          );
+        },
+      );
+    });
+
+    // -----------------------------------------------------------------------
+    group('stream error handling', () {
+      test('should increment wsErrorCount on the first stream error', () async {
+        final container = await startAndTrack();
+        addTearDown(container.dispose);
+
+        fakeSubRepo.addError(_menuId, 'WS error 1');
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).wsErrorCount,
+          1,
+        );
+      });
+
+      test(
+        'should increment wsErrorCount again on a second stream error',
+        () async {
+          final container = await startAndTrack();
+          addTearDown(container.dispose);
+
+          fakeSubRepo.addError(_menuId, 'WS error 1');
+          await Future<void>.delayed(Duration.zero);
+
+          fakeSubRepo.addError(_menuId, 'WS error 2');
+          await Future<void>.delayed(Duration.zero);
+
+          expect(
+            container.read(menuCollaborationProvider(_menuId)).wsErrorCount,
+            2,
+          );
+        },
+      );
+
+      test(
+        'should set isReconnecting true on the first stream error',
+        () async {
+          final container = await startAndTrack();
+          addTearDown(container.dispose);
+
+          fakeSubRepo.addError(_menuId, 'WebSocket error');
+          await Future<void>.delayed(Duration.zero);
+
+          expect(
+            container.read(menuCollaborationProvider(_menuId)).isReconnecting,
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'should clear isReconnecting on the next successful change event',
+        () async {
+          final container = await startAndTrack();
+          addTearDown(container.dispose);
+
+          fakeSubRepo.addError(_menuId, 'error');
+          await Future<void>.delayed(Duration.zero);
+
+          fakeSubRepo.emitChange(
+            _menuId,
+            const WidgetChangedEvent(eventType: 'update', data: {}, ids: null),
+          );
+          await Future<void>.delayed(Duration.zero);
+
+          expect(
+            container.read(menuCollaborationProvider(_menuId)).isReconnecting,
+            isFalse,
+          );
+        },
+      );
+
+      test(
+        'should reset wsErrorCount to zero on the next successful change event',
+        () async {
+          final container = await startAndTrack();
+          addTearDown(container.dispose);
+
+          fakeSubRepo.addError(_menuId, 'error');
+          await Future<void>.delayed(Duration.zero);
+
+          fakeSubRepo.emitChange(
+            _menuId,
+            const WidgetChangedEvent(eventType: 'update', data: {}, ids: null),
+          );
+          await Future<void>.delayed(Duration.zero);
+
+          expect(
+            container.read(menuCollaborationProvider(_menuId)).wsErrorCount,
+            0,
+          );
+        },
+      );
+
+      test('should not increment wsErrorCount when paused', () async {
+        final container = await startAndTrack();
+        addTearDown(container.dispose);
+
+        // Pause by going offline
+        container
+            .read(menuCollaborationProvider(_menuId).notifier)
+            .onConnectivityChanged(
+              ConnectivityStatus.online,
+              ConnectivityStatus.offline,
+            );
+
+        fakeSubRepo.addError(_menuId, 'error while paused');
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).wsErrorCount,
+          0,
+        );
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    group('presence list updates', () {
+      test(
+        'should update presences when watchActiveUsers stream emits',
+        () async {
+          final container = await startAndTrack();
+          addTearDown(container.dispose);
+
+          fakePresenceRepo.emitPresence(_menuId, [_testPresence]);
+          await Future<void>.delayed(Duration.zero);
+
+          expect(container.read(menuCollaborationProvider(_menuId)).presences, [
+            _testPresence,
+          ]);
+        },
+      );
+
+      test(
+        'should clear presences when watchActiveUsers emits empty list',
+        () async {
+          fakePresenceRepo.whenGetActiveUsers(
+            _menuId,
+            Success([_testPresence]),
           );
 
-      final state = container.read(menuCollaborationProvider(menuId));
-      expect(state.isPaused, isTrue);
-    });
-  });
+          final container = await startAndTrack();
+          addTearDown(container.dispose);
 
-  group('MenuCollaborationNotifier - findEditingPresence', () {
-    test('returns presence for editing user', () {
-      final container = createContainer();
-      addTearDown(container.dispose);
+          fakePresenceRepo.emitPresence(_menuId, []);
+          await Future<void>.delayed(Duration.zero);
 
-      // Manually set some presences via the internal state
-      // We can't easily set state externally, so test via startTracking
-      final notifier = container.read(
-        menuCollaborationProvider(menuId).notifier,
+          expect(
+            container.read(menuCollaborationProvider(_menuId)).presences,
+            isEmpty,
+          );
+        },
       );
-
-      const widget = WidgetInstance(
-        id: 1,
-        columnId: 1,
-        type: 'text',
-        version: '1.0',
-        index: 0,
-        props: {},
-        editingBy: null,
-      );
-
-      // No editing user
-      expect(notifier.findEditingPresence(widget), isNull);
     });
 
-    test('returns null when no editing user', () {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    // -----------------------------------------------------------------------
+    group('onConnectivityChanged', () {
+      test('should set isPaused true when transitioning to offline', () async {
+        final container = await startAndTrack();
+        addTearDown(container.dispose);
 
-      final notifier = container.read(
-        menuCollaborationProvider(menuId).notifier,
+        container
+            .read(menuCollaborationProvider(_menuId).notifier)
+            .onConnectivityChanged(
+              ConnectivityStatus.online,
+              ConnectivityStatus.offline,
+            );
+
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).isPaused,
+          isTrue,
+        );
+      });
+
+      test('should call unsubscribe when transitioning to offline', () async {
+        final container = await startAndTrack();
+        addTearDown(container.dispose);
+
+        container
+            .read(menuCollaborationProvider(_menuId).notifier)
+            .onConnectivityChanged(
+              ConnectivityStatus.online,
+              ConnectivityStatus.offline,
+            );
+
+        expect(
+          fakeSubRepo.unsubscribeCalls.where((c) => c.menuId == _menuId),
+          isNotEmpty,
+        );
+      });
+
+      test(
+        'should set isPaused false when coming back online and was paused',
+        () async {
+          final container = await startAndTrack(isForeground: true);
+          addTearDown(container.dispose);
+
+          // Go offline
+          container
+              .read(menuCollaborationProvider(_menuId).notifier)
+              .onConnectivityChanged(
+                ConnectivityStatus.online,
+                ConnectivityStatus.offline,
+              );
+          expect(
+            container.read(menuCollaborationProvider(_menuId)).isPaused,
+            isTrue,
+          );
+
+          // Come back online — _resumeSubscriptions calls _startPresenceTracking
+          // which is async (fire-and-forget). Yield the microtask queue so the
+          // async work completes while the container is still alive.
+          container
+              .read(menuCollaborationProvider(_menuId).notifier)
+              .onConnectivityChanged(
+                ConnectivityStatus.offline,
+                ConnectivityStatus.online,
+              );
+          await Future<void>.delayed(Duration.zero);
+
+          expect(
+            container.read(menuCollaborationProvider(_menuId)).isPaused,
+            isFalse,
+          );
+        },
       );
 
-      const widget = WidgetInstance(
-        id: 1,
-        columnId: 1,
-        type: 'text',
-        version: '1.0',
-        index: 0,
-        props: {},
-      );
+      test(
+        'should not call extra unsubscribe when already paused and offline',
+        () async {
+          final container = await startAndTrack();
+          addTearDown(container.dispose);
 
-      expect(notifier.findEditingPresence(widget), isNull);
+          container
+              .read(menuCollaborationProvider(_menuId).notifier)
+              .onConnectivityChanged(
+                ConnectivityStatus.online,
+                ConnectivityStatus.offline,
+              );
+          final countAfterFirst = fakeSubRepo.unsubscribeCalls.length;
+
+          // Already paused — a second offline event is a no-op
+          container
+              .read(menuCollaborationProvider(_menuId).notifier)
+              .onConnectivityChanged(
+                ConnectivityStatus.offline,
+                ConnectivityStatus.offline,
+              );
+
+          expect(fakeSubRepo.unsubscribeCalls.length, countAfterFirst);
+        },
+      );
     });
-  });
 
-  group('MenuCollaborationNotifier - cleanup', () {
-    test('cleanup is called on dispose', () async {
-      final changeController = StreamController<MenuChangeEvent>.broadcast();
-      when(
-        () => mockSubRepo.subscribeToMenuChanges(menuId),
-      ).thenAnswer((_) => changeController.stream);
-      when(() => mockSubRepo.unsubscribe(menuId)).thenAnswer((_) async {});
-      when(
-        () => mockPresenceRepo.joinMenu(
-          menuId,
-          'user-1',
-          userName: any(named: 'userName'),
-          userAvatar: any(named: 'userAvatar'),
-        ),
-      ).thenAnswer((_) async => const Success(null));
-      when(
-        () => mockPresenceRepo.getActiveUsers(menuId),
-      ).thenAnswer((_) async => const Success(<MenuPresence>[]));
-      when(
-        () => mockPresenceRepo.watchActiveUsers(menuId),
-      ).thenAnswer((_) => const Stream.empty());
-      when(
-        () => mockPresenceRepo.unsubscribePresence(menuId),
-      ).thenAnswer((_) async {});
-      when(
-        () => mockPresenceRepo.leaveMenu(menuId, 'user-1'),
-      ).thenAnswer((_) async => const Success(null));
+    // -----------------------------------------------------------------------
+    group('onLifecycleChanged', () {
+      test('should pause when app goes to background', () async {
+        final container = await startAndTrack(
+          connectivity: const AsyncData(ConnectivityStatus.online),
+        );
+        addTearDown(container.dispose);
 
-      final container = createContainer();
+        container
+            .read(menuCollaborationProvider(_menuId).notifier)
+            .onLifecycleChanged(true, false);
 
-      await container
-          .read(menuCollaborationProvider(menuId).notifier)
-          .startTracking();
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).isPaused,
+          isTrue,
+        );
+      });
 
-      container.dispose();
+      test('should resume when app returns to foreground while online', () async {
+        final container = await startAndTrack(
+          connectivity: const AsyncData(ConnectivityStatus.online),
+        );
+        addTearDown(container.dispose);
 
-      verify(() => mockSubRepo.unsubscribe(menuId)).called(1);
-      verify(() => mockPresenceRepo.leaveMenu(menuId, 'user-1')).called(1);
+        container
+            .read(menuCollaborationProvider(_menuId).notifier)
+            .onLifecycleChanged(true, false);
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).isPaused,
+          isTrue,
+        );
 
-      changeController.close();
+        // _resumeSubscriptions calls _startPresenceTracking (async, fire-and-forget).
+        // Yield to let it complete while the container is still alive.
+        container
+            .read(menuCollaborationProvider(_menuId).notifier)
+            .onLifecycleChanged(false, true);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          container.read(menuCollaborationProvider(_menuId)).isPaused,
+          isFalse,
+        );
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    group('findEditingPresence', () {
+      test('should return null when widget has no editingBy', () {
+        final container = createContainer();
+        addTearDown(container.dispose);
+
+        const widget = WidgetInstance(
+          id: 1,
+          columnId: 1,
+          type: 'text',
+          version: '1.0',
+          index: 0,
+          props: {},
+        );
+
+        final notifier = container.read(
+          menuCollaborationProvider(_menuId).notifier,
+        );
+
+        expect(notifier.findEditingPresence(widget), isNull);
+      });
+
+      test(
+        'should return null when editingBy does not match any presence',
+        () async {
+          fakePresenceRepo.whenGetActiveUsers(
+            _menuId,
+            Success([_testPresence]),
+          );
+
+          final container = await startAndTrack();
+          addTearDown(container.dispose);
+
+          const widget = WidgetInstance(
+            id: 1,
+            columnId: 1,
+            type: 'text',
+            version: '1.0',
+            index: 0,
+            props: {},
+            editingBy: 'unknown-user',
+          );
+
+          expect(
+            container
+                .read(menuCollaborationProvider(_menuId).notifier)
+                .findEditingPresence(widget),
+            isNull,
+          );
+        },
+      );
+
+      test(
+        'should return the matching presence when editingBy matches a tracked user',
+        () async {
+          fakePresenceRepo.whenGetActiveUsers(
+            _menuId,
+            Success([_testPresence]),
+          );
+
+          final container = await startAndTrack();
+          addTearDown(container.dispose);
+
+          const widget = WidgetInstance(
+            id: 1,
+            columnId: 1,
+            type: 'text',
+            version: '1.0',
+            index: 0,
+            props: {},
+            editingBy: 'user-1',
+          );
+
+          expect(
+            container
+                .read(menuCollaborationProvider(_menuId).notifier)
+                .findEditingPresence(widget),
+            _testPresence,
+          );
+        },
+      );
+    });
+
+    // -----------------------------------------------------------------------
+    group('cleanup on dispose', () {
+      test('should call unsubscribe on dispose', () async {
+        final container = await startAndTrack();
+        container.dispose();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          fakeSubRepo.unsubscribeCalls.where((c) => c.menuId == _menuId),
+          isNotEmpty,
+        );
+      });
+
+      test('should call leaveMenu with the correct user on dispose', () async {
+        final container = await startAndTrack();
+        container.dispose();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(fakePresenceRepo.leaveMenuCalls, hasLength(1));
+        expect(fakePresenceRepo.leaveMenuCalls.first.menuId, _menuId);
+        expect(fakePresenceRepo.leaveMenuCalls.first.userId, 'user-1');
+      });
+
+      test('should call unsubscribePresence on dispose', () async {
+        final container = await startAndTrack();
+        container.dispose();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          fakePresenceRepo.unsubscribePresenceCalls.where(
+            (c) => c.menuId == _menuId,
+          ),
+          isNotEmpty,
+        );
+      });
+
+      test('should not call leaveMenu when no user was logged in', () async {
+        final container = await startAndTrack(currentUser: null);
+        container.dispose();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(fakePresenceRepo.leaveMenuCalls, isEmpty);
+      });
     });
   });
 }

@@ -2,58 +2,48 @@ import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
-import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/repositories/file_repository.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
-class MockFileRepository extends Mock implements FileRepository {}
+import '../../../fakes/fake_file_repository.dart';
+import '../../../fakes/result_helpers.dart';
 
 void main() {
   group('imageDataProvider', () {
-    late MockFileRepository mockFileRepository;
+    late FakeFileRepository fakeRepo;
     late ProviderContainer container;
 
     setUp(() {
-      mockFileRepository = MockFileRepository();
+      fakeRepo = FakeFileRepository();
       container = ProviderContainer(
-        overrides: [
-          fileRepositoryProvider.overrideWithValue(mockFileRepository),
-        ],
+        overrides: [fileRepositoryProvider.overrideWithValue(fakeRepo)],
       );
     });
 
-    tearDown(() {
-      container.dispose();
-    });
+    tearDown(() => container.dispose());
 
     test(
-      'calls downloadFile with correct fileId and returns bytes on success',
+      'should call downloadFile with the correct fileId and return bytes on success',
       () async {
         final expectedBytes = Uint8List.fromList([0x89, 0x50, 0x4E, 0x47]);
-        when(
-          () => mockFileRepository.downloadFile('file-123'),
-        ).thenAnswer((_) async => Success(expectedBytes));
+        fakeRepo.whenDownloadFile(success(expectedBytes));
 
         final result = await container.read(
           imageDataProvider('file-123').future,
         );
 
         expect(result, expectedBytes);
-        verify(() => mockFileRepository.downloadFile('file-123')).called(1);
+        expect(fakeRepo.downloadFileCalls, hasLength(1));
+        expect(fakeRepo.downloadFileCalls.first.fileId, 'file-123');
       },
     );
 
-    test('throws DomainError on failure', () async {
-      when(
-        () => mockFileRepository.downloadFile('bad-file'),
-      ).thenAnswer((_) async => const Failure(NotFoundError('File not found')));
+    test('should throw DomainError when download fails', () async {
+      fakeRepo.whenDownloadFile(
+        failure<Uint8List>(const NotFoundError('File not found')),
+      );
 
-      // Keep the subscription alive so Riverpod doesn't auto-retry
       final sub = container.listen(imageDataProvider('bad-file'), (_, _) {});
-
-      // Allow the async provider to resolve
       await Future<void>.delayed(Duration.zero);
       await Future<void>.delayed(Duration.zero);
 
@@ -62,6 +52,40 @@ void main() {
 
       expect(state.hasError, isTrue);
       expect(state.error, isA<NotFoundError>());
+    });
+
+    test(
+      'should use different fileIds as separate provider family keys',
+      () async {
+        final bytes1 = Uint8List.fromList([0x01]);
+        final bytes2 = Uint8List.fromList([0x02]);
+        fakeRepo.whenDownloadFile(success(bytes1));
+
+        final result1 = await container.read(
+          imageDataProvider('file-a').future,
+        );
+        fakeRepo.whenDownloadFile(success(bytes2));
+        final result2 = await container.read(
+          imageDataProvider('file-b').future,
+        );
+
+        expect(result1, bytes1);
+        expect(result2, bytes2);
+      },
+    );
+
+    test('should throw ServerError when server fails', () async {
+      fakeRepo.whenDownloadFile(failureServer<Uint8List>('Internal error'));
+
+      final sub = container.listen(imageDataProvider('server-fail'), (_, _) {});
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      final state = container.read(imageDataProvider('server-fail'));
+      sub.close();
+
+      expect(state.hasError, isTrue);
+      expect(state.error, isA<ServerError>());
     });
   });
 }

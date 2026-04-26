@@ -1,52 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/size.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
 import 'package:oxo_menus/domain/repositories/size_repository.dart';
-import 'package:oxo_menus/domain/usecases/list_sizes_usecase.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_notifier.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_provider.dart';
 import 'package:oxo_menus/presentation/pages/admin_sizes/admin_sizes_state.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/usecases_provider.dart';
 
-class MockSizeRepository extends Mock implements SizeRepository {}
-
-class MockListSizesUseCase extends Mock implements ListSizesUseCase {}
+import '../../../../fakes/fake_list_sizes_usecase.dart';
+import '../../../../fakes/fake_size_repository.dart';
 
 void main() {
   late ProviderContainer container;
-  late MockSizeRepository mockRepository;
-  late MockListSizesUseCase mockListSizesUseCase;
-
-  setUp(() {
-    mockRepository = MockSizeRepository();
-    mockListSizesUseCase = MockListSizesUseCase();
-    container = ProviderContainer(
-      overrides: [
-        sizeRepositoryProvider.overrideWithValue(mockRepository),
-        listSizesUseCaseProvider.overrideWithValue(mockListSizesUseCase),
-      ],
-    );
-  });
-
-  tearDown(() => container.dispose());
-
-  setUpAll(() {
-    registerFallbackValue(
-      const CreateSizeInput(
-        name: '',
-        width: 0,
-        height: 0,
-        status: Status.draft,
-        direction: 'portrait',
-      ),
-    );
-    registerFallbackValue(const UpdateSizeInput(id: 0));
-  });
+  late FakeSizeRepository fakeSizeRepository;
+  late FakeListSizesUseCase fakeListSizesUseCase;
 
   const testSize = Size(
     id: 1,
@@ -66,32 +37,55 @@ void main() {
     direction: 'landscape',
   );
 
+  setUp(() {
+    fakeSizeRepository = FakeSizeRepository();
+    fakeListSizesUseCase = FakeListSizesUseCase();
+    container = ProviderContainer(
+      overrides: [
+        sizeRepositoryProvider.overrideWithValue(fakeSizeRepository),
+        listSizesUseCaseProvider.overrideWithValue(fakeListSizesUseCase),
+      ],
+    );
+  });
+
+  tearDown(() => container.dispose());
+
   AdminSizesNotifier readNotifier() =>
       container.read(adminSizesProvider.notifier);
   AdminSizesState readState() => container.read(adminSizesProvider);
 
   group('AdminSizesNotifier', () {
-    test('should have correct initial state', () {
-      expect(readState(), const AdminSizesState());
+    group('initial state', () {
+      test('should have empty sizes list', () {
+        expect(readState().sizes, isEmpty);
+      });
+
+      test('should have isLoading false', () {
+        expect(readState().isLoading, isFalse);
+      });
+
+      test('should have null errorMessage', () {
+        expect(readState().errorMessage, isNull);
+      });
+
+      test('should have statusFilter set to all', () {
+        expect(readState().statusFilter, 'all');
+      });
     });
 
     group('loadSizes', () {
       test('should load sizes successfully', () async {
-        when(
-          () => mockListSizesUseCase.execute(statusFilter: 'all'),
-        ).thenAnswer((_) async => const Success([testSize, testSize2]));
+        fakeListSizesUseCase.stubExecute(const Success([testSize, testSize2]));
 
         await readNotifier().loadSizes();
 
         expect(readState().sizes, hasLength(2));
-        expect(readState().isLoading, false);
+        expect(readState().isLoading, isFalse);
         expect(readState().errorMessage, isNull);
       });
 
       test('should filter sizes by status', () async {
-        when(
-          () => mockListSizesUseCase.execute(statusFilter: 'published'),
-        ).thenAnswer((_) async => const Success([testSize]));
+        fakeListSizesUseCase.stubExecute(const Success([testSize]));
 
         await readNotifier().loadSizes(statusFilter: 'published');
 
@@ -101,9 +95,7 @@ void main() {
       });
 
       test('should show all sizes when filter is all', () async {
-        when(
-          () => mockListSizesUseCase.execute(statusFilter: 'all'),
-        ).thenAnswer((_) async => const Success([testSize, testSize2]));
+        fakeListSizesUseCase.stubExecute(const Success([testSize, testSize2]));
 
         await readNotifier().loadSizes(statusFilter: 'all');
 
@@ -111,32 +103,59 @@ void main() {
       });
 
       test('should set error message on failure', () async {
-        when(
-          () => mockListSizesUseCase.execute(statusFilter: 'all'),
-        ).thenAnswer((_) async => const Failure(ServerError('Server error')));
+        fakeListSizesUseCase.stubExecute(
+          const Failure(ServerError('Server error')),
+        );
 
         await readNotifier().loadSizes();
 
-        expect(readState().isLoading, false);
+        expect(readState().isLoading, isFalse);
         expect(readState().errorMessage, 'Server error');
+      });
+
+      test(
+        'should preserve existing status filter when not specified',
+        () async {
+          fakeListSizesUseCase.stubExecute(const Success([testSize]));
+          await readNotifier().loadSizes(statusFilter: 'published');
+          expect(readState().statusFilter, 'published');
+
+          fakeListSizesUseCase.stubExecute(const Success([testSize]));
+          await readNotifier().loadSizes();
+
+          expect(readState().statusFilter, 'published');
+        },
+      );
+
+      test(
+        'should record the use-case call with the filter argument',
+        () async {
+          fakeListSizesUseCase.stubExecute(const Success([]));
+
+          await readNotifier().loadSizes(statusFilter: 'draft');
+
+          expect(fakeListSizesUseCase.calls, hasLength(1));
+          expect(fakeListSizesUseCase.calls.first.statusFilter, 'draft');
+        },
+      );
+
+      test('should clear previous error on new load attempt', () async {
+        fakeListSizesUseCase.stubExecute(const Failure(ServerError('Error')));
+        await readNotifier().loadSizes();
+        expect(readState().errorMessage, isNotNull);
+
+        fakeListSizesUseCase.stubExecute(const Success([testSize, testSize2]));
+        await readNotifier().loadSizes();
+
+        expect(readState().errorMessage, isNull);
       });
     });
 
     group('createSize', () {
       test('should create size and add to list', () async {
-        // First load existing sizes
-        when(
-          () => mockListSizesUseCase.execute(statusFilter: 'all'),
-        ).thenAnswer((_) async => const Success([testSize]));
+        fakeListSizesUseCase.stubExecute(const Success([testSize]));
         await readNotifier().loadSizes();
 
-        const input = CreateSizeInput(
-          name: 'A5',
-          width: 148.0,
-          height: 210.0,
-          status: Status.draft,
-          direction: 'portrait',
-        );
         const newSize = Size(
           id: 3,
           name: 'A5',
@@ -145,18 +164,8 @@ void main() {
           status: Status.draft,
           direction: 'portrait',
         );
+        fakeSizeRepository.whenCreate(const Success(newSize));
 
-        when(
-          () => mockRepository.create(any()),
-        ).thenAnswer((_) async => const Success(newSize));
-
-        await readNotifier().createSize(input);
-
-        expect(readState().sizes, hasLength(2));
-        expect(readState().sizes.last.name, 'A5');
-      });
-
-      test('should set error message on create failure', () async {
         const input = CreateSizeInput(
           name: 'A5',
           width: 148.0,
@@ -164,22 +173,57 @@ void main() {
           status: Status.draft,
           direction: 'portrait',
         );
+        await readNotifier().createSize(input);
 
-        when(
-          () => mockRepository.create(any()),
-        ).thenAnswer((_) async => const Failure(ServerError('Create failed')));
+        expect(readState().sizes, hasLength(2));
+        expect(readState().sizes.last.name, 'A5');
+      });
 
+      test('should set error message on create failure', () async {
+        fakeSizeRepository.whenCreate(
+          const Failure(ServerError('Create failed')),
+        );
+
+        const input = CreateSizeInput(
+          name: 'A5',
+          width: 148.0,
+          height: 210.0,
+          status: Status.draft,
+          direction: 'portrait',
+        );
         await readNotifier().createSize(input);
 
         expect(readState().errorMessage, 'Create failed');
+      });
+
+      test('should record the create call', () async {
+        const newSize = Size(
+          id: 3,
+          name: 'A5',
+          width: 148.0,
+          height: 210.0,
+          status: Status.draft,
+          direction: 'portrait',
+        );
+        fakeSizeRepository.whenCreate(const Success(newSize));
+
+        const input = CreateSizeInput(
+          name: 'A5',
+          width: 148.0,
+          height: 210.0,
+          status: Status.draft,
+          direction: 'portrait',
+        );
+        await readNotifier().createSize(input);
+
+        expect(fakeSizeRepository.createCalls, hasLength(1));
+        expect(fakeSizeRepository.createCalls.first.input.name, 'A5');
       });
     });
 
     group('updateSize', () {
       test('should update size in list', () async {
-        when(
-          () => mockListSizesUseCase.execute(statusFilter: 'all'),
-        ).thenAnswer((_) async => const Success([testSize]));
+        fakeListSizesUseCase.stubExecute(const Success([testSize]));
         await readNotifier().loadSizes();
 
         const updatedSize = Size(
@@ -190,10 +234,7 @@ void main() {
           status: Status.published,
           direction: 'portrait',
         );
-
-        when(
-          () => mockRepository.update(any()),
-        ).thenAnswer((_) async => const Success(updatedSize));
+        fakeSizeRepository.whenUpdate(const Success(updatedSize));
 
         const input = UpdateSizeInput(id: 1, name: 'A4 Updated');
         await readNotifier().updateSize(input);
@@ -202,29 +243,69 @@ void main() {
       });
 
       test('should set error message on update failure', () async {
-        when(
-          () => mockRepository.update(any()),
-        ).thenAnswer((_) async => const Failure(ServerError('Update failed')));
+        fakeSizeRepository.whenUpdate(
+          const Failure(ServerError('Update failed')),
+        );
 
         const input = UpdateSizeInput(id: 1, name: 'Updated');
         await readNotifier().updateSize(input);
 
         expect(readState().errorMessage, 'Update failed');
       });
+
+      test('should record the update call with the correct id', () async {
+        const updatedSize = Size(
+          id: 1,
+          name: 'A4 Updated',
+          width: 210,
+          height: 297,
+          status: Status.published,
+          direction: 'portrait',
+        );
+        fakeSizeRepository.whenUpdate(const Success(updatedSize));
+
+        const input = UpdateSizeInput(id: 1, name: 'A4 Updated');
+        await readNotifier().updateSize(input);
+
+        expect(fakeSizeRepository.updateCalls, hasLength(1));
+        expect(fakeSizeRepository.updateCalls.first.input.id, 1);
+      });
+
+      test(
+        'should not change non-updated items when updating one size',
+        () async {
+          fakeListSizesUseCase.stubExecute(
+            const Success([testSize, testSize2]),
+          );
+          await readNotifier().loadSizes();
+
+          const updated = Size(
+            id: 1,
+            name: 'A4 Updated',
+            width: 210,
+            height: 297,
+            status: Status.published,
+            direction: 'portrait',
+          );
+          fakeSizeRepository.whenUpdate(const Success(updated));
+
+          const input = UpdateSizeInput(id: 1, name: 'A4 Updated');
+          await readNotifier().updateSize(input);
+
+          expect(readState().sizes, hasLength(2));
+          final item2 = readState().sizes.firstWhere((s) => s.id == 2);
+          expect(item2.name, 'Letter');
+        },
+      );
     });
 
     group('deleteSize', () {
       test('should remove size from list', () async {
-        when(
-          () => mockListSizesUseCase.execute(statusFilter: 'all'),
-        ).thenAnswer((_) async => const Success([testSize, testSize2]));
+        fakeListSizesUseCase.stubExecute(const Success([testSize, testSize2]));
         await readNotifier().loadSizes();
         expect(readState().sizes, hasLength(2));
 
-        when(
-          () => mockRepository.delete(1),
-        ).thenAnswer((_) async => const Success(null));
-
+        fakeSizeRepository.whenDelete(const Success(null));
         await readNotifier().deleteSize(1);
 
         expect(readState().sizes, hasLength(1));
@@ -232,23 +313,38 @@ void main() {
       });
 
       test('should set error message on delete failure', () async {
-        when(
-          () => mockRepository.delete(99),
-        ).thenAnswer((_) async => const Failure(ServerError('Delete failed')));
+        fakeSizeRepository.whenDelete(
+          const Failure(ServerError('Delete failed')),
+        );
 
         await readNotifier().deleteSize(99);
 
         expect(readState().errorMessage, 'Delete failed');
       });
+
+      test('should record the delete call with the correct id', () async {
+        fakeSizeRepository.whenDelete(const Success(null));
+
+        await readNotifier().deleteSize(42);
+
+        expect(fakeSizeRepository.deleteCalls, hasLength(1));
+        expect(fakeSizeRepository.deleteCalls.first.id, 42);
+      });
     });
 
     group('clearError', () {
-      test('should clear error message', () async {
-        when(
-          () => mockListSizesUseCase.execute(statusFilter: 'all'),
-        ).thenAnswer((_) async => const Failure(ServerError('Error')));
+      test('should clear error message when one is set', () async {
+        fakeListSizesUseCase.stubExecute(const Failure(ServerError('Error')));
         await readNotifier().loadSizes();
         expect(readState().errorMessage, isNotNull);
+
+        readNotifier().clearError();
+
+        expect(readState().errorMessage, isNull);
+      });
+
+      test('should be a no-op when there is no error', () {
+        expect(readState().errorMessage, isNull);
 
         readNotifier().clearError();
 

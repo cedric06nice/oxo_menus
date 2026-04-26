@@ -68,6 +68,7 @@ class FakeMenuRepository implements MenuRepository {
   Result<List<Menu>, DomainError>? _listAllResponse;
   Result<Menu, DomainError>? _getByIdResponse;
   Result<Menu, DomainError>? _updateResponse;
+  Future<Result<Menu, DomainError>>? _updateFutureResponse;
   Result<void, DomainError>? _deleteResponse;
 
   // -------------------------------------------------------------------------
@@ -88,6 +89,14 @@ class FakeMenuRepository implements MenuRepository {
 
   void whenUpdate(Result<Menu, DomainError> response) {
     _updateResponse = response;
+    _updateFutureResponse = null;
+  }
+
+  /// Configures update to return a controlled [Future], allowing tests to
+  /// inspect optimistic state updates before the async operation completes.
+  void whenUpdateWithFuture(Future<Result<Menu, DomainError>> future) {
+    _updateFutureResponse = future;
+    _updateResponse = null;
   }
 
   void whenDelete(Result<void, DomainError> response) {
@@ -129,6 +138,7 @@ class FakeMenuRepository implements MenuRepository {
   @override
   Future<Result<Menu, DomainError>> update(UpdateMenuInput input) async {
     calls.add(MenuUpdateCall(input));
+    if (_updateFutureResponse != null) return _updateFutureResponse!;
     if (_updateResponse != null) return _updateResponse!;
     throw StateError(
       'FakeMenuRepository: no response configured for update()',

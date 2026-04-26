@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/column.dart' as entity;
@@ -10,183 +9,203 @@ import 'package:oxo_menus/domain/entities/container.dart' as entity;
 import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/domain/entities/status.dart';
-import 'package:oxo_menus/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/domain/entities/widget_type_config.dart';
 import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
-import 'package:oxo_menus/domain/repositories/column_repository.dart';
-import 'package:oxo_menus/domain/repositories/container_repository.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/domain/repositories/page_repository.dart';
-import 'package:oxo_menus/domain/repositories/widget_repository.dart';
-import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/models/editor_selection.dart';
 import 'package:oxo_menus/presentation/pages/admin_template_editor/state/template_editor_provider.dart';
 import 'package:oxo_menus/presentation/pages/editor/state/editor_tree_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/presentation/providers/widget_registry_provider.dart';
+import 'package:oxo_menus/presentation/widget_system/presentable_widget_registry.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader.dart';
+import 'package:oxo_menus/presentation/widgets/editor/editor_tree_loader_provider.dart';
 
-class MockMenuRepository extends Mock implements MenuRepository {}
+import '../../../../../fakes/fake_column_repository.dart';
+import '../../../../../fakes/fake_container_repository.dart';
+import '../../../../../fakes/fake_menu_repository.dart';
+import '../../../../../fakes/fake_page_repository.dart';
+import '../../../../../fakes/fake_widget_repository.dart';
 
-class MockPageRepository extends Mock implements PageRepository {}
+// ---------------------------------------------------------------------------
+// Fake EditorTreeLoader (same pattern as editor_tree_notifier_test)
+// ---------------------------------------------------------------------------
 
-class MockContainerRepository extends Mock implements ContainerRepository {}
+class _FakeEditorTreeLoader extends EditorTreeLoader {
+  _FakeEditorTreeLoader({
+    required super.menuRepository,
+    required super.pageRepository,
+    required super.containerRepository,
+    required super.columnRepository,
+    required super.widgetRepository,
+  });
 
-class MockColumnRepository extends Mock implements ColumnRepository {}
+  Result<EditorTree, DomainError>? _stubResult;
 
-class MockWidgetRepository extends Mock implements WidgetRepository {}
+  void stubLoadTree(Result<EditorTree, DomainError> result) {
+    _stubResult = result;
+  }
 
-class MockPresentableWidgetRegistry extends Mock
-    implements PresentableWidgetRegistry {}
+  @override
+  Future<Result<EditorTree, DomainError>> loadTree(int menuId) async {
+    if (_stubResult != null) return _stubResult!;
+    throw StateError(
+      '_FakeEditorTreeLoader: no stub configured — call stubLoadTree() first',
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Test constants
+// ---------------------------------------------------------------------------
+
+const menuId = 1;
+
+final _testMenu = Menu(
+  id: menuId,
+  name: 'Test Template',
+  status: Status.draft,
+  version: '1.0',
+);
+
+const _testPages = [
+  entity.Page(
+    id: 10,
+    menuId: menuId,
+    name: 'Content',
+    index: 0,
+    type: entity.PageType.content,
+  ),
+  entity.Page(
+    id: 11,
+    menuId: menuId,
+    name: 'Header',
+    index: 0,
+    type: entity.PageType.header,
+  ),
+];
+
+const _testContainers = [entity.Container(id: 20, pageId: 10, index: 0)];
+const _testColumns = [entity.Column(id: 30, containerId: 20, index: 0)];
+
+EditorTree _defaultTree({Menu? menu}) {
+  return EditorTree(
+    menu: menu ?? _testMenu,
+    pages: _testPages,
+    containers: {10: _testContainers},
+    columns: {20: _testColumns},
+    widgets: {30: const []},
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 void main() {
-  late MockMenuRepository mockMenuRepo;
-  late MockPageRepository mockPageRepo;
-  late MockContainerRepository mockContainerRepo;
-  late MockColumnRepository mockColumnRepo;
-  late MockWidgetRepository mockWidgetRepo;
-  late MockPresentableWidgetRegistry mockPresentableWidgetRegistry;
+  late FakeMenuRepository fakeMenuRepo;
+  late FakePageRepository fakePageRepo;
+  late FakeContainerRepository fakeContainerRepo;
+  late FakeColumnRepository fakeColumnRepo;
+  late FakeWidgetRepository fakeWidgetRepo;
+  late _FakeEditorTreeLoader fakeTreeLoader;
 
-  const menuId = 1;
-
-  final testMenu = Menu(
-    id: menuId,
-    name: 'Test Template',
-    status: Status.draft,
-    version: '1.0',
-  );
-
-  const testPages = [
-    entity.Page(
-      id: 10,
-      menuId: menuId,
-      name: 'Content',
-      index: 0,
-      type: entity.PageType.content,
-    ),
-    entity.Page(
-      id: 11,
-      menuId: menuId,
-      name: 'Header',
-      index: 0,
-      type: entity.PageType.header,
-    ),
-  ];
-
-  const testContainers = [entity.Container(id: 20, pageId: 10, index: 0)];
-  const testColumns = [entity.Column(id: 30, containerId: 20, index: 0)];
-
-  setUp(() {
-    mockMenuRepo = MockMenuRepository();
-    mockPageRepo = MockPageRepository();
-    mockContainerRepo = MockContainerRepository();
-    mockColumnRepo = MockColumnRepository();
-    mockWidgetRepo = MockWidgetRepository();
-    mockPresentableWidgetRegistry = MockPresentableWidgetRegistry();
-  });
-
-  setUpAll(() {
-    registerFallbackValue(const CreatePageInput(menuId: 0, name: '', index: 0));
-    registerFallbackValue(
-      const CreateContainerInput(pageId: 0, index: 0, direction: 'portrait'),
-    );
-    registerFallbackValue(
-      const CreateColumnInput(containerId: 0, index: 0, flex: 1),
-    );
-    registerFallbackValue(const UpdateMenuInput(id: 0));
-    registerFallbackValue(const UpdateContainerInput(id: 0));
-    registerFallbackValue(const UpdateColumnInput(id: 0));
-  });
-
-  ProviderContainer createContainer() {
+  /// Creates a [ProviderContainer] wired with all fakes.
+  ///
+  /// The [fakeTreeLoader] is created in [setUp] so that stubs may be
+  /// configured on it BEFORE calling [makeContainer] — the container
+  /// captures the same instance via [editorTreeLoaderProvider.overrideWithValue].
+  ProviderContainer makeContainer() {
     return ProviderContainer(
       overrides: [
-        menuRepositoryProvider.overrideWithValue(mockMenuRepo),
-        pageRepositoryProvider.overrideWithValue(mockPageRepo),
-        containerRepositoryProvider.overrideWithValue(mockContainerRepo),
-        columnRepositoryProvider.overrideWithValue(mockColumnRepo),
-        widgetRepositoryProvider.overrideWithValue(mockWidgetRepo),
-        widgetRegistryProvider.overrideWithValue(mockPresentableWidgetRegistry),
+        menuRepositoryProvider.overrideWithValue(fakeMenuRepo),
+        pageRepositoryProvider.overrideWithValue(fakePageRepo),
+        containerRepositoryProvider.overrideWithValue(fakeContainerRepo),
+        columnRepositoryProvider.overrideWithValue(fakeColumnRepo),
+        widgetRepositoryProvider.overrideWithValue(fakeWidgetRepo),
+        widgetRegistryProvider.overrideWithValue(PresentableWidgetRegistry()),
+        editorTreeLoaderProvider.overrideWithValue(fakeTreeLoader),
       ],
     );
   }
 
-  void stubSuccessfulTreeLoad() {
-    when(
-      () => mockMenuRepo.getById(menuId),
-    ).thenAnswer((_) async => Success(testMenu));
-    when(
-      () => mockPageRepo.getAllForMenu(menuId),
-    ).thenAnswer((_) async => const Success(testPages));
-    when(
-      () => mockContainerRepo.getAllForPage(any()),
-    ).thenAnswer((_) async => const Success(testContainers));
-    when(
-      () => mockContainerRepo.getAllForContainer(any()),
-    ).thenAnswer((_) async => const Success(<entity.Container>[]));
-    when(
-      () => mockColumnRepo.getAllForContainer(any()),
-    ).thenAnswer((_) async => const Success(testColumns));
-    when(
-      () => mockWidgetRepo.getAllForColumn(any()),
-    ).thenAnswer((_) async => const Success(<WidgetInstance>[]));
-  }
+  setUp(() {
+    fakeMenuRepo = FakeMenuRepository();
+    fakePageRepo = FakePageRepository();
+    fakeContainerRepo = FakeContainerRepository();
+    fakeColumnRepo = FakeColumnRepository();
+    fakeWidgetRepo = FakeWidgetRepository();
+    fakeTreeLoader = _FakeEditorTreeLoader(
+      menuRepository: fakeMenuRepo,
+      pageRepository: fakePageRepo,
+      containerRepository: fakeContainerRepo,
+      columnRepository: fakeColumnRepo,
+      widgetRepository: fakeWidgetRepo,
+    );
+  });
 
   group('TemplateEditorNotifier - initial state', () {
-    test('has default state with isSaving false', () {
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should have isSaving false', () {
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final state = container.read(templateEditorProvider(menuId));
+      final state = c.read(templateEditorProvider(menuId));
+
       expect(state.isSaving, isFalse);
     });
   });
 
   group('TemplateEditorNotifier - structure CRUD', () {
-    test('addPage creates page and reloads tree', () async {
-      stubSuccessfulTreeLoad();
-      when(() => mockPageRepo.create(any())).thenAnswer(
-        (_) async => const Success(
+    test('should create page with correct parameters', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
+
+      await c
+          .read(editorTreeProvider(menuId).notifier)
+          .loadTree(separateHeaderFooter: true);
+
+      fakePageRepo.whenCreate(
+        const Success(
           entity.Page(id: 12, menuId: menuId, name: 'Page 2', index: 1),
         ),
       );
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      final container = createContainer();
-      addTearDown(container.dispose);
+      await c.read(templateEditorProvider(menuId).notifier).addPage(1);
 
-      // Load tree first so reload works
-      await container
+      expect(fakePageRepo.createCalls, hasLength(1));
+      expect(fakePageRepo.createCalls.first.input.menuId, menuId);
+    });
+
+    test('should delete page by id', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
+
+      await c
           .read(editorTreeProvider(menuId).notifier)
           .loadTree(separateHeaderFooter: true);
 
-      await container.read(templateEditorProvider(menuId).notifier).addPage(1);
+      fakePageRepo.whenDelete(const Success(null));
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      verify(() => mockPageRepo.create(any())).called(1);
+      await c.read(templateEditorProvider(menuId).notifier).deletePage(10);
+
+      expect(fakePageRepo.deleteCalls, hasLength(1));
+      expect(fakePageRepo.deleteCalls.first.id, 10);
     });
 
-    test('deletePage deletes and reloads tree', () async {
-      stubSuccessfulTreeLoad();
-      when(
-        () => mockPageRepo.delete(10),
-      ).thenAnswer((_) async => const Success(null));
+    test('should add header page with header type', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final container = createContainer();
-      addTearDown(container.dispose);
-
-      await container
+      await c
           .read(editorTreeProvider(menuId).notifier)
           .loadTree(separateHeaderFooter: true);
 
-      await container
-          .read(templateEditorProvider(menuId).notifier)
-          .deletePage(10);
-
-      verify(() => mockPageRepo.delete(10)).called(1);
-    });
-
-    test('addHeader creates header page', () async {
-      stubSuccessfulTreeLoad();
-      when(() => mockPageRepo.create(any())).thenAnswer(
-        (_) async => const Success(
+      fakePageRepo.whenCreate(
+        const Success(
           entity.Page(
             id: 13,
             menuId: menuId,
@@ -196,26 +215,25 @@ void main() {
           ),
         ),
       );
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      final container = createContainer();
-      addTearDown(container.dispose);
+      await c.read(templateEditorProvider(menuId).notifier).addHeader();
 
-      await container
+      expect(fakePageRepo.createCalls, hasLength(1));
+      expect(fakePageRepo.createCalls.first.input.type, entity.PageType.header);
+    });
+
+    test('should add footer page with footer type', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
+
+      await c
           .read(editorTreeProvider(menuId).notifier)
           .loadTree(separateHeaderFooter: true);
 
-      await container.read(templateEditorProvider(menuId).notifier).addHeader();
-
-      final captured =
-          verify(() => mockPageRepo.create(captureAny())).captured.single
-              as CreatePageInput;
-      expect(captured.type, entity.PageType.header);
-    });
-
-    test('addFooter creates footer page', () async {
-      stubSuccessfulTreeLoad();
-      when(() => mockPageRepo.create(any())).thenAnswer(
-        (_) async => const Success(
+      fakePageRepo.whenCreate(
+        const Success(
           entity.Page(
             id: 14,
             menuId: menuId,
@@ -225,287 +243,327 @@ void main() {
           ),
         ),
       );
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      final container = createContainer();
-      addTearDown(container.dispose);
+      await c.read(templateEditorProvider(menuId).notifier).addFooter();
 
-      await container
-          .read(editorTreeProvider(menuId).notifier)
-          .loadTree(separateHeaderFooter: true);
-
-      await container.read(templateEditorProvider(menuId).notifier).addFooter();
-
-      final captured =
-          verify(() => mockPageRepo.create(captureAny())).captured.single
-              as CreatePageInput;
-      expect(captured.type, entity.PageType.footer);
+      expect(fakePageRepo.createCalls, hasLength(1));
+      expect(fakePageRepo.createCalls.first.input.type, entity.PageType.footer);
     });
 
-    test('addContainer creates container and reloads', () async {
-      stubSuccessfulTreeLoad();
-      when(() => mockContainerRepo.create(any())).thenAnswer(
-        (_) async =>
-            const Success(entity.Container(id: 21, pageId: 10, index: 1)),
-      );
+    test('should create container with correct page id', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final container = createContainer();
-      addTearDown(container.dispose);
-
-      await container
+      await c
           .read(editorTreeProvider(menuId).notifier)
           .loadTree(separateHeaderFooter: true);
 
-      await container
-          .read(templateEditorProvider(menuId).notifier)
-          .addContainer(10, 1);
+      fakeContainerRepo.whenCreate(
+        const Success(entity.Container(id: 21, pageId: 10, index: 1)),
+      );
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      verify(() => mockContainerRepo.create(any())).called(1);
+      await c.read(templateEditorProvider(menuId).notifier).addContainer(10, 1);
+
+      expect(fakeContainerRepo.createCalls, hasLength(1));
+      expect(fakeContainerRepo.createCalls.first.input.pageId, 10);
     });
 
-    test('addColumn creates column and reloads', () async {
-      stubSuccessfulTreeLoad();
-      when(() => mockColumnRepo.create(any())).thenAnswer(
-        (_) async =>
-            const Success(entity.Column(id: 31, containerId: 20, index: 1)),
-      );
+    test('should create column with correct container id', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final container = createContainer();
-      addTearDown(container.dispose);
-
-      await container
+      await c
           .read(editorTreeProvider(menuId).notifier)
           .loadTree(separateHeaderFooter: true);
 
-      await container
-          .read(templateEditorProvider(menuId).notifier)
-          .addColumn(20, 1);
+      fakeColumnRepo.whenCreate(
+        const Success(entity.Column(id: 31, containerId: 20, index: 1)),
+      );
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
 
-      verify(() => mockColumnRepo.create(any())).called(1);
+      await c.read(templateEditorProvider(menuId).notifier).addColumn(20, 1);
+
+      expect(fakeColumnRepo.createCalls, hasLength(1));
+      expect(fakeColumnRepo.createCalls.first.input.containerId, 20);
+    });
+
+    test('should delete column by id', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
+
+      await c
+          .read(editorTreeProvider(menuId).notifier)
+          .loadTree(separateHeaderFooter: true);
+
+      fakeColumnRepo.whenDelete(const Success(null));
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+
+      await c.read(templateEditorProvider(menuId).notifier).deleteColumn(30);
+
+      expect(fakeColumnRepo.deleteCalls, hasLength(1));
+      expect(fakeColumnRepo.deleteCalls.first.id, 30);
+    });
+
+    test('should delete container by id', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
+
+      await c
+          .read(editorTreeProvider(menuId).notifier)
+          .loadTree(separateHeaderFooter: true);
+
+      fakeContainerRepo.whenDelete(const Success(null));
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+
+      await c.read(templateEditorProvider(menuId).notifier).deleteContainer(20);
+
+      expect(fakeContainerRepo.deleteCalls, hasLength(1));
+      expect(fakeContainerRepo.deleteCalls.first.id, 20);
     });
   });
 
   group('TemplateEditorNotifier - style management', () {
-    test('onSidePanelStyleChanged updates menu style locally', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should update menu style locally when menu selection', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      await container
+      await c
           .read(editorTreeProvider(menuId).notifier)
           .loadTree(separateHeaderFooter: true);
 
       const newStyle = StyleConfig(marginTop: 20);
-      container
+      c
           .read(templateEditorProvider(menuId).notifier)
           .onSidePanelStyleChanged(
             newStyle,
             const EditorSelection(type: EditorElementType.menu, id: 0),
           );
 
-      final treeState = container.read(editorTreeProvider(menuId));
-      expect(treeState.menu?.styleConfig, newStyle);
+      expect(c.read(editorTreeProvider(menuId)).menu?.styleConfig, newStyle);
     });
 
-    test('onSidePanelStyleChanged updates container style locally', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test(
+      'should update container style locally when container selection',
+      () async {
+        fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+        final c = makeContainer();
+        addTearDown(c.dispose);
 
-      await container
-          .read(editorTreeProvider(menuId).notifier)
-          .loadTree(separateHeaderFooter: true);
+        await c
+            .read(editorTreeProvider(menuId).notifier)
+            .loadTree(separateHeaderFooter: true);
 
-      const newStyle = StyleConfig(paddingLeft: 10);
-      container
-          .read(templateEditorProvider(menuId).notifier)
-          .onSidePanelStyleChanged(
-            newStyle,
-            const EditorSelection(type: EditorElementType.container, id: 20),
-          );
+        const newStyle = StyleConfig(paddingLeft: 10);
+        c
+            .read(templateEditorProvider(menuId).notifier)
+            .onSidePanelStyleChanged(
+              newStyle,
+              const EditorSelection(type: EditorElementType.container, id: 20),
+            );
 
-      final treeState = container.read(editorTreeProvider(menuId));
-      expect(treeState.containers[10]!.first.styleConfig, newStyle);
-    });
+        expect(
+          c.read(editorTreeProvider(menuId)).containers[10]!.first.styleConfig,
+          newStyle,
+        );
+      },
+    );
 
-    test('onSidePanelStyleChanged updates column style locally', () async {
-      stubSuccessfulTreeLoad();
-      final container = createContainer();
-      addTearDown(container.dispose);
+    test('should update column style locally when column selection', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      await container
+      await c
           .read(editorTreeProvider(menuId).notifier)
           .loadTree(separateHeaderFooter: true);
 
       const newStyle = StyleConfig(fontSize: 14);
-      container
+      c
           .read(templateEditorProvider(menuId).notifier)
           .onSidePanelStyleChanged(
             newStyle,
             const EditorSelection(type: EditorElementType.column, id: 30),
           );
 
-      final treeState = container.read(editorTreeProvider(menuId));
-      expect(treeState.columns[20]!.first.styleConfig, newStyle);
-    });
-  });
-
-  group('TemplateEditorNotifier - template operations', () {
-    test('saveTemplate sets isSaving and calls repository', () async {
-      stubSuccessfulTreeLoad();
-      when(
-        () => mockMenuRepo.update(any()),
-      ).thenAnswer((_) async => Success(testMenu));
-
-      final container = createContainer();
-      addTearDown(container.dispose);
-
-      await container
-          .read(editorTreeProvider(menuId).notifier)
-          .loadTree(separateHeaderFooter: true);
-
-      await container
-          .read(templateEditorProvider(menuId).notifier)
-          .saveTemplate();
-
-      verify(() => mockMenuRepo.update(any())).called(1);
-      expect(container.read(templateEditorProvider(menuId)).isSaving, isFalse);
-    });
-
-    test('publishTemplate updates status and reloads', () async {
-      stubSuccessfulTreeLoad();
-      when(
-        () => mockMenuRepo.update(any()),
-      ).thenAnswer((_) async => Success(testMenu));
-
-      final container = createContainer();
-      addTearDown(container.dispose);
-
-      await container
-          .read(editorTreeProvider(menuId).notifier)
-          .loadTree(separateHeaderFooter: true);
-
-      await container
-          .read(templateEditorProvider(menuId).notifier)
-          .publishTemplate();
-
-      final captured =
-          verify(() => mockMenuRepo.update(captureAny())).captured.single
-              as UpdateMenuInput;
-      expect(captured.status, Status.published);
-    });
-
-    test('updateAllowedWidgetTypes updates menu locally on success', () async {
-      stubSuccessfulTreeLoad();
-      when(
-        () => mockMenuRepo.update(any()),
-      ).thenAnswer((_) async => Success(testMenu));
-
-      final container = createContainer();
-      addTearDown(container.dispose);
-
-      await container
-          .read(editorTreeProvider(menuId).notifier)
-          .loadTree(separateHeaderFooter: true);
-
-      await container
-          .read(templateEditorProvider(menuId).notifier)
-          .updateAllowedWidgets(const [
-            WidgetTypeConfig(type: 'dish'),
-            WidgetTypeConfig(type: 'text'),
-          ]);
-
-      final treeState = container.read(editorTreeProvider(menuId));
-      expect(treeState.menu?.allowedWidgetTypes, {'dish', 'text'});
+      expect(
+        c.read(editorTreeProvider(menuId)).columns[20]!.first.styleConfig,
+        newStyle,
+      );
     });
 
     test(
-      'updateAllowedWidgets applies state optimistically before repo completes',
+      'should not persist immediately when style changes via debounce',
       () async {
-        stubSuccessfulTreeLoad();
-        final completer = Completer<Result<Menu, DomainError>>();
-        when(
-          () => mockMenuRepo.update(any()),
-        ).thenAnswer((_) => completer.future);
+        fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+        final c = makeContainer();
+        addTearDown(c.dispose);
 
-        final container = createContainer();
-        addTearDown(container.dispose);
-
-        await container
+        await c
             .read(editorTreeProvider(menuId).notifier)
             .loadTree(separateHeaderFooter: true);
+
+        const newStyle = StyleConfig(paddingLeft: 5);
+        c
+            .read(templateEditorProvider(menuId).notifier)
+            .onSidePanelStyleChanged(
+              newStyle,
+              const EditorSelection(type: EditorElementType.container, id: 20),
+            );
+
+        // No API call yet — debounce timer is pending
+        expect(fakeContainerRepo.updateCalls, isEmpty);
+      },
+    );
+  });
+
+  group('TemplateEditorNotifier - template operations', () {
+    test('should set isSaving false after saveTemplate', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
+
+      await c
+          .read(editorTreeProvider(menuId).notifier)
+          .loadTree(separateHeaderFooter: true);
+
+      fakeMenuRepo.whenUpdate(Success(_testMenu));
+
+      await c.read(templateEditorProvider(menuId).notifier).saveTemplate();
+
+      expect(c.read(templateEditorProvider(menuId)).isSaving, isFalse);
+    });
+
+    test('should call menu repository update on saveTemplate', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
+
+      await c
+          .read(editorTreeProvider(menuId).notifier)
+          .loadTree(separateHeaderFooter: true);
+
+      fakeMenuRepo.whenUpdate(Success(_testMenu));
+
+      await c.read(templateEditorProvider(menuId).notifier).saveTemplate();
+
+      expect(fakeMenuRepo.updateCalls, hasLength(1));
+    });
+
+    test(
+      'should call update with published status on publishTemplate',
+      () async {
+        fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+        final c = makeContainer();
+        addTearDown(c.dispose);
+
+        await c
+            .read(editorTreeProvider(menuId).notifier)
+            .loadTree(separateHeaderFooter: true);
+
+        fakeMenuRepo.whenUpdate(
+          Success(_testMenu.copyWith(status: Status.published)),
+        );
+        fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+
+        await c.read(templateEditorProvider(menuId).notifier).publishTemplate();
+
+        expect(fakeMenuRepo.updateCalls, hasLength(1));
+        expect(fakeMenuRepo.updateCalls.first.input.status, Status.published);
+      },
+    );
+
+    test(
+      'should update allowedWidgets locally before repo call completes',
+      () async {
+        fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+        final c = makeContainer();
+        addTearDown(c.dispose);
+
+        await c
+            .read(editorTreeProvider(menuId).notifier)
+            .loadTree(separateHeaderFooter: true);
+
+        final completer = Completer<Result<Menu, DomainError>>();
+        fakeMenuRepo.whenUpdateWithFuture(completer.future);
 
         const newConfigs = [
           WidgetTypeConfig(type: 'dish', alignment: WidgetAlignment.center),
         ];
 
-        // Fire-and-forget — don't await yet so we can inspect mid-flight state.
-        final future = container
+        final future = c
             .read(templateEditorProvider(menuId).notifier)
             .updateAllowedWidgets(newConfigs);
 
-        // Let the notifier run its synchronous optimistic write.
+        // Yield to allow synchronous optimistic update
         await Future<void>.delayed(Duration.zero);
 
-        final midState = container.read(editorTreeProvider(menuId));
-        expect(midState.menu?.allowedWidgets, newConfigs);
+        expect(
+          c.read(editorTreeProvider(menuId)).menu?.allowedWidgets,
+          newConfigs,
+        );
 
-        completer.complete(Success(testMenu));
+        completer.complete(Success(_testMenu));
         await future;
       },
     );
 
-    test('updateAllowedWidgets rolls back on repo failure', () async {
-      stubSuccessfulTreeLoad();
+    test('should roll back allowedWidgets on repo failure', () async {
       final initialConfigs = [
         const WidgetTypeConfig(type: 'dish', alignment: WidgetAlignment.end),
       ];
-      // Seed tree with an initial allowedWidgets list so rollback has a target.
-      final seededMenu = testMenu.copyWith(allowedWidgets: initialConfigs);
-      when(
-        () => mockMenuRepo.getById(menuId),
-      ).thenAnswer((_) async => Success(seededMenu));
-      when(
-        () => mockMenuRepo.update(any()),
-      ).thenAnswer((_) async => const Failure(ServerError('nope')));
+      final seededMenu = _testMenu.copyWith(allowedWidgets: initialConfigs);
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree(menu: seededMenu)));
+      final c = makeContainer();
+      addTearDown(c.dispose);
 
-      final container = createContainer();
-      addTearDown(container.dispose);
-
-      await container
+      await c
           .read(editorTreeProvider(menuId).notifier)
           .loadTree(separateHeaderFooter: true);
 
-      await container
+      fakeMenuRepo.whenUpdate(const Failure(ServerError('nope')));
+
+      await c
           .read(templateEditorProvider(menuId).notifier)
           .updateAllowedWidgets(const [
-            WidgetTypeConfig(type: 'dish', alignment: WidgetAlignment.center),
+            WidgetTypeConfig(type: 'text', alignment: WidgetAlignment.center),
           ]);
 
-      final treeState = container.read(editorTreeProvider(menuId));
-      expect(treeState.menu?.allowedWidgets, initialConfigs);
+      expect(
+        c.read(editorTreeProvider(menuId)).menu?.allowedWidgets,
+        initialConfigs,
+      );
     });
 
-    test('updateColumnDroppable updates column locally', () async {
-      stubSuccessfulTreeLoad();
-      when(() => mockColumnRepo.update(any())).thenAnswer(
-        (_) async => const Success(
+    test('should update column droppable locally', () async {
+      fakeTreeLoader.stubLoadTree(Success(_defaultTree()));
+      final c = makeContainer();
+      addTearDown(c.dispose);
+
+      await c
+          .read(editorTreeProvider(menuId).notifier)
+          .loadTree(separateHeaderFooter: true);
+
+      fakeColumnRepo.whenUpdate(
+        const Success(
           entity.Column(id: 30, containerId: 20, index: 0, isDroppable: false),
         ),
       );
 
-      final container = createContainer();
-      addTearDown(container.dispose);
-
-      await container
-          .read(editorTreeProvider(menuId).notifier)
-          .loadTree(separateHeaderFooter: true);
-
-      await container
+      await c
           .read(templateEditorProvider(menuId).notifier)
           .updateColumnDroppable(30, false);
 
-      final treeState = container.read(editorTreeProvider(menuId));
-      expect(treeState.columns[20]!.first.isDroppable, isFalse);
+      expect(
+        c.read(editorTreeProvider(menuId)).columns[20]!.first.isDroppable,
+        isFalse,
+      );
     });
   });
 }

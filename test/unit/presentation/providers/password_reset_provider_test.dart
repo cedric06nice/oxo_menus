@@ -1,136 +1,121 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
-import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/repositories/auth_repository.dart';
 import 'package:oxo_menus/presentation/providers/password_reset_provider.dart';
 import 'package:oxo_menus/presentation/providers/repositories_provider.dart';
 
-class MockAuthRepository extends Mock implements AuthRepository {}
+import '../../../fakes/fake_auth_repository.dart';
+import '../../../fakes/result_helpers.dart';
 
 void main() {
-  late MockAuthRepository mockAuthRepository;
-  late ProviderContainer container;
-
-  setUp(() {
-    mockAuthRepository = MockAuthRepository();
-    // Default mock for tryRestoreSession (called by authProvider on init)
-    when(
-      () => mockAuthRepository.tryRestoreSession(),
-    ).thenAnswer((_) async => const Failure(UnauthorizedError()));
-    container = ProviderContainer(
-      overrides: [authRepositoryProvider.overrideWithValue(mockAuthRepository)],
-    );
-  });
-
-  tearDown(() => container.dispose());
-
-  PasswordResetNotifier readNotifier() =>
-      container.read(passwordResetProvider.notifier);
-  PasswordResetState readState() => container.read(passwordResetProvider);
-
   group('PasswordResetNotifier', () {
-    test('build() returns initial state', () {
+    late FakeAuthRepository fakeRepo;
+    late ProviderContainer container;
+
+    setUp(() {
+      fakeRepo = FakeAuthRepository();
+      // Default: session restore → unauthenticated (satisfies authProvider init)
+      fakeRepo.defaultTryRestoreSessionResponse = failureUnauthorized();
+      container = ProviderContainer(
+        overrides: [authRepositoryProvider.overrideWithValue(fakeRepo)],
+      );
+    });
+
+    tearDown(() => container.dispose());
+
+    PasswordResetNotifier readNotifier() =>
+        container.read(passwordResetProvider.notifier);
+    PasswordResetState readState() => container.read(passwordResetProvider);
+
+    test('should return initial state on build', () {
       expect(readState(), const PasswordResetState.initial());
     });
 
     group('requestReset', () {
-      test('transitions to emailSent on success', () async {
-        when(
-          () => mockAuthRepository.requestPasswordReset(
-            any(),
-            resetUrl: any(named: 'resetUrl'),
-          ),
-        ).thenAnswer((_) async => const Success(null));
+      test(
+        'should transition to emailSent state when request succeeds',
+        () async {
+          fakeRepo.whenRequestPasswordReset(success<void>(null));
 
-        await readNotifier().requestReset('test@example.com');
+          await readNotifier().requestReset('user@example.com');
 
-        expect(readState(), const PasswordResetState.emailSent());
-        verify(
-          () => mockAuthRepository.requestPasswordReset(
-            'test@example.com',
-            resetUrl: any(named: 'resetUrl'),
-          ),
-        ).called(1);
-      });
+          expect(readState(), const PasswordResetState.emailSent());
+        },
+      );
 
-      test('transitions to error on failure', () async {
-        when(
-          () => mockAuthRepository.requestPasswordReset(
-            any(),
-            resetUrl: any(named: 'resetUrl'),
-          ),
-        ).thenAnswer(
-          (_) async => const Failure(ServerError('Failed to send reset email')),
+      test('should transition to error state when request fails', () async {
+        fakeRepo.whenRequestPasswordReset(
+          failureServer<void>('Failed to send reset email'),
         );
 
-        await readNotifier().requestReset('test@example.com');
+        await readNotifier().requestReset('user@example.com');
 
-        expect(
-          readState(),
-          isA<PasswordResetState>().having(
-            (s) => s.maybeWhen(error: (msg) => msg, orElse: () => ''),
-            'error message',
-            'Failed to send reset email',
-          ),
+        final state = readState();
+        final errorMessage = state.maybeWhen(
+          error: (msg) => msg,
+          orElse: () => '',
         );
+        expect(errorMessage, 'Failed to send reset email');
       });
 
-      test('transitions to loading during request', () async {
-        final stateChanges = <PasswordResetState>[];
+      test('should pass loading state during request', () async {
+        fakeRepo.whenRequestPasswordReset(success<void>(null));
+        final states = <PasswordResetState>[];
         container.listen(
           passwordResetProvider,
-          (_, next) => stateChanges.add(next),
+          (_, next) => states.add(next),
           fireImmediately: false,
         );
 
-        when(
-          () => mockAuthRepository.requestPasswordReset(
-            any(),
-            resetUrl: any(named: 'resetUrl'),
-          ),
-        ).thenAnswer((_) async => const Success(null));
+        await readNotifier().requestReset('user@example.com');
 
-        await readNotifier().requestReset('test@example.com');
+        expect(states.first, const PasswordResetState.loading());
+        expect(states.last, const PasswordResetState.emailSent());
+      });
 
-        expect(stateChanges.first, const PasswordResetState.loading());
-        expect(stateChanges.last, const PasswordResetState.emailSent());
+      test('should call requestPasswordReset with correct email', () async {
+        fakeRepo.whenRequestPasswordReset(success<void>(null));
+
+        await readNotifier().requestReset('user@example.com');
+
+        expect(fakeRepo.requestPasswordResetCalls, hasLength(1));
+        expect(
+          fakeRepo.requestPasswordResetCalls.first.email,
+          'user@example.com',
+        );
+      });
+
+      test('should handle network error on request', () async {
+        fakeRepo.whenRequestPasswordReset(failureNetwork<void>('offline'));
+
+        await readNotifier().requestReset('user@example.com');
+
+        final errorMessage = readState().maybeWhen(
+          error: (msg) => msg,
+          orElse: () => '',
+        );
+        expect(errorMessage, 'offline');
       });
     });
 
     group('confirmReset', () {
-      test('transitions to passwordChanged on success', () async {
-        when(
-          () => mockAuthRepository.confirmPasswordReset(
-            token: any(named: 'token'),
-            password: any(named: 'password'),
-          ),
-        ).thenAnswer((_) async => const Success(null));
+      test(
+        'should transition to passwordChanged when confirm succeeds',
+        () async {
+          fakeRepo.whenConfirmPasswordReset(success<void>(null));
 
-        await readNotifier().confirmReset(
-          token: 'reset-token-123',
-          password: 'newPassword1!',
-        );
-
-        expect(readState(), const PasswordResetState.passwordChanged());
-        verify(
-          () => mockAuthRepository.confirmPasswordReset(
+          await readNotifier().confirmReset(
             token: 'reset-token-123',
             password: 'newPassword1!',
-          ),
-        ).called(1);
-      });
+          );
 
-      test('transitions to error on failure', () async {
-        when(
-          () => mockAuthRepository.confirmPasswordReset(
-            token: any(named: 'token'),
-            password: any(named: 'password'),
-          ),
-        ).thenAnswer(
-          (_) async =>
-              const Failure(ValidationError('Invalid or expired token')),
+          expect(readState(), const PasswordResetState.passwordChanged());
+        },
+      );
+
+      test('should transition to error when confirm fails', () async {
+        fakeRepo.whenConfirmPasswordReset(
+          failure<void>(const ValidationError('Invalid or expired token')),
         );
 
         await readNotifier().confirmReset(
@@ -138,51 +123,75 @@ void main() {
           password: 'newPassword1!',
         );
 
-        expect(
-          readState(),
-          isA<PasswordResetState>().having(
-            (s) => s.maybeWhen(error: (msg) => msg, orElse: () => ''),
-            'error message',
-            'Invalid or expired token',
-          ),
+        final errorMessage = readState().maybeWhen(
+          error: (msg) => msg,
+          orElse: () => '',
         );
+        expect(errorMessage, 'Invalid or expired token');
       });
 
-      test('transitions to loading during request', () async {
-        final stateChanges = <PasswordResetState>[];
+      test('should pass loading state during confirm', () async {
+        fakeRepo.whenConfirmPasswordReset(success<void>(null));
+        final states = <PasswordResetState>[];
         container.listen(
           passwordResetProvider,
-          (_, next) => stateChanges.add(next),
+          (_, next) => states.add(next),
           fireImmediately: false,
         );
 
-        when(
-          () => mockAuthRepository.confirmPasswordReset(
-            token: any(named: 'token'),
-            password: any(named: 'password'),
-          ),
-        ).thenAnswer((_) async => const Success(null));
-
         await readNotifier().confirmReset(token: 'token', password: 'password');
 
-        expect(stateChanges.first, const PasswordResetState.loading());
-        expect(stateChanges.last, const PasswordResetState.passwordChanged());
+        expect(states.first, const PasswordResetState.loading());
+        expect(states.last, const PasswordResetState.passwordChanged());
       });
+
+      test(
+        'should call confirmPasswordReset with correct token and password',
+        () async {
+          fakeRepo.whenConfirmPasswordReset(success<void>(null));
+
+          await readNotifier().confirmReset(
+            token: 'my-token',
+            password: 'myPassword1!',
+          );
+
+          expect(fakeRepo.confirmPasswordResetCalls, hasLength(1));
+          expect(fakeRepo.confirmPasswordResetCalls.first.token, 'my-token');
+          expect(
+            fakeRepo.confirmPasswordResetCalls.first.password,
+            'myPassword1!',
+          );
+        },
+      );
     });
 
     group('reset', () {
-      test('returns to initial state', () async {
-        when(
-          () => mockAuthRepository.requestPasswordReset(
-            any(),
-            resetUrl: any(named: 'resetUrl'),
-          ),
-        ).thenAnswer((_) async => const Success(null));
-
-        await readNotifier().requestReset('test@example.com');
+      test('should return to initial state from emailSent', () async {
+        fakeRepo.whenRequestPasswordReset(success<void>(null));
+        await readNotifier().requestReset('user@example.com');
         expect(readState(), const PasswordResetState.emailSent());
 
         readNotifier().reset();
+
+        expect(readState(), const PasswordResetState.initial());
+      });
+
+      test('should return to initial state from passwordChanged', () async {
+        fakeRepo.whenConfirmPasswordReset(success<void>(null));
+        await readNotifier().confirmReset(token: 't', password: 'p');
+        expect(readState(), const PasswordResetState.passwordChanged());
+
+        readNotifier().reset();
+
+        expect(readState(), const PasswordResetState.initial());
+      });
+
+      test('should return to initial state from error', () async {
+        fakeRepo.whenRequestPasswordReset(failureServer<void>('Error'));
+        await readNotifier().requestReset('user@example.com');
+
+        readNotifier().reset();
+
         expect(readState(), const PasswordResetState.initial());
       });
     });
