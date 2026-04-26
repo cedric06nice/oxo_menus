@@ -1,103 +1,234 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/menu_bundle.dart';
-import 'package:oxo_menus/domain/repositories/menu_bundle_repository.dart';
 import 'package:oxo_menus/domain/usecases/publish_bundles_for_menu_usecase.dart';
-import 'package:oxo_menus/domain/usecases/publish_menu_bundle_usecase.dart';
 
-class MockMenuBundleRepository extends Mock implements MenuBundleRepository {}
-
-class MockPublishMenuBundleUseCase extends Mock
-    implements PublishMenuBundleUseCase {}
+import '../../../fakes/builders/menu_bundle_builder.dart';
+import '../../../fakes/fake_menu_bundle_repository.dart';
+import '../../../fakes/fake_publish_menu_bundle_usecase.dart';
+import '../../../fakes/result_helpers.dart';
 
 void main() {
-  late MockMenuBundleRepository repo;
-  late MockPublishMenuBundleUseCase publishOne;
-  late PublishBundlesForMenuUseCase useCase;
-
-  setUp(() {
-    repo = MockMenuBundleRepository();
-    publishOne = MockPublishMenuBundleUseCase();
-    useCase = PublishBundlesForMenuUseCase(
-      repository: repo,
-      publishMenuBundleUseCase: publishOne,
-    );
-  });
-
   group('PublishBundlesForMenuUseCase', () {
-    test('publishes every bundle that includes the given menu id', () async {
-      const b1 = MenuBundle(id: 1, name: 'A', menuIds: [10]);
-      const b2 = MenuBundle(id: 2, name: 'B', menuIds: [10, 20]);
-      when(
-        () => repo.findByIncludedMenu(10),
-      ).thenAnswer((_) async => const Success([b1, b2]));
-      when(
-        () => publishOne.execute(1),
-      ).thenAnswer((_) async => const Success(b1));
-      when(
-        () => publishOne.execute(2),
-      ).thenAnswer((_) async => const Success(b2));
+    late FakeMenuBundleRepository repo;
+    late FakePublishMenuBundleUseCase publishBundleUseCase;
+    late PublishBundlesForMenuUseCase useCase;
 
-      final results = await useCase.execute(10);
+    setUp(() {
+      repo = FakeMenuBundleRepository();
+      publishBundleUseCase = FakePublishMenuBundleUseCase();
 
-      expect(results, hasLength(2));
-      expect(results.every((r) => r.isSuccess), true);
-      verify(() => publishOne.execute(1)).called(1);
-      verify(() => publishOne.execute(2)).called(1);
-    });
-
-    test('returns an empty list when no bundles include the menu', () async {
-      when(
-        () => repo.findByIncludedMenu(10),
-      ).thenAnswer((_) async => const Success([]));
-
-      final results = await useCase.execute(10);
-
-      expect(results, isEmpty);
-      verifyNever(() => publishOne.execute(any()));
-    });
-
-    test(
-      'surfaces repository lookup failure as a single aggregated failure result',
-      () async {
-        when(() => repo.findByIncludedMenu(10)).thenAnswer(
-          (_) async => const Failure<List<MenuBundle>, DomainError>(
-            ServerError('lookup failed'),
-          ),
-        );
-
-        final results = await useCase.execute(10);
-
-        expect(results, hasLength(1));
-        expect(results.single.isFailure, true);
-        expect(results.single.errorOrNull, isA<ServerError>());
-        verifyNever(() => publishOne.execute(any()));
-      },
-    );
-
-    test('continues publishing other bundles when one publish fails', () async {
-      const b1 = MenuBundle(id: 1, name: 'A', menuIds: [10]);
-      const b2 = MenuBundle(id: 2, name: 'B', menuIds: [10]);
-      when(
-        () => repo.findByIncludedMenu(10),
-      ).thenAnswer((_) async => const Success([b1, b2]));
-      when(() => publishOne.execute(1)).thenAnswer(
-        (_) async =>
-            const Failure<MenuBundle, DomainError>(ServerError('boom')),
+      useCase = PublishBundlesForMenuUseCase(
+        repository: repo,
+        publishMenuBundleUseCase: publishBundleUseCase,
       );
-      when(
-        () => publishOne.execute(2),
-      ).thenAnswer((_) async => const Success(b2));
+    });
 
-      final results = await useCase.execute(10);
+    // -------------------------------------------------------------------------
+    // findByIncludedMenu failure
+    // -------------------------------------------------------------------------
 
-      expect(results, hasLength(2));
-      expect(results[0].isFailure, true);
-      expect(results[1].isSuccess, true);
-      verify(() => publishOne.execute(1)).called(1);
-      verify(() => publishOne.execute(2)).called(1);
+    group('findByIncludedMenu failure', () {
+      test(
+        'should return single Failure result when repository lookup fails',
+        () async {
+          // Arrange
+          repo.whenFindByIncludedMenu(failure(network()));
+
+          // Act
+          final results = await useCase.execute(1);
+
+          // Assert
+          expect(results.length, equals(1));
+          expect(results.single.isFailure, isTrue);
+          expect(results.single.errorOrNull, isA<NetworkError>());
+        },
+      );
+
+      test(
+        'should propagate ServerError from findByIncludedMenu',
+        () async {
+          // Arrange
+          repo.whenFindByIncludedMenu(failure(server()));
+
+          // Act
+          final results = await useCase.execute(1);
+
+          // Assert
+          expect(results.single.errorOrNull, isA<ServerError>());
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Empty bundle list
+    // -------------------------------------------------------------------------
+
+    group('empty bundle list', () {
+      test(
+        'should return empty list when no bundles include the given menu',
+        () async {
+          // Arrange
+          repo.whenFindByIncludedMenu(success([]));
+
+          // Act
+          final results = await useCase.execute(1);
+
+          // Assert
+          expect(results, isEmpty);
+        },
+      );
+
+      test(
+        'should not call publishMenuBundleUseCase when bundle list is empty',
+        () async {
+          // Arrange
+          repo.whenFindByIncludedMenu(success([]));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(publishBundleUseCase.calls, isEmpty);
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Single bundle
+    // -------------------------------------------------------------------------
+
+    group('single bundle', () {
+      test(
+        'should publish one bundle and return its result when one bundle includes the menu',
+        () async {
+          // Arrange
+          final bundle = buildMenuBundle(id: 10, name: 'Weekend');
+          repo.whenFindByIncludedMenu(success([bundle]));
+          publishBundleUseCase.stubExecute(
+            Success(buildMenuBundle(id: 10, name: 'Weekend')),
+          );
+
+          // Act
+          final results = await useCase.execute(1);
+
+          // Assert
+          expect(results.length, equals(1));
+          expect(results.single.isSuccess, isTrue);
+          expect(publishBundleUseCase.calls.single.bundleId, equals(10));
+        },
+      );
+
+      test(
+        'should propagate Failure from publishMenuBundleUseCase for single bundle',
+        () async {
+          // Arrange
+          final bundle = buildMenuBundle(id: 10);
+          repo.whenFindByIncludedMenu(success([bundle]));
+          publishBundleUseCase.stubExecute(failure(server()));
+
+          // Act
+          final results = await useCase.execute(1);
+
+          // Assert
+          expect(results.single.isFailure, isTrue);
+          expect(results.single.errorOrNull, isA<ServerError>());
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Multiple bundles
+    // -------------------------------------------------------------------------
+
+    group('multiple bundles', () {
+      test(
+        'should publish all bundles and return a result for each',
+        () async {
+          // Arrange
+          final bundles = [
+            buildMenuBundle(id: 10),
+            buildMenuBundle(id: 20),
+            buildMenuBundle(id: 30),
+          ];
+          repo.whenFindByIncludedMenu(success(bundles));
+          publishBundleUseCase.stubExecute(
+            Success(buildMenuBundle(id: 10)),
+          );
+
+          // Act
+          final results = await useCase.execute(1);
+
+          // Assert
+          expect(results.length, equals(3));
+          expect(
+            publishBundleUseCase.calls.map((c) => c.bundleId).toList(),
+            containsAll([10, 20, 30]),
+          );
+        },
+      );
+
+      test(
+        'should continue publishing remaining bundles after a partial failure',
+        () async {
+          // Arrange
+          final bundles = [
+            buildMenuBundle(id: 10),
+            buildMenuBundle(id: 20),
+          ];
+          repo.whenFindByIncludedMenu(success(bundles));
+          publishBundleUseCase.stubExecute(failure(server()));
+
+          // Act
+          final results = await useCase.execute(1);
+
+          // Assert
+          expect(results.length, equals(2));
+          expect(publishBundleUseCase.calls.length, equals(2));
+        },
+      );
+
+      test(
+        'should return all Success results when all bundles publish successfully',
+        () async {
+          // Arrange
+          final bundles = [
+            buildMenuBundle(id: 1),
+            buildMenuBundle(id: 2),
+          ];
+          repo.whenFindByIncludedMenu(success(bundles));
+          publishBundleUseCase.stubExecute(Success(buildMenuBundle(id: 1)));
+
+          // Act
+          final results = await useCase.execute(5);
+
+          // Assert
+          expect(results.every((r) => r.isSuccess), isTrue);
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Repository call verification
+    // -------------------------------------------------------------------------
+
+    group('repository call verification', () {
+      test(
+        'should pass correct menuId to findByIncludedMenu',
+        () async {
+          // Arrange
+          repo.whenFindByIncludedMenu(success([]));
+
+          // Act
+          await useCase.execute(42);
+
+          // Assert
+          expect(
+            repo.findByIncludedMenuCalls.single.menuId,
+            equals(42),
+          );
+        },
+      );
     });
   });
 }

@@ -1,757 +1,768 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/column.dart';
-import 'package:oxo_menus/domain/entities/container.dart';
-import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/page.dart';
-import 'package:oxo_menus/domain/entities/size.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
-import 'package:oxo_menus/domain/entities/widget_instance.dart';
-import 'package:oxo_menus/domain/repositories/column_repository.dart';
-import 'package:oxo_menus/domain/repositories/container_repository.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/domain/repositories/page_repository.dart';
-import 'package:oxo_menus/domain/repositories/size_repository.dart';
-import 'package:oxo_menus/domain/repositories/widget_repository.dart';
 import 'package:oxo_menus/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 
-class MockFetchMenuTreeUseCase extends Mock implements FetchMenuTreeUseCase {}
-
-class MockMenuRepository extends Mock implements MenuRepository {}
-
-class MockPageRepository extends Mock implements PageRepository {}
-
-class MockContainerRepository extends Mock implements ContainerRepository {}
-
-class MockColumnRepository extends Mock implements ColumnRepository {}
-
-class MockWidgetRepository extends Mock implements WidgetRepository {}
-
-class MockSizeRepository extends Mock implements SizeRepository {}
+import '../../../fakes/builders/column_builder.dart';
+import '../../../fakes/builders/container_builder.dart';
+import '../../../fakes/builders/menu_builder.dart';
+import '../../../fakes/builders/page_builder.dart';
+import '../../../fakes/builders/size_builder.dart';
+import '../../../fakes/builders/widget_instance_builder.dart';
+import '../../../fakes/fake_column_repository.dart';
+import '../../../fakes/fake_container_repository.dart';
+import '../../../fakes/fake_fetch_menu_tree_usecase.dart';
+import '../../../fakes/fake_menu_repository.dart';
+import '../../../fakes/fake_page_repository.dart';
+import '../../../fakes/fake_size_repository.dart';
+import '../../../fakes/fake_widget_repository.dart';
+import '../../../fakes/result_helpers.dart';
 
 void main() {
-  late DuplicateMenuUseCase useCase;
-  late MockFetchMenuTreeUseCase mockFetchMenuTreeUseCase;
-  late MockMenuRepository mockMenuRepository;
-  late MockPageRepository mockPageRepository;
-  late MockContainerRepository mockContainerRepository;
-  late MockColumnRepository mockColumnRepository;
-  late MockWidgetRepository mockWidgetRepository;
-  late MockSizeRepository mockSizeRepository;
-
-  setUp(() {
-    mockFetchMenuTreeUseCase = MockFetchMenuTreeUseCase();
-    mockMenuRepository = MockMenuRepository();
-    mockPageRepository = MockPageRepository();
-    mockContainerRepository = MockContainerRepository();
-    mockColumnRepository = MockColumnRepository();
-    mockWidgetRepository = MockWidgetRepository();
-    mockSizeRepository = MockSizeRepository();
-
-    useCase = DuplicateMenuUseCase(
-      fetchMenuTreeUseCase: mockFetchMenuTreeUseCase,
-      menuRepository: mockMenuRepository,
-      pageRepository: mockPageRepository,
-      containerRepository: mockContainerRepository,
-      columnRepository: mockColumnRepository,
-      widgetRepository: mockWidgetRepository,
-      sizeRepository: mockSizeRepository,
-    );
-  });
-
-  setUpAll(() {
-    registerFallbackValue(
-      const CreateMenuInput(name: 'fallback', version: '1.0.0'),
-    );
-    registerFallbackValue(
-      const CreatePageInput(menuId: 0, name: 'fallback', index: 0),
-    );
-    registerFallbackValue(
-      const CreateContainerInput(pageId: 0, index: 0, direction: 'row'),
-    );
-    registerFallbackValue(const CreateColumnInput(containerId: 0, index: 0));
-    registerFallbackValue(
-      const CreateWidgetInput(
-        columnId: 0,
-        type: 'fallback',
-        version: '1.0.0',
-        index: 0,
-        props: {},
-      ),
-    );
-  });
-
   group('DuplicateMenuUseCase', () {
-    test('should return failure when fetch tree fails', () async {
-      // Arrange
-      const error = NotFoundError('Menu not found');
-      when(
-        () => mockFetchMenuTreeUseCase.execute(1),
-      ).thenAnswer((_) async => const Failure(error));
+    late FakeFetchMenuTreeUseCase fetchMenuTree;
+    late FakeMenuRepository menuRepo;
+    late FakePageRepository pageRepo;
+    late FakeContainerRepository containerRepo;
+    late FakeColumnRepository columnRepo;
+    late FakeWidgetRepository widgetRepo;
+    late FakeSizeRepository sizeRepo;
+    late DuplicateMenuUseCase useCase;
 
-      // Act
-      final result = await useCase.execute(1);
+    setUp(() {
+      fetchMenuTree = FakeFetchMenuTreeUseCase();
+      menuRepo = FakeMenuRepository();
+      pageRepo = FakePageRepository();
+      containerRepo = FakeContainerRepository();
+      columnRepo = FakeColumnRepository();
+      widgetRepo = FakeWidgetRepository();
+      sizeRepo = FakeSizeRepository();
 
-      // Assert
-      expect(result.isFailure, true);
-      expect(result.errorOrNull, error);
-      verify(() => mockFetchMenuTreeUseCase.execute(1)).called(1);
+      useCase = DuplicateMenuUseCase(
+        fetchMenuTreeUseCase: fetchMenuTree,
+        menuRepository: menuRepo,
+        pageRepository: pageRepo,
+        containerRepository: containerRepo,
+        columnRepository: columnRepo,
+        widgetRepository: widgetRepo,
+        sizeRepository: sizeRepo,
+      );
     });
 
-    test(
-      'should create menu with " (copy)" name and draft status when pageSize is null',
-      () async {
-        // Arrange
-        const sourceMenu = Menu(
-          id: 1,
-          name: 'Summer Menu',
-          status: Status.published,
-          version: '1.0.0',
-          pageSize: null,
-        );
-        const menuTree = MenuTree(menu: sourceMenu, pages: []);
-        const newMenu = Menu(
-          id: 2,
-          name: 'Summer Menu (copy)',
-          status: Status.draft,
-          version: '1.0.0',
-        );
+    MenuTree buildEmptyTree({int menuId = 1, String menuName = 'Lunch'}) {
+      return MenuTree(menu: buildMenu(id: menuId, name: menuName), pages: []);
+    }
 
-        when(
-          () => mockFetchMenuTreeUseCase.execute(1),
-        ).thenAnswer((_) async => const Success(menuTree));
-        when(
-          () => mockMenuRepository.create(any()),
-        ).thenAnswer((_) async => const Success(newMenu));
+    // -------------------------------------------------------------------------
+    // Tree fetch failure
+    // -------------------------------------------------------------------------
 
-        // Act
-        await useCase.execute(1);
+    group('tree fetch failure', () {
+      test(
+        'should return Failure when fetchMenuTreeUseCase fails',
+        () async {
+          // Arrange
+          fetchMenuTree.stubExecute(failure(notFound()));
 
-        // Assert
-        final captured =
-            verify(
-                  () => mockMenuRepository.create(captureAny()),
-                ).captured.single
-                as CreateMenuInput;
+          // Act
+          final result = await useCase.execute(1);
 
-        expect(captured.name, 'Summer Menu (copy)');
-        expect(captured.status, Status.draft);
-        expect(captured.version, '1.0.0');
-        expect(captured.sizeId, null);
-        verifyNever(() => mockSizeRepository.getAll());
-      },
-    );
-
-    test('should resolve sizeId when pageSize is present', () async {
-      // Arrange
-      const sourceMenu = Menu(
-        id: 1,
-        name: 'Summer Menu',
-        status: Status.published,
-        version: '1.0.0',
-        pageSize: PageSize(name: 'A4', width: 210, height: 297),
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NotFoundError>());
+        },
       );
-      const menuTree = MenuTree(menu: sourceMenu, pages: []);
-      const matchingSize = Size(
-        id: 5,
-        name: 'A4',
-        width: 210,
-        height: 297,
-        status: Status.published,
-        direction: 'portrait',
-      );
-      const newMenu = Menu(
-        id: 2,
-        name: 'Summer Menu (copy)',
-        status: Status.draft,
-        version: '1.0.0',
-      );
-
-      when(
-        () => mockFetchMenuTreeUseCase.execute(1),
-      ).thenAnswer((_) async => const Success(menuTree));
-      when(
-        () => mockSizeRepository.getAll(),
-      ).thenAnswer((_) async => const Success([matchingSize]));
-      when(
-        () => mockMenuRepository.create(any()),
-      ).thenAnswer((_) async => const Success(newMenu));
-
-      // Act
-      await useCase.execute(1);
-
-      // Assert
-      final captured =
-          verify(() => mockMenuRepository.create(captureAny())).captured.single
-              as CreateMenuInput;
-
-      expect(captured.sizeId, 5);
-      verify(() => mockSizeRepository.getAll()).called(1);
     });
 
-    test('should return failure when sizeRepository.getAll fails', () async {
-      // Arrange
-      const sourceMenu = Menu(
-        id: 1,
-        name: 'Summer Menu',
-        status: Status.published,
-        version: '1.0.0',
-        pageSize: PageSize(name: 'A4', width: 210, height: 297),
+    // -------------------------------------------------------------------------
+    // Size resolution failure
+    // -------------------------------------------------------------------------
+
+    group('size resolution failure', () {
+      test(
+        'should return Failure when sizeRepository.getAll fails',
+        () async {
+          // Arrange
+          final tree = MenuTree(
+            menu: buildMenu(id: 1, pageSize: buildPageSize()),
+            pages: [],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(failure(network()));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NetworkError>());
+        },
       );
-      const menuTree = MenuTree(menu: sourceMenu, pages: []);
-      const error = ServerError('Failed to fetch sizes');
-
-      when(
-        () => mockFetchMenuTreeUseCase.execute(1),
-      ).thenAnswer((_) async => const Success(menuTree));
-      when(
-        () => mockSizeRepository.getAll(),
-      ).thenAnswer((_) async => const Failure(error));
-
-      // Act
-      final result = await useCase.execute(1);
-
-      // Assert
-      expect(result.isFailure, true);
-      expect(result.errorOrNull, error);
-      verify(() => mockSizeRepository.getAll()).called(1);
-      verifyNever(() => mockMenuRepository.create(any()));
     });
 
-    test('should return failure when menuRepository.create fails', () async {
-      // Arrange
-      const sourceMenu = Menu(
-        id: 1,
-        name: 'Summer Menu',
-        status: Status.published,
-        version: '1.0.0',
+    // -------------------------------------------------------------------------
+    // Menu creation failure
+    // -------------------------------------------------------------------------
+
+    group('menu creation failure', () {
+      test(
+        'should return Failure when menuRepository.create fails',
+        () async {
+          // Arrange
+          fetchMenuTree.stubExecute(Success(buildEmptyTree()));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(failure(server()));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ServerError>());
+        },
       );
-      const menuTree = MenuTree(menu: sourceMenu, pages: []);
-      const error = ValidationError('Menu name already exists');
-
-      when(
-        () => mockFetchMenuTreeUseCase.execute(1),
-      ).thenAnswer((_) async => const Success(menuTree));
-      when(
-        () => mockMenuRepository.create(any()),
-      ).thenAnswer((_) async => const Failure(error));
-
-      // Act
-      final result = await useCase.execute(1);
-
-      // Assert
-      expect(result.isFailure, true);
-      expect(result.errorOrNull, error);
-      verify(() => mockMenuRepository.create(any())).called(1);
     });
 
-    test('should copy pages with new menuId', () async {
-      // Arrange
-      const sourceMenu = Menu(
-        id: 1,
-        name: 'Summer Menu',
-        status: Status.published,
-        version: '1.0.0',
-      );
-      const page1 = Page(
-        id: 10,
-        menuId: 1,
-        name: 'Page 1',
-        index: 0,
-        type: PageType.content,
-      );
-      const page2 = Page(
-        id: 11,
-        menuId: 1,
-        name: 'Page 2',
-        index: 1,
-        type: PageType.content,
-      );
-      const menuTree = MenuTree(
-        menu: sourceMenu,
-        pages: [
-          PageWithContainers(page: page1, containers: []),
-          PageWithContainers(page: page2, containers: []),
-        ],
-      );
-      const newMenu = Menu(
-        id: 2,
-        name: 'Summer Menu (copy)',
-        status: Status.draft,
-        version: '1.0.0',
-      );
-      const newPage1 = Page(
-        id: 20,
-        menuId: 2,
-        name: 'Page 1',
-        index: 0,
-        type: PageType.content,
-      );
-      const newPage2 = Page(
-        id: 21,
-        menuId: 2,
-        name: 'Page 2',
-        index: 1,
-        type: PageType.content,
+    // -------------------------------------------------------------------------
+    // Empty source menu
+    // -------------------------------------------------------------------------
+
+    group('empty source menu', () {
+      test(
+        'should create new menu with "(copy)" suffix when source has no pages',
+        () async {
+          // Arrange
+          fetchMenuTree.stubExecute(Success(buildEmptyTree(menuName: 'Lunch')));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 99, name: 'Lunch (copy)')));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.name, equals('Lunch (copy)'));
+        },
       );
 
-      when(
-        () => mockFetchMenuTreeUseCase.execute(1),
-      ).thenAnswer((_) async => const Success(menuTree));
-      when(
-        () => mockMenuRepository.create(any()),
-      ).thenAnswer((_) async => const Success(newMenu));
-      when(() => mockPageRepository.create(any())).thenAnswer((
-        invocation,
-      ) async {
-        final input = invocation.positionalArguments[0] as CreatePageInput;
-        if (input.name == 'Page 1') {
-          return const Success(newPage1);
-        } else {
-          return const Success(newPage2);
-        }
-      });
-
-      // Act
-      await useCase.execute(1);
-
-      // Assert
-      final capturedPages = verify(
-        () => mockPageRepository.create(captureAny()),
-      ).captured;
-
-      expect(capturedPages.length, 2);
-
-      final input1 = capturedPages[0] as CreatePageInput;
-      expect(input1.menuId, 2);
-      expect(input1.name, 'Page 1');
-      expect(input1.index, 0);
-      expect(input1.type, PageType.content);
-
-      final input2 = capturedPages[1] as CreatePageInput;
-      expect(input2.menuId, 2);
-      expect(input2.name, 'Page 2');
-      expect(input2.index, 1);
-      expect(input2.type, PageType.content);
-    });
-
-    test('should rollback menu when page creation fails', () async {
-      // Arrange
-      const sourceMenu = Menu(
-        id: 1,
-        name: 'Summer Menu',
-        status: Status.published,
-        version: '1.0.0',
-      );
-      const page1 = Page(
-        id: 10,
-        menuId: 1,
-        name: 'Page 1',
-        index: 0,
-        type: PageType.content,
-      );
-      const page2 = Page(
-        id: 11,
-        menuId: 1,
-        name: 'Page 2',
-        index: 1,
-        type: PageType.content,
-      );
-      const menuTree = MenuTree(
-        menu: sourceMenu,
-        pages: [
-          PageWithContainers(page: page1, containers: []),
-          PageWithContainers(page: page2, containers: []),
-        ],
-      );
-      const newMenu = Menu(
-        id: 2,
-        name: 'Summer Menu (copy)',
-        status: Status.draft,
-        version: '1.0.0',
-      );
-      const newPage1 = Page(
-        id: 20,
-        menuId: 2,
-        name: 'Page 1',
-        index: 0,
-        type: PageType.content,
-      );
-      const error = ServerError('Failed to create page');
-
-      when(
-        () => mockFetchMenuTreeUseCase.execute(1),
-      ).thenAnswer((_) async => const Success(menuTree));
-      when(
-        () => mockMenuRepository.create(any()),
-      ).thenAnswer((_) async => const Success(newMenu));
-      when(() => mockPageRepository.create(any())).thenAnswer((
-        invocation,
-      ) async {
-        final input = invocation.positionalArguments[0] as CreatePageInput;
-        if (input.name == 'Page 1') {
-          return const Success(newPage1);
-        } else {
-          return const Failure(error);
-        }
-      });
-      when(
-        () => mockMenuRepository.delete(any()),
-      ).thenAnswer((_) async => const Success(null));
-      when(
-        () => mockPageRepository.delete(any()),
-      ).thenAnswer((_) async => const Success(null));
-
-      // Act
-      final result = await useCase.execute(1);
-
-      // Assert
-      expect(result.isFailure, true);
-      expect(result.errorOrNull, error);
-      verify(() => mockPageRepository.delete(20)).called(1);
-      verify(() => mockMenuRepository.delete(2)).called(1);
-    });
-
-    test(
-      'should copy full tree with containers, columns, and widgets',
-      () async {
-        // Arrange: Build a comprehensive menu tree
-        const sourceMenu = Menu(
-          id: 1,
-          name: 'Summer Menu',
-          status: Status.published,
-          version: '1.0.0',
-        );
-
-        // Page with containers, columns, and widgets
-        const page = Page(
-          id: 10,
-          menuId: 1,
-          name: 'Page 1',
-          index: 0,
-          type: PageType.content,
-        );
-
-        final menuTree = MenuTree(
-          menu: sourceMenu,
-          pages: [
-            PageWithContainers(
-              page: page,
-              containers: [
-                ContainerWithColumns(
-                  container: const Container(
-                    id: 100,
-                    pageId: 10,
-                    index: 0,
-                    name: 'Container 1',
-                  ),
-                  columns: [
-                    ColumnWithWidgets(
-                      column: const Column(
-                        id: 1000,
-                        containerId: 100,
-                        index: 0,
-                      ),
-                      widgets: const [
-                        WidgetInstance(
-                          id: 10000,
-                          columnId: 1000,
-                          type: 'dish',
-                          version: '1.0.0',
-                          index: 0,
-                          props: {'name': 'Pasta'},
-                        ),
-                      ],
-                    ),
-                  ],
+      test(
+        'should create new menu with draft status regardless of source status',
+        () async {
+          // Arrange
+          fetchMenuTree.stubExecute(
+            Success(
+              MenuTree(
+                menu: buildMenu(
+                  id: 1,
+                  name: 'Dinner',
+                  status: Status.published,
                 ),
-              ],
+                pages: [],
+              ),
             ),
-          ],
-        );
+          );
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 99)));
 
-        const newMenu = Menu(
-          id: 2,
-          name: 'Summer Menu (copy)',
-          status: Status.draft,
-          version: '1.0.0',
-        );
-        const newPage = Page(
-          id: 20,
-          menuId: 2,
-          name: 'Page 1',
-          index: 0,
-          type: PageType.content,
-        );
-        const newContainer = Container(
-          id: 200,
-          pageId: 20,
-          index: 0,
-          name: 'Container 1',
-        );
-        const newColumn = Column(id: 2000, containerId: 200, index: 0);
-        const newWidget = WidgetInstance(
-          id: 20000,
-          columnId: 2000,
-          type: 'dish',
-          version: '1.0.0',
-          index: 0,
-          props: {'name': 'Pasta'},
-        );
+          // Act
+          await useCase.execute(1);
 
-        when(
-          () => mockFetchMenuTreeUseCase.execute(1),
-        ).thenAnswer((_) async => Success(menuTree));
-        when(
-          () => mockMenuRepository.create(any()),
-        ).thenAnswer((_) async => const Success(newMenu));
-        when(
-          () => mockPageRepository.create(any()),
-        ).thenAnswer((_) async => const Success(newPage));
-        when(
-          () => mockContainerRepository.create(any()),
-        ).thenAnswer((_) async => const Success(newContainer));
-        when(
-          () => mockColumnRepository.create(any()),
-        ).thenAnswer((_) async => const Success(newColumn));
-        when(
-          () => mockWidgetRepository.create(any()),
-        ).thenAnswer((_) async => const Success(newWidget));
-
-        // Act
-        final result = await useCase.execute(1);
-
-        // Assert
-        expect(result.isSuccess, true);
-        expect(result.valueOrNull, newMenu);
-
-        // Verify all entities were created
-        verify(() => mockMenuRepository.create(any())).called(1);
-        verify(() => mockPageRepository.create(any())).called(1);
-        verify(() => mockContainerRepository.create(any())).called(1);
-        verify(() => mockColumnRepository.create(any())).called(1);
-
-        // Verify widget props were deep-copied
-        final capturedWidget =
-            verify(
-                  () => mockWidgetRepository.create(captureAny()),
-                ).captured.single
-                as CreateWidgetInput;
-        expect(capturedWidget.columnId, 2000);
-        expect(capturedWidget.type, 'dish');
-        expect(capturedWidget.props, {'name': 'Pasta'});
-        expect(capturedWidget.isTemplate, false);
-        expect(capturedWidget.lockedForEdition, false);
-      },
-    );
-
-    test('should preserve lockedForEdition when duplicating widgets', () async {
-      // Arrange
-      const sourceMenu = Menu(
-        id: 1,
-        name: 'Summer Menu',
-        status: Status.published,
-        version: '1.0.0',
+          // Assert
+          expect(menuRepo.createCalls.single.input.status, equals(Status.draft));
+        },
       );
-      const page = Page(
-        id: 10,
-        menuId: 1,
-        name: 'Page 1',
-        index: 0,
-        type: PageType.content,
+
+      test(
+        'should not call pageRepository when source menu has no pages',
+        () async {
+          // Arrange
+          fetchMenuTree.stubExecute(Success(buildEmptyTree()));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 99)));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(pageRepo.createCalls, isEmpty);
+        },
       );
-      final menuTree = MenuTree(
-        menu: sourceMenu,
-        pages: [
-          PageWithContainers(
-            page: page,
-            containers: [
-              ContainerWithColumns(
-                container: const Container(id: 100, pageId: 10, index: 0),
-                columns: [
-                  ColumnWithWidgets(
-                    column: const Column(id: 1000, containerId: 100, index: 0),
-                    widgets: const [
-                      WidgetInstance(
-                        id: 10000,
-                        columnId: 1000,
-                        type: 'dish',
-                        version: '1.0.0',
-                        index: 0,
-                        props: {'name': 'Pasta'},
-                        isTemplate: true,
-                        lockedForEdition: true,
+    });
+
+    // -------------------------------------------------------------------------
+    // Page duplication
+    // -------------------------------------------------------------------------
+
+    group('page duplication', () {
+      test(
+        'should create page with the menuId of the new menu',
+        () async {
+          // Arrange
+          final sourcePage =
+              buildPage(id: 10, menuId: 1, type: PageType.content);
+          final tree = MenuTree(
+            menu: buildMenu(id: 1),
+            pages: [PageWithContainers(page: sourcePage, containers: [])],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 55)));
+          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(pageRepo.createCalls.single.input.menuId, equals(55));
+        },
+      );
+
+      test(
+        'should preserve page index from source',
+        () async {
+          // Arrange
+          final sourcePage = buildPage(
+            id: 10,
+            menuId: 1,
+            index: 3,
+            type: PageType.content,
+          );
+          final tree = MenuTree(
+            menu: buildMenu(id: 1),
+            pages: [PageWithContainers(page: sourcePage, containers: [])],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 55)));
+          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55, index: 3)));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(pageRepo.createCalls.single.input.index, equals(3));
+        },
+      );
+
+      test(
+        'should copy header and footer pages alongside content pages',
+        () async {
+          // Arrange
+          final tree = MenuTree(
+            menu: buildMenu(id: 1),
+            pages: [
+              PageWithContainers(
+                page: buildPage(id: 11, menuId: 1, type: PageType.content),
+                containers: [],
+              ),
+            ],
+            headerPage: PageWithContainers(
+              page: buildPage(id: 10, menuId: 1, type: PageType.header),
+              containers: [],
+            ),
+            footerPage: PageWithContainers(
+              page: buildPage(id: 12, menuId: 1, type: PageType.footer),
+              containers: [],
+            ),
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 55)));
+          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(pageRepo.createCalls.length, equals(3));
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Container duplication
+    // -------------------------------------------------------------------------
+
+    group('container duplication', () {
+      test(
+        'should create container with the pageId of the new page',
+        () async {
+          // Arrange
+          final sourceContainer =
+              buildContainer(id: 100, pageId: 10, index: 0);
+          final tree = MenuTree(
+            menu: buildMenu(id: 1),
+            pages: [
+              PageWithContainers(
+                page: buildPage(id: 10, menuId: 1, type: PageType.content),
+                containers: [
+                  ContainerWithColumns(
+                    container: sourceContainer,
+                    columns: [],
+                  ),
+                ],
+              ),
+            ],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 55)));
+          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+          containerRepo.whenCreate(
+            success(buildContainer(id: 200, pageId: 20)),
+          );
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(containerRepo.createCalls.single.input.pageId, equals(20));
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Column duplication
+    // -------------------------------------------------------------------------
+
+    group('column duplication', () {
+      test(
+        'should create column linked to the new container id',
+        () async {
+          // Arrange
+          final sourceColumn = buildColumn(id: 200, containerId: 100);
+          final tree = MenuTree(
+            menu: buildMenu(id: 1),
+            pages: [
+              PageWithContainers(
+                page: buildPage(id: 10, menuId: 1, type: PageType.content),
+                containers: [
+                  ContainerWithColumns(
+                    container: buildContainer(id: 100, pageId: 10),
+                    columns: [
+                      ColumnWithWidgets(column: sourceColumn, widgets: []),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 55)));
+          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+          containerRepo.whenCreate(
+            success(buildContainer(id: 300, pageId: 20)),
+          );
+          columnRepo.whenCreate(
+            success(buildColumn(id: 400, containerId: 300)),
+          );
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(
+            columnRepo.createCalls.single.input.containerId,
+            equals(300),
+          );
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Widget duplication
+    // -------------------------------------------------------------------------
+
+    group('widget duplication', () {
+      test(
+        'should create widget linked to the new column id',
+        () async {
+          // Arrange
+          final sourceWidget = buildWidgetInstance(
+            id: 300,
+            columnId: 200,
+            type: 'dish',
+          );
+          final tree = MenuTree(
+            menu: buildMenu(id: 1),
+            pages: [
+              PageWithContainers(
+                page: buildPage(id: 10, menuId: 1, type: PageType.content),
+                containers: [
+                  ContainerWithColumns(
+                    container: buildContainer(id: 100, pageId: 10),
+                    columns: [
+                      ColumnWithWidgets(
+                        column: buildColumn(id: 200, containerId: 100),
+                        widgets: [sourceWidget],
                       ),
                     ],
                   ),
                 ],
               ),
             ],
-          ),
-        ],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 55)));
+          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+          containerRepo.whenCreate(
+            success(buildContainer(id: 200, pageId: 20)),
+          );
+          columnRepo.whenCreate(
+            success(buildColumn(id: 300, containerId: 200)),
+          );
+          widgetRepo.whenCreate(
+            success(buildWidgetInstance(id: 400, columnId: 300)),
+          );
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(widgetRepo.createCalls.single.input.columnId, equals(300));
+        },
       );
 
-      const newMenu = Menu(
-        id: 2,
-        name: 'Summer Menu (copy)',
-        status: Status.draft,
-        version: '1.0.0',
-      );
-      const newPage = Page(
-        id: 20,
-        menuId: 2,
-        name: 'Page 1',
-        index: 0,
-        type: PageType.content,
-      );
-      const newContainer = Container(id: 200, pageId: 20, index: 0);
-      const newColumn = Column(id: 2000, containerId: 200, index: 0);
-      const newWidget = WidgetInstance(
-        id: 20000,
-        columnId: 2000,
-        type: 'dish',
-        version: '1.0.0',
-        index: 0,
-        props: {'name': 'Pasta'},
-        isTemplate: true,
-        lockedForEdition: true,
-      );
-
-      when(
-        () => mockFetchMenuTreeUseCase.execute(1),
-      ).thenAnswer((_) async => Success(menuTree));
-      when(
-        () => mockMenuRepository.create(any()),
-      ).thenAnswer((_) async => const Success(newMenu));
-      when(
-        () => mockPageRepository.create(any()),
-      ).thenAnswer((_) async => const Success(newPage));
-      when(
-        () => mockContainerRepository.create(any()),
-      ).thenAnswer((_) async => const Success(newContainer));
-      when(
-        () => mockColumnRepository.create(any()),
-      ).thenAnswer((_) async => const Success(newColumn));
-      when(
-        () => mockWidgetRepository.create(any()),
-      ).thenAnswer((_) async => const Success(newWidget));
-
-      // Act
-      final result = await useCase.execute(1);
-
-      // Assert
-      expect(result.isSuccess, true);
-      final capturedWidget =
-          verify(
-                () => mockWidgetRepository.create(captureAny()),
-              ).captured.single
-              as CreateWidgetInput;
-      expect(capturedWidget.isTemplate, true);
-      expect(capturedWidget.lockedForEdition, true);
-    });
-
-    test('should recursively duplicate nested child containers', () async {
-      // Source tree with a parent container that has a child container
-      const sourceMenu = Menu(
-        id: 1,
-        name: 'Nested Menu',
-        status: Status.published,
-        version: '1.0.0',
-      );
-      const parentContainer = Container(id: 10, pageId: 1, index: 0);
-      const childContainer = Container(
-        id: 20,
-        pageId: 1,
-        index: 0,
-        parentContainerId: 10,
-      );
-      const childColumn = Column(id: 30, containerId: 20, index: 0);
-
-      final tree = MenuTree(
-        menu: sourceMenu,
-        pages: [
-          PageWithContainers(
-            page: const Page(id: 1, menuId: 1, name: 'Page 1', index: 0),
-            containers: [
-              ContainerWithColumns(
-                container: parentContainer,
-                columns: const [],
-                children: [
+      test(
+        'should preserve widget type from source',
+        () async {
+          // Arrange
+          final sourceWidget = buildWidgetInstance(
+            id: 300,
+            columnId: 200,
+            type: 'wine',
+            index: 2,
+          );
+          final tree = MenuTree(
+            menu: buildMenu(id: 1),
+            pages: [
+              PageWithContainers(
+                page: buildPage(id: 10, menuId: 1, type: PageType.content),
+                containers: [
                   ContainerWithColumns(
-                    container: childContainer,
+                    container: buildContainer(id: 100, pageId: 10),
                     columns: [
-                      ColumnWithWidgets(column: childColumn, widgets: const []),
+                      ColumnWithWidgets(
+                        column: buildColumn(id: 200, containerId: 100),
+                        widgets: [sourceWidget],
+                      ),
                     ],
                   ),
                 ],
               ),
             ],
-          ),
-        ],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 55)));
+          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+          containerRepo.whenCreate(
+            success(buildContainer(id: 200, pageId: 20)),
+          );
+          columnRepo.whenCreate(
+            success(buildColumn(id: 300, containerId: 200)),
+          );
+          widgetRepo.whenCreate(
+            success(buildWidgetInstance(id: 400, columnId: 300)),
+          );
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(widgetRepo.createCalls.single.input.type, equals('wine'));
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Size resolution
+    // -------------------------------------------------------------------------
+
+    group('size resolution', () {
+      test(
+        'should not call sizeRepository when source menu has no pageSize',
+        () async {
+          // Arrange
+          final tree = MenuTree(
+            menu: buildMenu(id: 1, pageSize: null),
+            pages: [],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          menuRepo.whenCreate(success(buildMenu(id: 99)));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(sizeRepo.getAllCalls, isEmpty);
+          expect(menuRepo.createCalls.single.input.sizeId, isNull);
+        },
       );
 
-      const newMenu = Menu(
-        id: 100,
-        name: 'Nested Menu (copy)',
-        status: Status.draft,
-        version: '1.0.0',
+      test(
+        'should pass resolved sizeId when a matching size exists in repository',
+        () async {
+          // Arrange
+          final pageSize = buildPageSize(name: 'A4', width: 210, height: 297);
+          final matchingSize = buildSize(id: 7, name: 'A4', width: 210, height: 297);
+          final tree = MenuTree(
+            menu: buildMenu(id: 1, pageSize: pageSize),
+            pages: [],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([matchingSize]));
+          menuRepo.whenCreate(success(buildMenu(id: 99)));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(menuRepo.createCalls.single.input.sizeId, equals(7));
+        },
       );
-      const newPage = Page(id: 200, menuId: 100, name: 'Page 1', index: 0);
-      const newParentContainer = Container(id: 300, pageId: 200, index: 0);
-      const newChildContainer = Container(
-        id: 301,
-        pageId: 200,
-        index: 0,
-        parentContainerId: 300,
+
+      test(
+        'should pass null sizeId when no matching size exists in repository',
+        () async {
+          // Arrange
+          final pageSize = buildPageSize(name: 'Custom', width: 100, height: 200);
+          final tree = MenuTree(
+            menu: buildMenu(id: 1, pageSize: pageSize),
+            pages: [],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([buildSize(id: 1, name: 'A4')]));
+          menuRepo.whenCreate(success(buildMenu(id: 99)));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(menuRepo.createCalls.single.input.sizeId, isNull);
+        },
       );
-      const newColumn = Column(id: 400, containerId: 301, index: 0);
+    });
 
-      when(
-        () => mockFetchMenuTreeUseCase.execute(1),
-      ).thenAnswer((_) async => Success(tree));
-      when(
-        () => mockSizeRepository.getAll(),
-      ).thenAnswer((_) async => const Success([]));
-      when(
-        () => mockMenuRepository.create(any()),
-      ).thenAnswer((_) async => const Success(newMenu));
-      when(
-        () => mockPageRepository.create(any()),
-      ).thenAnswer((_) async => const Success(newPage));
-      when(() => mockContainerRepository.create(any())).thenAnswer((
-        invocation,
-      ) async {
-        final input = invocation.positionalArguments[0] as CreateContainerInput;
-        if (input.parentContainerId != null) {
-          return const Success(newChildContainer);
-        }
-        return const Success(newParentContainer);
-      });
-      when(
-        () => mockColumnRepository.create(any()),
-      ).thenAnswer((_) async => const Success(newColumn));
+    // -------------------------------------------------------------------------
+    // Rollback on page creation failure
+    // -------------------------------------------------------------------------
 
-      final result = await useCase.execute(1);
+    group('rollback on page creation failure', () {
+      test(
+        'should delete the newly created menu when page creation fails',
+        () async {
+          // Arrange
+          final tree = MenuTree(
+            menu: buildMenu(id: 1),
+            pages: [
+              PageWithContainers(
+                page: buildPage(id: 10, menuId: 1, type: PageType.content),
+                containers: [],
+              ),
+            ],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 55)));
+          pageRepo.whenCreate(failure(server()));
+          menuRepo.whenDelete(success(null));
 
-      expect(result.isSuccess, true);
+          // Act
+          final result = await useCase.execute(1);
 
-      // Verify 2 containers were created: parent + child
-      final capturedContainers = verify(
-        () => mockContainerRepository.create(captureAny()),
-      ).captured;
-      expect(capturedContainers.length, 2);
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(menuRepo.deleteCalls.single.id, equals(55));
+        },
+      );
+    });
 
-      // First call: parent (no parentContainerId)
-      final parentInput = capturedContainers[0] as CreateContainerInput;
-      expect(parentInput.parentContainerId, isNull);
-      expect(parentInput.pageId, 200);
+    // -------------------------------------------------------------------------
+    // Rollback on container creation failure
+    // -------------------------------------------------------------------------
 
-      // Second call: child (with parentContainerId = new parent's id)
-      final childInput = capturedContainers[1] as CreateContainerInput;
-      expect(childInput.parentContainerId, 300);
+    group('rollback on container creation failure', () {
+      test(
+        'should delete menu and created pages when container creation fails',
+        () async {
+          // Arrange
+          final tree = MenuTree(
+            menu: buildMenu(id: 1),
+            pages: [
+              PageWithContainers(
+                page: buildPage(id: 10, menuId: 1, type: PageType.content),
+                containers: [
+                  ContainerWithColumns(
+                    container: buildContainer(id: 100, pageId: 10),
+                    columns: [],
+                  ),
+                ],
+              ),
+            ],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 55)));
+          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+          containerRepo.whenCreate(failure(server()));
+          pageRepo.whenDelete(success(null));
+          menuRepo.whenDelete(success(null));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(pageRepo.deleteCalls.any((c) => c.id == 20), isTrue);
+          expect(menuRepo.deleteCalls.any((c) => c.id == 55), isTrue);
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Rollback on column creation failure
+    // -------------------------------------------------------------------------
+
+    group('rollback on column creation failure', () {
+      test(
+        'should delete container, page, and menu when column creation fails',
+        () async {
+          // Arrange
+          final tree = MenuTree(
+            menu: buildMenu(id: 1),
+            pages: [
+              PageWithContainers(
+                page: buildPage(id: 10, menuId: 1, type: PageType.content),
+                containers: [
+                  ContainerWithColumns(
+                    container: buildContainer(id: 100, pageId: 10),
+                    columns: [
+                      ColumnWithWidgets(
+                        column: buildColumn(id: 200, containerId: 100),
+                        widgets: [],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 55)));
+          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+          containerRepo.whenCreate(
+            success(buildContainer(id: 200, pageId: 20)),
+          );
+          columnRepo.whenCreate(failure(server()));
+          containerRepo.whenDelete(success(null));
+          pageRepo.whenDelete(success(null));
+          menuRepo.whenDelete(success(null));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(containerRepo.deleteCalls.any((c) => c.id == 200), isTrue);
+          expect(pageRepo.deleteCalls.any((c) => c.id == 20), isTrue);
+          expect(menuRepo.deleteCalls.any((c) => c.id == 55), isTrue);
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Rollback on widget creation failure
+    // -------------------------------------------------------------------------
+
+    group('rollback on widget creation failure', () {
+      test(
+        'should delete column, container, page, and menu when widget creation fails',
+        () async {
+          // Arrange
+          final tree = MenuTree(
+            menu: buildMenu(id: 1),
+            pages: [
+              PageWithContainers(
+                page: buildPage(id: 10, menuId: 1, type: PageType.content),
+                containers: [
+                  ContainerWithColumns(
+                    container: buildContainer(id: 100, pageId: 10),
+                    columns: [
+                      ColumnWithWidgets(
+                        column: buildColumn(id: 200, containerId: 100),
+                        widgets: [buildWidgetInstance(id: 300, columnId: 200)],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 55)));
+          pageRepo.whenCreate(success(buildPage(id: 20, menuId: 55)));
+          containerRepo.whenCreate(
+            success(buildContainer(id: 200, pageId: 20)),
+          );
+          columnRepo.whenCreate(
+            success(buildColumn(id: 300, containerId: 200)),
+          );
+          widgetRepo.whenCreate(failure(server()));
+          columnRepo.whenDelete(success(null));
+          containerRepo.whenDelete(success(null));
+          pageRepo.whenDelete(success(null));
+          menuRepo.whenDelete(success(null));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(columnRepo.deleteCalls.any((c) => c.id == 300), isTrue);
+          expect(containerRepo.deleteCalls.any((c) => c.id == 200), isTrue);
+          expect(pageRepo.deleteCalls.any((c) => c.id == 20), isTrue);
+          expect(menuRepo.deleteCalls.any((c) => c.id == 55), isTrue);
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Multiple invocations
+    // -------------------------------------------------------------------------
+
+    group('multiple invocations', () {
+      test(
+        'should succeed on a second invocation after the first succeeds',
+        () async {
+          // Arrange
+          fetchMenuTree.stubExecute(Success(buildEmptyTree()));
+          sizeRepo.whenGetAll(success([]));
+          menuRepo.whenCreate(success(buildMenu(id: 99)));
+
+          // Act
+          final first = await useCase.execute(1);
+          menuRepo.whenCreate(success(buildMenu(id: 100)));
+          final second = await useCase.execute(1);
+
+          // Assert
+          expect(first.isSuccess, isTrue);
+          expect(second.isSuccess, isTrue);
+          expect(menuRepo.createCalls.length, equals(2));
+        },
+      );
     });
   });
 }

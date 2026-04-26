@@ -1,246 +1,601 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/container.dart' as entity;
-import 'package:oxo_menus/domain/entities/menu.dart';
-import 'package:oxo_menus/domain/entities/menu_bundle.dart';
 import 'package:oxo_menus/domain/entities/menu_display_options.dart';
-import 'package:oxo_menus/domain/entities/page.dart' as entity;
-import 'package:oxo_menus/domain/entities/status.dart';
-import 'package:oxo_menus/domain/repositories/asset_loader_repository.dart';
-import 'package:oxo_menus/domain/repositories/file_repository.dart';
-import 'package:oxo_menus/domain/repositories/menu_bundle_repository.dart';
+import 'package:oxo_menus/domain/entities/page.dart';
 import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/domain/usecases/pdf_document_builder.dart';
 import 'package:oxo_menus/domain/usecases/publish_menu_bundle_usecase.dart';
 
-class MockMenuBundleRepository extends Mock implements MenuBundleRepository {}
+import '../../../fakes/builders/menu_builder.dart';
+import '../../../fakes/builders/menu_bundle_builder.dart';
+import '../../../fakes/builders/page_builder.dart';
+import '../../../fakes/fake_asset_loader_repository.dart';
+import '../../../fakes/fake_fetch_menu_tree_usecase.dart';
+import '../../../fakes/fake_file_repository.dart';
+import '../../../fakes/fake_menu_bundle_repository.dart';
+import '../../../fakes/result_helpers.dart';
 
-class MockFetchMenuTreeUseCase extends Mock implements FetchMenuTreeUseCase {}
+// ---------------------------------------------------------------------------
+// Local fake PdfDocumentBuilder
+// ---------------------------------------------------------------------------
 
-class MockFileRepository extends Mock implements FileRepository {}
+/// Overrides [buildBundleDocument] to return controllable bytes without
+/// running the real PDF rendering pipeline.
+class _FakePdfDocumentBuilder extends PdfDocumentBuilder {
+  _FakePdfDocumentBuilder() : super();
 
-class MockAssetLoaderRepository extends Mock implements AssetLoaderRepository {}
+  Uint8List _response = Uint8List(0);
+  bool throwOnBuild = false;
 
-class MockPdfDocumentBuilder extends Mock implements PdfDocumentBuilder {}
+  void stubBytes(Uint8List bytes) {
+    _response = bytes;
+  }
 
-MenuTree _emptyTree(int menuId) => MenuTree(
-  menu: Menu(
-    id: menuId,
-    name: 'Menu $menuId',
-    status: Status.published,
-    version: '1.0.0',
-  ),
-  pages: [
-    PageWithContainers(
-      page: entity.Page(id: menuId * 100, menuId: menuId, name: 'p0', index: 0),
-      containers: [
-        ContainerWithColumns(
-          container: entity.Container(
-            id: menuId * 1000,
-            pageId: menuId * 100,
-            index: 0,
-          ),
-          columns: const [],
-        ),
-      ],
-    ),
-  ],
-);
+  @override
+  Future<Uint8List> buildBundleDocument({
+    required List<MenuTree> trees,
+    required MenuDisplayOptions baseOptions,
+    required ByteData baseFontData,
+    required ByteData boldFontData,
+    required ByteData sectionFontData,
+    required Map<String, Uint8List> imageCache,
+    required String watermarkText,
+  }) async {
+    if (throwOnBuild) {
+      throw StateError('PDF build failed');
+    }
+    return _response;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 void main() {
-  late MockMenuBundleRepository repo;
-  late MockFetchMenuTreeUseCase fetchTree;
-  late MockFileRepository fileRepo;
-  late MockAssetLoaderRepository assetLoader;
-  late MockPdfDocumentBuilder pdfBuilder;
-  late PublishMenuBundleUseCase useCase;
-
-  final sampleBytes = Uint8List.fromList([0x25, 0x50, 0x44, 0x46]);
-  final fontBytes = ByteData(4);
-
-  setUpAll(() {
-    registerFallbackValue(const UpdateMenuBundleInput(id: 0));
-    registerFallbackValue(<MenuTree>[]);
-    registerFallbackValue(const MenuDisplayOptions());
-    registerFallbackValue(<String, Uint8List>{});
-    registerFallbackValue(ByteData(0));
-    registerFallbackValue(Uint8List(0));
-  });
-
-  setUp(() {
-    repo = MockMenuBundleRepository();
-    fetchTree = MockFetchMenuTreeUseCase();
-    fileRepo = MockFileRepository();
-    assetLoader = MockAssetLoaderRepository();
-    pdfBuilder = MockPdfDocumentBuilder();
-    useCase = PublishMenuBundleUseCase(
-      repository: repo,
-      fetchMenuTreeUseCase: fetchTree,
-      fileRepository: fileRepo,
-      assetLoader: assetLoader,
-      pdfBuilder: pdfBuilder,
-    );
-
-    when(() => assetLoader.loadAsset(any())).thenAnswer((_) async => fontBytes);
-    when(
-      () => pdfBuilder.buildBundleDocument(
-        trees: any(named: 'trees'),
-        baseOptions: any(named: 'baseOptions'),
-        baseFontData: any(named: 'baseFontData'),
-        boldFontData: any(named: 'boldFontData'),
-        sectionFontData: any(named: 'sectionFontData'),
-        imageCache: any(named: 'imageCache'),
-        watermarkText: any(named: 'watermarkText'),
-      ),
-    ).thenAnswer((_) async => sampleBytes);
-  });
-
   group('PublishMenuBundleUseCase', () {
-    test(
-      'fetches all menu trees in menuIds order, builds with SAMPLE MENU watermark, '
-      'uploads on first publish, and persists the new pdfFileId',
-      () async {
-        const bundle = MenuBundle(id: 1, name: 'Sample', menuIds: [10, 20]);
-        when(
-          () => repo.getById(1),
-        ).thenAnswer((_) async => const Success(bundle));
-        when(
-          () => fetchTree.execute(10),
-        ).thenAnswer((_) async => Success(_emptyTree(10)));
-        when(
-          () => fetchTree.execute(20),
-        ).thenAnswer((_) async => Success(_emptyTree(20)));
-        when(
-          () => fileRepo.upload(sampleBytes, 'Sample.pdf'),
-        ).thenAnswer((_) async => const Success('new-file-id'));
-        when(() => repo.update(any())).thenAnswer(
-          (inv) async => Success(bundle.copyWith(pdfFileId: 'new-file-id')),
-        );
+    late FakeMenuBundleRepository bundleRepo;
+    late FakeFetchMenuTreeUseCase fetchMenuTree;
+    late FakeFileRepository fileRepo;
+    late FakeAssetLoaderRepository assetLoader;
+    late _FakePdfDocumentBuilder pdfBuilder;
+    late PublishMenuBundleUseCase useCase;
 
-        final result = await useCase.execute(1);
+    final fakeBytes = ByteData(4);
 
-        expect(result.isSuccess, true);
-        expect(result.valueOrNull!.pdfFileId, 'new-file-id');
+    setUp(() {
+      bundleRepo = FakeMenuBundleRepository();
+      fetchMenuTree = FakeFetchMenuTreeUseCase();
+      fileRepo = FakeFileRepository();
+      assetLoader = FakeAssetLoaderRepository();
+      pdfBuilder = _FakePdfDocumentBuilder();
+      pdfBuilder.throwOnBuild = false;
+      assetLoader.whenLoadAssetDefault(fakeBytes);
 
-        // Trees fetched in order
-        verifyInOrder([
-          () => fetchTree.execute(10),
-          () => fetchTree.execute(20),
-        ]);
-
-        // Builder received the captured args with correct watermark and tree count
-        final captured =
-            verify(
-                  () => pdfBuilder.buildBundleDocument(
-                    trees: captureAny(named: 'trees'),
-                    baseOptions: any(named: 'baseOptions'),
-                    baseFontData: any(named: 'baseFontData'),
-                    boldFontData: any(named: 'boldFontData'),
-                    sectionFontData: any(named: 'sectionFontData'),
-                    imageCache: any(named: 'imageCache'),
-                    watermarkText: 'SAMPLE MENU',
-                  ),
-                ).captured.single
-                as List<MenuTree>;
-        expect(captured.length, 2);
-        expect(captured.map((t) => t.menu.id), [10, 20]);
-
-        // Upload was used, not replace
-        verify(() => fileRepo.upload(sampleBytes, 'Sample.pdf')).called(1);
-        verifyNever(() => fileRepo.replace(any(), any(), any()));
-
-        // pdfFileId persisted via repo.update
-        final updateCall =
-            verify(() => repo.update(captureAny())).captured.single
-                as UpdateMenuBundleInput;
-        expect(updateCall.id, 1);
-        expect(updateCall.pdfFileId, 'new-file-id');
-      },
-    );
-
-    test(
-      'replaces the existing Directus file when pdfFileId is already set',
-      () async {
-        const bundle = MenuBundle(
-          id: 1,
-          name: 'Sample',
-          menuIds: [10],
-          pdfFileId: 'existing-file',
-        );
-        when(
-          () => repo.getById(1),
-        ).thenAnswer((_) async => const Success(bundle));
-        when(
-          () => fetchTree.execute(10),
-        ).thenAnswer((_) async => Success(_emptyTree(10)));
-        when(
-          () => fileRepo.replace('existing-file', sampleBytes, 'Sample.pdf'),
-        ).thenAnswer((_) async => const Success('existing-file'));
-
-        final result = await useCase.execute(1);
-
-        expect(result.isSuccess, true);
-        expect(result.valueOrNull!.pdfFileId, 'existing-file');
-
-        verify(
-          () => fileRepo.replace('existing-file', sampleBytes, 'Sample.pdf'),
-        ).called(1);
-        verifyNever(() => fileRepo.upload(any(), any()));
-        // No repo.update needed since the fileId hasn't changed
-        verifyNever(() => repo.update(any()));
-      },
-    );
-
-    test('propagates failure when a menu tree cannot be fetched', () async {
-      const bundle = MenuBundle(id: 1, name: 'Sample', menuIds: [10, 20]);
-      when(
-        () => repo.getById(1),
-      ).thenAnswer((_) async => const Success(bundle));
-      when(
-        () => fetchTree.execute(10),
-      ).thenAnswer((_) async => Success(_emptyTree(10)));
-      when(() => fetchTree.execute(20)).thenAnswer(
-        (_) async =>
-            const Failure<MenuTree, DomainError>(NotFoundError('no menu')),
+      useCase = PublishMenuBundleUseCase(
+        repository: bundleRepo,
+        fetchMenuTreeUseCase: fetchMenuTree,
+        fileRepository: fileRepo,
+        assetLoader: assetLoader,
+        pdfBuilder: pdfBuilder,
       );
-
-      final result = await useCase.execute(1);
-
-      expect(result.isFailure, true);
-      expect(result.errorOrNull, isA<NotFoundError>());
-      verifyNever(
-        () => pdfBuilder.buildBundleDocument(
-          trees: any(named: 'trees'),
-          baseOptions: any(named: 'baseOptions'),
-          baseFontData: any(named: 'baseFontData'),
-          boldFontData: any(named: 'boldFontData'),
-          sectionFontData: any(named: 'sectionFontData'),
-          imageCache: any(named: 'imageCache'),
-          watermarkText: any(named: 'watermarkText'),
-        ),
-      );
-      verifyNever(() => fileRepo.upload(any(), any()));
-      verifyNever(() => fileRepo.replace(any(), any(), any()));
     });
 
-    test(
-      'propagates failure from repo.getById and does not attempt to build a PDF',
-      () async {
-        when(() => repo.getById(99)).thenAnswer(
-          (_) async =>
-              const Failure<MenuBundle, DomainError>(NotFoundError('gone')),
-        );
+    MenuTree buildSimpleTree({int menuId = 1}) {
+      return MenuTree(menu: buildMenu(id: menuId), pages: []);
+    }
 
-        final result = await useCase.execute(99);
+    // -------------------------------------------------------------------------
+    // Bundle fetch failure
+    // -------------------------------------------------------------------------
 
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<NotFoundError>());
-        verifyNever(() => fetchTree.execute(any()));
-      },
-    );
+    group('bundle fetch failure', () {
+      test(
+        'should return Failure when repository.getById fails',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(failure(notFound()));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NotFoundError>());
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Menu tree fetch failure
+    // -------------------------------------------------------------------------
+
+    group('menu tree fetch failure', () {
+      test(
+        'should return Failure when fetchMenuTreeUseCase fails for any included menu',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [10])),
+          );
+          fetchMenuTree.stubExecute(failure(network()));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NetworkError>());
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // PDF build failure
+    // -------------------------------------------------------------------------
+
+    group('PDF build failure', () {
+      test(
+        'should return UnknownError when PdfDocumentBuilder.buildBundleDocument throws',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [10])),
+          );
+          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+          pdfBuilder.throwOnBuild = true;
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<UnknownError>());
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Upload failure
+    // -------------------------------------------------------------------------
+
+    group('upload failure', () {
+      test(
+        'should return Failure when fileRepository.upload fails on first-time publish',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [10], pdfFileId: null)),
+          );
+          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+          fileRepo.whenUpload(failure(server()));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ServerError>());
+        },
+      );
+
+      test(
+        'should return Failure when fileRepository.replace fails on subsequent publish',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(
+              buildMenuBundle(id: 1, menuIds: [10], pdfFileId: 'existing-id'),
+            ),
+          );
+          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+          fileRepo.whenReplace(failure(server()));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ServerError>());
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Bundle update failure (first upload only)
+    // -------------------------------------------------------------------------
+
+    group('bundle update failure on first upload', () {
+      test(
+        'should return Failure when repository.update fails after first upload',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [10], pdfFileId: null)),
+          );
+          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+          fileRepo.whenUpload(success('new-file-id'));
+          bundleRepo.whenUpdate(failure(server()));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ServerError>());
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Happy path — first-time publish (no existing pdfFileId)
+    // -------------------------------------------------------------------------
+
+    group('happy path — first-time publish', () {
+      test(
+        'should upload PDF and return updated bundle with new fileId',
+        () async {
+          // Arrange
+          final updatedBundle =
+              buildMenuBundle(id: 1, menuIds: [10], pdfFileId: 'new-file-id');
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [10], pdfFileId: null)),
+          );
+          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+          fileRepo.whenUpload(success('new-file-id'));
+          bundleRepo.whenUpdate(success(updatedBundle));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.pdfFileId, equals('new-file-id'));
+        },
+      );
+
+      test(
+        'should call upload (not replace) when pdfFileId is null',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [10], pdfFileId: null)),
+          );
+          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+          fileRepo.whenUpload(success('new-file-id'));
+          bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(fileRepo.uploadCalls.length, equals(1));
+          expect(fileRepo.replaceCalls, isEmpty);
+        },
+      );
+
+      test(
+        'should use bundle name as PDF filename',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, name: 'Weekend Set', menuIds: [10])),
+          );
+          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+          fileRepo.whenUpload(success('file-id'));
+          bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(
+            fileRepo.uploadCalls.single.filename,
+            equals('Weekend Set.pdf'),
+          );
+        },
+      );
+
+      test(
+        'should pass the returned fileId to repository.update after first upload',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [10], pdfFileId: null)),
+          );
+          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+          fileRepo.whenUpload(success('returned-file-id'));
+          bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(
+            bundleRepo.updateCalls.single.input.pdfFileId,
+            equals('returned-file-id'),
+          );
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Happy path — subsequent publish (existing pdfFileId)
+    // -------------------------------------------------------------------------
+
+    group('happy path — subsequent publish', () {
+      test(
+        'should call replace (not upload) when bundle already has a pdfFileId',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(
+              buildMenuBundle(id: 1, menuIds: [10], pdfFileId: 'existing-id'),
+            ),
+          );
+          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+          fileRepo.whenReplace(success('existing-id'));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(fileRepo.replaceCalls.length, equals(1));
+          expect(fileRepo.uploadCalls, isEmpty);
+        },
+      );
+
+      test(
+        'should call replace with the existing pdfFileId',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(
+              buildMenuBundle(id: 1, menuIds: [10], pdfFileId: 'existing-id'),
+            ),
+          );
+          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+          fileRepo.whenReplace(success('existing-id'));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(fileRepo.replaceCalls.single.fileId, equals('existing-id'));
+        },
+      );
+
+      test(
+        'should not call repository.update on subsequent publish',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(
+              buildMenuBundle(id: 1, menuIds: [10], pdfFileId: 'existing-id'),
+            ),
+          );
+          fetchMenuTree.stubExecute(Success(buildSimpleTree(menuId: 10)));
+          fileRepo.whenReplace(success('existing-id'));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(bundleRepo.updateCalls, isEmpty);
+        },
+      );
+
+      test(
+        'should return the original bundle (not updated) on subsequent publish',
+        () async {
+          // Arrange
+          final bundle = buildMenuBundle(
+            id: 1,
+            name: 'Existing',
+            pdfFileId: 'existing-id',
+          );
+          bundleRepo.whenGetById(success(bundle));
+          fetchMenuTree.stubExecute(Success(buildSimpleTree()));
+          fileRepo.whenReplace(success('existing-id'));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.name, equals('Existing'));
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Bundle with no menus
+    // -------------------------------------------------------------------------
+
+    group('bundle with no menus', () {
+      test(
+        'should attempt to build PDF when bundle has empty menuIds',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [])),
+          );
+          fileRepo.whenUpload(success('file-id'));
+          bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(fetchMenuTree.calls, isEmpty);
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Multiple menus in bundle
+    // -------------------------------------------------------------------------
+
+    group('multiple menus in bundle', () {
+      test(
+        'should fetch each menu tree in order when bundle contains multiple menus',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [10, 20, 30])),
+          );
+          fetchMenuTree.stubExecute(Success(buildSimpleTree()));
+          fileRepo.whenUpload(success('file-id'));
+          bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(fetchMenuTree.calls.length, equals(3));
+          expect(fetchMenuTree.calls[0].menuId, equals(10));
+          expect(fetchMenuTree.calls[1].menuId, equals(20));
+          expect(fetchMenuTree.calls[2].menuId, equals(30));
+        },
+      );
+
+      test(
+        'should abort and return Failure on first menu tree fetch failure',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [10, 20])),
+          );
+          fetchMenuTree.stubExecute(failure(notFound()));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          // Only the first menuId's fetch is attempted before aborting
+          expect(fetchMenuTree.calls.length, equals(1));
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Watermark text
+    // -------------------------------------------------------------------------
+
+    group('watermark text', () {
+      test(
+        'should use default "SAMPLE MENU" watermark when not explicitly configured',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [])),
+          );
+          fileRepo.whenUpload(success('file-id'));
+          bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(useCase.watermarkText, equals('SAMPLE MENU'));
+        },
+      );
+
+      test(
+        'should allow custom watermark text at construction',
+        () async {
+          // Arrange
+          final customUseCase = PublishMenuBundleUseCase(
+            repository: bundleRepo,
+            fetchMenuTreeUseCase: fetchMenuTree,
+            fileRepository: fileRepo,
+            assetLoader: assetLoader,
+            pdfBuilder: pdfBuilder,
+            watermarkText: 'PREVIEW ONLY',
+          );
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [])),
+          );
+          fileRepo.whenUpload(success('file-id'));
+          bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
+
+          // Act
+          final result = await customUseCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(customUseCase.watermarkText, equals('PREVIEW ONLY'));
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Asset loading
+    // -------------------------------------------------------------------------
+
+    group('asset loading', () {
+      test(
+        'should load exactly three font assets before building the PDF',
+        () async {
+          // Arrange
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [])),
+          );
+          fileRepo.whenUpload(success('file-id'));
+          bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
+
+          // Act
+          await useCase.execute(1);
+
+          // Assert
+          expect(assetLoader.loadAssetCalls.length, equals(3));
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Header and footer pages
+    // -------------------------------------------------------------------------
+
+    group('menu with header and footer pages', () {
+      test(
+        'should succeed when bundle includes a menu with header and footer pages',
+        () async {
+          // Arrange
+          final menu = buildMenu(id: 10);
+          final tree = MenuTree(
+            menu: menu,
+            pages: [],
+            headerPage: PageWithContainers(
+              page: buildPage(id: 1, menuId: 10, type: PageType.header),
+              containers: [],
+            ),
+            footerPage: PageWithContainers(
+              page: buildPage(id: 2, menuId: 10, type: PageType.footer),
+              containers: [],
+            ),
+          );
+          bundleRepo.whenGetById(
+            success(buildMenuBundle(id: 1, menuIds: [10], pdfFileId: null)),
+          );
+          fetchMenuTree.stubExecute(Success(tree));
+          fileRepo.whenUpload(success('file-id'));
+          bundleRepo.whenUpdate(success(buildMenuBundle(id: 1)));
+
+          // Act
+          final result = await useCase.execute(1);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+        },
+      );
+    });
   });
 }

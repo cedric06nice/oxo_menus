@@ -88,6 +88,8 @@ class FakeContainerRepository implements ContainerRepository {
   Result<Container, DomainError>? _createResponse;
   Result<List<Container>, DomainError>? _getAllForPageResponse;
   Result<List<Container>, DomainError>? _getAllForContainerResponse;
+  final Map<int, Result<List<Container>, DomainError>>
+  _getAllForContainerByIdResponses = {};
   Result<Container, DomainError>? _getByIdResponse;
   Result<Container, DomainError>? _updateResponse;
   Result<void, DomainError>? _deleteResponse;
@@ -108,6 +110,17 @@ class FakeContainerRepository implements ContainerRepository {
 
   void whenGetAllForContainer(Result<List<Container>, DomainError> response) {
     _getAllForContainerResponse = response;
+  }
+
+  /// Registers a per-[containerId] response for [getAllForContainer].
+  ///
+  /// When a call is made with a [containerId] that has a per-id entry,
+  /// that entry takes precedence over the global [whenGetAllForContainer] stub.
+  void whenGetAllForContainerForId(
+    int containerId,
+    Result<List<Container>, DomainError> response,
+  ) {
+    _getAllForContainerByIdResponses[containerId] = response;
   }
 
   void whenGetById(Result<Container, DomainError> response) {
@@ -161,6 +174,9 @@ class FakeContainerRepository implements ContainerRepository {
     int containerId,
   ) async {
     calls.add(ContainerGetAllForContainerCall(containerId));
+    if (_getAllForContainerByIdResponses.containsKey(containerId)) {
+      return _getAllForContainerByIdResponses[containerId]!;
+    }
     if (_getAllForContainerResponse != null) return _getAllForContainerResponse!;
     throw StateError(
       'FakeContainerRepository: no response configured for getAllForContainer()',

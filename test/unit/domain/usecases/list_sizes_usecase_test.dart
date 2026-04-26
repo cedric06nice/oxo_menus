@@ -1,97 +1,246 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/size.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
-import 'package:oxo_menus/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/domain/usecases/list_sizes_usecase.dart';
 
-class MockSizeRepository extends Mock implements SizeRepository {}
+import '../../../fakes/builders/size_builder.dart';
+import '../../../fakes/fake_size_repository.dart';
+import '../../../fakes/result_helpers.dart';
 
 void main() {
-  late ListSizesUseCase useCase;
-  late MockSizeRepository mockSizeRepository;
-
-  setUp(() {
-    mockSizeRepository = MockSizeRepository();
-    useCase = ListSizesUseCase(sizeRepository: mockSizeRepository);
-  });
-
-  const publishedSize = Size(
-    id: 1,
-    name: 'A4',
-    width: 210,
-    height: 297,
-    status: Status.published,
-    direction: 'portrait',
-  );
-
-  const draftSize = Size(
-    id: 2,
-    name: 'Letter',
-    width: 215.9,
-    height: 279.4,
-    status: Status.draft,
-    direction: 'landscape',
-  );
-
   group('ListSizesUseCase', () {
-    test('should return all sizes when no filter is provided', () async {
-      when(
-        () => mockSizeRepository.getAll(),
-      ).thenAnswer((_) async => const Success([publishedSize, draftSize]));
+    late FakeSizeRepository sizeRepo;
+    late ListSizesUseCase useCase;
 
-      final result = await useCase.execute();
-
-      expect(result.isSuccess, true);
-      expect(result.valueOrNull, hasLength(2));
-      verify(() => mockSizeRepository.getAll()).called(1);
+    setUp(() {
+      sizeRepo = FakeSizeRepository();
+      useCase = ListSizesUseCase(sizeRepository: sizeRepo);
     });
 
-    test('should return all sizes when filter is "all"', () async {
-      when(
-        () => mockSizeRepository.getAll(),
-      ).thenAnswer((_) async => const Success([publishedSize, draftSize]));
+    // -------------------------------------------------------------------------
+    // Repository failure
+    // -------------------------------------------------------------------------
 
-      final result = await useCase.execute(statusFilter: 'all');
+    group('repository failure', () {
+      test(
+        'should return Failure when sizeRepository.getAll fails',
+        () async {
+          // Arrange
+          sizeRepo.whenGetAll(failure(network()));
 
-      expect(result.isSuccess, true);
-      expect(result.valueOrNull, hasLength(2));
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NetworkError>());
+        },
+      );
+
+      test(
+        'should propagate ServerError from repository',
+        () async {
+          // Arrange
+          sizeRepo.whenGetAll(failure(server()));
+
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ServerError>());
+        },
+      );
     });
 
-    test('should filter sizes by status name', () async {
-      when(
-        () => mockSizeRepository.getAll(),
-      ).thenAnswer((_) async => const Success([publishedSize, draftSize]));
+    // -------------------------------------------------------------------------
+    // No filter
+    // -------------------------------------------------------------------------
 
-      final result = await useCase.execute(statusFilter: 'published');
+    group('no filter', () {
+      test(
+        'should return all sizes when no statusFilter is provided',
+        () async {
+          // Arrange
+          final sizes = [
+            buildSize(id: 1, status: Status.draft),
+            buildSize(id: 2, status: Status.published),
+            buildSize(id: 3, status: Status.archived),
+          ];
+          sizeRepo.whenGetAll(success(sizes));
 
-      expect(result.isSuccess, true);
-      expect(result.valueOrNull, hasLength(1));
-      expect(result.valueOrNull!.first.name, 'A4');
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.length, equals(3));
+        },
+      );
+
+      test(
+        'should return all sizes when statusFilter is "all"',
+        () async {
+          // Arrange
+          final sizes = [
+            buildSize(id: 1, status: Status.draft),
+            buildSize(id: 2, status: Status.published),
+          ];
+          sizeRepo.whenGetAll(success(sizes));
+
+          // Act
+          final result = await useCase.execute(statusFilter: 'all');
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.length, equals(2));
+        },
+      );
     });
 
-    test('should return empty list when no sizes match filter', () async {
-      when(
-        () => mockSizeRepository.getAll(),
-      ).thenAnswer((_) async => const Success([publishedSize]));
+    // -------------------------------------------------------------------------
+    // Filter by status
+    // -------------------------------------------------------------------------
 
-      final result = await useCase.execute(statusFilter: 'draft');
+    group('filter by status', () {
+      test(
+        'should return only published sizes when statusFilter is "published"',
+        () async {
+          // Arrange
+          final sizes = [
+            buildSize(id: 1, status: Status.draft),
+            buildSize(id: 2, status: Status.published),
+            buildSize(id: 3, status: Status.published),
+          ];
+          sizeRepo.whenGetAll(success(sizes));
 
-      expect(result.isSuccess, true);
-      expect(result.valueOrNull, isEmpty);
+          // Act
+          final result = await useCase.execute(statusFilter: 'published');
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          final filtered = result.valueOrNull!;
+          expect(filtered.length, equals(2));
+          expect(
+            filtered.every((s) => s.status == Status.published),
+            isTrue,
+          );
+        },
+      );
+
+      test(
+        'should return only draft sizes when statusFilter is "draft"',
+        () async {
+          // Arrange
+          final sizes = [
+            buildSize(id: 1, status: Status.draft),
+            buildSize(id: 2, status: Status.published),
+          ];
+          sizeRepo.whenGetAll(success(sizes));
+
+          // Act
+          final result = await useCase.execute(statusFilter: 'draft');
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.length, equals(1));
+          expect(result.valueOrNull!.single.status, equals(Status.draft));
+        },
+      );
+
+      test(
+        'should return only archived sizes when statusFilter is "archived"',
+        () async {
+          // Arrange
+          final sizes = [
+            buildSize(id: 1, status: Status.archived),
+            buildSize(id: 2, status: Status.published),
+          ];
+          sizeRepo.whenGetAll(success(sizes));
+
+          // Act
+          final result = await useCase.execute(statusFilter: 'archived');
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.length, equals(1));
+          expect(result.valueOrNull!.single.status, equals(Status.archived));
+        },
+      );
+
+      test(
+        'should return empty list when no sizes match the filter',
+        () async {
+          // Arrange
+          sizeRepo.whenGetAll(
+            success([buildSize(id: 1, status: Status.draft)]),
+          );
+
+          // Act
+          final result = await useCase.execute(statusFilter: 'published');
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!, isEmpty);
+        },
+      );
     });
 
-    test('should return failure when repository fails', () async {
-      when(
-        () => mockSizeRepository.getAll(),
-      ).thenAnswer((_) async => const Failure(ServerError('Server error')));
+    // -------------------------------------------------------------------------
+    // Empty repository
+    // -------------------------------------------------------------------------
 
-      final result = await useCase.execute();
+    group('empty repository', () {
+      test(
+        'should return empty list when repository returns no sizes',
+        () async {
+          // Arrange
+          sizeRepo.whenGetAll(success([]));
 
-      expect(result.isFailure, true);
-      expect(result.errorOrNull, isA<ServerError>());
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!, isEmpty);
+        },
+      );
+
+      test(
+        'should return empty list when filtering an empty repository',
+        () async {
+          // Arrange
+          sizeRepo.whenGetAll(success([]));
+
+          // Act
+          final result = await useCase.execute(statusFilter: 'published');
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!, isEmpty);
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Repository wiring
+    // -------------------------------------------------------------------------
+
+    group('repository wiring', () {
+      test(
+        'should call sizeRepository.getAll exactly once',
+        () async {
+          // Arrange
+          sizeRepo.whenGetAll(success([]));
+
+          // Act
+          await useCase.execute();
+
+          // Assert
+          expect(sizeRepo.getAllCalls.length, equals(1));
+        },
+      );
     });
   });
 }

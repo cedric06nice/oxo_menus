@@ -1,63 +1,134 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/domain/entities/image_file_info.dart';
-import 'package:oxo_menus/domain/repositories/file_repository.dart';
 import 'package:oxo_menus/domain/usecases/list_image_files_usecase.dart';
 
-class MockFileRepository extends Mock implements FileRepository {}
+import '../../../fakes/fake_file_repository.dart';
+import '../../../fakes/result_helpers.dart';
 
 void main() {
-  late ListImageFilesUseCase useCase;
-  late MockFileRepository mockFileRepository;
-
-  setUp(() {
-    mockFileRepository = MockFileRepository();
-    useCase = ListImageFilesUseCase(fileRepository: mockFileRepository);
-  });
-
-  const testFile1 = ImageFileInfo(id: 'file-1', title: 'Logo');
-  const testFile2 = ImageFileInfo(
-    id: 'file-2',
-    title: 'Banner',
-    type: 'image/png',
-  );
-
   group('ListImageFilesUseCase', () {
-    test('should return list of image files on success', () async {
-      when(
-        () => mockFileRepository.listImageFiles(),
-      ).thenAnswer((_) async => const Success([testFile1, testFile2]));
+    late FakeFileRepository fileRepo;
+    late ListImageFilesUseCase useCase;
 
-      final result = await useCase.execute();
-
-      expect(result.isSuccess, true);
-      expect(result.valueOrNull, [testFile1, testFile2]);
-      verify(() => mockFileRepository.listImageFiles()).called(1);
+    setUp(() {
+      fileRepo = FakeFileRepository();
+      useCase = ListImageFilesUseCase(fileRepository: fileRepo);
     });
 
-    test('should return failure when repository fails', () async {
-      when(() => mockFileRepository.listImageFiles()).thenAnswer(
-        (_) async => const Failure(ServerError('Failed to load images')),
+    // -------------------------------------------------------------------------
+    // Happy path
+    // -------------------------------------------------------------------------
+
+    group('happy path', () {
+      test(
+        'should return list of image files when repository succeeds',
+        () async {
+          // Arrange
+          final files = [
+            const ImageFileInfo(id: 'abc', title: 'Logo', type: 'image/png'),
+            const ImageFileInfo(id: 'def', title: 'Banner', type: 'image/jpeg'),
+          ];
+          fileRepo.whenListImageFiles(success(files));
+
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.length, equals(2));
+          expect(result.valueOrNull!.first.id, equals('abc'));
+          expect(result.valueOrNull!.last.id, equals('def'));
+        },
       );
 
-      final result = await useCase.execute();
+      test(
+        'should return empty list when repository returns no image files',
+        () async {
+          // Arrange
+          fileRepo.whenListImageFiles(success([]));
 
-      expect(result.isFailure, true);
-      expect(result.errorOrNull, isA<ServerError>());
-      verify(() => mockFileRepository.listImageFiles()).called(1);
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!, isEmpty);
+        },
+      );
+
+      test(
+        'should return single image file when repository has one entry',
+        () async {
+          // Arrange
+          final files = [const ImageFileInfo(id: 'xyz', type: 'image/webp')];
+          fileRepo.whenListImageFiles(success(files));
+
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.single.id, equals('xyz'));
+        },
+      );
     });
 
-    test('should return empty list when no files exist', () async {
-      when(
-        () => mockFileRepository.listImageFiles(),
-      ).thenAnswer((_) async => const Success([]));
+    // -------------------------------------------------------------------------
+    // Repository failure
+    // -------------------------------------------------------------------------
 
-      final result = await useCase.execute();
+    group('repository failure', () {
+      test(
+        'should return Failure when fileRepository.listImageFiles fails with NetworkError',
+        () async {
+          // Arrange
+          fileRepo.whenListImageFiles(failure(network()));
 
-      expect(result.isSuccess, true);
-      expect(result.valueOrNull, isEmpty);
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NetworkError>());
+        },
+      );
+
+      test(
+        'should propagate ServerError from repository',
+        () async {
+          // Arrange
+          fileRepo.whenListImageFiles(failure(server()));
+
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ServerError>());
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Repository wiring
+    // -------------------------------------------------------------------------
+
+    group('repository wiring', () {
+      test(
+        'should delegate to fileRepository.listImageFiles exactly once',
+        () async {
+          // Arrange
+          fileRepo.whenListImageFiles(success([]));
+
+          // Act
+          await useCase.execute();
+
+          // Assert
+          expect(fileRepo.listImageFilesCalls.length, equals(1));
+        },
+      );
     });
   });
 }

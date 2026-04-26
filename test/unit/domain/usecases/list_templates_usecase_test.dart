@@ -1,111 +1,243 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/menu.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
 import 'package:oxo_menus/domain/usecases/list_templates_usecase.dart';
 
-class MockMenuRepository extends Mock implements MenuRepository {}
+import '../../../fakes/builders/menu_builder.dart';
+import '../../../fakes/fake_menu_repository.dart';
+import '../../../fakes/result_helpers.dart';
 
 void main() {
-  late ListTemplatesUseCase useCase;
-  late MockMenuRepository mockMenuRepository;
-
-  setUp(() {
-    mockMenuRepository = MockMenuRepository();
-    useCase = ListTemplatesUseCase(menuRepository: mockMenuRepository);
-  });
-
-  const draftMenu = Menu(
-    id: 1,
-    name: 'Template 1',
-    status: Status.draft,
-    version: '1.0.0',
-  );
-
-  const publishedMenu = Menu(
-    id: 2,
-    name: 'Template 2',
-    status: Status.published,
-    version: '1.0.0',
-  );
-
-  const archivedMenu = Menu(
-    id: 3,
-    name: 'Template 3',
-    status: Status.archived,
-    version: '1.0.0',
-  );
-
-  final allMenus = [draftMenu, publishedMenu, archivedMenu];
-
   group('ListTemplatesUseCase', () {
-    test('should fetch all menus with onlyPublished false', () async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(allMenus));
+    late FakeMenuRepository menuRepo;
+    late ListTemplatesUseCase useCase;
 
-      await useCase.execute();
-
-      verify(() => mockMenuRepository.listAll(onlyPublished: false)).called(1);
+    setUp(() {
+      menuRepo = FakeMenuRepository();
+      useCase = ListTemplatesUseCase(menuRepository: menuRepo);
     });
 
-    test('should return all templates when no filter is provided', () async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(allMenus));
+    // -------------------------------------------------------------------------
+    // Repository failure
+    // -------------------------------------------------------------------------
 
-      final result = await useCase.execute();
+    group('repository failure', () {
+      test(
+        'should return Failure when menuRepository.listAll fails',
+        () async {
+          // Arrange
+          menuRepo.whenListAll(failure(network()));
 
-      expect(result.isSuccess, true);
-      expect(result.valueOrNull, hasLength(3));
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NetworkError>());
+        },
+      );
+
+      test(
+        'should propagate ServerError from repository',
+        () async {
+          // Arrange
+          menuRepo.whenListAll(failure(server()));
+
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ServerError>());
+        },
+      );
     });
 
-    test('should return all templates when filter is "all"', () async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(allMenus));
+    // -------------------------------------------------------------------------
+    // No filter
+    // -------------------------------------------------------------------------
 
-      final result = await useCase.execute(statusFilter: 'all');
+    group('no filter', () {
+      test(
+        'should return all menus when no statusFilter is provided',
+        () async {
+          // Arrange
+          final menus = [
+            buildMenu(id: 1, status: Status.draft),
+            buildMenu(id: 2, status: Status.published),
+            buildMenu(id: 3, status: Status.archived),
+          ];
+          menuRepo.whenListAll(success(menus));
 
-      expect(result.isSuccess, true);
-      expect(result.valueOrNull, hasLength(3));
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.length, equals(3));
+        },
+      );
+
+      test(
+        'should return all menus when statusFilter is "all"',
+        () async {
+          // Arrange
+          final menus = [
+            buildMenu(id: 1, status: Status.draft),
+            buildMenu(id: 2, status: Status.published),
+          ];
+          menuRepo.whenListAll(success(menus));
+
+          // Act
+          final result = await useCase.execute(statusFilter: 'all');
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.length, equals(2));
+        },
+      );
     });
 
-    test('should filter templates by status', () async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => Success(allMenus));
+    // -------------------------------------------------------------------------
+    // Filter by status
+    // -------------------------------------------------------------------------
 
-      final result = await useCase.execute(statusFilter: 'draft');
+    group('filter by status', () {
+      test(
+        'should return only draft menus when statusFilter is "draft"',
+        () async {
+          // Arrange
+          final menus = [
+            buildMenu(id: 1, status: Status.draft),
+            buildMenu(id: 2, status: Status.published),
+            buildMenu(id: 3, status: Status.draft),
+          ];
+          menuRepo.whenListAll(success(menus));
 
-      expect(result.isSuccess, true);
-      expect(result.valueOrNull, hasLength(1));
-      expect(result.valueOrNull!.first.status, Status.draft);
+          // Act
+          final result = await useCase.execute(statusFilter: 'draft');
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          final filtered = result.valueOrNull!;
+          expect(filtered.length, equals(2));
+          expect(filtered.every((m) => m.status == Status.draft), isTrue);
+        },
+      );
+
+      test(
+        'should return only published menus when statusFilter is "published"',
+        () async {
+          // Arrange
+          final menus = [
+            buildMenu(id: 1, status: Status.draft),
+            buildMenu(id: 2, status: Status.published),
+          ];
+          menuRepo.whenListAll(success(menus));
+
+          // Act
+          final result = await useCase.execute(statusFilter: 'published');
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.length, equals(1));
+          expect(result.valueOrNull!.single.status, equals(Status.published));
+        },
+      );
+
+      test(
+        'should return only archived menus when statusFilter is "archived"',
+        () async {
+          // Arrange
+          final menus = [
+            buildMenu(id: 1, status: Status.archived),
+            buildMenu(id: 2, status: Status.published),
+          ];
+          menuRepo.whenListAll(success(menus));
+
+          // Act
+          final result = await useCase.execute(statusFilter: 'archived');
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!.length, equals(1));
+          expect(result.valueOrNull!.single.status, equals(Status.archived));
+        },
+      );
+
+      test(
+        'should return empty list when no menus match the filter',
+        () async {
+          // Arrange
+          menuRepo.whenListAll(
+            success([buildMenu(id: 1, status: Status.draft)]),
+          );
+
+          // Act
+          final result = await useCase.execute(statusFilter: 'published');
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!, isEmpty);
+        },
+      );
     });
 
-    test('should return empty list when no templates match filter', () async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => const Success([draftMenu]));
+    // -------------------------------------------------------------------------
+    // Empty repository
+    // -------------------------------------------------------------------------
 
-      final result = await useCase.execute(statusFilter: 'published');
+    group('empty repository', () {
+      test(
+        'should return empty list when repository returns no menus',
+        () async {
+          // Arrange
+          menuRepo.whenListAll(success([]));
 
-      expect(result.isSuccess, true);
-      expect(result.valueOrNull, isEmpty);
+          // Act
+          final result = await useCase.execute();
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!, isEmpty);
+        },
+      );
+
+      test(
+        'should return empty list when filtering an empty repository',
+        () async {
+          // Arrange
+          menuRepo.whenListAll(success([]));
+
+          // Act
+          final result = await useCase.execute(statusFilter: 'published');
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(result.valueOrNull!, isEmpty);
+        },
+      );
     });
 
-    test('should return failure when repository fails', () async {
-      when(
-        () => mockMenuRepository.listAll(onlyPublished: false),
-      ).thenAnswer((_) async => const Failure(ServerError('Server error')));
+    // -------------------------------------------------------------------------
+    // Repository call semantics
+    // -------------------------------------------------------------------------
 
-      final result = await useCase.execute();
+    group('repository call semantics', () {
+      test(
+        'should always call listAll with onlyPublished: false',
+        () async {
+          // Arrange
+          menuRepo.whenListAll(success([]));
 
-      expect(result.isFailure, true);
-      expect(result.errorOrNull, isA<ServerError>());
+          // Act
+          await useCase.execute();
+
+          // Assert
+          expect(menuRepo.listAllCalls.single.onlyPublished, isFalse);
+        },
+      );
     });
   });
 }

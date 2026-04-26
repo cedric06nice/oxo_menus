@@ -1,174 +1,355 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/container.dart';
-import 'package:oxo_menus/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/domain/usecases/reorder_container_usecase.dart';
 
-class MockContainerRepository extends Mock implements ContainerRepository {}
+import '../../../fakes/builders/container_builder.dart';
+import '../../../fakes/fake_container_repository.dart';
+import '../../../fakes/result_helpers.dart';
 
 void main() {
-  late MockContainerRepository mockContainerRepo;
-  late ReorderContainerUseCase useCase;
-
-  setUp(() {
-    mockContainerRepo = MockContainerRepository();
-    useCase = ReorderContainerUseCase(containerRepository: mockContainerRepo);
-  });
-
-  const container1 = Container(id: 1, pageId: 10, index: 0, name: 'First');
-  const container2 = Container(id: 2, pageId: 10, index: 1, name: 'Second');
-  const container3 = Container(id: 3, pageId: 10, index: 2, name: 'Third');
-
-  const nestedContainer1 = Container(
-    id: 11,
-    pageId: 10,
-    index: 0,
-    parentContainerId: 100,
-  );
-  const nestedContainer2 = Container(
-    id: 12,
-    pageId: 10,
-    index: 1,
-    parentContainerId: 100,
-  );
-
   group('ReorderContainerUseCase', () {
-    group('move up', () {
-      test('swaps indices with the previous sibling', () async {
-        when(
-          () => mockContainerRepo.getById(2),
-        ).thenAnswer((_) async => const Success(container2));
-        when(() => mockContainerRepo.getAllForPage(10)).thenAnswer(
-          (_) async => const Success([container1, container2, container3]),
-        );
-        when(
-          () => mockContainerRepo.reorder(any(), any()),
-        ).thenAnswer((_) async => const Success(null));
+    late FakeContainerRepository containerRepo;
+    late ReorderContainerUseCase useCase;
 
-        final result = await useCase.execute(2, ReorderDirection.up);
-
-        expect(result.isSuccess, true);
-        verify(() => mockContainerRepo.reorder(2, 0)).called(1);
-        verify(() => mockContainerRepo.reorder(1, 1)).called(1);
-      });
-
-      test('returns ValidationError when already first', () async {
-        when(
-          () => mockContainerRepo.getById(1),
-        ).thenAnswer((_) async => const Success(container1));
-        when(() => mockContainerRepo.getAllForPage(10)).thenAnswer(
-          (_) async => const Success([container1, container2, container3]),
-        );
-
-        final result = await useCase.execute(1, ReorderDirection.up);
-
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<ValidationError>());
-        verifyNever(() => mockContainerRepo.reorder(any(), any()));
-      });
+    setUp(() {
+      containerRepo = FakeContainerRepository();
+      useCase = ReorderContainerUseCase(containerRepository: containerRepo);
     });
+
+    // -------------------------------------------------------------------------
+    // Container fetch failure
+    // -------------------------------------------------------------------------
+
+    group('container fetch failure', () {
+      test(
+        'should return Failure when getById fails',
+        () async {
+          // Arrange
+          containerRepo.whenGetById(failure(notFound()));
+
+          // Act
+          final result = await useCase.execute(1, ReorderDirection.up);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NotFoundError>());
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Siblings fetch failure
+    // -------------------------------------------------------------------------
+
+    group('siblings fetch failure', () {
+      test(
+        'should return Failure when getAllForPage fails for root-level container',
+        () async {
+          // Arrange
+          final container = buildContainer(id: 1, pageId: 10, index: 0);
+          containerRepo.whenGetById(success(container));
+          containerRepo.whenGetAllForPage(failure(network()));
+
+          // Act
+          final result = await useCase.execute(1, ReorderDirection.up);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NetworkError>());
+        },
+      );
+
+      test(
+        'should return Failure when getAllForContainer fails for nested container',
+        () async {
+          // Arrange
+          final container = buildContainer(
+            id: 1,
+            pageId: 10,
+            index: 0,
+            parentContainerId: 5,
+          );
+          containerRepo.whenGetById(success(container));
+          containerRepo.whenGetAllForContainer(failure(network()));
+
+          // Act
+          final result = await useCase.execute(1, ReorderDirection.up);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<NetworkError>());
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Boundary validation
+    // -------------------------------------------------------------------------
+
+    group('boundary validation', () {
+      test(
+        'should return ValidationError when moving up from the first position',
+        () async {
+          // Arrange
+          final container = buildContainer(id: 1, pageId: 10, index: 0);
+          final sibling = buildContainer(id: 2, pageId: 10, index: 1);
+          containerRepo.whenGetById(success(container));
+          containerRepo.whenGetAllForPage(success([container, sibling]));
+
+          // Act
+          final result = await useCase.execute(1, ReorderDirection.up);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ValidationError>());
+        },
+      );
+
+      test(
+        'should return ValidationError when moving down from the last position',
+        () async {
+          // Arrange
+          final container = buildContainer(id: 2, pageId: 10, index: 1);
+          final sibling = buildContainer(id: 1, pageId: 10, index: 0);
+          containerRepo.whenGetById(success(container));
+          containerRepo.whenGetAllForPage(success([sibling, container]));
+
+          // Act
+          final result = await useCase.execute(2, ReorderDirection.down);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ValidationError>());
+        },
+      );
+
+      test(
+        'should return ValidationError when only one container exists and moving up',
+        () async {
+          // Arrange
+          final container = buildContainer(id: 1, pageId: 10, index: 0);
+          containerRepo.whenGetById(success(container));
+          containerRepo.whenGetAllForPage(success([container]));
+
+          // Act
+          final result = await useCase.execute(1, ReorderDirection.up);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ValidationError>());
+        },
+      );
+
+      test(
+        'should return ValidationError when only one container exists and moving down',
+        () async {
+          // Arrange
+          final container = buildContainer(id: 1, pageId: 10, index: 0);
+          containerRepo.whenGetById(success(container));
+          containerRepo.whenGetAllForPage(success([container]));
+
+          // Act
+          final result = await useCase.execute(1, ReorderDirection.down);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ValidationError>());
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Reorder call failure propagation
+    // -------------------------------------------------------------------------
+
+    group('reorder failure propagation', () {
+      test(
+        'should return Failure when the first reorder call fails',
+        () async {
+          // Arrange
+          final container = buildContainer(id: 1, pageId: 10, index: 0);
+          final sibling = buildContainer(id: 2, pageId: 10, index: 1);
+          containerRepo.whenGetById(success(container));
+          containerRepo.whenGetAllForPage(success([container, sibling]));
+          containerRepo.whenReorder(failure(server()));
+
+          // Act
+          final result = await useCase.execute(1, ReorderDirection.down);
+
+          // Assert
+          expect(result.isFailure, isTrue);
+          expect(result.errorOrNull, isA<ServerError>());
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Move up
+    // -------------------------------------------------------------------------
+
+    group('move up', () {
+      test(
+        'should swap indices when moving a container up from a middle position',
+        () async {
+          // Arrange
+          final first = buildContainer(id: 1, pageId: 10, index: 0);
+          final second = buildContainer(id: 2, pageId: 10, index: 1);
+          final third = buildContainer(id: 3, pageId: 10, index: 2);
+          containerRepo.whenGetById(success(second));
+          containerRepo.whenGetAllForPage(success([first, second, third]));
+          containerRepo.whenReorder(success(null));
+
+          // Act
+          final result = await useCase.execute(2, ReorderDirection.up);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+          final calls = containerRepo.reorderCalls;
+          expect(calls.length, equals(2));
+          expect(calls[0].containerId, equals(2));
+          expect(calls[0].newIndex, equals(0));
+          expect(calls[1].containerId, equals(1));
+          expect(calls[1].newIndex, equals(1));
+        },
+      );
+
+      test(
+        'should succeed when moving a container from second to first position',
+        () async {
+          // Arrange
+          final first = buildContainer(id: 1, pageId: 10, index: 0);
+          final second = buildContainer(id: 2, pageId: 10, index: 1);
+          containerRepo.whenGetById(success(second));
+          containerRepo.whenGetAllForPage(success([first, second]));
+          containerRepo.whenReorder(success(null));
+
+          // Act
+          final result = await useCase.execute(2, ReorderDirection.up);
+
+          // Assert
+          expect(result.isSuccess, isTrue);
+        },
+      );
+    });
+
+    // -------------------------------------------------------------------------
+    // Move down
+    // -------------------------------------------------------------------------
 
     group('move down', () {
-      test('swaps indices with the next sibling', () async {
-        when(
-          () => mockContainerRepo.getById(2),
-        ).thenAnswer((_) async => const Success(container2));
-        when(() => mockContainerRepo.getAllForPage(10)).thenAnswer(
-          (_) async => const Success([container1, container2, container3]),
-        );
-        when(
-          () => mockContainerRepo.reorder(any(), any()),
-        ).thenAnswer((_) async => const Success(null));
+      test(
+        'should swap indices when moving a container down from a middle position',
+        () async {
+          // Arrange
+          final first = buildContainer(id: 1, pageId: 10, index: 0);
+          final second = buildContainer(id: 2, pageId: 10, index: 1);
+          final third = buildContainer(id: 3, pageId: 10, index: 2);
+          containerRepo.whenGetById(success(second));
+          containerRepo.whenGetAllForPage(success([first, second, third]));
+          containerRepo.whenReorder(success(null));
 
-        final result = await useCase.execute(2, ReorderDirection.down);
+          // Act
+          final result = await useCase.execute(2, ReorderDirection.down);
 
-        expect(result.isSuccess, true);
-        verify(() => mockContainerRepo.reorder(2, 2)).called(1);
-        verify(() => mockContainerRepo.reorder(3, 1)).called(1);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          final calls = containerRepo.reorderCalls;
+          expect(calls.length, equals(2));
+          expect(calls[0].containerId, equals(2));
+          expect(calls[0].newIndex, equals(2));
+          expect(calls[1].containerId, equals(3));
+          expect(calls[1].newIndex, equals(1));
+        },
+      );
 
-      test('returns ValidationError when already last', () async {
-        when(
-          () => mockContainerRepo.getById(3),
-        ).thenAnswer((_) async => const Success(container3));
-        when(() => mockContainerRepo.getAllForPage(10)).thenAnswer(
-          (_) async => const Success([container1, container2, container3]),
-        );
+      test(
+        'should succeed when moving a container from first to second position',
+        () async {
+          // Arrange
+          final first = buildContainer(id: 1, pageId: 10, index: 0);
+          final second = buildContainer(id: 2, pageId: 10, index: 1);
+          containerRepo.whenGetById(success(first));
+          containerRepo.whenGetAllForPage(success([first, second]));
+          containerRepo.whenReorder(success(null));
 
-        final result = await useCase.execute(3, ReorderDirection.down);
+          // Act
+          final result = await useCase.execute(1, ReorderDirection.down);
 
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<ValidationError>());
-        verifyNever(() => mockContainerRepo.reorder(any(), any()));
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+        },
+      );
     });
+
+    // -------------------------------------------------------------------------
+    // Nested containers (parent container)
+    // -------------------------------------------------------------------------
 
     group('nested containers', () {
-      test('fetches siblings from parent container instead of page', () async {
-        when(
-          () => mockContainerRepo.getById(12),
-        ).thenAnswer((_) async => const Success(nestedContainer2));
-        when(() => mockContainerRepo.getAllForContainer(100)).thenAnswer(
-          (_) async => const Success([nestedContainer1, nestedContainer2]),
-        );
-        when(
-          () => mockContainerRepo.reorder(any(), any()),
-        ).thenAnswer((_) async => const Success(null));
+      test(
+        'should use getAllForContainer when container has a parentContainerId',
+        () async {
+          // Arrange
+          final container = buildContainer(
+            id: 1,
+            pageId: 10,
+            index: 1,
+            parentContainerId: 5,
+          );
+          final sibling = buildContainer(
+            id: 2,
+            pageId: 10,
+            index: 0,
+            parentContainerId: 5,
+          );
+          containerRepo.whenGetById(success(container));
+          containerRepo.whenGetAllForContainer(success([sibling, container]));
+          containerRepo.whenReorder(success(null));
 
-        final result = await useCase.execute(12, ReorderDirection.up);
+          // Act
+          final result = await useCase.execute(1, ReorderDirection.up);
 
-        expect(result.isSuccess, true);
-        verify(() => mockContainerRepo.getAllForContainer(100)).called(1);
-        verifyNever(() => mockContainerRepo.getAllForPage(any()));
-        verify(() => mockContainerRepo.reorder(12, 0)).called(1);
-        verify(() => mockContainerRepo.reorder(11, 1)).called(1);
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          expect(
+            containerRepo.getAllForContainerCalls.single.containerId,
+            equals(5),
+          );
+        },
+      );
     });
 
-    group('error handling', () {
-      test('propagates error when getById fails', () async {
-        when(
-          () => mockContainerRepo.getById(1),
-        ).thenAnswer((_) async => const Failure(NotFoundError()));
+    // -------------------------------------------------------------------------
+    // Sorting of unsorted siblings
+    // -------------------------------------------------------------------------
 
-        final result = await useCase.execute(1, ReorderDirection.up);
+    group('sorting of unsorted siblings', () {
+      test(
+        'should correctly identify position when siblings are provided out of index order',
+        () async {
+          // Arrange — siblings provided in reverse order
+          final first = buildContainer(id: 1, pageId: 10, index: 0);
+          final second = buildContainer(id: 2, pageId: 10, index: 1);
+          final third = buildContainer(id: 3, pageId: 10, index: 2);
+          containerRepo.whenGetById(success(first));
+          containerRepo.whenGetAllForPage(success([third, first, second]));
+          containerRepo.whenReorder(success(null));
 
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<NotFoundError>());
-      });
+          // Act — move container at index 0 down
+          final result = await useCase.execute(1, ReorderDirection.down);
 
-      test('propagates error when fetching siblings fails', () async {
-        when(
-          () => mockContainerRepo.getById(2),
-        ).thenAnswer((_) async => const Success(container2));
-        when(
-          () => mockContainerRepo.getAllForPage(10),
-        ).thenAnswer((_) async => const Failure(ServerError()));
-
-        final result = await useCase.execute(2, ReorderDirection.up);
-
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<ServerError>());
-      });
-
-      test('propagates error when first reorder call fails', () async {
-        when(
-          () => mockContainerRepo.getById(2),
-        ).thenAnswer((_) async => const Success(container2));
-        when(() => mockContainerRepo.getAllForPage(10)).thenAnswer(
-          (_) async => const Success([container1, container2, container3]),
-        );
-        when(
-          () => mockContainerRepo.reorder(2, any()),
-        ).thenAnswer((_) async => const Failure(ServerError()));
-
-        final result = await useCase.execute(2, ReorderDirection.up);
-
-        expect(result.isFailure, true);
-        expect(result.errorOrNull, isA<ServerError>());
-      });
+          // Assert
+          expect(result.isSuccess, isTrue);
+          final calls = containerRepo.reorderCalls;
+          // container 1 should acquire index 1 (second's index)
+          expect(calls.first.containerId, equals(1));
+          expect(calls.first.newIndex, equals(1));
+          // container 2 should acquire index 0 (first's index)
+          expect(calls[1].containerId, equals(2));
+          expect(calls[1].newIndex, equals(0));
+        },
+      );
     });
   });
 }
