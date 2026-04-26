@@ -2,472 +2,647 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/domain/entities/area.dart';
 import 'package:oxo_menus/domain/entities/border_type.dart';
 import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/domain/entities/vertical_alignment.dart';
 import 'package:oxo_menus/domain/entities/widget_type_config.dart';
 import 'package:oxo_menus/domain/widgets/shared/widget_alignment.dart';
+import '../../../fakes/builders/menu_builder.dart';
 
 void main() {
-  group('Menu Entity', () {
-    test('should create Menu with required fields', () {
-      const menu = Menu(
-        id: 1,
-        name: 'Test Menu',
-        status: Status.draft,
-        version: '1.0.0',
-      );
+  group('Menu', () {
+    group('construction', () {
+      test('should create menu with correct required fields when id, name, status and version are provided', () {
+        // Arrange & Act
+        const menu = Menu(id: 1, name: 'Test Menu', status: Status.draft, version: '1.0.0');
 
-      expect(menu.id, 1);
-      expect(menu.name, 'Test Menu');
-      expect(menu.status, Status.draft);
-      expect(menu.version, '1.0.0');
-      expect(menu.dateCreated, null);
-      expect(menu.dateUpdated, null);
-      expect(menu.userCreated, null);
-      expect(menu.userUpdated, null);
-      expect(menu.styleConfig, null);
-      expect(menu.pageSize, null);
-      expect(menu.area, null);
+        // Assert
+        expect(menu.id, 1);
+        expect(menu.name, 'Test Menu');
+        expect(menu.status, Status.draft);
+        expect(menu.version, '1.0.0');
+      });
+
+      test('should default optional fields to null when not specified', () {
+        // Arrange & Act
+        const menu = Menu(id: 1, name: 'Test Menu', status: Status.draft, version: '1.0.0');
+
+        // Assert
+        expect(menu.dateCreated, isNull);
+        expect(menu.dateUpdated, isNull);
+        expect(menu.userCreated, isNull);
+        expect(menu.userUpdated, isNull);
+        expect(menu.styleConfig, isNull);
+        expect(menu.pageSize, isNull);
+        expect(menu.area, isNull);
+        expect(menu.displayOptions, isNull);
+      });
+
+      test('should default allowedWidgets to empty list when not specified', () {
+        // Arrange & Act
+        const menu = Menu(id: 1, name: 'Test Menu', status: Status.draft, version: '1.0.0');
+
+        // Assert
+        expect(menu.allowedWidgets, isEmpty);
+      });
+
+      test('should store all optional fields when all fields are provided', () {
+        // Arrange
+        final now = DateTime(2024, 6, 1);
+        const style = StyleConfig(fontFamily: 'Arial');
+        const size = PageSize(name: 'A4', width: 210.0, height: 297.0);
+        const area = Area(id: 1, name: 'Dining');
+        const displayOpts = MenuDisplayOptions(showPrices: false);
+
+        // Act
+        final menu = Menu(
+          id: 5,
+          name: 'Dinner Menu',
+          status: Status.published,
+          version: '2.0.0',
+          dateCreated: now,
+          dateUpdated: now,
+          userCreated: 'user-1',
+          userUpdated: 'user-2',
+          styleConfig: style,
+          pageSize: size,
+          area: area,
+          displayOptions: displayOpts,
+        );
+
+        // Assert
+        expect(menu.styleConfig, style);
+        expect(menu.pageSize, size);
+        expect(menu.area, area);
+        expect(menu.displayOptions, displayOpts);
+        expect(menu.userCreated, 'user-1');
+        expect(menu.userUpdated, 'user-2');
+        expect(menu.dateCreated, now);
+      });
     });
 
-    test('should create Menu with all fields', () {
-      final now = DateTime.now();
-      const styleConfig = StyleConfig(
-        fontFamily: 'Arial',
-        fontSize: 14.0,
-        primaryColor: '#000000',
-      );
-      const pageSize = PageSize(name: 'A4', width: 210.0, height: 297.0);
+    group('equality', () {
+      test('should be equal when all fields have the same values', () {
+        // Arrange
+        const a = Menu(id: 1, name: 'Test Menu', status: Status.draft, version: '1.0.0');
+        const b = Menu(id: 1, name: 'Test Menu', status: Status.draft, version: '1.0.0');
 
-      final menu = Menu(
-        id: 1,
-        name: 'Complete Menu',
-        status: Status.published,
-        version: '2.0.0',
-        dateCreated: now,
-        dateUpdated: now,
-        userCreated: 'user-1',
-        userUpdated: 'user-2',
-        styleConfig: styleConfig,
-        pageSize: pageSize,
-        area: const Area(id: 1, name: 'Restaurant'),
-      );
+        // Assert
+        expect(a, equals(b));
+      });
 
-      expect(menu.id, 1);
-      expect(menu.name, 'Complete Menu');
-      expect(menu.status, Status.published);
-      expect(menu.version, '2.0.0');
-      expect(menu.dateCreated, now);
-      expect(menu.dateUpdated, now);
-      expect(menu.userCreated, 'user-1');
-      expect(menu.userUpdated, 'user-2');
-      expect(menu.styleConfig, styleConfig);
-      expect(menu.pageSize, pageSize);
-      expect(menu.area, const Area(id: 1, name: 'Restaurant'));
+      test('should produce the same hashCode when all fields are equal', () {
+        // Arrange
+        const a = Menu(id: 1, name: 'Test Menu', status: Status.draft, version: '1.0.0');
+        const b = Menu(id: 1, name: 'Test Menu', status: Status.draft, version: '1.0.0');
+
+        // Assert
+        expect(a.hashCode, equals(b.hashCode));
+      });
+
+      test('should not be equal when id differs', () {
+        // Arrange
+        const a = Menu(id: 1, name: 'Test Menu', status: Status.draft, version: '1.0.0');
+        const b = Menu(id: 2, name: 'Test Menu', status: Status.draft, version: '1.0.0');
+
+        // Assert
+        expect(a, isNot(equals(b)));
+      });
+
+      test('should not be equal when status differs', () {
+        // Arrange
+        const a = Menu(id: 1, name: 'Test Menu', status: Status.draft, version: '1.0.0');
+        const b = Menu(id: 1, name: 'Test Menu', status: Status.published, version: '1.0.0');
+
+        // Assert
+        expect(a, isNot(equals(b)));
+      });
     });
 
-    test('should support copyWith', () {
-      const menu = Menu(
-        id: 1,
-        name: 'Original',
-        status: Status.draft,
-        version: '1.0.0',
-      );
+    group('copyWith', () {
+      test('should update name when copyWith is called with a new name', () {
+        // Arrange
+        const menu = Menu(id: 1, name: 'Original', status: Status.draft, version: '1.0.0');
 
-      final updated = menu.copyWith(name: 'Updated', status: Status.published);
+        // Act
+        final updated = menu.copyWith(name: 'Updated');
 
-      expect(updated.id, 1);
-      expect(updated.name, 'Updated');
-      expect(updated.status, Status.published);
-      expect(updated.version, '1.0.0');
+        // Assert
+        expect(updated.name, 'Updated');
+        expect(updated.id, 1);
+      });
+
+      test('should update status when copyWith is called with a new status', () {
+        // Arrange
+        const menu = Menu(id: 1, name: 'Original', status: Status.draft, version: '1.0.0');
+
+        // Act
+        final updated = menu.copyWith(status: Status.published);
+
+        // Assert
+        expect(updated.status, Status.published);
+        expect(updated.name, 'Original');
+      });
+
+      test('should update allowedWidgets when copyWith is called with a new list', () {
+        // Arrange
+        const menu = Menu(id: 1, name: 'M', status: Status.draft, version: '1');
+
+        // Act
+        final updated = menu.copyWith(
+          allowedWidgets: [const WidgetTypeConfig(type: 'dish')],
+        );
+
+        // Assert
+        expect(updated.allowedWidgets, hasLength(1));
+        expect(updated.allowedWidgets.first.type, 'dish');
+      });
+
+      test('should preserve id when only name is updated via copyWith', () {
+        // Arrange
+        final menu = buildMenu(id: 42, name: 'Old');
+
+        // Act
+        final updated = menu.copyWith(name: 'New');
+
+        // Assert
+        expect(updated.id, 42);
+      });
     });
 
-    test('should support equality', () {
-      const menu1 = Menu(
-        id: 1,
-        name: 'Test Menu',
-        status: Status.draft,
-        version: '1.0.0',
-      );
+    group('allowedWidgetTypes getter', () {
+      test('should return empty set when allowedWidgets is empty', () {
+        // Arrange
+        const menu = Menu(id: 1, name: 'M', status: Status.draft, version: '1');
 
-      const menu2 = Menu(
-        id: 1,
-        name: 'Test Menu',
-        status: Status.draft,
-        version: '1.0.0',
-      );
+        // Assert
+        expect(menu.allowedWidgetTypes, isEmpty);
+      });
 
-      expect(menu1, equals(menu2));
-      expect(menu1.hashCode, equals(menu2.hashCode));
+      test('should return only enabled widget type strings when some configs are enabled', () {
+        // Arrange
+        const menu = Menu(
+          id: 1,
+          name: 'M',
+          status: Status.draft,
+          version: '1',
+          allowedWidgets: [
+            WidgetTypeConfig(type: 'dish'),
+            WidgetTypeConfig(type: 'text'),
+            WidgetTypeConfig(type: 'section', enabled: false),
+          ],
+        );
+
+        // Assert
+        expect(menu.allowedWidgetTypes, {'dish', 'text'});
+        expect(menu.allowedWidgetTypes, isNot(contains('section')));
+      });
+
+      test('should return empty set when all widget configs are disabled', () {
+        // Arrange
+        const menu = Menu(
+          id: 1,
+          name: 'M',
+          status: Status.draft,
+          version: '1',
+          allowedWidgets: [
+            WidgetTypeConfig(type: 'dish', enabled: false),
+            WidgetTypeConfig(type: 'text', enabled: false),
+          ],
+        );
+
+        // Assert
+        expect(menu.allowedWidgetTypes, isEmpty);
+      });
     });
 
-    test('should default allowedWidgetTypes to empty list', () {
-      const menu = Menu(
-        id: 1,
-        name: 'Test Menu',
-        status: Status.draft,
-        version: '1.0.0',
-      );
+    group('alignmentFor method', () {
+      test('should return the configured alignment when the type exists in allowedWidgets', () {
+        // Arrange
+        const menu = Menu(
+          id: 1,
+          name: 'M',
+          status: Status.draft,
+          version: '1',
+          allowedWidgets: [
+            WidgetTypeConfig(type: 'dish', alignment: WidgetAlignment.justified),
+          ],
+        );
 
-      expect(menu.allowedWidgetTypes, <String>[]);
+        // Assert
+        expect(menu.alignmentFor('dish'), WidgetAlignment.justified);
+      });
+
+      test('should return WidgetAlignment.start when the type is not in allowedWidgets', () {
+        // Arrange
+        const menu = Menu(id: 1, name: 'M', status: Status.draft, version: '1');
+
+        // Assert
+        expect(menu.alignmentFor('nonexistent'), WidgetAlignment.start);
+      });
+
+      test('should return the alignment even when the config is disabled', () {
+        // Arrange
+        const menu = Menu(
+          id: 1,
+          name: 'M',
+          status: Status.draft,
+          version: '1',
+          allowedWidgets: [
+            WidgetTypeConfig(
+              type: 'section',
+              alignment: WidgetAlignment.center,
+              enabled: false,
+            ),
+          ],
+        );
+
+        // Assert
+        expect(menu.alignmentFor('section'), WidgetAlignment.center);
+      });
+
+      test('should return the first matching type alignment when multiple configs exist', () {
+        // Arrange
+        const menu = Menu(
+          id: 1,
+          name: 'M',
+          status: Status.draft,
+          version: '1',
+          allowedWidgets: [
+            WidgetTypeConfig(type: 'dish', alignment: WidgetAlignment.end),
+            WidgetTypeConfig(type: 'wine', alignment: WidgetAlignment.center),
+          ],
+        );
+
+        // Assert
+        expect(menu.alignmentFor('dish'), WidgetAlignment.end);
+        expect(menu.alignmentFor('wine'), WidgetAlignment.center);
+      });
     });
 
-    test('should store allowedWidgets and expose allowedWidgetTypes', () {
-      const menu = Menu(
-        id: 1,
-        name: 'Test Menu',
-        status: Status.draft,
-        version: '1.0.0',
-        allowedWidgets: [
-          WidgetTypeConfig(type: 'dish'),
-          WidgetTypeConfig(type: 'text'),
-        ],
-      );
+    group('toString', () {
+      test('should produce a non-empty string', () {
+        // Arrange
+        const menu = Menu(id: 1, name: 'Test Menu', status: Status.draft, version: '1.0.0');
 
-      expect(menu.allowedWidgets, hasLength(2));
-      expect(menu.allowedWidgetTypes, {'dish', 'text'});
+        // Act
+        final result = menu.toString();
+
+        // Assert
+        expect(result, isNotEmpty);
+      });
     });
 
-    test('allowedWidgetTypes excludes disabled configs but alignmentFor '
-        'still returns their alignment', () {
-      const menu = Menu(
-        id: 1,
-        name: 'Test Menu',
-        status: Status.draft,
-        version: '1.0.0',
-        allowedWidgets: [
-          WidgetTypeConfig(type: 'dish'),
-          WidgetTypeConfig(
-            type: 'section',
-            alignment: WidgetAlignment.center,
-            enabled: false,
-          ),
-        ],
-      );
+    group('JSON serialization', () {
+      test('should serialize required fields to JSON', () {
+        // Arrange
+        const menu = Menu(id: 1, name: 'Test Menu', status: Status.draft, version: '1.0.0');
 
-      expect(menu.allowedWidgetTypes, {'dish'});
-      expect(menu.alignmentFor('section'), WidgetAlignment.center);
-    });
+        // Act
+        final json = menu.toJson();
 
-    test('alignmentFor returns configured alignment or start fallback', () {
-      const menu = Menu(
-        id: 1,
-        name: 'Test Menu',
-        status: Status.draft,
-        version: '1.0.0',
-        allowedWidgets: [
-          WidgetTypeConfig(type: 'dish', alignment: WidgetAlignment.justified),
-        ],
-      );
+        // Assert
+        expect(json['id'], 1);
+        expect(json['name'], 'Test Menu');
+        expect(json['status'], 'draft');
+        expect(json['version'], '1.0.0');
+      });
 
-      expect(menu.alignmentFor('dish'), WidgetAlignment.justified);
-      expect(menu.alignmentFor('text'), WidgetAlignment.start);
-    });
+      test('should serialize status as "published" for published status', () {
+        // Arrange
+        const menu = Menu(id: 1, name: 'M', status: Status.published, version: '1');
 
-    test('should serialize allowedWidgets to JSON', () {
-      const menu = Menu(
-        id: 1,
-        name: 'Test Menu',
-        status: Status.draft,
-        version: '1.0.0',
-        allowedWidgets: [
-          WidgetTypeConfig(type: 'dish'),
-          WidgetTypeConfig(type: 'section'),
-        ],
-      );
+        // Act
+        final json = menu.toJson();
 
-      final json = menu.toJson();
-      expect(json['allowedWidgets'], isA<List>());
-      // Without explicitToJson on Menu, nested values stay as freezed objects
-      // in the in-memory map; round-trip via JSON encoding when needed.
-      final first = (json['allowedWidgets'] as List).first;
-      final type = first is Map
-          ? first['type']
-          : (first as WidgetTypeConfig).type;
-      expect(type, 'dish');
-    });
+        // Assert
+        expect(json['status'], 'published');
+      });
 
-    test('should deserialize allowedWidgets from JSON', () {
-      final json = {
-        'id': 1,
-        'name': 'Test Menu',
-        'status': 'draft',
-        'version': '1.0.0',
-        'allowedWidgets': [
-          {'type': 'dish', 'alignment': 'center'},
-          {'type': 'text'},
-        ],
-      };
+      test('should serialize status as "archived" for archived status', () {
+        // Arrange
+        const menu = Menu(id: 1, name: 'M', status: Status.archived, version: '1');
 
-      final menu = Menu.fromJson(json);
-      expect(menu.allowedWidgets, hasLength(2));
-      expect(menu.allowedWidgets[0].alignment, WidgetAlignment.center);
-      expect(menu.allowedWidgets[1].alignment, WidgetAlignment.start);
-    });
+        // Act
+        final json = menu.toJson();
 
-    test('should not be equal with different values', () {
-      const menu1 = Menu(
-        id: 1,
-        name: 'Test Menu',
-        status: Status.draft,
-        version: '1.0.0',
-      );
+        // Assert
+        expect(json['status'], 'archived');
+      });
 
-      const menu2 = Menu(
-        id: 2,
-        name: 'Test Menu',
-        status: Status.draft,
-        version: '1.0.0',
-      );
+      test('should deserialize menu from JSON with correct field values', () {
+        // Arrange
+        final json = {
+          'id': 1,
+          'name': 'Test Menu',
+          'status': 'published',
+          'version': '1.0.0',
+        };
 
-      expect(menu1, isNot(equals(menu2)));
-    });
+        // Act
+        final menu = Menu.fromJson(json);
 
-    test('should serialize to JSON', () {
-      const menu = Menu(
-        id: 1,
-        name: 'Test Menu',
-        status: Status.draft,
-        version: '1.0.0',
-      );
+        // Assert
+        expect(menu.id, 1);
+        expect(menu.name, 'Test Menu');
+        expect(menu.status, Status.published);
+        expect(menu.version, '1.0.0');
+      });
 
-      final json = menu.toJson();
+      test('should deserialize allowedWidgets from JSON with correct alignment', () {
+        // Arrange
+        final json = {
+          'id': 1,
+          'name': 'M',
+          'status': 'draft',
+          'version': '1',
+          'allowedWidgets': [
+            {'type': 'dish', 'alignment': 'justified'},
+            {'type': 'text'},
+          ],
+        };
 
-      expect(json['id'], 1);
-      expect(json['name'], 'Test Menu');
-      expect(json['status'], 'draft');
-      expect(json['version'], '1.0.0');
-    });
+        // Act
+        final menu = Menu.fromJson(json);
 
-    test('should deserialize from JSON', () {
-      final json = {
-        'id': 1,
-        'name': 'Test Menu',
-        'status': 'published',
-        'version': '1.0.0',
-      };
+        // Assert
+        expect(menu.allowedWidgets, hasLength(2));
+        expect(menu.allowedWidgets[0].alignment, WidgetAlignment.justified);
+        expect(menu.allowedWidgets[1].alignment, WidgetAlignment.start);
+      });
 
-      final menu = Menu.fromJson(json);
+      test('should round-trip through JSON preserving equality for minimal menu', () {
+        // Arrange
+        const original = Menu(id: 1, name: 'Minimal', status: Status.draft, version: '1');
 
-      expect(menu.id, 1);
-      expect(menu.name, 'Test Menu');
-      expect(menu.status, Status.published);
-      expect(menu.version, '1.0.0');
-    });
-  });
+        // Act
+        final restored = Menu.fromJson(original.toJson());
 
-  group('Status', () {
-    test('should have correct JSON values', () {
-      expect(Status.draft.name, 'draft');
-      expect(Status.published.name, 'published');
-      expect(Status.archived.name, 'archived');
+        // Assert
+        expect(restored, equals(original));
+      });
     });
   });
 
   group('StyleConfig', () {
-    test('should create StyleConfig with all fields', () {
-      const config = StyleConfig(
-        fontFamily: 'Arial',
-        fontSize: 14.0,
-        primaryColor: '#000000',
-        secondaryColor: '#FFFFFF',
-        backgroundColor: '#F0F0F0',
-        marginTop: 10.0,
-        marginBottom: 10.0,
-        marginLeft: 15.0,
-        marginRight: 15.0,
-        padding: 8.0,
-      );
+    group('construction', () {
+      test('should create StyleConfig with all fields null by default', () {
+        // Arrange & Act
+        const config = StyleConfig();
 
-      expect(config.fontFamily, 'Arial');
-      expect(config.fontSize, 14.0);
-      expect(config.primaryColor, '#000000');
-      expect(config.secondaryColor, '#FFFFFF');
-      expect(config.backgroundColor, '#F0F0F0');
-      expect(config.marginTop, 10.0);
-      expect(config.marginBottom, 10.0);
-      expect(config.marginLeft, 15.0);
-      expect(config.marginRight, 15.0);
-      expect(config.padding, 8.0);
+        // Assert
+        expect(config.fontFamily, isNull);
+        expect(config.fontSize, isNull);
+        expect(config.primaryColor, isNull);
+        expect(config.secondaryColor, isNull);
+        expect(config.backgroundColor, isNull);
+        expect(config.margin, isNull);
+        expect(config.padding, isNull);
+        expect(config.borderType, isNull);
+        expect(config.verticalAlignment, isNull);
+      });
+
+      test('should store all fields when fully specified', () {
+        // Arrange & Act
+        const config = StyleConfig(
+          fontFamily: 'Arial',
+          fontSize: 14.0,
+          primaryColor: '#000000',
+          secondaryColor: '#FFFFFF',
+          backgroundColor: '#F0F0F0',
+          margin: 10.0,
+          marginTop: 10.0,
+          marginBottom: 10.0,
+          marginLeft: 15.0,
+          marginRight: 15.0,
+          padding: 8.0,
+          paddingTop: 4.0,
+          paddingBottom: 4.0,
+          paddingLeft: 6.0,
+          paddingRight: 6.0,
+          borderType: BorderType.plainThin,
+          verticalAlignment: VerticalAlignment.center,
+        );
+
+        // Assert
+        expect(config.fontFamily, 'Arial');
+        expect(config.fontSize, 14.0);
+        expect(config.primaryColor, '#000000');
+        expect(config.marginTop, 10.0);
+        expect(config.paddingLeft, 6.0);
+        expect(config.borderType, BorderType.plainThin);
+        expect(config.verticalAlignment, VerticalAlignment.center);
+      });
     });
 
-    test('should support copyWith', () {
-      const config = StyleConfig(fontFamily: 'Arial', fontSize: 14.0);
+    group('equality', () {
+      test('should be equal when all fields have the same values', () {
+        // Arrange
+        const a = StyleConfig(fontFamily: 'Arial', fontSize: 14.0);
+        const b = StyleConfig(fontFamily: 'Arial', fontSize: 14.0);
 
-      final updated = config.copyWith(fontSize: 16.0);
+        // Assert
+        expect(a, equals(b));
+      });
 
-      expect(updated.fontFamily, 'Arial');
-      expect(updated.fontSize, 16.0);
+      test('should not be equal when fontFamily differs', () {
+        // Arrange
+        const a = StyleConfig(fontFamily: 'Arial');
+        const b = StyleConfig(fontFamily: 'Helvetica');
+
+        // Assert
+        expect(a, isNot(equals(b)));
+      });
     });
 
-    test('should serialize to JSON', () {
-      const config = StyleConfig(
-        fontFamily: 'Arial',
-        fontSize: 14.0,
-        primaryColor: '#000000',
-      );
+    group('copyWith', () {
+      test('should update fontSize when copyWith is called with a new fontSize', () {
+        // Arrange
+        const config = StyleConfig(fontFamily: 'Arial', fontSize: 14.0);
 
-      final json = config.toJson();
+        // Act
+        final updated = config.copyWith(fontSize: 16.0);
 
-      expect(json['fontFamily'], 'Arial');
-      expect(json['fontSize'], 14.0);
-      expect(json['primaryColor'], '#000000');
+        // Assert
+        expect(updated.fontFamily, 'Arial');
+        expect(updated.fontSize, 16.0);
+      });
+
+      test('should update paddingTop when copyWith is called with a new paddingTop', () {
+        // Arrange
+        const config = StyleConfig(padding: 16.0);
+
+        // Act
+        final updated = config.copyWith(paddingTop: 20.0, paddingBottom: 24.0);
+
+        // Assert
+        expect(updated.padding, 16.0);
+        expect(updated.paddingTop, 20.0);
+        expect(updated.paddingBottom, 24.0);
+        expect(updated.paddingLeft, isNull);
+      });
+
+      test('should update borderType when copyWith is called with a new borderType', () {
+        // Arrange
+        const config = StyleConfig(borderType: BorderType.none);
+
+        // Act
+        final updated = config.copyWith(borderType: BorderType.dropShadow);
+
+        // Assert
+        expect(updated.borderType, BorderType.dropShadow);
+      });
     });
 
-    test('should deserialize from JSON', () {
-      final json = {
-        'fontFamily': 'Arial',
-        'fontSize': 14.0,
-        'primaryColor': '#000000',
-      };
+    group('JSON serialization', () {
+      test('should serialize fontFamily, fontSize and primaryColor to JSON', () {
+        // Arrange
+        const config = StyleConfig(
+          fontFamily: 'Arial',
+          fontSize: 14.0,
+          primaryColor: '#000000',
+        );
 
-      final config = StyleConfig.fromJson(json);
+        // Act
+        final json = config.toJson();
 
-      expect(config.fontFamily, 'Arial');
-      expect(config.fontSize, 14.0);
-      expect(config.primaryColor, '#000000');
-    });
+        // Assert
+        expect(json['fontFamily'], 'Arial');
+        expect(json['fontSize'], 14.0);
+        expect(json['primaryColor'], '#000000');
+      });
 
-    test('should create StyleConfig with per-side padding fields', () {
-      const config = StyleConfig(
-        paddingTop: 10.0,
-        paddingBottom: 12.0,
-        paddingLeft: 8.0,
-        paddingRight: 8.0,
-      );
+      test('should serialize borderType as its JSON string value', () {
+        // Arrange
+        const config = StyleConfig(borderType: BorderType.plainThick);
 
-      expect(config.paddingTop, 10.0);
-      expect(config.paddingBottom, 12.0);
-      expect(config.paddingLeft, 8.0);
-      expect(config.paddingRight, 8.0);
-    });
+        // Act
+        final json = config.toJson();
 
-    test('should default per-side padding fields to null', () {
-      const config = StyleConfig();
+        // Assert
+        expect(json['borderType'], 'plain_thick');
+      });
 
-      expect(config.paddingTop, isNull);
-      expect(config.paddingBottom, isNull);
-      expect(config.paddingLeft, isNull);
-      expect(config.paddingRight, isNull);
-    });
+      test('should deserialize borderType from JSON string value', () {
+        // Arrange
+        final json = {'borderType': 'double_offset'};
 
-    test('should support copyWith for per-side padding', () {
-      const config = StyleConfig(padding: 16.0);
+        // Act
+        final config = StyleConfig.fromJson(json);
 
-      final updated = config.copyWith(paddingTop: 20.0, paddingBottom: 24.0);
+        // Assert
+        expect(config.borderType, BorderType.doubleOffset);
+      });
 
-      expect(updated.padding, 16.0);
-      expect(updated.paddingTop, 20.0);
-      expect(updated.paddingBottom, 24.0);
-      expect(updated.paddingLeft, isNull);
-      expect(updated.paddingRight, isNull);
-    });
+      test('should serialize per-side padding fields to JSON', () {
+        // Arrange
+        const config = StyleConfig(
+          paddingTop: 10.0,
+          paddingBottom: 12.0,
+          paddingLeft: 8.0,
+          paddingRight: 8.0,
+        );
 
-    test('should serialize per-side padding to JSON', () {
-      const config = StyleConfig(
-        paddingTop: 10.0,
-        paddingBottom: 12.0,
-        paddingLeft: 8.0,
-        paddingRight: 8.0,
-      );
+        // Act
+        final json = config.toJson();
 
-      final json = config.toJson();
+        // Assert
+        expect(json['paddingTop'], 10.0);
+        expect(json['paddingBottom'], 12.0);
+        expect(json['paddingLeft'], 8.0);
+        expect(json['paddingRight'], 8.0);
+      });
 
-      expect(json['paddingTop'], 10.0);
-      expect(json['paddingBottom'], 12.0);
-      expect(json['paddingLeft'], 8.0);
-      expect(json['paddingRight'], 8.0);
-    });
+      test('should round-trip through JSON preserving equality', () {
+        // Arrange
+        const original = StyleConfig(
+          fontFamily: 'Georgia',
+          fontSize: 12.0,
+          borderType: BorderType.dropShadow,
+          verticalAlignment: VerticalAlignment.bottom,
+        );
 
-    test('should deserialize per-side padding from JSON', () {
-      final json = {
-        'paddingTop': 10.0,
-        'paddingBottom': 12.0,
-        'paddingLeft': 8.0,
-        'paddingRight': 8.0,
-      };
+        // Act
+        final restored = StyleConfig.fromJson(original.toJson());
 
-      final config = StyleConfig.fromJson(json);
-
-      expect(config.paddingTop, 10.0);
-      expect(config.paddingBottom, 12.0);
-      expect(config.paddingLeft, 8.0);
-      expect(config.paddingRight, 8.0);
-    });
-
-    test('should create StyleConfig with borderType', () {
-      const config = StyleConfig(borderType: BorderType.plainThin);
-
-      expect(config.borderType, BorderType.plainThin);
-    });
-
-    test('should default borderType to null', () {
-      const config = StyleConfig();
-
-      expect(config.borderType, isNull);
-    });
-
-    test('should support copyWith for borderType', () {
-      const config = StyleConfig(borderType: BorderType.none);
-
-      final updated = config.copyWith(borderType: BorderType.dropShadow);
-
-      expect(updated.borderType, BorderType.dropShadow);
-    });
-
-    test('should serialize borderType to JSON', () {
-      const config = StyleConfig(borderType: BorderType.plainThick);
-
-      final json = config.toJson();
-
-      expect(json['borderType'], 'plain_thick');
-    });
-
-    test('should deserialize borderType from JSON', () {
-      final json = {'borderType': 'double_offset'};
-
-      final config = StyleConfig.fromJson(json);
-
-      expect(config.borderType, BorderType.doubleOffset);
+        // Assert
+        expect(restored, equals(original));
+      });
     });
   });
 
   group('PageSize', () {
-    test('should create PageSize with required fields', () {
-      const pageSize = PageSize(name: 'A4', width: 210.0, height: 297.0);
+    group('construction', () {
+      test('should create PageSize with correct required fields', () {
+        // Arrange & Act
+        const size = PageSize(name: 'A4', width: 210.0, height: 297.0);
 
-      expect(pageSize.name, 'A4');
-      expect(pageSize.width, 210.0);
-      expect(pageSize.height, 297.0);
+        // Assert
+        expect(size.name, 'A4');
+        expect(size.width, 210.0);
+        expect(size.height, 297.0);
+      });
     });
 
-    test('should support copyWith', () {
-      const pageSize = PageSize(name: 'A4', width: 210.0, height: 297.0);
+    group('equality', () {
+      test('should be equal when all fields have the same values', () {
+        // Arrange
+        const a = PageSize(name: 'A4', width: 210.0, height: 297.0);
+        const b = PageSize(name: 'A4', width: 210.0, height: 297.0);
 
-      final updated = pageSize.copyWith(name: 'Letter');
+        // Assert
+        expect(a, equals(b));
+      });
 
-      expect(updated.name, 'Letter');
-      expect(updated.width, 210.0);
-      expect(updated.height, 297.0);
+      test('should not be equal when name differs', () {
+        // Arrange
+        const a = PageSize(name: 'A4', width: 210.0, height: 297.0);
+        const b = PageSize(name: 'A3', width: 210.0, height: 297.0);
+
+        // Assert
+        expect(a, isNot(equals(b)));
+      });
     });
 
-    test('should serialize to JSON', () {
-      const pageSize = PageSize(name: 'A4', width: 210.0, height: 297.0);
+    group('copyWith', () {
+      test('should update name when copyWith is called with a new name', () {
+        // Arrange
+        const size = PageSize(name: 'A4', width: 210.0, height: 297.0);
 
-      final json = pageSize.toJson();
+        // Act
+        final updated = size.copyWith(name: 'Letter');
 
-      expect(json['name'], 'A4');
-      expect(json['width'], 210.0);
-      expect(json['height'], 297.0);
+        // Assert
+        expect(updated.name, 'Letter');
+        expect(updated.width, 210.0);
+        expect(updated.height, 297.0);
+      });
     });
 
-    test('should deserialize from JSON', () {
-      final json = {'name': 'A4', 'width': 210.0, 'height': 297.0};
+    group('JSON serialization', () {
+      test('should serialize name, width and height to JSON', () {
+        // Arrange
+        const size = PageSize(name: 'A4', width: 210.0, height: 297.0);
 
-      final pageSize = PageSize.fromJson(json);
+        // Act
+        final json = size.toJson();
 
-      expect(pageSize.name, 'A4');
-      expect(pageSize.width, 210.0);
-      expect(pageSize.height, 297.0);
+        // Assert
+        expect(json['name'], 'A4');
+        expect(json['width'], 210.0);
+        expect(json['height'], 297.0);
+      });
+
+      test('should round-trip through JSON preserving equality', () {
+        // Arrange
+        const original = PageSize(name: 'A5', width: 148.0, height: 210.0);
+
+        // Act
+        final restored = PageSize.fromJson(original.toJson());
+
+        // Assert
+        expect(restored, equals(original));
+      });
     });
   });
 }
