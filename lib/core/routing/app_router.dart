@@ -10,7 +10,6 @@ import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/presentation/admin_exportable_menus_page.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/admin_sizes_page.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/pages/admin_template_creator_page.dart';
-import 'package:oxo_menus/features/admin_template_editor/presentation/pages/admin_template_editor_page.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/admin_templates_page.dart';
 import 'package:oxo_menus/features/home/presentation/pages/home_page.dart';
 import 'package:oxo_menus/features/auth/presentation/pages/login_page.dart';
@@ -221,14 +220,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'admin-template-create',
                 builder: (context, state) => const AdminTemplateCreatorPage(),
               ),
-              GoRoute(
-                path: ':id',
-                name: 'admin-template-editor',
-                builder: (context, state) {
-                  final int menuId = int.parse(state.pathParameters['id']!);
-                  return AdminTemplateEditorPage(menuId: menuId);
-                },
-              ),
+              // The admin template editor is served by the migrated MainRouter
+              // at `/app/admin/templates/{id}/edit` (Phase 11). The legacy
+              // /admin/templates/:id route is intentionally absent.
             ],
           ),
         ],

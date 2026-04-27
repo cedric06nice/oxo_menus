@@ -19,10 +19,7 @@ import 'package:oxo_menus/features/menu/domain/usecases/fetch_menu_tree_usecase.
 
 import '../../../fakes/fake_auth_repository.dart';
 import '../../../fakes/fake_area_repository.dart';
-import '../../../fakes/fake_column_repository.dart';
-import '../../../fakes/fake_container_repository.dart';
 import '../../../fakes/fake_menu_repository.dart';
-import '../../../fakes/fake_page_repository.dart';
 import '../../../fakes/fake_size_repository.dart';
 import '../../../fakes/fake_widget_repository.dart';
 import '../../../fakes/builders/user_builder.dart';
@@ -544,51 +541,10 @@ void main() {
       expect(find.byType(AdminTemplateCreatorPage), findsOneWidget);
     });
 
-    testWidgets('should render /admin/templates/:id page for admin user', (
-      tester,
-    ) async {
-      final fakeAuth = FakeAuthRepository();
-      fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
-
-      final fakeMenu = FakeMenuRepository();
-      _configureMenuRepository(fakeMenu);
-
-      final fakePage = FakePageRepository();
-      fakePage.whenGetAllForMenu(const Success([]));
-
-      final fakeContainer = FakeContainerRepository();
-      fakeContainer.whenGetAllForPage(const Success([]));
-      fakeContainer.whenGetAllForContainer(const Success([]));
-
-      final fakeColumn = FakeColumnRepository();
-      fakeColumn.whenGetAllForContainer(const Success([]));
-
-      final fakeWidget = FakeWidgetRepository();
-      fakeWidget.whenGetAllForColumn(const Success([]));
-
-      late GoRouter router;
-
-      await tester.pumpWidget(
-        _buildApp(
-          fakeAuth: fakeAuth,
-          fakeMenu: fakeMenu,
-          extraOverrides: [
-            pageRepositoryProvider.overrideWithValue(fakePage),
-            containerRepositoryProvider.overrideWithValue(fakeContainer),
-            columnRepositoryProvider.overrideWithValue(fakeColumn),
-            widgetRepositoryProvider.overrideWithValue(fakeWidget),
-          ],
-          onRouter: (r) => router = r,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      router.go('/admin/templates/123');
-      await tester.pumpAndSettle();
-
-      // Template not found — AdminTemplateEditorPage shows error state
-      expect(find.textContaining('Error:'), findsOneWidget);
-    });
+    // The /admin/templates/:id legacy route was removed in Phase 11. The
+    // template editor is now served by MainRouter at
+    // /app/admin/templates/{id}/edit (see main_router_test.dart and
+    // route_config_test.dart).
   });
 
   group('AppRouter — deep linking', () {
@@ -655,50 +611,8 @@ void main() {
       },
     );
 
-    testWidgets(
-      'should navigate directly to /admin/templates/:id via deep link for admin user',
-      (tester) async {
-        final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
-
-        final fakeMenu = FakeMenuRepository();
-        _configureMenuRepository(fakeMenu);
-
-        final fakePage = FakePageRepository();
-        fakePage.whenGetAllForMenu(const Success([]));
-
-        final fakeContainer = FakeContainerRepository();
-        fakeContainer.whenGetAllForPage(const Success([]));
-        fakeContainer.whenGetAllForContainer(const Success([]));
-
-        final fakeColumn = FakeColumnRepository();
-        fakeColumn.whenGetAllForContainer(const Success([]));
-
-        final fakeWidget = FakeWidgetRepository();
-        fakeWidget.whenGetAllForColumn(const Success([]));
-
-        late GoRouter router;
-
-        await tester.pumpWidget(
-          _buildApp(
-            fakeAuth: fakeAuth,
-            fakeMenu: fakeMenu,
-            extraOverrides: [
-              pageRepositoryProvider.overrideWithValue(fakePage),
-              containerRepositoryProvider.overrideWithValue(fakeContainer),
-              columnRepositoryProvider.overrideWithValue(fakeColumn),
-              widgetRepositoryProvider.overrideWithValue(fakeWidget),
-            ],
-            onRouter: (r) => router = r,
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        router.go('/admin/templates/456');
-        await tester.pumpAndSettle();
-
-        expect(find.textContaining('Error:'), findsOneWidget);
-      },
-    );
+    // The deep-link to /admin/templates/:id was retired in Phase 11. The
+    // migrated equivalent (/app/admin/templates/{id}/edit) is exercised in
+    // route_config_test.dart and main_router_test.dart.
   });
 }

@@ -3,7 +3,7 @@ import 'package:oxo_menus/shared/domain/entities/border_type.dart';
 import 'package:oxo_menus/features/menu/domain/entities/container.dart';
 import 'package:oxo_menus/features/menu/domain/entities/menu.dart';
 import 'package:oxo_menus/shared/domain/entities/vertical_alignment.dart';
-import 'package:oxo_menus/features/admin_template_editor/presentation/models/editor_selection.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/state/editor_selection.dart';
 import 'package:oxo_menus/shared/presentation/widgets/edge_insets_editor.dart';
 
 class SidePanelStyleEditor extends StatefulWidget {

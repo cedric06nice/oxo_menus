@@ -13,6 +13,8 @@ import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_
 import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_router.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_route_page.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_router.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/routing/admin_template_editor_route_page.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/routing/admin_template_editor_router.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_page.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_route_page.dart';
@@ -56,6 +58,7 @@ class MainRouter extends RouterDelegate<RouteConfig>
         AdminTemplateCreatorRouter,
         AdminSizesRouter,
         AdminExportableMenusRouter,
+        AdminTemplateEditorRouter,
         PdfPreviewRouter {
   MainRouter({
     required AppContainer container,
@@ -180,6 +183,11 @@ class MainRouter extends RouterDelegate<RouteConfig>
         _replaceWithSingle(
           AdminExportableMenusRoutePage(router: this),
           identity: 'admin-exportable-menus',
+        );
+      case AdminTemplateEditorRouteConfig(:final menuId):
+        _replaceWithSingle(
+          AdminTemplateEditorRoutePage(router: this, menuId: menuId),
+          identity: 'admin-template-editor-$menuId',
         );
       case PdfPreviewRouteConfig(:final menuId):
         _replaceWithSingle(
@@ -310,8 +318,30 @@ class MainRouter extends RouterDelegate<RouteConfig>
       _legacyNavigator?.go(AppRoutes.menuEditor(menuId));
 
   @override
-  void goToAdminTemplateEditor(int menuId) =>
-      _legacyNavigator?.go(AppRoutes.adminTemplateEditor(menuId));
+  void goToAdminTemplateEditor(int menuId) {
+    if (_disposed) {
+      return;
+    }
+    final identity = 'admin-template-editor-$menuId';
+    if (_stack.isNotEmpty && _stack.last.identity == identity) {
+      return;
+    }
+    push(AdminTemplateEditorRoutePage(router: this, menuId: menuId));
+  }
+
+  // ------------------------------------------- AdminTemplateEditorRouter
+
+  @override
+  void goToPdfPreview(int menuId) {
+    if (_disposed) {
+      return;
+    }
+    final identity = 'pdf-preview-$menuId';
+    if (_stack.isNotEmpty && _stack.last.identity == identity) {
+      return;
+    }
+    push(PdfPreviewRoutePage(router: this, menuId: menuId));
+  }
 
   // -------------------------- shared (MenuListRouter, SettingsRouter, AdminTemplatesRouter, AdminSizesRouter)
 

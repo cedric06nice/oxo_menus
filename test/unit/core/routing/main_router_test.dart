@@ -27,6 +27,8 @@ import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_
 import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_router.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_route_page.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_router.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/routing/admin_template_editor_route_page.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/routing/admin_template_editor_router.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_page.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_router.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_route_page.dart';
@@ -548,35 +550,29 @@ void main() {
       },
     );
 
-    test(
-      'setNewRoutePath(AdminExportableMenusRouteConfig) replaces the stack '
-      'with AdminExportableMenusRoutePage',
-      () async {
-        final router = MainRouter(container: _makeContainer());
+    test('setNewRoutePath(AdminExportableMenusRouteConfig) replaces the stack '
+        'with AdminExportableMenusRoutePage', () async {
+      final router = MainRouter(container: _makeContainer());
 
-        await router.setNewRoutePath(const AdminExportableMenusRouteConfig());
+      await router.setNewRoutePath(const AdminExportableMenusRouteConfig());
 
-        expect(router.stack, hasLength(1));
-        expect(router.stack.single, isA<AdminExportableMenusRoutePage>());
-        expect(
-          router.currentConfiguration,
-          const AdminExportableMenusRouteConfig(),
-        );
-      },
-    );
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<AdminExportableMenusRoutePage>());
+      expect(
+        router.currentConfiguration,
+        const AdminExportableMenusRouteConfig(),
+      );
+    });
 
-    test(
-      'pushing AdminExportableMenusRouteConfig twice keeps a single page on '
-      'the stack',
-      () async {
-        final router = MainRouter(container: _makeContainer());
+    test('pushing AdminExportableMenusRouteConfig twice keeps a single page on '
+        'the stack', () async {
+      final router = MainRouter(container: _makeContainer());
 
-        await router.setNewRoutePath(const AdminExportableMenusRouteConfig());
-        await router.setNewRoutePath(const AdminExportableMenusRouteConfig());
+      await router.setNewRoutePath(const AdminExportableMenusRouteConfig());
+      await router.setNewRoutePath(const AdminExportableMenusRouteConfig());
 
-        expect(router.stack, hasLength(1));
-      },
-    );
+      expect(router.stack, hasLength(1));
+    });
 
     test('goBack pops the page off the stack', () async {
       final router = MainRouter(container: _makeContainer());
@@ -633,19 +629,16 @@ void main() {
       expect(navigator.goCalls.single.location, AppRoutes.menuEditor(42));
     });
 
-    test('goToAdminTemplateEditor delegates to the legacy navigator', () {
-      final navigator = _RecordingLegacyNavigator();
-      final router = MainRouter(
-        container: _makeContainer(),
-        legacyNavigator: navigator,
-      );
+    test('goToAdminTemplateEditor pushes an AdminTemplateEditorRoutePage onto '
+        'the stack', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const HomeRouteConfig());
 
       router.goToAdminTemplateEditor(7);
 
-      expect(
-        navigator.goCalls.single.location,
-        AppRoutes.adminTemplateEditor(7),
-      );
+      expect(router.stack, hasLength(2));
+      expect(router.stack.last, isA<AdminTemplateEditorRoutePage>());
+      expect((router.stack.last as AdminTemplateEditorRoutePage).menuId, 7);
     });
 
     test('goBack pops the menu list page off the stack', () async {
@@ -660,14 +653,82 @@ void main() {
       expect(router.stack.single, isA<HomeRoutePage>());
     });
 
-    test('MenuListRouter sub-route navigation is a no-op without a '
-        'LegacyNavigator', () {
+    test('goToMenuEditor is a no-op without a LegacyNavigator', () {
       final router = MainRouter(container: _makeContainer());
 
       router.goToMenuEditor(1);
-      router.goToAdminTemplateEditor(1);
 
       expect(router.stack, isEmpty);
+    });
+  });
+
+  group('MainRouter — AdminTemplateEditorRouter integration', () {
+    test(
+      'implements AdminTemplateEditorRouter so it can be injected into the VM',
+      () {
+        final router = MainRouter(container: _makeContainer());
+
+        expect(router, isA<AdminTemplateEditorRouter>());
+      },
+    );
+
+    test('setNewRoutePath(AdminTemplateEditorRouteConfig) replaces the stack '
+        'with AdminTemplateEditorRoutePage', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const AdminTemplateEditorRouteConfig(42));
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<AdminTemplateEditorRoutePage>());
+      expect(
+        router.currentConfiguration,
+        const AdminTemplateEditorRouteConfig(42),
+      );
+    });
+
+    test('pushing AdminTemplateEditorRouteConfig twice for the same menuId '
+        'keeps a single page on the stack', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const AdminTemplateEditorRouteConfig(42));
+      await router.setNewRoutePath(const AdminTemplateEditorRouteConfig(42));
+
+      expect(router.stack, hasLength(1));
+    });
+
+    test('pushing different menuIds replaces the editor page', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const AdminTemplateEditorRouteConfig(42));
+      await router.setNewRoutePath(const AdminTemplateEditorRouteConfig(43));
+
+      expect(router.stack, hasLength(1));
+      expect((router.stack.single as AdminTemplateEditorRoutePage).menuId, 43);
+    });
+
+    test(
+      'goToPdfPreview pushes a PdfPreviewRoutePage onto the stack',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+        await router.setNewRoutePath(const AdminTemplateEditorRouteConfig(42));
+
+        router.goToPdfPreview(42);
+
+        expect(router.stack, hasLength(2));
+        expect(router.stack.last, isA<PdfPreviewRoutePage>());
+      },
+    );
+
+    test('goBack pops the editor off the stack', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const HomeRouteConfig());
+      router.goToAdminTemplateEditor(42);
+      expect(router.stack, hasLength(2));
+
+      router.goBack();
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<HomeRoutePage>());
     });
   });
 
@@ -802,19 +863,15 @@ void main() {
       expect(router.stack.single, isA<AdminTemplateCreatorRoutePage>());
     });
 
-    test('goToAdminTemplateEditor delegates to the legacy navigator', () {
-      final navigator = _RecordingLegacyNavigator();
-      final router = MainRouter(
-        container: _makeContainer(),
-        legacyNavigator: navigator,
-      );
+    test('goToAdminTemplateEditor pushes an AdminTemplateEditorRoutePage from '
+        'the admin templates list', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const AdminTemplatesRouteConfig());
 
       router.goToAdminTemplateEditor(99);
 
-      expect(
-        navigator.goCalls.single.location,
-        AppRoutes.adminTemplateEditor(99),
-      );
+      expect(router.stack, hasLength(2));
+      expect(router.stack.last, isA<AdminTemplateEditorRoutePage>());
     });
   });
 
