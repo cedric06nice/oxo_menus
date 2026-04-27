@@ -93,6 +93,22 @@ final class AdminTemplatesRouteConfig extends RouteConfig {
   String toString() => 'AdminTemplatesRouteConfig()';
 }
 
+/// Admin page sizes — admin-only CRUD on page size definitions. Reachable
+/// from Settings, from the template-create flow, and (once migrated) from
+/// the template-editor.
+final class AdminSizesRouteConfig extends RouteConfig {
+  const AdminSizesRouteConfig();
+
+  @override
+  bool operator ==(Object other) => other is AdminSizesRouteConfig;
+
+  @override
+  int get hashCode => (AdminSizesRouteConfig).hashCode;
+
+  @override
+  String toString() => 'AdminSizesRouteConfig()';
+}
+
 /// Fallback variant for URIs that do not yet match a migrated feature.
 ///
 /// During the migration the legacy `go_router` handles all unknown paths;

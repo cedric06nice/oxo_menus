@@ -108,6 +108,23 @@ void main() {
         );
       },
     );
+
+    test('AdminSizesRouteConfig is a singleton-equal value', () {
+      const a = AdminSizesRouteConfig();
+      const b = AdminSizesRouteConfig();
+
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('AdminSizesRouteConfig is not equal to other migrated configs', () {
+      expect(const AdminSizesRouteConfig(), isNot(const HomeRouteConfig()));
+      expect(const AdminSizesRouteConfig(), isNot(const SettingsRouteConfig()));
+      expect(
+        const AdminSizesRouteConfig(),
+        isNot(const AdminTemplatesRouteConfig()),
+      );
+    });
   });
 
   group('AppRouteInformationParser', () {
@@ -239,6 +256,23 @@ void main() {
         expect(restored!.uri.path, '/app/admin/templates');
       },
     );
+
+    test('parses /app/admin/sizes into AdminSizesRouteConfig', () async {
+      final config = await parser.parseRouteInformation(
+        RouteInformation(uri: Uri.parse('/app/admin/sizes')),
+      );
+
+      expect(config, const AdminSizesRouteConfig());
+    });
+
+    test('round-trips an AdminSizesRouteConfig to /app/admin/sizes', () {
+      final restored = parser.restoreRouteInformation(
+        const AdminSizesRouteConfig(),
+      );
+
+      expect(restored, isNotNull);
+      expect(restored!.uri.path, '/app/admin/sizes');
+    });
 
     test('handles root path', () async {
       final config = await parser.parseRouteInformation(

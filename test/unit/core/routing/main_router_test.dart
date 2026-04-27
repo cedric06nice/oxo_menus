@@ -21,6 +21,8 @@ import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_sta
 import 'package:oxo_menus/features/connectivity/domain/repositories/connectivity_repository.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_route_page.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_router.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_page.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_router.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_route_page.dart';
@@ -745,6 +747,71 @@ void main() {
         navigator.goCalls.single.location,
         AppRoutes.adminTemplateEditor(99),
       );
+    });
+  });
+
+  group('MainRouter — AdminSizesRouter integration', () {
+    test('implements AdminSizesRouter so it can be injected into the VM', () {
+      final router = MainRouter(container: _makeContainer());
+
+      expect(router, isA<AdminSizesRouter>());
+    });
+
+    test('setNewRoutePath(AdminSizesRouteConfig) replaces the stack with '
+        'AdminSizesRoutePage', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const AdminSizesRouteConfig());
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<AdminSizesRoutePage>());
+      expect(router.currentConfiguration, const AdminSizesRouteConfig());
+    });
+
+    test('pushing AdminSizesRouteConfig twice keeps a single page on the '
+        'stack', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const AdminSizesRouteConfig());
+      await router.setNewRoutePath(const AdminSizesRouteConfig());
+
+      expect(router.stack, hasLength(1));
+    });
+
+    test(
+      'goToAdminSizes pushes an AdminSizesRoutePage onto the stack',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+        await router.setNewRoutePath(const SettingsRouteConfig());
+
+        router.goToAdminSizes();
+
+        expect(router.stack, hasLength(2));
+        expect(router.stack.last, isA<AdminSizesRoutePage>());
+      },
+    );
+
+    test('goToAdminSizes is idempotent when AdminSizesRoutePage is already '
+        'on top', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const AdminSizesRouteConfig());
+
+      router.goToAdminSizes();
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<AdminSizesRoutePage>());
+    });
+
+    test('goBack pops the admin-sizes page off the stack', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const SettingsRouteConfig());
+      router.goToAdminSizes();
+      expect(router.stack, hasLength(2));
+
+      router.goBack();
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<SettingsRoutePage>());
     });
   });
 }

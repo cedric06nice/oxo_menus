@@ -7,6 +7,8 @@ import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/routing/route_config.dart';
 import 'package:oxo_menus/core/routing/route_page.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_route_page.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_router.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_page.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_route_page.dart';
@@ -44,7 +46,8 @@ class MainRouter extends RouterDelegate<RouteConfig>
         HomeRouter,
         MenuListRouter,
         SettingsRouter,
-        AdminTemplatesRouter {
+        AdminTemplatesRouter,
+        AdminSizesRouter {
   MainRouter({
     required AppContainer container,
     LegacyNavigator? legacyNavigator,
@@ -153,6 +156,11 @@ class MainRouter extends RouterDelegate<RouteConfig>
         _replaceWithSingle(
           AdminTemplatesRoutePage(router: this),
           identity: 'admin-templates',
+        );
+      case AdminSizesRouteConfig():
+        _replaceWithSingle(
+          AdminSizesRoutePage(router: this),
+          identity: 'admin-sizes',
         );
       case UnknownRouteConfig():
         // Migration fallback: legacy go_router still serves this URI.
@@ -267,11 +275,26 @@ class MainRouter extends RouterDelegate<RouteConfig>
   void goToAdminTemplateEditor(int menuId) =>
       _legacyNavigator?.go(AppRoutes.adminTemplateEditor(menuId));
 
-  // -------------------------- shared (MenuListRouter, SettingsRouter, AdminTemplatesRouter)
+  // -------------------------- shared (MenuListRouter, SettingsRouter, AdminTemplatesRouter, AdminSizesRouter)
 
   @override
   void goBack() {
     pop();
+  }
+
+  // ----------------------------------------------------------- AdminSizes navigation
+
+  /// Push the admin sizes screen onto the stack. Callable from any migrated
+  /// feature that needs the sizes-management entry point (settings,
+  /// template-create, template-editor once they migrate).
+  void goToAdminSizes() {
+    if (_disposed) {
+      return;
+    }
+    if (_stack.isNotEmpty && _stack.last.identity == 'admin-sizes') {
+      return;
+    }
+    push(AdminSizesRoutePage(router: this));
   }
 
   @override
