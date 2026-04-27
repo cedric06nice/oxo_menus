@@ -125,6 +125,32 @@ void main() {
         isNot(const AdminTemplatesRouteConfig()),
       );
     });
+
+    test('AdminTemplateCreatorRouteConfig is a singleton-equal value', () {
+      const a = AdminTemplateCreatorRouteConfig();
+      const b = AdminTemplateCreatorRouteConfig();
+
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test(
+      'AdminTemplateCreatorRouteConfig is not equal to other migrated configs',
+      () {
+        expect(
+          const AdminTemplateCreatorRouteConfig(),
+          isNot(const AdminTemplatesRouteConfig()),
+        );
+        expect(
+          const AdminTemplateCreatorRouteConfig(),
+          isNot(const AdminSizesRouteConfig()),
+        );
+        expect(
+          const AdminTemplateCreatorRouteConfig(),
+          isNot(const HomeRouteConfig()),
+        );
+      },
+    );
   });
 
   group('AppRouteInformationParser', () {
@@ -272,6 +298,27 @@ void main() {
 
       expect(restored, isNotNull);
       expect(restored!.uri.path, '/app/admin/sizes');
+    });
+
+    test(
+      'parses /app/admin/templates/create into AdminTemplateCreatorRouteConfig',
+      () async {
+        final config = await parser.parseRouteInformation(
+          RouteInformation(uri: Uri.parse('/app/admin/templates/create')),
+        );
+
+        expect(config, const AdminTemplateCreatorRouteConfig());
+      },
+    );
+
+    test('round-trips an AdminTemplateCreatorRouteConfig to '
+        '/app/admin/templates/create', () {
+      final restored = parser.restoreRouteInformation(
+        const AdminTemplateCreatorRouteConfig(),
+      );
+
+      expect(restored, isNotNull);
+      expect(restored!.uri.path, '/app/admin/templates/create');
     });
 
     test('handles root path', () async {

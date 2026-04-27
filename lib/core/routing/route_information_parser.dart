@@ -15,6 +15,7 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
   static const String _menuListPath = '/app/menus';
   static const String _settingsPath = '/app/settings';
   static const String _adminTemplatesPath = '/app/admin/templates';
+  static const String _adminTemplateCreatePath = '/app/admin/templates/create';
   static const String _adminSizesPath = '/app/admin/sizes';
 
   @override
@@ -37,6 +38,9 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
     if (uri.path == _settingsPath) {
       return const SettingsRouteConfig();
     }
+    if (uri.path == _adminTemplateCreatePath) {
+      return const AdminTemplateCreatorRouteConfig();
+    }
     if (uri.path == _adminTemplatesPath) {
       return const AdminTemplatesRouteConfig();
     }
@@ -58,6 +62,9 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
       SettingsRouteConfig() => RouteInformation(uri: Uri.parse(_settingsPath)),
       AdminTemplatesRouteConfig() => RouteInformation(
         uri: Uri.parse(_adminTemplatesPath),
+      ),
+      AdminTemplateCreatorRouteConfig() => RouteInformation(
+        uri: Uri.parse(_adminTemplateCreatePath),
       ),
       AdminSizesRouteConfig() => RouteInformation(
         uri: Uri.parse(_adminSizesPath),

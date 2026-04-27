@@ -109,6 +109,22 @@ final class AdminSizesRouteConfig extends RouteConfig {
   String toString() => 'AdminSizesRouteConfig()';
 }
 
+/// Admin template-create form — admin-only screen reached from the admin
+/// templates list. After a successful create the user lands in the legacy
+/// template editor (until that screen migrates).
+final class AdminTemplateCreatorRouteConfig extends RouteConfig {
+  const AdminTemplateCreatorRouteConfig();
+
+  @override
+  bool operator ==(Object other) => other is AdminTemplateCreatorRouteConfig;
+
+  @override
+  int get hashCode => (AdminTemplateCreatorRouteConfig).hashCode;
+
+  @override
+  String toString() => 'AdminTemplateCreatorRouteConfig()';
+}
+
 /// Fallback variant for URIs that do not yet match a migrated feature.
 ///
 /// During the migration the legacy `go_router` handles all unknown paths;

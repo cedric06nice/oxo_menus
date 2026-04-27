@@ -9,6 +9,8 @@ import 'package:oxo_menus/core/routing/route_config.dart';
 import 'package:oxo_menus/core/routing/route_page.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_route_page.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_router.dart';
+import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_route_page.dart';
+import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_router.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_page.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_route_page.dart';
@@ -47,6 +49,7 @@ class MainRouter extends RouterDelegate<RouteConfig>
         MenuListRouter,
         SettingsRouter,
         AdminTemplatesRouter,
+        AdminTemplateCreatorRouter,
         AdminSizesRouter {
   MainRouter({
     required AppContainer container,
@@ -162,6 +165,11 @@ class MainRouter extends RouterDelegate<RouteConfig>
           AdminSizesRoutePage(router: this),
           identity: 'admin-sizes',
         );
+      case AdminTemplateCreatorRouteConfig():
+        _replaceWithSingle(
+          AdminTemplateCreatorRoutePage(router: this),
+          identity: 'admin-template-create',
+        );
       case UnknownRouteConfig():
         // Migration fallback: legacy go_router still serves this URI.
         return;
@@ -258,8 +266,15 @@ class MainRouter extends RouterDelegate<RouteConfig>
   }
 
   @override
-  void goToAdminTemplateCreate() =>
-      _legacyNavigator?.go(AppRoutes.adminTemplateCreate);
+  void goToAdminTemplateCreate() {
+    if (_disposed) {
+      return;
+    }
+    if (_stack.isNotEmpty && _stack.last.identity == 'admin-template-create') {
+      return;
+    }
+    push(AdminTemplateCreatorRoutePage(router: this));
+  }
 
   @override
   void goToAdminExportableMenus() =>
@@ -287,6 +302,7 @@ class MainRouter extends RouterDelegate<RouteConfig>
   /// Push the admin sizes screen onto the stack. Callable from any migrated
   /// feature that needs the sizes-management entry point (settings,
   /// template-create, template-editor once they migrate).
+  @override
   void goToAdminSizes() {
     if (_disposed) {
       return;
