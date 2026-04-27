@@ -7,16 +7,26 @@ SDK >=3.8.0 <4.0.0 | Flutter 3.41.7 | Dart 3.11.5
 
 ## Architecture
 
-Clean Architecture: `core/` → `domain/` → `data/` → `presentation/`
+Feature-first Clean Architecture. Top of `lib/`:
 
-- **core/types/result.dart** — sealed `Result<T, E>` (Success | Failure), railway-oriented error handling
-- **core/errors/domain_errors.dart** — sealed `DomainError` hierarchy (InvalidCredentials, TokenExpired, Unauthorized, Network, NetworkUnavailable, NotFound, Validation, Server, Unknown, RateLimit)
-- **core/routing/app_router.dart** — GoRouter with auth guards, 11 routes
-- **core/routing/app_routes.dart** — centralized route path constants (`AppRoutes`)
-- **core/utils/directus_url_resolver.dart** — environment-aware URL resolution (dart-define → web hostname → localhost)
+- `lib/core/` — cross-cutting infra (types, errors, routing, utils). No feature code.
+- `lib/shared/` — domain/data/presentation reused across features (auth, file/area/asset repos, theme, common providers, common widgets, mixins).
+- `lib/features/<feature>/` — feature modules. Each has the layers it needs:
+  - **Full** (`menu`, `collaboration`, `connectivity`): `domain/` + `data/` + `presentation/`
+  - **Domain + presentation** (`allergens`, `editor_tree`, `menu_editor`, `widget_system`): `domain/` + `presentation/`
+  - **Presentation-only** (`auth`, `home`, `menu_list`, `settings`, all `admin_*`): `presentation/` only
+- Dependency direction: features → shared → core. Features must not import from each other.
+
+Key fixed locations:
+
+- **lib/core/types/result.dart** — sealed `Result<T, E>` (Success | Failure), railway-oriented error handling
+- **lib/core/errors/domain_errors.dart** — sealed `DomainError` hierarchy (InvalidCredentials, TokenExpired, Unauthorized, Network, NetworkUnavailable, NotFound, Validation, Server, Unknown, RateLimit)
+- **lib/core/routing/app_router.dart** — GoRouter with auth guards, 11 routes
+- **lib/core/routing/app_routes.dart** — centralized route path constants (`AppRoutes`)
+- **lib/core/utils/directus_url_resolver.dart** — environment-aware URL resolution (dart-define → web hostname → localhost)
 - Repositories return `Result<T, DomainError>`, never throw
 
-Detailed references: [domain](.claude/docs/domain.md) | [data](.claude/docs/data.md) | [presentation](.claude/docs/presentation.md) | [testing](.claude/docs/testing.md) | [new widget](.claude/docs/new_widget_checklist.md)
+Topic-deep references live under `.claude/docs/`: `domain.md`, `data.md`, `presentation.md`, `testing.md`, `new_widget_checklist.md`.
 
 ## Domain Model (hierarchy, each level sorted by `index`)
 
@@ -31,53 +41,57 @@ Menu → Page → Container → Column → WidgetInstance
 
 ## Widget System
 
-Plugin architecture in `domain/widget_system/`:
+Plugin architecture in `lib/features/widget_system/`:
 
-- `WidgetDefinition<P>` — generic: `parseProps`, `render`, `defaultProps`, `migrate`
-- `WidgetRegistry` — O(1) lookup by type string
-- `WidgetMigrator` — version-based prop migration
-- `WidgetRenderer` — dynamic dispatch via `renderDynamic()`
-- `WidgetContext` — runtime editing state (isEditable, onUpdate, onDelete, displayOptions)
+- `lib/features/widget_system/domain/widget_definition.dart` — generic `WidgetDefinition<P>` (`parseProps`, `render`, `defaultProps`, `migrate`); also defines `WidgetContext` (runtime editing state: isEditable, onUpdate, onDelete, displayOptions)
+- `lib/features/widget_system/domain/widget_registry.dart` — `WidgetRegistry`, O(1) lookup by type string
+- `lib/features/widget_system/domain/widget_migrator.dart` — `WidgetMigrator`, version-based prop migration
+- `lib/features/widget_system/presentation/widget_system/presentable_widget_definition.dart` and `presentable_widget_registry.dart` — presentation-side renderer + dynamic dispatch
 
 Widget types: `dish`, `dish_to_share`, `image`, `section`, `set_menu_dish`, `set_menu_title`, `text`, `wine`
 
-- Props in `domain/widgets/{type}/{type}_props.dart`
-- Definitions in `presentation/widgets/{type}_widget/{type}_widget_definition.dart`
-- Each has `*_edit_dialog.dart` for editing
+- Props: `lib/features/widget_system/domain/widgets/{type}/{type}_props.dart`
+- UI + edit dialog: `lib/features/widget_system/presentation/widgets/{type}_widget/{type}_widget.dart` and `{type}_edit_dialog.dart`
 
 ## Real-Time Collaboration
 
-- `MenuSubscriptionRepository` — WebSocket stream of `MenuChangeEvent` (widget create/update/delete)
-- `PresenceRepository` — user presence tracking (join, leave, heartbeat, watchActiveUsers)
-- `WidgetInstance` editing locks — `editingBy`, `editingSince` fields
-- `PresenceBar` widget shows active users; `EditingUserBadge` shows who's editing a widget
+Lives under `lib/features/collaboration/` (full domain + data + presentation).
+
+- `MenuSubscriptionRepository` (`domain/repositories/`) — WebSocket stream of `MenuChangeEvent` (widget create/update/delete)
+- `PresenceRepository` (`domain/repositories/`) — user presence tracking (join, leave, heartbeat, watchActiveUsers)
+- `WidgetInstance` editing locks — `editingBy`, `editingSince` fields (entity defined in `lib/features/menu/domain/entities/`)
+- `PresenceBar` and `EditingUserBadge` (`presentation/widgets/`) — active-users bar and per-widget editor badge
 
 ## Connectivity
 
-- `ConnectivityRepository` — DNS-probe-based connectivity monitoring (not just network interface)
+Lives under `lib/features/connectivity/` (full domain + data + presentation).
+
+- `ConnectivityRepository` (`domain/repositories/`) — DNS-probe-based connectivity monitoring (not just network interface)
 - `ConnectivityStatus` enum: `online`, `offline`
 - Periodic probes: 30s when online, 5s recovery when offline
-- `OfflineBanner` / `OfflineErrorPage` UI; `ConnectivityRetryMixin` for auto-retry
+- `OfflineBanner` / `OfflineErrorPage` (`presentation/widgets/`)
+- `ConnectivityRetryMixin` for auto-retry lives at `lib/shared/presentation/mixins/connectivity_retry_mixin.dart`
 
 ## Allergens
 
-UK FSA 14 allergens (`UkAllergen` enum). Dishes carry `List<AllergenInfo>` (structured). `AllergenFormatter` handles UK-compliant display (e.g., `GLUTEN [wheat], MILK, MAY CONTAIN EGGS`).
+Lives under `lib/features/allergens/domain/`. UK FSA 14 allergens (`UkAllergen` enum). Dishes carry `List<AllergenInfo>` (structured). `AllergenFormatter` handles UK-compliant display (e.g., `GLUTEN [wheat], MILK, MAY CONTAIN EGGS`).
 
 ## State Management
 
 Riverpod with manual `Provider` declarations (not riverpod_generator):
 
-- `repositories_provider.dart` — all repo providers watch `directusDataSourceProvider`
-- `usecases_provider.dart` — use case providers
-- `widget_registry_provider.dart` — registers all 8 widget types
-- `auth_provider.dart` — `AuthNotifier` + `isAdminProvider` (single source of truth for admin check)
-- Page-level state: freezed state classes + `Notifier` (e.g., `admin_templates_*`, `admin_sizes_*`, `menu_list_*`, `editor_tree_*`, `menu_collaboration_*`)
+- `lib/shared/presentation/providers/repositories_provider.dart` — all repo providers watch `directusDataSourceProvider`
+- `lib/shared/presentation/providers/usecases_provider.dart` — use case providers
+- `lib/shared/presentation/providers/auth_provider.dart` — `AuthNotifier` + `isAdminProvider` (single source of truth for admin check)
+- `lib/features/widget_system/presentation/providers/widget_registry_provider.dart` — registers all 8 widget types
+- Page-level state lives per-feature in `lib/features/<feature>/presentation/state/` (freezed states) and `lib/features/<feature>/presentation/providers/` (Notifiers) — e.g., `admin_templates_*`, `admin_sizes_*`, `menu_list_*`, `editor_tree_*`, `menu_collaboration_*`
 
 ## Data Layer
 
-- `DirectusDataSource` wraps `directus_api_manager` package
-- `SecureTokenStorage` wraps `flutter_secure_storage`
-- DTOs in `data/models/`, mappers in `data/mappers/`
+- `lib/shared/data/datasources/directus_data_source.dart` — `DirectusDataSource` wraps `directus_api_manager` package
+- `lib/shared/data/datasources/secure_token_storage.dart` — `SecureTokenStorage` wraps `flutter_secure_storage`
+- Shared DTOs/mappers in `lib/shared/data/{models,mappers}/` (`user_dto`, `area_dto`, `version_dto`, `error_mapper`, `user_mapper`, `area_mapper`, `file_mapper`)
+- Feature-specific DTOs/mappers/repo impls under `lib/features/<feature>/data/{models,mappers,repositories}/` (currently `menu`, `collaboration`, `connectivity`)
 - Mapper pattern: `XxxMapper.toEntity(dto)`, error mapping via `mapDirectusError()`
 
 ## Code Generation
@@ -92,13 +106,15 @@ flutter pub run build_runner build --delete-conflicting-outputs
 
 ## Routing
 
-`go_router` — routes in `core/routing/app_router.dart`, constants in `core/routing/app_routes.dart`
+`go_router` — routes in `lib/core/routing/app_router.dart`, constants in `lib/core/routing/app_routes.dart`
 
 - Auth-guarded redirect (unauthenticated → `/login`, non-admin blocked from `/admin/*`)
 - All route paths use `AppRoutes` constants (no hardcoded strings)
 - Web uses `context.go()` for deep-linking, native uses `context.push()`
 
 ## Pages
+
+Pages live at `lib/features/<feature>/presentation/pages/<feature>_page.dart` (a few admin pages sit directly under `presentation/`). Current set:
 
 `login`, `home`, `menu_list`, `menu_editor`, `pdf_preview`, `admin_templates`, `admin_template_creator`, `admin_template_editor`, `admin_sizes`, `settings`
 
@@ -110,9 +126,10 @@ flutter test test/unit/         # unit only
 flutter test test/widget/       # widget only
 ```
 
-- Structure mirrors `lib/`: `test/unit/`, `test/widget/`, `test/integration/`
-- 218 test files (145 unit, 72 widget, 1 integration), 2319 test cases
-- Mocking: `mocktail`
+- Structure mirrors `lib/`: `test/unit/{core,shared,features}/`, `test/widget/{shared,features}/`, `test/integration/`, `test/fakes/`, `test/helpers/`
+- Legacy paths (`test/unit/{data,domain,presentation}/`, `test/widget/{pages,presentation,widgets}/`) still exist — tests are mid-migration to the feature layout
+- 261 test files (163 unit, 75 widget, 1 integration, 22 fake-tests under `test/fakes/`), ~4445 test cases
+- No mocking library — `mocktail` was removed. Use hand-rolled fakes in `test/fakes/` and `ProviderScope` overrides
 - CI enforces 75% coverage, `dart format`, `flutter analyze --fatal-infos`
 
 ## Environment
