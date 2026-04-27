@@ -131,6 +131,19 @@ class AuthGateway {
     return result;
   }
 
+  /// Request a password reset email for [email].
+  ///
+  /// Side-channel operation: it does NOT change the gateway's auth status —
+  /// the caller is typically unauthenticated and remains so. [resetUrl] is
+  /// the platform-specific URL the user should be redirected to from the
+  /// reset email; pass `null` to fall back to the Directus default.
+  Future<Result<void, DomainError>> requestPasswordReset(
+    String email, {
+    String? resetUrl,
+  }) {
+    return _repository.requestPasswordReset(email, resetUrl: resetUrl);
+  }
+
   /// Re-checks the current user with the backend. Used to refresh stale
   /// authentication data without forcing a re-login.
   Future<Result<User, DomainError>> refresh() async {

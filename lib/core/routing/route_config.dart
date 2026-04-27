@@ -21,6 +21,21 @@ final class LoginRouteConfig extends RouteConfig {
   String toString() => 'LoginRouteConfig()';
 }
 
+/// Forgot-password screen — reachable from the login screen and via deep
+/// link.
+final class ForgotPasswordRouteConfig extends RouteConfig {
+  const ForgotPasswordRouteConfig();
+
+  @override
+  bool operator ==(Object other) => other is ForgotPasswordRouteConfig;
+
+  @override
+  int get hashCode => (ForgotPasswordRouteConfig).hashCode;
+
+  @override
+  String toString() => 'ForgotPasswordRouteConfig()';
+}
+
 /// Fallback variant for URIs that do not yet match a migrated feature.
 ///
 /// During the migration the legacy `go_router` handles all unknown paths;

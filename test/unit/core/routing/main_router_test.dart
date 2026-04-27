@@ -10,6 +10,8 @@ import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/routing/route_config.dart';
 import 'package:oxo_menus/core/routing/route_page.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_route_page.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
@@ -233,31 +235,124 @@ void main() {
     });
 
     test(
-      'goToForgotPassword asks the legacy navigator for /forgot-password',
-      () {
-        final navigator = _RecordingLegacyNavigator();
-        final router = MainRouter(
-          container: _makeContainer(),
-          legacyNavigator: navigator,
-        );
-
-        router.goToForgotPassword();
-
-        expect(navigator.goCalls.single.location, AppRoutes.forgotPassword);
-      },
-    );
-
-    test(
-      'navigation methods are no-ops when no LegacyNavigator was provided',
+      'goToHomeAfterLogin is a no-op when no LegacyNavigator was provided',
       () {
         final router = MainRouter(container: _makeContainer());
 
         // No throw, no observable side effect.
         router.goToHomeAfterLogin();
-        router.goToForgotPassword();
 
         expect(router.stack, isEmpty);
       },
     );
+  });
+
+  group('MainRouter — ForgotPasswordRouter integration', () {
+    test(
+      'implements ForgotPasswordRouter so it can be injected into the VM',
+      () {
+        final router = MainRouter(container: _makeContainer());
+
+        expect(router, isA<ForgotPasswordRouter>());
+      },
+    );
+
+    test('setNewRoutePath(ForgotPasswordRouteConfig) replaces the stack with '
+        'ForgotPasswordRoutePage', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const ForgotPasswordRouteConfig());
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<ForgotPasswordRoutePage>());
+      expect(router.currentConfiguration, const ForgotPasswordRouteConfig());
+    });
+
+    test('pushing ForgotPasswordRouteConfig twice keeps a single page in the '
+        'stack', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const ForgotPasswordRouteConfig());
+      await router.setNewRoutePath(const ForgotPasswordRouteConfig());
+
+      expect(router.stack, hasLength(1));
+    });
+
+    test(
+      'goToForgotPassword pushes a ForgotPasswordRoutePage onto the stack',
+      () async {
+        final router = MainRouter(container: _makeContainer())
+          ..push(
+            LoginRoutePage(router: MainRouter(container: _makeContainer())),
+          );
+
+        router.goToForgotPassword();
+
+        expect(router.stack, hasLength(2));
+        expect(router.stack.last, isA<ForgotPasswordRoutePage>());
+      },
+    );
+
+    test(
+      'goToForgotPassword does not stack a second copy when already on top',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+        await router.setNewRoutePath(const ForgotPasswordRouteConfig());
+
+        router.goToForgotPassword();
+
+        expect(router.stack, hasLength(1));
+        expect(router.stack.single, isA<ForgotPasswordRoutePage>());
+      },
+    );
+
+    test('goToForgotPassword does not require a LegacyNavigator', () {
+      final router = MainRouter(container: _makeContainer());
+
+      router.goToForgotPassword();
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<ForgotPasswordRoutePage>());
+    });
+
+    test(
+      'goBackToLogin pops back to an existing LoginRoutePage on the stack',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+        await router.setNewRoutePath(const LoginRouteConfig());
+        router.goToForgotPassword();
+
+        router.goBackToLogin();
+
+        expect(router.stack, hasLength(1));
+        expect(router.stack.single, isA<LoginRoutePage>());
+      },
+    );
+
+    test('goBackToLogin disposes the popped forgot-password page', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const LoginRouteConfig());
+      router.goToForgotPassword();
+      final forgotPage = router.stack.last as ForgotPasswordRoutePage;
+      // Build the screen so the VM exists.
+      forgotPage.buildScreen(router.container);
+      final vm =
+          (forgotPage.buildScreen(router.container) as dynamic).viewModel;
+
+      router.goBackToLogin();
+
+      expect(vm.isDisposed, isTrue);
+    });
+
+    test('goBackToLogin replaces the stack with a LoginRoutePage when '
+        'forgot-password was deep-linked', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const ForgotPasswordRouteConfig());
+
+      router.goBackToLogin();
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<LoginRoutePage>());
+    });
   });
 }

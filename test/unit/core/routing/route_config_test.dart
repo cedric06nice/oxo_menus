@@ -28,6 +28,21 @@ void main() {
       expect(a, equals(b));
       expect(a.hashCode, b.hashCode);
     });
+
+    test('ForgotPasswordRouteConfig is a singleton-equal value', () {
+      const a = ForgotPasswordRouteConfig();
+      const b = ForgotPasswordRouteConfig();
+
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('LoginRouteConfig and ForgotPasswordRouteConfig are not equal', () {
+      expect(
+        const LoginRouteConfig(),
+        isNot(const ForgotPasswordRouteConfig()),
+      );
+    });
   });
 
   group('AppRouteInformationParser', () {
@@ -66,6 +81,26 @@ void main() {
 
       expect(restored, isNotNull);
       expect(restored!.uri.path, '/app/login');
+    });
+
+    test(
+      'parses /app/forgot-password into ForgotPasswordRouteConfig',
+      () async {
+        final config = await parser.parseRouteInformation(
+          RouteInformation(uri: Uri.parse('/app/forgot-password')),
+        );
+
+        expect(config, const ForgotPasswordRouteConfig());
+      },
+    );
+
+    test('round-trips a ForgotPasswordRouteConfig to /app/forgot-password', () {
+      final restored = parser.restoreRouteInformation(
+        const ForgotPasswordRouteConfig(),
+      );
+
+      expect(restored, isNotNull);
+      expect(restored!.uri.path, '/app/forgot-password');
     });
 
     test('handles root path', () async {

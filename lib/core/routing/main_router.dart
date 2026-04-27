@@ -7,6 +7,8 @@ import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/routing/route_config.dart';
 import 'package:oxo_menus/core/routing/route_page.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_route_page.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
 
@@ -28,7 +30,7 @@ import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
 /// removed.
 class MainRouter extends RouterDelegate<RouteConfig>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<RouteConfig>
-    implements LoginRouter {
+    implements LoginRouter, ForgotPasswordRouter {
   MainRouter({
     required AppContainer container,
     LegacyNavigator? legacyNavigator,
@@ -116,6 +118,11 @@ class MainRouter extends RouterDelegate<RouteConfig>
     switch (configuration) {
       case LoginRouteConfig():
         _replaceWithSingle(LoginRoutePage(router: this), identity: 'login');
+      case ForgotPasswordRouteConfig():
+        _replaceWithSingle(
+          ForgotPasswordRoutePage(router: this),
+          identity: 'forgot-password',
+        );
       case UnknownRouteConfig():
         // Migration fallback: legacy go_router still serves this URI.
         return;
@@ -141,7 +148,36 @@ class MainRouter extends RouterDelegate<RouteConfig>
 
   @override
   void goToForgotPassword() {
-    _legacyNavigator?.go(AppRoutes.forgotPassword);
+    if (_disposed) {
+      return;
+    }
+    if (_stack.isNotEmpty && _stack.last.identity == 'forgot-password') {
+      return;
+    }
+    push(ForgotPasswordRoutePage(router: this));
+  }
+
+  // -------------------------------------------------------- ForgotPasswordRouter
+
+  @override
+  void goBackToLogin() {
+    if (_disposed) {
+      return;
+    }
+    final loginIndex = _stack.lastIndexWhere((p) => p.identity == 'login');
+    if (loginIndex < 0) {
+      _replaceWithSingle(LoginRoutePage(router: this), identity: 'login');
+      return;
+    }
+    var changed = false;
+    while (_stack.length - 1 > loginIndex) {
+      final removed = _stack.removeLast();
+      removed.disposeResources();
+      changed = true;
+    }
+    if (changed) {
+      notifyListeners();
+    }
   }
 
   @override
