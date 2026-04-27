@@ -19,6 +19,8 @@ import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.da
 import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_route_page.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_router.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_route_page.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_router.dart';
 import 'package:oxo_menus/features/settings/presentation/routing/settings_route_page.dart';
@@ -50,7 +52,8 @@ class MainRouter extends RouterDelegate<RouteConfig>
         SettingsRouter,
         AdminTemplatesRouter,
         AdminTemplateCreatorRouter,
-        AdminSizesRouter {
+        AdminSizesRouter,
+        PdfPreviewRouter {
   MainRouter({
     required AppContainer container,
     LegacyNavigator? legacyNavigator,
@@ -169,6 +172,11 @@ class MainRouter extends RouterDelegate<RouteConfig>
         _replaceWithSingle(
           AdminTemplateCreatorRoutePage(router: this),
           identity: 'admin-template-create',
+        );
+      case PdfPreviewRouteConfig(:final menuId):
+        _replaceWithSingle(
+          PdfPreviewRoutePage(router: this, menuId: menuId),
+          identity: 'pdf-preview-$menuId',
         );
       case UnknownRouteConfig():
         // Migration fallback: legacy go_router still serves this URI.

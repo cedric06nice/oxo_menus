@@ -47,7 +47,31 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
     if (uri.path == _adminSizesPath) {
       return const AdminSizesRouteConfig();
     }
+    final pdfPreview = _matchPdfPreviewPath(uri);
+    if (pdfPreview != null) {
+      return pdfPreview;
+    }
     return UnknownRouteConfig(uri);
+  }
+
+  /// Matches `/app/menus/{menuId}/pdf` and returns the corresponding config,
+  /// or `null` when the path doesn't fit the shape (wrong segment count, root
+  /// segment mismatch, or non-numeric id).
+  static PdfPreviewRouteConfig? _matchPdfPreviewPath(Uri uri) {
+    final segments = uri.pathSegments;
+    if (segments.length != 4) {
+      return null;
+    }
+    if (segments[0] != 'app' ||
+        segments[1] != 'menus' ||
+        segments[3] != 'pdf') {
+      return null;
+    }
+    final menuId = int.tryParse(segments[2]);
+    if (menuId == null) {
+      return null;
+    }
+    return PdfPreviewRouteConfig(menuId);
   }
 
   @override
@@ -68,6 +92,9 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
       ),
       AdminSizesRouteConfig() => RouteInformation(
         uri: Uri.parse(_adminSizesPath),
+      ),
+      PdfPreviewRouteConfig(:final menuId) => RouteInformation(
+        uri: Uri.parse('/app/menus/$menuId/pdf'),
       ),
       UnknownRouteConfig(:final uri) => RouteInformation(uri: uri),
     };

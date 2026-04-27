@@ -27,6 +27,8 @@ import 'package:oxo_menus/features/admin_template_creator/presentation/routing/a
 import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_router.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_page.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_router.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_route_page.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_router.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_route_page.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_router.dart';
 import 'package:oxo_menus/features/settings/presentation/routing/settings_route_page.dart';
@@ -869,6 +871,61 @@ void main() {
 
       expect(router.stack, hasLength(1));
       expect(router.stack.single, isA<SettingsRoutePage>());
+    });
+  });
+
+  group('MainRouter — PdfPreviewRouter integration', () {
+    test('implements PdfPreviewRouter so it can be injected into the VM', () {
+      final router = MainRouter(container: _makeContainer());
+
+      expect(router, isA<PdfPreviewRouter>());
+    });
+
+    test('setNewRoutePath(PdfPreviewRouteConfig) replaces the stack with a '
+        'PdfPreviewRoutePage carrying the menuId', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const PdfPreviewRouteConfig(42));
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<PdfPreviewRoutePage>());
+      expect((router.stack.single as PdfPreviewRoutePage).menuId, 42);
+      expect(router.currentConfiguration, const PdfPreviewRouteConfig(42));
+    });
+
+    test('pushing PdfPreviewRouteConfig with the same id twice keeps a single '
+        'PdfPreviewRoutePage on the stack', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const PdfPreviewRouteConfig(42));
+      await router.setNewRoutePath(const PdfPreviewRouteConfig(42));
+
+      expect(router.stack, hasLength(1));
+    });
+
+    test(
+      'pushing PdfPreviewRouteConfig with a different id replaces the page',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+
+        await router.setNewRoutePath(const PdfPreviewRouteConfig(42));
+        await router.setNewRoutePath(const PdfPreviewRouteConfig(99));
+
+        expect(router.stack, hasLength(1));
+        expect((router.stack.single as PdfPreviewRoutePage).menuId, 99);
+      },
+    );
+
+    test('goBack pops the pdf-preview page off the stack', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const MenuListRouteConfig());
+      router.push(PdfPreviewRoutePage(router: router, menuId: 42));
+      expect(router.stack, hasLength(2));
+
+      router.goBack();
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<MenuListRoutePage>());
     });
   });
 }

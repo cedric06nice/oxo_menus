@@ -151,6 +151,24 @@ void main() {
         );
       },
     );
+
+    test('PdfPreviewRouteConfig equality compares menuId', () {
+      const a = PdfPreviewRouteConfig(7);
+      const b = PdfPreviewRouteConfig(7);
+      const c = PdfPreviewRouteConfig(8);
+
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+      expect(a, isNot(equals(c)));
+    });
+
+    test('PdfPreviewRouteConfig is not equal to other migrated configs', () {
+      expect(const PdfPreviewRouteConfig(7), isNot(const HomeRouteConfig()));
+      expect(
+        const PdfPreviewRouteConfig(7),
+        isNot(const MenuListRouteConfig()),
+      );
+    });
   });
 
   group('AppRouteInformationParser', () {
@@ -319,6 +337,34 @@ void main() {
 
       expect(restored, isNotNull);
       expect(restored!.uri.path, '/app/admin/templates/create');
+    });
+
+    test('parses /app/menus/{id}/pdf into a PdfPreviewRouteConfig', () async {
+      final config = await parser.parseRouteInformation(
+        RouteInformation(uri: Uri.parse('/app/menus/42/pdf')),
+      );
+
+      expect(config, const PdfPreviewRouteConfig(42));
+    });
+
+    test(
+      'rejects non-numeric menuId in /app/menus/{id}/pdf as Unknown',
+      () async {
+        final config = await parser.parseRouteInformation(
+          RouteInformation(uri: Uri.parse('/app/menus/abc/pdf')),
+        );
+
+        expect(config, isA<UnknownRouteConfig>());
+      },
+    );
+
+    test('round-trips a PdfPreviewRouteConfig to /app/menus/{id}/pdf', () {
+      final restored = parser.restoreRouteInformation(
+        const PdfPreviewRouteConfig(42),
+      );
+
+      expect(restored, isNotNull);
+      expect(restored!.uri.path, '/app/menus/42/pdf');
     });
 
     test('handles root path', () async {

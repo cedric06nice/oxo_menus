@@ -125,6 +125,25 @@ final class AdminTemplateCreatorRouteConfig extends RouteConfig {
   String toString() => 'AdminTemplateCreatorRouteConfig()';
 }
 
+/// PDF preview — full-page preview of a generated PDF for a given menu.
+/// Reachable from the menu editor and the admin template editor; deep-linkable
+/// via `/app/menus/{menuId}/pdf` so users can bookmark a generated PDF.
+final class PdfPreviewRouteConfig extends RouteConfig {
+  const PdfPreviewRouteConfig(this.menuId);
+
+  final int menuId;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PdfPreviewRouteConfig && other.menuId == menuId;
+
+  @override
+  int get hashCode => Object.hash((PdfPreviewRouteConfig).hashCode, menuId);
+
+  @override
+  String toString() => 'PdfPreviewRouteConfig($menuId)';
+}
+
 /// Fallback variant for URIs that do not yet match a migrated feature.
 ///
 /// During the migration the legacy `go_router` handles all unknown paths;
