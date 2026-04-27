@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
 
@@ -29,59 +31,56 @@ sealed class AuthState with _$AuthState {
 
 /// Authentication state notifier
 ///
-/// Manages authentication state and provides methods for login/logout
+/// Delegates to [AuthGateway] (single source of truth) and mirrors its
+/// [AuthStatus] as the legacy [AuthState] for existing Riverpod consumers.
 class AuthNotifier extends Notifier<AuthState> {
+  StreamSubscription<AuthStatus>? _subscription;
+
   @override
   AuthState build() {
-    Future.microtask(_tryRestoreSession);
-    return const AuthState.initial();
-  }
-
-  /// Try to restore session from stored tokens
-  Future<void> _tryRestoreSession() async {
-    state = const AuthState.loading();
-    final result = await ref.read(authRepositoryProvider).tryRestoreSession();
-
-    result.fold(
-      onSuccess: (user) => state = AuthState.authenticated(user),
-      onFailure: (_) => state = const AuthState.unauthenticated(),
-    );
-  }
-
-  /// Check current authentication status
-  Future<void> _checkAuthStatus() async {
-    state = const AuthState.loading();
-    final result = await ref.read(authRepositoryProvider).getCurrentUser();
-
-    result.fold(
-      onSuccess: (user) => state = AuthState.authenticated(user),
-      onFailure: (_) => state = const AuthState.unauthenticated(),
-    );
+    final gateway = ref.read(authGatewayProvider);
+    _subscription = gateway.statusStream.listen((status) {
+      state = _toAuthState(status);
+    });
+    ref.onDispose(() => _subscription?.cancel());
+    Future.microtask(() async {
+      state = const AuthState.loading();
+      await gateway.tryRestoreSession();
+      state = _toAuthState(gateway.status);
+    });
+    return _toAuthState(gateway.status);
   }
 
   /// Login with email and password
   Future<void> login(String email, String password) async {
+    final gateway = ref.read(authGatewayProvider);
     state = const AuthState.loading();
-    final result = await ref
-        .read(authRepositoryProvider)
-        .login(email, password);
-
-    result.fold(
-      onSuccess: (user) => state = AuthState.authenticated(user),
-      onFailure: (error) => state = AuthState.error(error.message),
-    );
+    await gateway.login(email, password);
+    state = _toAuthState(gateway.status);
   }
 
   /// Logout the current user
   Future<void> logout() async {
-    await ref.read(authRepositoryProvider).logout();
+    final gateway = ref.read(authGatewayProvider);
+    await gateway.logout();
     state = const AuthState.unauthenticated();
   }
 
   /// Refresh authentication status
   Future<void> refresh() async {
-    await _checkAuthStatus();
+    final gateway = ref.read(authGatewayProvider);
+    state = const AuthState.loading();
+    await gateway.refresh();
+    state = _toAuthState(gateway.status);
   }
+
+  static AuthState _toAuthState(AuthStatus status) => switch (status) {
+    AuthStatusInitial() => const AuthState.initial(),
+    AuthStatusLoading() => const AuthState.loading(),
+    AuthStatusAuthenticated(:final user) => AuthState.authenticated(user),
+    AuthStatusUnauthenticated() => const AuthState.unauthenticated(),
+    AuthStatusError(:final message) => AuthState.error(message),
+  };
 }
 
 /// Auth state provider

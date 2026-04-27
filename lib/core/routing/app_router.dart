@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
+import 'package:oxo_menus/core/routing/migration/main_router_host.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/features/menu/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
@@ -146,6 +148,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'reset-password',
         builder: (context, state) =>
             ResetPasswordPage(token: state.uri.queryParameters['token']),
+      ),
+      // Phase 0 bridge: a single sub-tree under '/app' is rendered by the new
+      // MainRouter. Migrated features push their RoutePage onto MainRouter;
+      // un-migrated features stay on go_router.
+      GoRoute(
+        path: '/app',
+        name: 'app-root',
+        builder: (context, state) {
+          final container = ref.watch(appContainerProvider);
+          return MainRouterHost(container: container);
+        },
       ),
       // All authenticated routes wrapped in AppShell for persistent navigation
       ShellRoute(

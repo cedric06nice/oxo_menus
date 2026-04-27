@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/utils/directus_url_resolver.dart';
 import 'package:oxo_menus/shared/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/shared/data/repositories/area_repository_impl.dart';
@@ -120,6 +121,19 @@ final widgetRepositoryProvider = Provider<WidgetRepository>((ref) {
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   final dataSource = ref.watch(directusDataSourceProvider);
   return AuthRepositoryImpl(dataSource: dataSource);
+});
+
+/// Auth gateway provider.
+///
+/// Single source of truth for authentication state during the migration.
+/// In production, this is overridden in `main.dart` with the `AuthGateway`
+/// owned by the `AppContainer`. In tests, it builds a fresh gateway from the
+/// (overridden) `authRepositoryProvider`.
+final authGatewayProvider = Provider<AuthGateway>((ref) {
+  final repository = ref.watch(authRepositoryProvider);
+  final gateway = AuthGateway(repository: repository);
+  ref.onDispose(gateway.dispose);
+  return gateway;
 });
 
 /// Size repository provider
