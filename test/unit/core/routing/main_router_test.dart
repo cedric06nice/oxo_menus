@@ -4,10 +4,14 @@ import 'package:oxo_menus/core/architecture/view_model.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/main_router.dart';
+import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/routing/route_config.dart';
 import 'package:oxo_menus/core/routing/route_page.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/shared/domain/repositories/auth_repository.dart';
 
@@ -73,6 +77,16 @@ class _ProbeRoutePage extends RoutePage {
 AppContainer _makeContainer() {
   final gateway = AuthGateway(repository: _StubAuthRepository());
   return AppContainer(authGateway: gateway);
+}
+
+class _RecordingLegacyNavigator implements LegacyNavigator {
+  final List<({String location, Object? extra})> goCalls =
+      <({String location, Object? extra})>[];
+
+  @override
+  void go(String location, {Object? extra}) {
+    goCalls.add((location: location, extra: extra));
+  }
 }
 
 void main() {
@@ -170,6 +184,79 @@ void main() {
         await Future<void>.delayed(Duration.zero);
 
         expect(notifications, greaterThanOrEqualTo(1));
+      },
+    );
+  });
+
+  group('MainRouter — LoginRouter integration', () {
+    test('implements LoginRouter so it can be injected into the VM', () {
+      final router = MainRouter(container: _makeContainer());
+
+      expect(router, isA<LoginRouter>());
+    });
+
+    test(
+      'setNewRoutePath(LoginRouteConfig) replaces the stack with LoginRoutePage',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+
+        await router.setNewRoutePath(const LoginRouteConfig());
+
+        expect(router.stack, hasLength(1));
+        expect(router.stack.single, isA<LoginRoutePage>());
+        expect(router.currentConfiguration, const LoginRouteConfig());
+      },
+    );
+
+    test(
+      'pushing LoginRouteConfig twice keeps a single LoginRoutePage in the stack',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+
+        await router.setNewRoutePath(const LoginRouteConfig());
+        await router.setNewRoutePath(const LoginRouteConfig());
+
+        expect(router.stack, hasLength(1));
+      },
+    );
+
+    test('goToHomeAfterLogin asks the legacy navigator for /home', () {
+      final navigator = _RecordingLegacyNavigator();
+      final router = MainRouter(
+        container: _makeContainer(),
+        legacyNavigator: navigator,
+      );
+
+      router.goToHomeAfterLogin();
+
+      expect(navigator.goCalls.single.location, AppRoutes.home);
+    });
+
+    test(
+      'goToForgotPassword asks the legacy navigator for /forgot-password',
+      () {
+        final navigator = _RecordingLegacyNavigator();
+        final router = MainRouter(
+          container: _makeContainer(),
+          legacyNavigator: navigator,
+        );
+
+        router.goToForgotPassword();
+
+        expect(navigator.goCalls.single.location, AppRoutes.forgotPassword);
+      },
+    );
+
+    test(
+      'navigation methods are no-ops when no LegacyNavigator was provided',
+      () {
+        final router = MainRouter(container: _makeContainer());
+
+        // No throw, no observable side effect.
+        router.goToHomeAfterLogin();
+        router.goToForgotPassword();
+
+        expect(router.stack, isEmpty);
       },
     );
   });

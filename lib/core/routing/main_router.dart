@@ -3,8 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
+import 'package:oxo_menus/core/routing/app_routes.dart';
+import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/routing/route_config.dart';
 import 'package:oxo_menus/core/routing/route_page.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
 
 /// Application-wide router and DI root for the migrated stack.
 ///
@@ -18,24 +22,38 @@ import 'package:oxo_menus/core/routing/route_page.dart';
 /// - Disposes a page's resources (its ViewModel) when the page leaves the
 ///   stack for good.
 ///
-/// During Phase 0 the stack starts empty; concrete `RoutePage` subclasses are
-/// added as each feature migrates.
+/// During the migration, [LegacyNavigator] lets MainRouter route the user
+/// back into the legacy `go_router` tree (e.g. the `/home` shell that has not
+/// yet been migrated). Once every feature has migrated this dependency can be
+/// removed.
 class MainRouter extends RouterDelegate<RouteConfig>
-    with ChangeNotifier, PopNavigatorRouterDelegateMixin<RouteConfig> {
-  MainRouter({required AppContainer container})
-    : _container = container,
-      _navigatorKey = GlobalKey<NavigatorState>() {
+    with ChangeNotifier, PopNavigatorRouterDelegateMixin<RouteConfig>
+    implements LoginRouter {
+  MainRouter({
+    required AppContainer container,
+    LegacyNavigator? legacyNavigator,
+  }) : _container = container,
+       _legacyNavigator = legacyNavigator,
+       _navigatorKey = GlobalKey<NavigatorState>() {
     _authSubscription = _container.authGateway.statusStream.listen((_) {
       _onAuthChanged();
     });
   }
 
   final AppContainer _container;
+  LegacyNavigator? _legacyNavigator;
   final GlobalKey<NavigatorState> _navigatorKey;
   final List<RoutePage> _stack = <RoutePage>[];
   StreamSubscription<AuthStatus>? _authSubscription;
   RouteConfig? _currentConfiguration;
   bool _disposed = false;
+
+  /// Update the legacy navigator after construction. `MainRouterHost` calls
+  /// this from its `build` method so the navigator always points at the
+  /// current `BuildContext`.
+  set legacyNavigator(LegacyNavigator? navigator) {
+    _legacyNavigator = navigator;
+  }
 
   AppContainer get container => _container;
 
@@ -95,11 +113,35 @@ class MainRouter extends RouterDelegate<RouteConfig>
   @override
   Future<void> setNewRoutePath(RouteConfig configuration) async {
     _currentConfiguration = configuration;
-    if (configuration is UnknownRouteConfig) {
-      // Phase 0: unknown URIs are passed through to the legacy router.
+    switch (configuration) {
+      case LoginRouteConfig():
+        _replaceWithSingle(LoginRoutePage(router: this), identity: 'login');
+      case UnknownRouteConfig():
+        // Migration fallback: legacy go_router still serves this URI.
+        return;
+    }
+  }
+
+  /// Replace the stack with a single page unless the top page already has the
+  /// same identity. Lets `setNewRoutePath` be called repeatedly without
+  /// rebuilding the screen each time.
+  void _replaceWithSingle(RoutePage page, {required Object identity}) {
+    if (_stack.length == 1 && _stack.single.identity == identity) {
       return;
     }
-    notifyListeners();
+    replace(<RoutePage>[page]);
+  }
+
+  // ---------------------------------------------------------------- LoginRouter
+
+  @override
+  void goToHomeAfterLogin() {
+    _legacyNavigator?.go(AppRoutes.home);
+  }
+
+  @override
+  void goToForgotPassword() {
+    _legacyNavigator?.go(AppRoutes.forgotPassword);
   }
 
   @override

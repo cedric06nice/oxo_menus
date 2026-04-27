@@ -7,6 +7,20 @@ sealed class RouteConfig {
   const RouteConfig();
 }
 
+/// Login screen — the entry point for unauthenticated users.
+final class LoginRouteConfig extends RouteConfig {
+  const LoginRouteConfig();
+
+  @override
+  bool operator ==(Object other) => other is LoginRouteConfig;
+
+  @override
+  int get hashCode => (LoginRouteConfig).hashCode;
+
+  @override
+  String toString() => 'LoginRouteConfig()';
+}
+
 /// Fallback variant for URIs that do not yet match a migrated feature.
 ///
 /// During the migration the legacy `go_router` handles all unknown paths;

@@ -20,12 +20,28 @@ void main() {
       expect(a, equals(b));
       expect(a, isNot(equals(c)));
     });
+
+    test('LoginRouteConfig is a singleton-equal value', () {
+      const a = LoginRouteConfig();
+      const b = LoginRouteConfig();
+
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
   });
 
   group('AppRouteInformationParser', () {
     final parser = AppRouteInformationParser();
 
-    test('parses any URI into UnknownRouteConfig (Phase 0 fallback)', () async {
+    test('parses /app/login into LoginRouteConfig', () async {
+      final config = await parser.parseRouteInformation(
+        RouteInformation(uri: Uri.parse('/app/login')),
+      );
+
+      expect(config, const LoginRouteConfig());
+    });
+
+    test('parses an unmigrated /app/* URI into UnknownRouteConfig', () async {
       final config = await parser.parseRouteInformation(
         RouteInformation(uri: Uri.parse('/app/settings')),
       );
@@ -43,6 +59,13 @@ void main() {
 
       expect(restored, isNotNull);
       expect(restored!.uri, original);
+    });
+
+    test('round-trips a LoginRouteConfig to /app/login', () {
+      final restored = parser.restoreRouteInformation(const LoginRouteConfig());
+
+      expect(restored, isNotNull);
+      expect(restored!.uri.path, '/app/login');
     });
 
     test('handles root path', () async {
