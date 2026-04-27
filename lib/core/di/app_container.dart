@@ -21,18 +21,21 @@ class AppContainer {
     AppVersionGateway? appVersionGateway,
     AdminViewAsUserGateway? adminViewAsUserGateway,
     DirectusDataSource? directusDataSource,
+    String? directusBaseUrl,
   }) : _authGateway = authGateway,
        _connectivityGateway = connectivityGateway,
        _appVersionGateway = appVersionGateway ?? PackageInfoAppVersionGateway(),
        _adminViewAsUserGateway =
            adminViewAsUserGateway ?? AdminViewAsUserGateway(),
-       _directusDataSource = directusDataSource;
+       _directusDataSource = directusDataSource,
+       _directusBaseUrl = directusBaseUrl;
 
   final AuthGateway _authGateway;
   final ConnectivityGateway _connectivityGateway;
   final AppVersionGateway _appVersionGateway;
   final AdminViewAsUserGateway _adminViewAsUserGateway;
   final DirectusDataSource? _directusDataSource;
+  final String? _directusBaseUrl;
   bool _disposed = false;
 
   AuthGateway get authGateway => _authGateway;
@@ -42,6 +45,11 @@ class AppContainer {
   AppVersionGateway get appVersionGateway => _appVersionGateway;
 
   AdminViewAsUserGateway get adminViewAsUserGateway => _adminViewAsUserGateway;
+
+  /// The Directus base URL the production data source was configured with.
+  /// Optional — tests omit this and route pages that need it fall back to
+  /// an empty string.
+  String? get directusBaseUrl => _directusBaseUrl;
 
   /// The shared Directus data source. Route pages use it to construct
   /// repositories on demand inside `buildScreen()`. Tests that exercise

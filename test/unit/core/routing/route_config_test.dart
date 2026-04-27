@@ -169,6 +169,32 @@ void main() {
         isNot(const MenuListRouteConfig()),
       );
     });
+
+    test('AdminExportableMenusRouteConfig is a singleton-equal value', () {
+      const a = AdminExportableMenusRouteConfig();
+      const b = AdminExportableMenusRouteConfig();
+
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test(
+      'AdminExportableMenusRouteConfig is not equal to other migrated configs',
+      () {
+        expect(
+          const AdminExportableMenusRouteConfig(),
+          isNot(const HomeRouteConfig()),
+        );
+        expect(
+          const AdminExportableMenusRouteConfig(),
+          isNot(const AdminTemplatesRouteConfig()),
+        );
+        expect(
+          const AdminExportableMenusRouteConfig(),
+          isNot(const AdminSizesRouteConfig()),
+        );
+      },
+    );
   });
 
   group('AppRouteInformationParser', () {
@@ -365,6 +391,27 @@ void main() {
 
       expect(restored, isNotNull);
       expect(restored!.uri.path, '/app/menus/42/pdf');
+    });
+
+    test(
+      'parses /app/admin/exportable-menus into AdminExportableMenusRouteConfig',
+      () async {
+        final config = await parser.parseRouteInformation(
+          RouteInformation(uri: Uri.parse('/app/admin/exportable-menus')),
+        );
+
+        expect(config, const AdminExportableMenusRouteConfig());
+      },
+    );
+
+    test('round-trips an AdminExportableMenusRouteConfig to '
+        '/app/admin/exportable-menus', () {
+      final restored = parser.restoreRouteInformation(
+        const AdminExportableMenusRouteConfig(),
+      );
+
+      expect(restored, isNotNull);
+      expect(restored!.uri.path, '/app/admin/exportable-menus');
     });
 
     test('handles root path', () async {

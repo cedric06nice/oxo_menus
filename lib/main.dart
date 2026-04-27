@@ -45,6 +45,7 @@ void main() {
     appVersionGateway: PackageInfoAppVersionGateway(),
     adminViewAsUserGateway: adminViewAsUserGateway,
     directusDataSource: dataSource,
+    directusBaseUrl: baseUrl,
   );
 
   runApp(

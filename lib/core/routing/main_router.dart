@@ -7,6 +7,8 @@ import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/routing/route_config.dart';
 import 'package:oxo_menus/core/routing/route_page.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/admin_exportable_menus_route_page.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/admin_exportable_menus_router.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_route_page.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_router.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_route_page.dart';
@@ -53,6 +55,7 @@ class MainRouter extends RouterDelegate<RouteConfig>
         AdminTemplatesRouter,
         AdminTemplateCreatorRouter,
         AdminSizesRouter,
+        AdminExportableMenusRouter,
         PdfPreviewRouter {
   MainRouter({
     required AppContainer container,
@@ -173,6 +176,11 @@ class MainRouter extends RouterDelegate<RouteConfig>
           AdminTemplateCreatorRoutePage(router: this),
           identity: 'admin-template-create',
         );
+      case AdminExportableMenusRouteConfig():
+        _replaceWithSingle(
+          AdminExportableMenusRoutePage(router: this),
+          identity: 'admin-exportable-menus',
+        );
       case PdfPreviewRouteConfig(:final menuId):
         _replaceWithSingle(
           PdfPreviewRoutePage(router: this, menuId: menuId),
@@ -285,8 +293,15 @@ class MainRouter extends RouterDelegate<RouteConfig>
   }
 
   @override
-  void goToAdminExportableMenus() =>
-      _legacyNavigator?.go(AppRoutes.adminExportableMenus);
+  void goToAdminExportableMenus() {
+    if (_disposed) {
+      return;
+    }
+    if (_stack.isNotEmpty && _stack.last.identity == 'admin-exportable-menus') {
+      return;
+    }
+    push(AdminExportableMenusRoutePage(router: this));
+  }
 
   // ------------------------------------------------------------- MenuListRouter
 

@@ -21,6 +21,8 @@ import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_sta
 import 'package:oxo_menus/features/connectivity/domain/repositories/connectivity_repository.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/admin_exportable_menus_route_page.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/admin_exportable_menus_router.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_route_page.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_router.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_route_page.dart';
@@ -507,32 +509,86 @@ void main() {
       expect(router.stack.last, isA<AdminTemplateCreatorRoutePage>());
     });
 
-    test('goToAdminExportableMenus delegates to the legacy navigator with '
-        '/admin/exportable_menus', () {
-      final navigator = _RecordingLegacyNavigator();
-      final router = MainRouter(
-        container: _makeContainer(),
-        legacyNavigator: navigator,
-      );
-
-      router.goToAdminExportableMenus();
-
-      expect(navigator.goCalls.single.location, AppRoutes.adminExportableMenus);
-    });
-
     test(
-      'HomeRouter legacy-only quick-actions are no-ops without a LegacyNavigator',
-      () {
+      'goToAdminExportableMenus pushes an AdminExportableMenusRoutePage onto '
+      'the migrated stack',
+      () async {
         final router = MainRouter(container: _makeContainer());
+        await router.setNewRoutePath(const HomeRouteConfig());
 
         router.goToAdminExportableMenus();
 
-        // The legacy bridge cannot push anything onto the migrated stack;
-        // goToAdminTemplateCreate always pushes (it migrated in Phase 8) and
-        // is covered separately.
-        expect(router.stack, isEmpty);
+        expect(router.stack, hasLength(2));
+        expect(router.stack.last, isA<AdminExportableMenusRoutePage>());
       },
     );
+
+    test(
+      'goToAdminExportableMenus does not stack a second copy when already on '
+      'top',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+        await router.setNewRoutePath(const AdminExportableMenusRouteConfig());
+
+        router.goToAdminExportableMenus();
+
+        expect(router.stack, hasLength(1));
+        expect(router.stack.single, isA<AdminExportableMenusRoutePage>());
+      },
+    );
+  });
+
+  group('MainRouter — AdminExportableMenusRouter integration', () {
+    test(
+      'implements AdminExportableMenusRouter so it can be injected into the VM',
+      () {
+        final router = MainRouter(container: _makeContainer());
+
+        expect(router, isA<AdminExportableMenusRouter>());
+      },
+    );
+
+    test(
+      'setNewRoutePath(AdminExportableMenusRouteConfig) replaces the stack '
+      'with AdminExportableMenusRoutePage',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+
+        await router.setNewRoutePath(const AdminExportableMenusRouteConfig());
+
+        expect(router.stack, hasLength(1));
+        expect(router.stack.single, isA<AdminExportableMenusRoutePage>());
+        expect(
+          router.currentConfiguration,
+          const AdminExportableMenusRouteConfig(),
+        );
+      },
+    );
+
+    test(
+      'pushing AdminExportableMenusRouteConfig twice keeps a single page on '
+      'the stack',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+
+        await router.setNewRoutePath(const AdminExportableMenusRouteConfig());
+        await router.setNewRoutePath(const AdminExportableMenusRouteConfig());
+
+        expect(router.stack, hasLength(1));
+      },
+    );
+
+    test('goBack pops the page off the stack', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const HomeRouteConfig());
+      router.goToAdminExportableMenus();
+      expect(router.stack, hasLength(2));
+
+      router.goBack();
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<HomeRoutePage>());
+    });
   });
 
   group('MainRouter — MenuListRouter integration', () {

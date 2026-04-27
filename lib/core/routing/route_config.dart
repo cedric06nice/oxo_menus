@@ -125,6 +125,22 @@ final class AdminTemplateCreatorRouteConfig extends RouteConfig {
   String toString() => 'AdminTemplateCreatorRouteConfig()';
 }
 
+/// Admin exportable-menus dashboard — admin-only CRUD on the named bundles
+/// of menus that get rendered into a single watermarked PDF and uploaded to
+/// Directus. Reachable from Home via the "Exportable Menus" quick-action.
+final class AdminExportableMenusRouteConfig extends RouteConfig {
+  const AdminExportableMenusRouteConfig();
+
+  @override
+  bool operator ==(Object other) => other is AdminExportableMenusRouteConfig;
+
+  @override
+  int get hashCode => (AdminExportableMenusRouteConfig).hashCode;
+
+  @override
+  String toString() => 'AdminExportableMenusRouteConfig()';
+}
+
 /// PDF preview — full-page preview of a generated PDF for a given menu.
 /// Reachable from the menu editor and the admin template editor; deep-linkable
 /// via `/app/menus/{menuId}/pdf` so users can bookmark a generated PDF.

@@ -17,6 +17,7 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
   static const String _adminTemplatesPath = '/app/admin/templates';
   static const String _adminTemplateCreatePath = '/app/admin/templates/create';
   static const String _adminSizesPath = '/app/admin/sizes';
+  static const String _adminExportableMenusPath = '/app/admin/exportable-menus';
 
   @override
   Future<RouteConfig> parseRouteInformation(
@@ -46,6 +47,9 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
     }
     if (uri.path == _adminSizesPath) {
       return const AdminSizesRouteConfig();
+    }
+    if (uri.path == _adminExportableMenusPath) {
+      return const AdminExportableMenusRouteConfig();
     }
     final pdfPreview = _matchPdfPreviewPath(uri);
     if (pdfPreview != null) {
@@ -92,6 +96,9 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
       ),
       AdminSizesRouteConfig() => RouteInformation(
         uri: Uri.parse(_adminSizesPath),
+      ),
+      AdminExportableMenusRouteConfig() => RouteInformation(
+        uri: Uri.parse(_adminExportableMenusPath),
       ),
       PdfPreviewRouteConfig(:final menuId) => RouteInformation(
         uri: Uri.parse('/app/menus/$menuId/pdf'),
