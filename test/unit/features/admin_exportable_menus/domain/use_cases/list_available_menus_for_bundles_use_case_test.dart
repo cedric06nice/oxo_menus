@@ -109,8 +109,7 @@ void main() {
     test('returns an empty list when no menus exist', () async {
       final gateway = await _gatewayFor(_admin);
       addTearDown(gateway.dispose);
-      final repo = FakeMenuRepository()
-        ..whenListAll(const Success(<Menu>[]));
+      final repo = FakeMenuRepository()..whenListAll(const Success(<Menu>[]));
       final useCase = ListAvailableMenusForBundlesUseCase(
         authGateway: gateway,
         menuRepository: repo,

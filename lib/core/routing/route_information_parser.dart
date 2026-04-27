@@ -59,7 +59,31 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
     if (templateEditor != null) {
       return templateEditor;
     }
+    final menuEditor = _matchMenuEditorPath(uri);
+    if (menuEditor != null) {
+      return menuEditor;
+    }
     return UnknownRouteConfig(uri);
+  }
+
+  /// Matches `/app/menus/{menuId}/edit` and returns the corresponding config,
+  /// or `null` when the path doesn't fit the shape (wrong segment count, root
+  /// segment mismatch, or non-numeric id).
+  static MenuEditorRouteConfig? _matchMenuEditorPath(Uri uri) {
+    final segments = uri.pathSegments;
+    if (segments.length != 4) {
+      return null;
+    }
+    if (segments[0] != 'app' ||
+        segments[1] != 'menus' ||
+        segments[3] != 'edit') {
+      return null;
+    }
+    final menuId = int.tryParse(segments[2]);
+    if (menuId == null) {
+      return null;
+    }
+    return MenuEditorRouteConfig(menuId);
   }
 
   /// Matches `/app/admin/templates/{menuId}/edit` and returns the corresponding
@@ -126,6 +150,9 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
       ),
       AdminTemplateEditorRouteConfig(:final menuId) => RouteInformation(
         uri: Uri.parse('/app/admin/templates/$menuId/edit'),
+      ),
+      MenuEditorRouteConfig(:final menuId) => RouteInformation(
+        uri: Uri.parse('/app/menus/$menuId/edit'),
       ),
       PdfPreviewRouteConfig(:final menuId) => RouteInformation(
         uri: Uri.parse('/app/menus/$menuId/pdf'),

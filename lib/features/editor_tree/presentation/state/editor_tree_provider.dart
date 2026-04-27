@@ -1,8 +1,0 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:oxo_menus/features/editor_tree/presentation/state/editor_tree_notifier.dart';
-import 'package:oxo_menus/features/editor_tree/presentation/state/editor_tree_state.dart';
-
-final editorTreeProvider =
-    NotifierProvider.family<EditorTreeNotifier, EditorTreeState, int>(
-      EditorTreeNotifier.new,
-    );

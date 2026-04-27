@@ -76,25 +76,27 @@ Future<AuthGateway> _gatewayFor(User? user) async {
 
 void main() {
   group('CreateMenuBundleForAdminUseCase — admin', () {
-    test('forwards the input to repository.create and returns the bundle',
-        () async {
-      final gateway = await _gatewayFor(_admin);
-      addTearDown(gateway.dispose);
-      final repo = FakeMenuBundleRepository()
-        ..whenCreate(const Success(_created));
-      final useCase = CreateMenuBundleForAdminUseCase(
-        authGateway: gateway,
-        bundleRepository: repo,
-      );
+    test(
+      'forwards the input to repository.create and returns the bundle',
+      () async {
+        final gateway = await _gatewayFor(_admin);
+        addTearDown(gateway.dispose);
+        final repo = FakeMenuBundleRepository()
+          ..whenCreate(const Success(_created));
+        final useCase = CreateMenuBundleForAdminUseCase(
+          authGateway: gateway,
+          bundleRepository: repo,
+        );
 
-      const input = CreateMenuBundleInput(name: 'Lunch', menuIds: [1, 2]);
-      final result = await useCase.execute(input);
+        const input = CreateMenuBundleInput(name: 'Lunch', menuIds: [1, 2]);
+        final result = await useCase.execute(input);
 
-      expect(result.valueOrNull, _created);
-      expect(repo.calls, hasLength(1));
-      expect(repo.calls.single, isA<MenuBundleCreateCall>());
-      expect((repo.calls.single as MenuBundleCreateCall).input, input);
-    });
+        expect(result.valueOrNull, _created);
+        expect(repo.calls, hasLength(1));
+        expect(repo.calls.single, isA<MenuBundleCreateCall>());
+        expect((repo.calls.single as MenuBundleCreateCall).input, input);
+      },
+    );
 
     test('returns ValidationError when name is empty without calling the '
         'repository', () async {

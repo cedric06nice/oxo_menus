@@ -75,24 +75,6 @@ void main() {
       });
     });
 
-    group('menuEditor', () {
-      test('should return /menus/1 for id 1', () {
-        expect(AppRoutes.menuEditor(1), '/menus/1');
-      });
-
-      test('should return /menus/42 for id 42', () {
-        expect(AppRoutes.menuEditor(42), '/menus/42');
-      });
-
-      test('should return /menus/0 for id 0 (boundary value)', () {
-        expect(AppRoutes.menuEditor(0), '/menus/0');
-      });
-
-      test('should return correct path for a large id', () {
-        expect(AppRoutes.menuEditor(999999), '/menus/999999');
-      });
-    });
-
     group('menuPdf', () {
       test('should return /menus/pdf/1 for id 1', () {
         expect(AppRoutes.menuPdf(1), '/menus/pdf/1');
@@ -104,10 +86,6 @@ void main() {
 
       test('should return /menus/pdf/0 for id 0 (boundary value)', () {
         expect(AppRoutes.menuPdf(0), '/menus/pdf/0');
-      });
-
-      test('should not collide with menuEditor path for the same id', () {
-        expect(AppRoutes.menuPdf(5), isNot(equals(AppRoutes.menuEditor(5))));
       });
     });
 

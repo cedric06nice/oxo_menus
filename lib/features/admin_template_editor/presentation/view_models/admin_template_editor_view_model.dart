@@ -31,6 +31,7 @@ import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_sta
 import 'package:oxo_menus/features/menu/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/features/menu/domain/entities/container.dart'
     as entity;
+import 'package:oxo_menus/features/menu/domain/entities/editor_tree_data.dart';
 import 'package:oxo_menus/features/menu/domain/entities/menu.dart';
 import 'package:oxo_menus/features/menu/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/features/menu/domain/entities/page.dart' as entity;

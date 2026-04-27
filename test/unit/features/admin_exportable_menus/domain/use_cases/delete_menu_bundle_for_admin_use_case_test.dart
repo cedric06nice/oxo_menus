@@ -75,8 +75,7 @@ void main() {
     test('forwards the id to repository.delete and returns success', () async {
       final gateway = await _gatewayFor(_admin);
       addTearDown(gateway.dispose);
-      final repo = FakeMenuBundleRepository()
-        ..whenDelete(const Success(null));
+      final repo = FakeMenuBundleRepository()..whenDelete(const Success(null));
       final useCase = DeleteMenuBundleForAdminUseCase(
         authGateway: gateway,
         bundleRepository: repo,

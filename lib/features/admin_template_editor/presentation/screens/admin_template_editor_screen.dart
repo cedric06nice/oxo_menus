@@ -6,10 +6,10 @@ import 'package:oxo_menus/features/admin_template_editor/presentation/state/edit
 import 'package:oxo_menus/features/admin_template_editor/presentation/view_models/admin_template_editor_view_model.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/widgets/page_size_picker_dialog.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/widgets/side_panel_style_editor.dart';
-import 'package:oxo_menus/features/editor_tree/presentation/widgets/auto_scroll_listener.dart';
-import 'package:oxo_menus/features/editor_tree/presentation/widgets/draggable_widget_item.dart';
-import 'package:oxo_menus/features/editor_tree/presentation/widgets/editor_column_card.dart';
-import 'package:oxo_menus/features/editor_tree/presentation/widgets/widget_palette.dart';
+import 'package:oxo_menus/features/menu/presentation/widgets/editor/auto_scroll_listener.dart';
+import 'package:oxo_menus/features/menu/presentation/widgets/editor/draggable_widget_item.dart';
+import 'package:oxo_menus/features/menu/presentation/widgets/editor/editor_column_card.dart';
+import 'package:oxo_menus/features/menu/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/features/menu/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/features/menu/domain/entities/container.dart'
     as entity;

@@ -248,11 +248,17 @@ class _FakeGoRouter extends GoRouter {
       );
 
   final List<String> pushedRoutes = [];
+  final List<String> goRoutes = [];
 
   @override
   Future<T?> push<T extends Object?>(String location, {Object? extra}) async {
     pushedRoutes.add(location);
     return null;
+  }
+
+  @override
+  void go(String location, {Object? extra}) {
+    goRoutes.add(location);
   }
 }
 
@@ -692,8 +698,10 @@ void main() {
       await tester.tap(find.text('Summer Menu'));
       await tester.pumpAndSettle();
 
-      // Assert
-      expect(fakeRouter.pushedRoutes, contains('/menus/123'));
+      // Assert — Phase 12 retired the legacy /menus/:id route, the legacy
+      // menu list now redirects to the migrated /app/menus/{id}/edit URL
+      // through `context.go`.
+      expect(fakeRouter.goRoutes, contains('/app/menus/123/edit'));
     });
 
     testWidgets('should open create template dialog when add button tapped', (

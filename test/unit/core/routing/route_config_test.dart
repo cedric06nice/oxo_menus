@@ -54,6 +54,18 @@ void main() {
       expect(a, isNot(equals(const PdfPreviewRouteConfig(42))));
     });
 
+    test('MenuEditorRouteConfig equality compares menuId', () {
+      const a = MenuEditorRouteConfig(42);
+      const b = MenuEditorRouteConfig(42);
+      const c = MenuEditorRouteConfig(43);
+
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+      expect(a, isNot(equals(c)));
+      expect(a, isNot(equals(const AdminTemplateEditorRouteConfig(42))));
+      expect(a, isNot(equals(const PdfPreviewRouteConfig(42))));
+    });
+
     test('HomeRouteConfig is a singleton-equal value', () {
       const a = HomeRouteConfig();
       const b = HomeRouteConfig();
@@ -454,6 +466,34 @@ void main() {
 
       expect(restored, isNotNull);
       expect(restored!.uri.path, '/app/admin/templates/42/edit');
+    });
+
+    test('parses /app/menus/{id}/edit into a MenuEditorRouteConfig', () async {
+      final config = await parser.parseRouteInformation(
+        RouteInformation(uri: Uri.parse('/app/menus/42/edit')),
+      );
+
+      expect(config, const MenuEditorRouteConfig(42));
+    });
+
+    test(
+      'rejects non-numeric menuId in /app/menus/{id}/edit as Unknown',
+      () async {
+        final config = await parser.parseRouteInformation(
+          RouteInformation(uri: Uri.parse('/app/menus/abc/edit')),
+        );
+
+        expect(config, isA<UnknownRouteConfig>());
+      },
+    );
+
+    test('round-trips a MenuEditorRouteConfig to /app/menus/{id}/edit', () {
+      final restored = parser.restoreRouteInformation(
+        const MenuEditorRouteConfig(42),
+      );
+
+      expect(restored, isNotNull);
+      expect(restored!.uri.path, '/app/menus/42/edit');
     });
 
     test('handles root path', () async {

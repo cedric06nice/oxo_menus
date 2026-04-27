@@ -81,10 +81,7 @@ class _AdminExportableMenusScreenState
         availableMenus: state.availableMenus,
         onSave: (result) async {
           final created = await widget.viewModel.createBundle(
-            CreateMenuBundleInput(
-              name: result.name,
-              menuIds: result.menuIds,
-            ),
+            CreateMenuBundleInput(name: result.name, menuIds: result.menuIds),
           );
           if (created != null) {
             _publishInBackground(created.id);

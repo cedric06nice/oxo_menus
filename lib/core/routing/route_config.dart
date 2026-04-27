@@ -141,6 +141,25 @@ final class AdminExportableMenusRouteConfig extends RouteConfig {
   String toString() => 'AdminExportableMenusRouteConfig()';
 }
 
+/// Menu editor — consumer-facing editor for a single menu. Reachable from the
+/// menu list (any authenticated user). Carries the menu id so the URL is
+/// deep-linkable as `/app/menus/{menuId}/edit`.
+final class MenuEditorRouteConfig extends RouteConfig {
+  const MenuEditorRouteConfig(this.menuId);
+
+  final int menuId;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MenuEditorRouteConfig && other.menuId == menuId;
+
+  @override
+  int get hashCode => Object.hash((MenuEditorRouteConfig).hashCode, menuId);
+
+  @override
+  String toString() => 'MenuEditorRouteConfig($menuId)';
+}
+
 /// Admin template editor — full editor for a single template menu. Reachable
 /// from the admin templates list and from the menu list (admin-only). Carries
 /// the menu id so the URL is deep-linkable as `/app/admin/templates/{id}/edit`.

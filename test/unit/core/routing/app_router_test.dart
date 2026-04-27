@@ -21,7 +21,6 @@ import '../../../fakes/fake_auth_repository.dart';
 import '../../../fakes/fake_area_repository.dart';
 import '../../../fakes/fake_menu_repository.dart';
 import '../../../fakes/fake_size_repository.dart';
-import '../../../fakes/fake_widget_repository.dart';
 import '../../../fakes/builders/user_builder.dart';
 import '../../../fakes/reflectable_bootstrap.dart';
 
@@ -469,39 +468,9 @@ void main() {
       expect(find.text('Settings'), findsAtLeast(1));
     });
 
-    testWidgets(
-      'should render /menus/:id menu editor page for authenticated user',
-      (tester) async {
-        final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
-
-        final fakeMenu = FakeMenuRepository();
-        _configureMenuRepository(fakeMenu);
-
-        final fakeWidget = FakeWidgetRepository();
-        fakeWidget.whenGetAllForColumn(const Success([]));
-
-        late GoRouter router;
-
-        await tester.pumpWidget(
-          _buildApp(
-            fakeAuth: fakeAuth,
-            fakeMenu: fakeMenu,
-            extraOverrides: [
-              widgetRepositoryProvider.overrideWithValue(fakeWidget),
-            ],
-            onRouter: (r) => router = r,
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        router.go('/menus/123');
-        await tester.pumpAndSettle();
-
-        // Menu not found — MenuEditorPage shows the error state
-        expect(find.textContaining('Error:'), findsOneWidget);
-      },
-    );
+    // Phase 12 retired the legacy /menus/:id GoRoute — the menu editor lives
+    // on the migrated MainRouter at /app/menus/{id}/edit and is exercised by
+    // the MenuEditor* tests under features/menu_editor/.
   });
 
   group('AppRouter — admin template routes', () {
@@ -578,38 +547,9 @@ void main() {
       },
     );
 
-    testWidgets(
-      'should navigate directly to /menus/:id via deep link for authenticated user',
-      (tester) async {
-        final fakeAuth = FakeAuthRepository();
-        fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
-
-        final fakeMenu = FakeMenuRepository();
-        _configureMenuRepository(fakeMenu);
-
-        final fakeWidget = FakeWidgetRepository();
-        fakeWidget.whenGetAllForColumn(const Success([]));
-
-        late GoRouter router;
-
-        await tester.pumpWidget(
-          _buildApp(
-            fakeAuth: fakeAuth,
-            fakeMenu: fakeMenu,
-            extraOverrides: [
-              widgetRepositoryProvider.overrideWithValue(fakeWidget),
-            ],
-            onRouter: (r) => router = r,
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        router.go('/menus/456');
-        await tester.pumpAndSettle();
-
-        expect(find.textContaining('Error:'), findsOneWidget);
-      },
-    );
+    // Deep-link to /menus/:id was retired in Phase 12. The migrated equivalent
+    // (/app/menus/{id}/edit) is exercised by the MenuEditor route tests under
+    // features/menu_editor/.
 
     // The deep-link to /admin/templates/:id was retired in Phase 11. The
     // migrated equivalent (/app/admin/templates/{id}/edit) is exercised in

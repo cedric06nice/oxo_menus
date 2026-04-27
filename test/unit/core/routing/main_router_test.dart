@@ -7,9 +7,7 @@ import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
-import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/main_router.dart';
-import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/routing/route_config.dart';
 import 'package:oxo_menus/core/routing/route_page.dart';
 import 'package:oxo_menus/core/types/result.dart';
@@ -31,6 +29,7 @@ import 'package:oxo_menus/features/admin_template_editor/presentation/routing/ad
 import 'package:oxo_menus/features/admin_template_editor/presentation/routing/admin_template_editor_router.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_page.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_router.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/menu_editor_route_page.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_route_page.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_router.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_route_page.dart';
@@ -120,16 +119,6 @@ AppContainer _makeContainer() {
     authGateway: gateway,
     connectivityGateway: connectivityGateway,
   );
-}
-
-class _RecordingLegacyNavigator implements LegacyNavigator {
-  final List<({String location, Object? extra})> goCalls =
-      <({String location, Object? extra})>[];
-
-  @override
-  void go(String location, {Object? extra}) {
-    goCalls.add((location: location, extra: extra));
-  }
 }
 
 void main() {
@@ -617,17 +606,19 @@ void main() {
       },
     );
 
-    test('goToMenuEditor delegates to the legacy navigator', () {
-      final navigator = _RecordingLegacyNavigator();
-      final router = MainRouter(
-        container: _makeContainer(),
-        legacyNavigator: navigator,
-      );
+    test(
+      'goToMenuEditor pushes a MenuEditorRoutePage onto the stack',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+        await router.setNewRoutePath(const HomeRouteConfig());
 
-      router.goToMenuEditor(42);
+        router.goToMenuEditor(42);
 
-      expect(navigator.goCalls.single.location, AppRoutes.menuEditor(42));
-    });
+        expect(router.stack, hasLength(2));
+        expect(router.stack.last, isA<MenuEditorRoutePage>());
+        expect((router.stack.last as MenuEditorRoutePage).menuId, 42);
+      },
+    );
 
     test('goToAdminTemplateEditor pushes an AdminTemplateEditorRoutePage onto '
         'the stack', () async {
@@ -653,12 +644,16 @@ void main() {
       expect(router.stack.single, isA<HomeRoutePage>());
     });
 
-    test('goToMenuEditor is a no-op without a LegacyNavigator', () {
+    test('goToMenuEditor is idempotent when the same menu is already top of '
+        'stack', () async {
       final router = MainRouter(container: _makeContainer());
-
+      await router.setNewRoutePath(const HomeRouteConfig());
+      router.goToMenuEditor(1);
       router.goToMenuEditor(1);
 
-      expect(router.stack, isEmpty);
+      expect(router.stack, hasLength(2));
+      expect(router.stack.last, isA<MenuEditorRoutePage>());
+      expect((router.stack.last as MenuEditorRoutePage).menuId, 1);
     });
   });
 

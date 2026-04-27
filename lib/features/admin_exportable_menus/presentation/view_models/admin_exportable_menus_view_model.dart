@@ -66,9 +66,7 @@ class AdminExportableMenusViewModel
   StreamSubscription<ConnectivityStatus>? _connectivitySubscription;
   ConnectivityStatus _lastConnectivity;
 
-  static AdminExportableMenusScreenState _initialStateFor(
-    AuthGateway gateway,
-  ) {
+  static AdminExportableMenusScreenState _initialStateFor(AuthGateway gateway) {
     final user = gateway.currentUser;
     final isAdmin = user?.role == UserRole.admin;
     return AdminExportableMenusScreenState(isAdmin: isAdmin);

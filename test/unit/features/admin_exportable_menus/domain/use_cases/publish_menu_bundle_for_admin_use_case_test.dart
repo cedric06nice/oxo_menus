@@ -80,22 +80,24 @@ Future<AuthGateway> _gatewayFor(User? user) async {
 
 void main() {
   group('PublishMenuBundleForAdminUseCase — admin', () {
-    test('forwards the bundleId to the inner use case and returns its result',
-        () async {
-      final gateway = await _gatewayFor(_admin);
-      addTearDown(gateway.dispose);
-      final inner = FakePublishMenuBundleUseCase()
-        ..stubExecute(const Success(_published));
-      final useCase = PublishMenuBundleForAdminUseCase(
-        authGateway: gateway,
-        publishMenuBundleUseCase: inner,
-      );
+    test(
+      'forwards the bundleId to the inner use case and returns its result',
+      () async {
+        final gateway = await _gatewayFor(_admin);
+        addTearDown(gateway.dispose);
+        final inner = FakePublishMenuBundleUseCase()
+          ..stubExecute(const Success(_published));
+        final useCase = PublishMenuBundleForAdminUseCase(
+          authGateway: gateway,
+          publishMenuBundleUseCase: inner,
+        );
 
-      final result = await useCase.execute(5);
+        final result = await useCase.execute(5);
 
-      expect(result.valueOrNull, _published);
-      expect(inner.calls.single.bundleId, 5);
-    });
+        expect(result.valueOrNull, _published);
+        expect(inner.calls.single.bundleId, 5);
+      },
+    );
 
     test('surfaces inner-use-case failures unchanged', () async {
       final gateway = await _gatewayFor(_admin);
@@ -114,36 +116,40 @@ void main() {
   });
 
   group('PublishMenuBundleForAdminUseCase — non-admin', () {
-    test('regular user is denied without invoking the inner use case',
-        () async {
-      final gateway = await _gatewayFor(_regular);
-      addTearDown(gateway.dispose);
-      final inner = FakePublishMenuBundleUseCase();
-      final useCase = PublishMenuBundleForAdminUseCase(
-        authGateway: gateway,
-        publishMenuBundleUseCase: inner,
-      );
+    test(
+      'regular user is denied without invoking the inner use case',
+      () async {
+        final gateway = await _gatewayFor(_regular);
+        addTearDown(gateway.dispose);
+        final inner = FakePublishMenuBundleUseCase();
+        final useCase = PublishMenuBundleForAdminUseCase(
+          authGateway: gateway,
+          publishMenuBundleUseCase: inner,
+        );
 
-      final result = await useCase.execute(5);
+        final result = await useCase.execute(5);
 
-      expect(result.errorOrNull, isA<UnauthorizedError>());
-      expect(inner.calls, isEmpty);
-    });
+        expect(result.errorOrNull, isA<UnauthorizedError>());
+        expect(inner.calls, isEmpty);
+      },
+    );
 
-    test('anonymous viewer is denied without invoking the inner use case',
-        () async {
-      final gateway = await _gatewayFor(null);
-      addTearDown(gateway.dispose);
-      final inner = FakePublishMenuBundleUseCase();
-      final useCase = PublishMenuBundleForAdminUseCase(
-        authGateway: gateway,
-        publishMenuBundleUseCase: inner,
-      );
+    test(
+      'anonymous viewer is denied without invoking the inner use case',
+      () async {
+        final gateway = await _gatewayFor(null);
+        addTearDown(gateway.dispose);
+        final inner = FakePublishMenuBundleUseCase();
+        final useCase = PublishMenuBundleForAdminUseCase(
+          authGateway: gateway,
+          publishMenuBundleUseCase: inner,
+        );
 
-      final result = await useCase.execute(5);
+        final result = await useCase.execute(5);
 
-      expect(result.errorOrNull, isA<UnauthorizedError>());
-      expect(inner.calls, isEmpty);
-    });
+        expect(result.errorOrNull, isA<UnauthorizedError>());
+        expect(inner.calls, isEmpty);
+      },
+    );
   });
 }

@@ -16,8 +16,7 @@ import 'package:oxo_menus/shared/domain/entities/user.dart';
 /// - **Admin** — returns every menu in repository order.
 /// - **Non-admin / anonymous** — returns [UnauthorizedError] without touching
 ///   the repository.
-class ListAvailableMenusForBundlesUseCase
-    extends UseCase<NoInput, List<Menu>> {
+class ListAvailableMenusForBundlesUseCase extends UseCase<NoInput, List<Menu>> {
   ListAvailableMenusForBundlesUseCase({
     required AuthGateway authGateway,
     required MenuRepository menuRepository,

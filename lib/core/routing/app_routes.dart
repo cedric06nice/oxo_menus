@@ -15,7 +15,6 @@ abstract final class AppRoutes {
   static const forgotPassword = '/forgot-password';
   static const resetPassword = '/reset-password';
 
-  static String menuEditor(int menuId) => '/menus/$menuId';
   static String menuPdf(int menuId) => '/menus/pdf/$menuId';
   static String adminTemplateEditor(int menuId) => '/admin/templates/$menuId';
 }

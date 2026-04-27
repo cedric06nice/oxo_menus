@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
-import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/routing/route_config.dart';
 import 'package:oxo_menus/core/routing/route_page.dart';
@@ -23,6 +22,8 @@ import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.da
 import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/menu_editor_route_page.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/menu_editor_router.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_route_page.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_router.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_route_page.dart';
@@ -59,6 +60,7 @@ class MainRouter extends RouterDelegate<RouteConfig>
         AdminSizesRouter,
         AdminExportableMenusRouter,
         AdminTemplateEditorRouter,
+        MenuEditorRouter,
         PdfPreviewRouter {
   MainRouter({
     required AppContainer container,
@@ -72,6 +74,7 @@ class MainRouter extends RouterDelegate<RouteConfig>
   }
 
   final AppContainer _container;
+  // ignore: unused_field
   LegacyNavigator? _legacyNavigator;
   final GlobalKey<NavigatorState> _navigatorKey;
   final List<RoutePage> _stack = <RoutePage>[];
@@ -188,6 +191,11 @@ class MainRouter extends RouterDelegate<RouteConfig>
         _replaceWithSingle(
           AdminTemplateEditorRoutePage(router: this, menuId: menuId),
           identity: 'admin-template-editor-$menuId',
+        );
+      case MenuEditorRouteConfig(:final menuId):
+        _replaceWithSingle(
+          MenuEditorRoutePage(router: this, menuId: menuId),
+          identity: 'menu-editor-$menuId',
         );
       case PdfPreviewRouteConfig(:final menuId):
         _replaceWithSingle(
@@ -314,8 +322,16 @@ class MainRouter extends RouterDelegate<RouteConfig>
   // ------------------------------------------------------------- MenuListRouter
 
   @override
-  void goToMenuEditor(int menuId) =>
-      _legacyNavigator?.go(AppRoutes.menuEditor(menuId));
+  void goToMenuEditor(int menuId) {
+    if (_disposed) {
+      return;
+    }
+    final identity = 'menu-editor-$menuId';
+    if (_stack.isNotEmpty && _stack.last.identity == identity) {
+      return;
+    }
+    push(MenuEditorRoutePage(router: this, menuId: menuId));
+  }
 
   @override
   void goToAdminTemplateEditor(int menuId) {

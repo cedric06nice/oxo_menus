@@ -67,9 +67,7 @@ void main() {
 
       const g = AdminExportableMenusScreenState(publishingBundleIds: {1});
       const h = AdminExportableMenusScreenState(publishingBundleIds: {1});
-      const i = AdminExportableMenusScreenState(
-        publishingBundleIds: <int>{},
-      );
+      const i = AdminExportableMenusScreenState(publishingBundleIds: <int>{});
 
       expect(g, h);
       expect(g, isNot(i));

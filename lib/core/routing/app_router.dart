@@ -13,7 +13,6 @@ import 'package:oxo_menus/features/admin_template_creator/presentation/pages/adm
 import 'package:oxo_menus/features/admin_templates/presentation/admin_templates_page.dart';
 import 'package:oxo_menus/features/home/presentation/pages/home_page.dart';
 import 'package:oxo_menus/features/auth/presentation/pages/login_page.dart';
-import 'package:oxo_menus/features/menu_editor/presentation/pages/menu_editor_page.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/pages/pdf_preview_page.dart';
 import 'package:oxo_menus/features/menu_list/presentation/pages/menu_list_page.dart';
 import 'package:oxo_menus/features/auth/presentation/pages/forgot_password_page.dart';
@@ -190,14 +189,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   );
                 },
               ),
-              GoRoute(
-                path: ':id',
-                name: 'menu-editor',
-                builder: (context, state) {
-                  final int menuId = int.parse(state.pathParameters['id']!);
-                  return MenuEditorPage(menuId: menuId);
-                },
-              ),
+              // The menu editor is served by the migrated MainRouter at
+              // `/app/menus/{id}/edit` (Phase 12). The legacy /menus/:id
+              // route is intentionally absent.
             ],
           ),
           GoRoute(

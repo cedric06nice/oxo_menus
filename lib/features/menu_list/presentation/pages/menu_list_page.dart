@@ -101,7 +101,9 @@ class _MenuListPageState extends ConsumerState<MenuListPage> {
   }
 
   void _handleMenuTap(Menu menu) {
-    context.push(AppRoutes.menuEditor(menu.id));
+    // Phase 12 retired the legacy /menus/:id route — the menu editor lives on
+    // the MVVM stack at /app/menus/{id}/edit.
+    context.go('/app/menus/${menu.id}/edit');
   }
 
   void _editTemplate(Menu menu) {

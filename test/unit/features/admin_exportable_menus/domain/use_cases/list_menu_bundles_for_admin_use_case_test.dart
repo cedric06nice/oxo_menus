@@ -97,20 +97,23 @@ void main() {
       },
     );
 
-    test('returns an empty list when the repository returns no bundles', () async {
-      final gateway = await _gatewayFor(_admin);
-      addTearDown(gateway.dispose);
-      final repo = FakeMenuBundleRepository()
-        ..whenGetAll(const Success(<MenuBundle>[]));
-      final useCase = ListMenuBundlesForAdminUseCase(
-        authGateway: gateway,
-        bundleRepository: repo,
-      );
+    test(
+      'returns an empty list when the repository returns no bundles',
+      () async {
+        final gateway = await _gatewayFor(_admin);
+        addTearDown(gateway.dispose);
+        final repo = FakeMenuBundleRepository()
+          ..whenGetAll(const Success(<MenuBundle>[]));
+        final useCase = ListMenuBundlesForAdminUseCase(
+          authGateway: gateway,
+          bundleRepository: repo,
+        );
 
-      final result = await useCase.execute(NoInput.instance);
+        final result = await useCase.execute(NoInput.instance);
 
-      expect(result.valueOrNull, isEmpty);
-    });
+        expect(result.valueOrNull, isEmpty);
+      },
+    );
 
     test('surfaces repository failures unchanged', () async {
       final gateway = await _gatewayFor(_admin);

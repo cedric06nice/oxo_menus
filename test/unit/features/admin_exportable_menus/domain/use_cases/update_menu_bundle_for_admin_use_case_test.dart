@@ -76,28 +76,30 @@ Future<AuthGateway> _gatewayFor(User? user) async {
 
 void main() {
   group('UpdateMenuBundleForAdminUseCase — admin', () {
-    test('forwards the input to repository.update and returns the bundle',
-        () async {
-      final gateway = await _gatewayFor(_admin);
-      addTearDown(gateway.dispose);
-      final repo = FakeMenuBundleRepository()
-        ..whenUpdate(const Success(_updated));
-      final useCase = UpdateMenuBundleForAdminUseCase(
-        authGateway: gateway,
-        bundleRepository: repo,
-      );
+    test(
+      'forwards the input to repository.update and returns the bundle',
+      () async {
+        final gateway = await _gatewayFor(_admin);
+        addTearDown(gateway.dispose);
+        final repo = FakeMenuBundleRepository()
+          ..whenUpdate(const Success(_updated));
+        final useCase = UpdateMenuBundleForAdminUseCase(
+          authGateway: gateway,
+          bundleRepository: repo,
+        );
 
-      const input = UpdateMenuBundleInput(
-        id: 1,
-        name: 'Updated',
-        menuIds: [3, 4],
-      );
-      final result = await useCase.execute(input);
+        const input = UpdateMenuBundleInput(
+          id: 1,
+          name: 'Updated',
+          menuIds: [3, 4],
+        );
+        final result = await useCase.execute(input);
 
-      expect(result.valueOrNull, _updated);
-      expect(repo.calls, hasLength(1));
-      expect((repo.calls.single as MenuBundleUpdateCall).input, input);
-    });
+        expect(result.valueOrNull, _updated);
+        expect(repo.calls, hasLength(1));
+        expect((repo.calls.single as MenuBundleUpdateCall).input, input);
+      },
+    );
 
     test('surfaces repository failures unchanged', () async {
       final gateway = await _gatewayFor(_admin);

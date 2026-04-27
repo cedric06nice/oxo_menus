@@ -1,5 +1,5 @@
-import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/load_template_for_editor_use_case.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/state/editor_selection.dart';
+import 'package:oxo_menus/features/menu/domain/entities/editor_tree_data.dart';
 import 'package:oxo_menus/features/menu/domain/entities/menu.dart';
 
 /// Saving / publishing state of the editor's top-level actions.

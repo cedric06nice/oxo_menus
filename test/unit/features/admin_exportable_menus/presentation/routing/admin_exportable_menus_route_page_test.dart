@@ -187,8 +187,7 @@ void main() {
         viewModelBuilder: _testViewModelBuilder,
       );
       final container = _makeContainer();
-      final screen =
-          page.buildScreen(container) as AdminExportableMenusScreen;
+      final screen = page.buildScreen(container) as AdminExportableMenusScreen;
 
       page.disposeResources();
 

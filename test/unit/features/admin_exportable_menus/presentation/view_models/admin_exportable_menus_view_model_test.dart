@@ -40,8 +40,10 @@ const _bundleB = MenuBundle(id: 2, name: 'Dinner', menuIds: [20]);
 const _menu = Menu(id: 10, name: 'Lunch', status: Status.draft, version: '1');
 
 class _FakeListBundles implements ListMenuBundlesForAdminUseCase {
-  Result<List<MenuBundle>, DomainError> result =
-      const Success([_bundleA, _bundleB]);
+  Result<List<MenuBundle>, DomainError> result = const Success([
+    _bundleA,
+    _bundleB,
+  ]);
   final List<NoInput> calls = [];
   Completer<void>? _gate;
 
@@ -205,19 +207,21 @@ Future<AuthGateway> _gatewayFor(User? user) async {
   return gateway;
 }
 
-Future<({
-  AdminExportableMenusViewModel vm,
-  _FakeListBundles listBundles,
-  _FakeListMenus listMenus,
-  _FakeCreate create,
-  _FakeUpdate update,
-  _FakeDelete delete,
-  _FakePublish publish,
-  _RecordingRouter router,
-  AuthGateway authGateway,
-  ConnectivityGateway connectivityGateway,
-  _StubConnectivityRepository connectivityRepo,
-})>
+Future<
+  ({
+    AdminExportableMenusViewModel vm,
+    _FakeListBundles listBundles,
+    _FakeListMenus listMenus,
+    _FakeCreate create,
+    _FakeUpdate update,
+    _FakeDelete delete,
+    _FakePublish publish,
+    _RecordingRouter router,
+    AuthGateway authGateway,
+    ConnectivityGateway connectivityGateway,
+    _StubConnectivityRepository connectivityRepo,
+  })
+>
 _buildVm({
   User? user = _admin,
   _FakeListBundles? listBundles,
@@ -386,8 +390,7 @@ void main() {
   });
 
   group('AdminExportableMenusViewModel — create', () {
-    test('appends the new bundle to state on success and returns it',
-        () async {
+    test('appends the new bundle to state on success and returns it', () async {
       final create = _FakeCreate()
         ..result = const Success(MenuBundle(id: 99, name: 'New', menuIds: [1]));
       final h = await _buildVm(create: create);
@@ -479,22 +482,24 @@ void main() {
       expect(h.delete.calls, [1]);
     });
 
-    test('surfaces errorMessage on failure and keeps the bundle in state',
-        () async {
-      final delete = _FakeDelete()
-        ..result = const Failure(NetworkError('boom'));
-      final h = await _buildVm(delete: delete);
-      addTearDown(h.vm.dispose);
-      addTearDown(h.authGateway.dispose);
-      addTearDown(h.connectivityRepo.close);
-      addTearDown(h.connectivityGateway.dispose);
-      await _settle();
+    test(
+      'surfaces errorMessage on failure and keeps the bundle in state',
+      () async {
+        final delete = _FakeDelete()
+          ..result = const Failure(NetworkError('boom'));
+        final h = await _buildVm(delete: delete);
+        addTearDown(h.vm.dispose);
+        addTearDown(h.authGateway.dispose);
+        addTearDown(h.connectivityRepo.close);
+        addTearDown(h.connectivityGateway.dispose);
+        await _settle();
 
-      await h.vm.deleteBundle(1);
+        await h.vm.deleteBundle(1);
 
-      expect(h.vm.state.bundles.map((b) => b.id), [1, 2]);
-      expect(h.vm.state.errorMessage, 'boom');
-    });
+        expect(h.vm.state.bundles.map((b) => b.id), [1, 2]);
+        expect(h.vm.state.errorMessage, 'boom');
+      },
+    );
   });
 
   group('AdminExportableMenusViewModel — publish', () {
@@ -533,10 +538,7 @@ void main() {
       final result = await h.vm.publishBundle(1);
 
       expect(result.valueOrNull, published);
-      expect(
-        h.vm.state.bundles.firstWhere((b) => b.id == 1).pdfFileId,
-        'abc',
-      );
+      expect(h.vm.state.bundles.firstWhere((b) => b.id == 1).pdfFileId, 'abc');
     });
 
     test('surfaces errorMessage on failure', () async {
@@ -558,22 +560,24 @@ void main() {
   });
 
   group('AdminExportableMenusViewModel — clearError + navigation', () {
-    test('clearError clears the error message and notifies listeners',
-        () async {
-      final lb = _FakeListBundles()
-        ..result = const Failure(NetworkError('boom'));
-      final h = await _buildVm(listBundles: lb);
-      addTearDown(h.vm.dispose);
-      addTearDown(h.authGateway.dispose);
-      addTearDown(h.connectivityRepo.close);
-      addTearDown(h.connectivityGateway.dispose);
-      await _settle();
-      expect(h.vm.state.errorMessage, 'boom');
+    test(
+      'clearError clears the error message and notifies listeners',
+      () async {
+        final lb = _FakeListBundles()
+          ..result = const Failure(NetworkError('boom'));
+        final h = await _buildVm(listBundles: lb);
+        addTearDown(h.vm.dispose);
+        addTearDown(h.authGateway.dispose);
+        addTearDown(h.connectivityRepo.close);
+        addTearDown(h.connectivityGateway.dispose);
+        await _settle();
+        expect(h.vm.state.errorMessage, 'boom');
 
-      h.vm.clearError();
+        h.vm.clearError();
 
-      expect(h.vm.state.errorMessage, isNull);
-    });
+        expect(h.vm.state.errorMessage, isNull);
+      },
+    );
 
     test('goBack delegates to router.goBack', () async {
       final h = await _buildVm();
@@ -628,8 +632,7 @@ void main() {
   });
 
   group('AdminExportableMenusViewModel — disposal', () {
-    test('dispose marks the VM as disposed and stops further emits',
-        () async {
+    test('dispose marks the VM as disposed and stops further emits', () async {
       final publish = _FakePublish()..blockNextCall();
       final h = await _buildVm(publish: publish);
       addTearDown(h.authGateway.dispose);

@@ -91,8 +91,10 @@ class _StubConnectivityRepository implements ConnectivityRepository {
 }
 
 class _FakeListBundles implements ListMenuBundlesForAdminUseCase {
-  Result<List<MenuBundle>, DomainError> result =
-      const Success([_bundleA, _bundleB]);
+  Result<List<MenuBundle>, DomainError> result = const Success([
+    _bundleA,
+    _bundleB,
+  ]);
   final List<NoInput> calls = [];
 
   @override
@@ -160,8 +162,10 @@ Future<
   })
 >
 _buildVm({
-  Result<List<MenuBundle>, DomainError> bundles =
-      const Success([_bundleA, _bundleB]),
+  Result<List<MenuBundle>, DomainError> bundles = const Success([
+    _bundleA,
+    _bundleB,
+  ]),
   _FakeDelete? delete,
 }) async {
   final lb = _FakeListBundles()..result = bundles;
@@ -224,16 +228,16 @@ void main() {
       },
     );
 
-    testWidgets('renders the empty state when no bundles exist', (tester) async {
+    testWidgets('renders the empty state when no bundles exist', (
+      tester,
+    ) async {
       final h = await _buildVm(bundles: const Success(<MenuBundle>[]));
       addTearDown(h.vm.dispose);
       addTearDown(h.authGateway.dispose);
       addTearDown(h.connectivityGateway.dispose);
 
       await tester.pumpWidget(
-        _wrap(
-          AdminExportableMenusScreen(viewModel: h.vm, directusBaseUrl: ''),
-        ),
+        _wrap(AdminExportableMenusScreen(viewModel: h.vm, directusBaseUrl: '')),
       );
       await tester.pump();
 
@@ -248,9 +252,7 @@ void main() {
       addTearDown(h.connectivityGateway.dispose);
 
       await tester.pumpWidget(
-        _wrap(
-          AdminExportableMenusScreen(viewModel: h.vm, directusBaseUrl: ''),
-        ),
+        _wrap(AdminExportableMenusScreen(viewModel: h.vm, directusBaseUrl: '')),
       );
       await tester.pump();
 
@@ -313,9 +315,7 @@ void main() {
       addTearDown(connectivityGateway.dispose);
 
       await tester.pumpWidget(
-        _wrap(
-          AdminExportableMenusScreen(viewModel: vm, directusBaseUrl: ''),
-        ),
+        _wrap(AdminExportableMenusScreen(viewModel: vm, directusBaseUrl: '')),
       );
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
