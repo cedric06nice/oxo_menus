@@ -13,6 +13,8 @@ import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.da
 import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
+import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_route_page.dart';
+import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_router.dart';
 
 /// Application-wide router and DI root for the migrated stack.
 ///
@@ -32,7 +34,7 @@ import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
 /// removed.
 class MainRouter extends RouterDelegate<RouteConfig>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<RouteConfig>
-    implements LoginRouter, ForgotPasswordRouter, HomeRouter {
+    implements LoginRouter, ForgotPasswordRouter, HomeRouter, MenuListRouter {
   MainRouter({
     required AppContainer container,
     LegacyNavigator? legacyNavigator,
@@ -127,6 +129,11 @@ class MainRouter extends RouterDelegate<RouteConfig>
         );
       case HomeRouteConfig():
         _replaceWithSingle(HomeRoutePage(router: this), identity: 'home');
+      case MenuListRouteConfig():
+        _replaceWithSingle(
+          MenuListRoutePage(router: this),
+          identity: 'menu-list',
+        );
       case UnknownRouteConfig():
         // Migration fallback: legacy go_router still serves this URI.
         return;
@@ -190,7 +197,15 @@ class MainRouter extends RouterDelegate<RouteConfig>
   // ----------------------------------------------------------------- HomeRouter
 
   @override
-  void goToMenus() => _legacyNavigator?.go(AppRoutes.menus);
+  void goToMenus() {
+    if (_disposed) {
+      return;
+    }
+    if (_stack.isNotEmpty && _stack.last.identity == 'menu-list') {
+      return;
+    }
+    push(MenuListRoutePage(router: this));
+  }
 
   @override
   void goToAdminTemplates() => _legacyNavigator?.go(AppRoutes.adminTemplates);
@@ -202,6 +217,21 @@ class MainRouter extends RouterDelegate<RouteConfig>
   @override
   void goToAdminExportableMenus() =>
       _legacyNavigator?.go(AppRoutes.adminExportableMenus);
+
+  // ------------------------------------------------------------- MenuListRouter
+
+  @override
+  void goToMenuEditor(int menuId) =>
+      _legacyNavigator?.go(AppRoutes.menuEditor(menuId));
+
+  @override
+  void goToAdminTemplateEditor(int menuId) =>
+      _legacyNavigator?.go(AppRoutes.adminTemplateEditor(menuId));
+
+  @override
+  void goBack() {
+    pop();
+  }
 
   @override
   Widget build(BuildContext context) {

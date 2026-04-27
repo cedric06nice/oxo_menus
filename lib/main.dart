@@ -1,11 +1,14 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
+import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
 import 'package:oxo_menus/core/utils/directus_url_resolver.dart';
+import 'package:oxo_menus/features/connectivity/data/repositories/connectivity_repository_impl.dart';
 import 'package:oxo_menus/shared/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/shared/data/repositories/auth_repository_impl.dart';
 import 'package:oxo_menus/shared/presentation/providers/app_lifecycle_provider.dart';
@@ -27,7 +30,17 @@ void main() {
   final authGateway = AuthGateway(
     repository: AuthRepositoryImpl(dataSource: dataSource),
   );
-  final appContainer = AppContainer(authGateway: authGateway);
+  final connectivityGateway = ConnectivityGateway(
+    repository: ConnectivityRepositoryImpl(
+      connectivity: Connectivity(),
+      dnsProbe: kIsWeb ? () async => true : null,
+    ),
+  );
+  final appContainer = AppContainer(
+    authGateway: authGateway,
+    connectivityGateway: connectivityGateway,
+    directusDataSource: dataSource,
+  );
 
   runApp(
     ProviderScope(

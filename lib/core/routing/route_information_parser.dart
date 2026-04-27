@@ -12,6 +12,7 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
   static const String _loginPath = '/app/login';
   static const String _forgotPasswordPath = '/app/forgot-password';
   static const String _homePath = '/app/home';
+  static const String _menuListPath = '/app/menus';
 
   @override
   Future<RouteConfig> parseRouteInformation(
@@ -27,6 +28,9 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
     if (uri.path == _homePath) {
       return const HomeRouteConfig();
     }
+    if (uri.path == _menuListPath) {
+      return const MenuListRouteConfig();
+    }
     return UnknownRouteConfig(uri);
   }
 
@@ -38,6 +42,7 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
         uri: Uri.parse(_forgotPasswordPath),
       ),
       HomeRouteConfig() => RouteInformation(uri: Uri.parse(_homePath)),
+      MenuListRouteConfig() => RouteInformation(uri: Uri.parse(_menuListPath)),
       UnknownRouteConfig(:final uri) => RouteInformation(uri: uri),
     };
   }

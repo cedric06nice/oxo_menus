@@ -56,6 +56,19 @@ void main() {
       expect(const HomeRouteConfig(), isNot(const LoginRouteConfig()));
       expect(const HomeRouteConfig(), isNot(const ForgotPasswordRouteConfig()));
     });
+
+    test('MenuListRouteConfig is a singleton-equal value', () {
+      const a = MenuListRouteConfig();
+      const b = MenuListRouteConfig();
+
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('MenuListRouteConfig is not equal to other migrated configs', () {
+      expect(const MenuListRouteConfig(), isNot(const HomeRouteConfig()));
+      expect(const MenuListRouteConfig(), isNot(const LoginRouteConfig()));
+    });
   });
 
   group('AppRouteInformationParser', () {
@@ -129,6 +142,23 @@ void main() {
 
       expect(restored, isNotNull);
       expect(restored!.uri.path, '/app/home');
+    });
+
+    test('parses /app/menus into MenuListRouteConfig', () async {
+      final config = await parser.parseRouteInformation(
+        RouteInformation(uri: Uri.parse('/app/menus')),
+      );
+
+      expect(config, const MenuListRouteConfig());
+    });
+
+    test('round-trips a MenuListRouteConfig to /app/menus', () {
+      final restored = parser.restoreRouteInformation(
+        const MenuListRouteConfig(),
+      );
+
+      expect(restored, isNotNull);
+      expect(restored!.uri.path, '/app/menus');
     });
 
     test('handles root path', () async {

@@ -50,6 +50,20 @@ final class HomeRouteConfig extends RouteConfig {
   String toString() => 'HomeRouteConfig()';
 }
 
+/// Menu list — the main browsing screen reachable from Home.
+final class MenuListRouteConfig extends RouteConfig {
+  const MenuListRouteConfig();
+
+  @override
+  bool operator ==(Object other) => other is MenuListRouteConfig;
+
+  @override
+  int get hashCode => (MenuListRouteConfig).hashCode;
+
+  @override
+  String toString() => 'MenuListRouteConfig()';
+}
+
 /// Fallback variant for URIs that do not yet match a migrated feature.
 ///
 /// During the migration the legacy `go_router` handles all unknown paths;

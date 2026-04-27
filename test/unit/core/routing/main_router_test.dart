@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/architecture/view_model.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
+import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/main_router.dart';
 import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
@@ -14,8 +17,12 @@ import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_rou
 import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
+import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/features/connectivity/domain/repositories/connectivity_repository.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
+import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_route_page.dart';
+import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_router.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/shared/domain/repositories/auth_repository.dart';
 
@@ -78,9 +85,27 @@ class _ProbeRoutePage extends RoutePage {
   }
 }
 
+class _StubConnectivityRepository implements ConnectivityRepository {
+  final StreamController<ConnectivityStatus> controller =
+      StreamController<ConnectivityStatus>.broadcast();
+
+  @override
+  Stream<ConnectivityStatus> watchConnectivity() => controller.stream;
+
+  @override
+  Future<ConnectivityStatus> checkConnectivity() async =>
+      ConnectivityStatus.online;
+}
+
 AppContainer _makeContainer() {
   final gateway = AuthGateway(repository: _StubAuthRepository());
-  return AppContainer(authGateway: gateway);
+  final connectivityGateway = ConnectivityGateway(
+    repository: _StubConnectivityRepository(),
+  );
+  return AppContainer(
+    authGateway: gateway,
+    connectivityGateway: connectivityGateway,
+  );
 }
 
 class _RecordingLegacyNavigator implements LegacyNavigator {
@@ -404,17 +429,28 @@ void main() {
       },
     );
 
-    test('goToMenus delegates to the legacy navigator with /menus', () {
-      final navigator = _RecordingLegacyNavigator();
-      final router = MainRouter(
-        container: _makeContainer(),
-        legacyNavigator: navigator,
-      );
+    test('goToMenus pushes a MenuListRoutePage onto the stack', () {
+      final router = MainRouter(container: _makeContainer())
+        ..push(HomeRoutePage(router: MainRouter(container: _makeContainer())));
 
       router.goToMenus();
 
-      expect(navigator.goCalls.single.location, AppRoutes.menus);
+      expect(router.stack, hasLength(2));
+      expect(router.stack.last, isA<MenuListRoutePage>());
     });
+
+    test(
+      'goToMenus does not stack a second MenuListRoutePage when already on top',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+        await router.setNewRoutePath(const MenuListRouteConfig());
+
+        router.goToMenus();
+
+        expect(router.stack, hasLength(1));
+        expect(router.stack.single, isA<MenuListRoutePage>());
+      },
+    );
 
     test(
       'goToAdminTemplates delegates to the legacy navigator with /admin/templates',
@@ -458,11 +494,10 @@ void main() {
     });
 
     test(
-      'HomeRouter quick-action methods are no-ops without a LegacyNavigator',
+      'HomeRouter admin quick-actions are no-ops without a LegacyNavigator',
       () {
         final router = MainRouter(container: _makeContainer());
 
-        router.goToMenus();
         router.goToAdminTemplates();
         router.goToAdminTemplateCreate();
         router.goToAdminExportableMenus();
@@ -470,5 +505,85 @@ void main() {
         expect(router.stack, isEmpty);
       },
     );
+  });
+
+  group('MainRouter — MenuListRouter integration', () {
+    test('implements MenuListRouter so it can be injected into the VM', () {
+      final router = MainRouter(container: _makeContainer());
+
+      expect(router, isA<MenuListRouter>());
+    });
+
+    test('setNewRoutePath(MenuListRouteConfig) replaces the stack with '
+        'MenuListRoutePage', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const MenuListRouteConfig());
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<MenuListRoutePage>());
+      expect(router.currentConfiguration, const MenuListRouteConfig());
+    });
+
+    test(
+      'pushing MenuListRouteConfig twice keeps a single page on the stack',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+
+        await router.setNewRoutePath(const MenuListRouteConfig());
+        await router.setNewRoutePath(const MenuListRouteConfig());
+
+        expect(router.stack, hasLength(1));
+      },
+    );
+
+    test('goToMenuEditor delegates to the legacy navigator', () {
+      final navigator = _RecordingLegacyNavigator();
+      final router = MainRouter(
+        container: _makeContainer(),
+        legacyNavigator: navigator,
+      );
+
+      router.goToMenuEditor(42);
+
+      expect(navigator.goCalls.single.location, AppRoutes.menuEditor(42));
+    });
+
+    test('goToAdminTemplateEditor delegates to the legacy navigator', () {
+      final navigator = _RecordingLegacyNavigator();
+      final router = MainRouter(
+        container: _makeContainer(),
+        legacyNavigator: navigator,
+      );
+
+      router.goToAdminTemplateEditor(7);
+
+      expect(
+        navigator.goCalls.single.location,
+        AppRoutes.adminTemplateEditor(7),
+      );
+    });
+
+    test('goBack pops the menu list page off the stack', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const HomeRouteConfig());
+      router.goToMenus();
+      expect(router.stack, hasLength(2));
+
+      router.goBack();
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<HomeRoutePage>());
+    });
+
+    test('MenuListRouter sub-route navigation is a no-op without a '
+        'LegacyNavigator', () {
+      final router = MainRouter(container: _makeContainer());
+
+      router.goToMenuEditor(1);
+      router.goToAdminTemplateEditor(1);
+
+      expect(router.stack, isEmpty);
+    });
   });
 }

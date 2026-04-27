@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
+import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/features/connectivity/domain/repositories/connectivity_repository.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
 import 'package:oxo_menus/features/home/presentation/screens/home_screen.dart';
@@ -59,9 +64,27 @@ class _NoopHomeRouter implements HomeRouter {
   void goToAdminExportableMenus() {}
 }
 
+class _StubConnectivityRepository implements ConnectivityRepository {
+  final StreamController<ConnectivityStatus> controller =
+      StreamController<ConnectivityStatus>.broadcast();
+
+  @override
+  Stream<ConnectivityStatus> watchConnectivity() => controller.stream;
+
+  @override
+  Future<ConnectivityStatus> checkConnectivity() async =>
+      ConnectivityStatus.online;
+}
+
 AppContainer _makeContainer() {
   final gateway = AuthGateway(repository: _StubAuthRepository());
-  return AppContainer(authGateway: gateway);
+  final connectivityGateway = ConnectivityGateway(
+    repository: _StubConnectivityRepository(),
+  );
+  return AppContainer(
+    authGateway: gateway,
+    connectivityGateway: connectivityGateway,
+  );
 }
 
 void main() {
