@@ -14,6 +14,7 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
   static const String _homePath = '/app/home';
   static const String _menuListPath = '/app/menus';
   static const String _settingsPath = '/app/settings';
+  static const String _adminTemplatesPath = '/app/admin/templates';
 
   @override
   Future<RouteConfig> parseRouteInformation(
@@ -35,6 +36,9 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
     if (uri.path == _settingsPath) {
       return const SettingsRouteConfig();
     }
+    if (uri.path == _adminTemplatesPath) {
+      return const AdminTemplatesRouteConfig();
+    }
     return UnknownRouteConfig(uri);
   }
 
@@ -48,6 +52,9 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
       HomeRouteConfig() => RouteInformation(uri: Uri.parse(_homePath)),
       MenuListRouteConfig() => RouteInformation(uri: Uri.parse(_menuListPath)),
       SettingsRouteConfig() => RouteInformation(uri: Uri.parse(_settingsPath)),
+      AdminTemplatesRouteConfig() => RouteInformation(
+        uri: Uri.parse(_adminTemplatesPath),
+      ),
       UnknownRouteConfig(:final uri) => RouteInformation(uri: uri),
     };
   }

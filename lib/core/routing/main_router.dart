@@ -7,6 +7,8 @@ import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/routing/route_config.dart';
 import 'package:oxo_menus/core/routing/route_page.dart';
+import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_page.dart';
+import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_route_page.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.dart';
@@ -41,7 +43,8 @@ class MainRouter extends RouterDelegate<RouteConfig>
         ForgotPasswordRouter,
         HomeRouter,
         MenuListRouter,
-        SettingsRouter {
+        SettingsRouter,
+        AdminTemplatesRouter {
   MainRouter({
     required AppContainer container,
     LegacyNavigator? legacyNavigator,
@@ -146,6 +149,11 @@ class MainRouter extends RouterDelegate<RouteConfig>
           SettingsRoutePage(router: this),
           identity: 'settings',
         );
+      case AdminTemplatesRouteConfig():
+        _replaceWithSingle(
+          AdminTemplatesRoutePage(router: this),
+          identity: 'admin-templates',
+        );
       case UnknownRouteConfig():
         // Migration fallback: legacy go_router still serves this URI.
         return;
@@ -231,7 +239,15 @@ class MainRouter extends RouterDelegate<RouteConfig>
   }
 
   @override
-  void goToAdminTemplates() => _legacyNavigator?.go(AppRoutes.adminTemplates);
+  void goToAdminTemplates() {
+    if (_disposed) {
+      return;
+    }
+    if (_stack.isNotEmpty && _stack.last.identity == 'admin-templates') {
+      return;
+    }
+    push(AdminTemplatesRoutePage(router: this));
+  }
 
   @override
   void goToAdminTemplateCreate() =>
@@ -251,7 +267,7 @@ class MainRouter extends RouterDelegate<RouteConfig>
   void goToAdminTemplateEditor(int menuId) =>
       _legacyNavigator?.go(AppRoutes.adminTemplateEditor(menuId));
 
-  // -------------------------- shared (MenuListRouter, SettingsRouter)
+  // -------------------------- shared (MenuListRouter, SettingsRouter, AdminTemplatesRouter)
 
   @override
   void goBack() {

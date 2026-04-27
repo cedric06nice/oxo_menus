@@ -82,6 +82,32 @@ void main() {
       expect(const SettingsRouteConfig(), isNot(const HomeRouteConfig()));
       expect(const SettingsRouteConfig(), isNot(const MenuListRouteConfig()));
     });
+
+    test('AdminTemplatesRouteConfig is a singleton-equal value', () {
+      const a = AdminTemplatesRouteConfig();
+      const b = AdminTemplatesRouteConfig();
+
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test(
+      'AdminTemplatesRouteConfig is not equal to other migrated configs',
+      () {
+        expect(
+          const AdminTemplatesRouteConfig(),
+          isNot(const HomeRouteConfig()),
+        );
+        expect(
+          const AdminTemplatesRouteConfig(),
+          isNot(const MenuListRouteConfig()),
+        );
+        expect(
+          const AdminTemplatesRouteConfig(),
+          isNot(const SettingsRouteConfig()),
+        );
+      },
+    );
   });
 
   group('AppRouteInformationParser', () {
@@ -97,11 +123,11 @@ void main() {
 
     test('parses an unmigrated /app/* URI into UnknownRouteConfig', () async {
       final config = await parser.parseRouteInformation(
-        RouteInformation(uri: Uri.parse('/app/admin/templates')),
+        RouteInformation(uri: Uri.parse('/app/somewhere/else')),
       );
 
       expect(config, isA<UnknownRouteConfig>());
-      expect(config, UnknownRouteConfig(Uri.parse('/app/admin/templates')));
+      expect(config, UnknownRouteConfig(Uri.parse('/app/somewhere/else')));
     });
 
     test('round-trips an UnknownRouteConfig back to the same URI', () async {
@@ -190,6 +216,29 @@ void main() {
       expect(restored, isNotNull);
       expect(restored!.uri.path, '/app/settings');
     });
+
+    test(
+      'parses /app/admin/templates into AdminTemplatesRouteConfig',
+      () async {
+        final config = await parser.parseRouteInformation(
+          RouteInformation(uri: Uri.parse('/app/admin/templates')),
+        );
+
+        expect(config, const AdminTemplatesRouteConfig());
+      },
+    );
+
+    test(
+      'round-trips an AdminTemplatesRouteConfig to /app/admin/templates',
+      () {
+        final restored = parser.restoreRouteInformation(
+          const AdminTemplatesRouteConfig(),
+        );
+
+        expect(restored, isNotNull);
+        expect(restored!.uri.path, '/app/admin/templates');
+      },
+    );
 
     test('handles root path', () async {
       final config = await parser.parseRouteInformation(

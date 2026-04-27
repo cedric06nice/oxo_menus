@@ -78,6 +78,21 @@ final class SettingsRouteConfig extends RouteConfig {
   String toString() => 'SettingsRouteConfig()';
 }
 
+/// Admin templates list — admin-only entry point for template management.
+/// Reachable from Home via the "Manage Templates" quick-action.
+final class AdminTemplatesRouteConfig extends RouteConfig {
+  const AdminTemplatesRouteConfig();
+
+  @override
+  bool operator ==(Object other) => other is AdminTemplatesRouteConfig;
+
+  @override
+  int get hashCode => (AdminTemplatesRouteConfig).hashCode;
+
+  @override
+  String toString() => 'AdminTemplatesRouteConfig()';
+}
+
 /// Fallback variant for URIs that do not yet match a migrated feature.
 ///
 /// During the migration the legacy `go_router` handles all unknown paths;

@@ -21,6 +21,8 @@ import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_sta
 import 'package:oxo_menus/features/connectivity/domain/repositories/connectivity_repository.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
+import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_page.dart';
+import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_router.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_route_page.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_router.dart';
 import 'package:oxo_menus/features/settings/presentation/routing/settings_route_page.dart';
@@ -455,19 +457,38 @@ void main() {
     );
 
     test(
-      'goToAdminTemplates delegates to the legacy navigator with /admin/templates',
-      () {
-        final navigator = _RecordingLegacyNavigator();
-        final router = MainRouter(
-          container: _makeContainer(),
-          legacyNavigator: navigator,
-        );
+      'goToAdminTemplates pushes an AdminTemplatesRoutePage onto the stack',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+        await router.setNewRoutePath(const HomeRouteConfig());
 
         router.goToAdminTemplates();
 
-        expect(navigator.goCalls.single.location, AppRoutes.adminTemplates);
+        expect(router.stack, hasLength(2));
+        expect(router.stack.last, isA<AdminTemplatesRoutePage>());
       },
     );
+
+    test('goToAdminTemplates is idempotent when AdminTemplatesRoutePage is '
+        'already on top', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const AdminTemplatesRouteConfig());
+
+      router.goToAdminTemplates();
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<AdminTemplatesRoutePage>());
+    });
+
+    test('goToAdminTemplates does not require a LegacyNavigator', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const HomeRouteConfig());
+
+      router.goToAdminTemplates();
+
+      expect(router.stack, hasLength(2));
+      expect(router.stack.last, isA<AdminTemplatesRoutePage>());
+    });
 
     test('goToAdminTemplateCreate delegates to the legacy navigator with '
         '/admin/templates/create', () {
@@ -495,18 +516,18 @@ void main() {
       expect(navigator.goCalls.single.location, AppRoutes.adminExportableMenus);
     });
 
-    test(
-      'HomeRouter admin quick-actions are no-ops without a LegacyNavigator',
-      () {
-        final router = MainRouter(container: _makeContainer());
+    test('HomeRouter legacy-only admin quick-actions are no-ops without a '
+        'LegacyNavigator', () {
+      final router = MainRouter(container: _makeContainer());
 
-        router.goToAdminTemplates();
-        router.goToAdminTemplateCreate();
-        router.goToAdminExportableMenus();
+      router.goToAdminTemplateCreate();
+      router.goToAdminExportableMenus();
 
-        expect(router.stack, isEmpty);
-      },
-    );
+      // Both are still legacy-bridged, so without a navigator they should
+      // not push anything onto the migrated stack. (goToAdminTemplates is
+      // covered separately — it always pushes, with or without a navigator.)
+      expect(router.stack, isEmpty);
+    });
   });
 
   group('MainRouter — MenuListRouter integration', () {
@@ -652,6 +673,78 @@ void main() {
 
       expect(router.stack, hasLength(1));
       expect(router.stack.single, isA<HomeRoutePage>());
+    });
+  });
+
+  group('MainRouter — AdminTemplatesRouter integration', () {
+    test(
+      'implements AdminTemplatesRouter so it can be injected into the VM',
+      () {
+        final router = MainRouter(container: _makeContainer());
+
+        expect(router, isA<AdminTemplatesRouter>());
+      },
+    );
+
+    test('setNewRoutePath(AdminTemplatesRouteConfig) replaces the stack with '
+        'AdminTemplatesRoutePage', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const AdminTemplatesRouteConfig());
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<AdminTemplatesRoutePage>());
+      expect(router.currentConfiguration, const AdminTemplatesRouteConfig());
+    });
+
+    test('pushing AdminTemplatesRouteConfig twice keeps a single page on the '
+        'stack', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const AdminTemplatesRouteConfig());
+      await router.setNewRoutePath(const AdminTemplatesRouteConfig());
+
+      expect(router.stack, hasLength(1));
+    });
+
+    test('goBack pops the admin-templates page off the stack', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const HomeRouteConfig());
+      router.goToAdminTemplates();
+      expect(router.stack, hasLength(2));
+
+      router.goBack();
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<HomeRoutePage>());
+    });
+
+    test('goToAdminTemplateCreate delegates to the legacy navigator with '
+        '/admin/templates/create', () {
+      final navigator = _RecordingLegacyNavigator();
+      final router = MainRouter(
+        container: _makeContainer(),
+        legacyNavigator: navigator,
+      );
+
+      router.goToAdminTemplateCreate();
+
+      expect(navigator.goCalls.single.location, AppRoutes.adminTemplateCreate);
+    });
+
+    test('goToAdminTemplateEditor delegates to the legacy navigator', () {
+      final navigator = _RecordingLegacyNavigator();
+      final router = MainRouter(
+        container: _makeContainer(),
+        legacyNavigator: navigator,
+      );
+
+      router.goToAdminTemplateEditor(99);
+
+      expect(
+        navigator.goCalls.single.location,
+        AppRoutes.adminTemplateEditor(99),
+      );
     });
   });
 }
