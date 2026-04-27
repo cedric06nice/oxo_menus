@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:oxo_menus/domain/entities/connectivity_status.dart';
-import 'package:oxo_menus/domain/repositories/connectivity_repository.dart';
+import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/features/connectivity/domain/repositories/connectivity_repository.dart';
 
 // ---------------------------------------------------------------------------
 // Call-record types

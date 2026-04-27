@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/column.dart';
-import 'package:oxo_menus/domain/repositories/column_repository.dart';
+import 'package:oxo_menus/features/menu/domain/entities/column.dart';
+import 'package:oxo_menus/features/menu/domain/repositories/column_repository.dart';
 
 import 'builders/column_builder.dart';
 import 'fake_column_repository.dart';

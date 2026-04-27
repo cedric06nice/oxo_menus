@@ -1,4 +1,4 @@
-import 'package:oxo_menus/domain/entities/widget_instance.dart';
+import 'package:oxo_menus/features/menu/domain/entities/widget_instance.dart';
 
 /// Builds a [WidgetInstance] with sensible test defaults.
 ///

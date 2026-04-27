@@ -2,9 +2,9 @@ import 'dart:typed_data';
 
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/repositories/asset_loader_repository.dart';
-import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
-import 'package:oxo_menus/domain/usecases/generate_pdf_usecase.dart';
+import 'package:oxo_menus/shared/domain/repositories/asset_loader_repository.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/fetch_menu_tree_usecase.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/generate_pdf_usecase.dart';
 
 // ---------------------------------------------------------------------------
 // Call-record type

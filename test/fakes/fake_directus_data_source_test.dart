@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oxo_menus/data/models/menu_dto.dart';
-import 'package:oxo_menus/data/models/page_dto.dart';
+import 'package:oxo_menus/features/menu/data/models/menu_dto.dart';
+import 'package:oxo_menus/features/menu/data/models/page_dto.dart';
 
 import 'fake_directus_data_source.dart';
 import 'fake_directus_websocket_subscription.dart';

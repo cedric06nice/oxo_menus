@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oxo_menus/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 
 import 'fake_connectivity_repository.dart';
 

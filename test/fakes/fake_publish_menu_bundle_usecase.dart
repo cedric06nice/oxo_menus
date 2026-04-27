@@ -2,24 +2,24 @@ import 'dart:typed_data';
 
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/column.dart';
-import 'package:oxo_menus/domain/entities/container.dart';
-import 'package:oxo_menus/domain/entities/image_file_info.dart';
-import 'package:oxo_menus/domain/entities/menu.dart';
-import 'package:oxo_menus/domain/entities/menu_bundle.dart';
-import 'package:oxo_menus/domain/entities/page.dart';
-import 'package:oxo_menus/domain/entities/widget_instance.dart';
-import 'package:oxo_menus/domain/repositories/asset_loader_repository.dart';
-import 'package:oxo_menus/domain/repositories/column_repository.dart';
-import 'package:oxo_menus/domain/repositories/container_repository.dart';
-import 'package:oxo_menus/domain/repositories/file_repository.dart';
-import 'package:oxo_menus/domain/repositories/menu_bundle_repository.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
-import 'package:oxo_menus/domain/repositories/page_repository.dart';
-import 'package:oxo_menus/domain/repositories/widget_repository.dart';
-import 'package:oxo_menus/domain/usecases/fetch_menu_tree_usecase.dart';
-import 'package:oxo_menus/domain/usecases/pdf_document_builder.dart';
-import 'package:oxo_menus/domain/usecases/publish_menu_bundle_usecase.dart';
+import 'package:oxo_menus/features/menu/domain/entities/column.dart';
+import 'package:oxo_menus/features/menu/domain/entities/container.dart';
+import 'package:oxo_menus/shared/domain/entities/image_file_info.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu_bundle.dart';
+import 'package:oxo_menus/features/menu/domain/entities/page.dart';
+import 'package:oxo_menus/features/menu/domain/entities/widget_instance.dart';
+import 'package:oxo_menus/shared/domain/repositories/asset_loader_repository.dart';
+import 'package:oxo_menus/features/menu/domain/repositories/column_repository.dart';
+import 'package:oxo_menus/features/menu/domain/repositories/container_repository.dart';
+import 'package:oxo_menus/shared/domain/repositories/file_repository.dart';
+import 'package:oxo_menus/features/menu/domain/repositories/menu_bundle_repository.dart';
+import 'package:oxo_menus/features/menu/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/features/menu/domain/repositories/page_repository.dart';
+import 'package:oxo_menus/features/menu/domain/repositories/widget_repository.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/fetch_menu_tree_usecase.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/pdf_document_builder.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/publish_menu_bundle_usecase.dart';
 
 // ---------------------------------------------------------------------------
 // Call-record type

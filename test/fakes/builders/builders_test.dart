@@ -1,13 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oxo_menus/domain/entities/column.dart';
-import 'package:oxo_menus/domain/entities/container.dart';
-import 'package:oxo_menus/domain/entities/menu.dart';
-import 'package:oxo_menus/domain/entities/menu_bundle.dart';
-import 'package:oxo_menus/domain/entities/page.dart';
-import 'package:oxo_menus/domain/entities/size.dart';
-import 'package:oxo_menus/domain/entities/status.dart';
-import 'package:oxo_menus/domain/entities/user.dart';
-import 'package:oxo_menus/domain/entities/widget_instance.dart';
+import 'package:oxo_menus/features/menu/domain/entities/column.dart';
+import 'package:oxo_menus/features/menu/domain/entities/container.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu_bundle.dart';
+import 'package:oxo_menus/features/menu/domain/entities/page.dart';
+import 'package:oxo_menus/features/menu/domain/entities/size.dart';
+import 'package:oxo_menus/shared/domain/entities/status.dart';
+import 'package:oxo_menus/shared/domain/entities/user.dart';
+import 'package:oxo_menus/features/menu/domain/entities/widget_instance.dart';
 
 import 'column_builder.dart';
 import 'container_builder.dart';

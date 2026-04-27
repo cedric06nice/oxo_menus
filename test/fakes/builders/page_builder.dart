@@ -1,4 +1,4 @@
-import 'package:oxo_menus/domain/entities/page.dart';
+import 'package:oxo_menus/features/menu/domain/entities/page.dart';
 
 /// Builds a [Page] with sensible test defaults.
 ///

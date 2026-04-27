@@ -1,7 +1,7 @@
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/container.dart';
-import 'package:oxo_menus/domain/repositories/container_repository.dart';
+import 'package:oxo_menus/features/menu/domain/entities/container.dart';
+import 'package:oxo_menus/features/menu/domain/repositories/container_repository.dart';
 
 // ---------------------------------------------------------------------------
 // Call-record types

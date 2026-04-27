@@ -1,5 +1,5 @@
-import 'package:oxo_menus/domain/entities/size.dart';
-import 'package:oxo_menus/domain/entities/status.dart';
+import 'package:oxo_menus/features/menu/domain/entities/size.dart';
+import 'package:oxo_menus/shared/domain/entities/status.dart';
 
 /// Builds a [Size] with sensible test defaults.
 ///

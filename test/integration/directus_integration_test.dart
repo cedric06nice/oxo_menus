@@ -1,9 +1,9 @@
 void main() {}
 
 // import 'package:flutter_test/flutter_test.dart';
-// import 'package:oxo_menus/data/datasources/directus_data_source.dart';
-// import 'package:oxo_menus/data/datasources/secure_token_storage.dart';
-// import 'package:oxo_menus/data/models/menu_dto.dart';
+// import 'package:oxo_menus/shared/data/datasources/directus_data_source.dart';
+// import 'package:oxo_menus/shared/data/datasources/secure_token_storage.dart';
+// import 'package:oxo_menus/features/menu/data/models/menu_dto.dart';
 // import 'package:oxo_menus/main.reflectable.dart';
 
 // /// In-memory token storage for integration tests (avoids FlutterSecureStorage

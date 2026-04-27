@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/widget_instance.dart';
-import 'package:oxo_menus/domain/repositories/widget_repository.dart';
+import 'package:oxo_menus/features/menu/domain/entities/widget_instance.dart';
+import 'package:oxo_menus/features/menu/domain/repositories/widget_repository.dart';
 
 import 'builders/widget_instance_builder.dart';
 import 'fake_widget_repository.dart';

@@ -1,4 +1,4 @@
-import 'package:oxo_menus/data/datasources/secure_token_storage.dart';
+import 'package:oxo_menus/shared/data/datasources/secure_token_storage.dart';
 
 /// In-memory fake for [SecureTokenStorage].
 ///

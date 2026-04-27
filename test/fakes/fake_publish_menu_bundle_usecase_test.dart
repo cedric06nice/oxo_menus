@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/menu_bundle.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu_bundle.dart';
 
 import 'builders/menu_bundle_builder.dart';
 import 'fake_publish_menu_bundle_usecase.dart';

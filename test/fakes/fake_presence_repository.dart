@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/menu_presence.dart';
-import 'package:oxo_menus/domain/repositories/presence_repository.dart';
+import 'package:oxo_menus/features/collaboration/domain/entities/menu_presence.dart';
+import 'package:oxo_menus/features/collaboration/domain/repositories/presence_repository.dart';
 
 // ---------------------------------------------------------------------------
 // Call-record types

@@ -1,8 +1,8 @@
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/size.dart';
-import 'package:oxo_menus/domain/repositories/size_repository.dart';
-import 'package:oxo_menus/domain/usecases/list_sizes_usecase.dart';
+import 'package:oxo_menus/features/menu/domain/entities/size.dart';
+import 'package:oxo_menus/features/menu/domain/repositories/size_repository.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/list_sizes_usecase.dart';
 
 // ---------------------------------------------------------------------------
 // Call-record type

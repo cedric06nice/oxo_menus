@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oxo_menus/domain/entities/menu_change_event.dart';
+import 'package:oxo_menus/features/collaboration/domain/entities/menu_change_event.dart';
 
 import 'fake_menu_subscription_repository.dart';
 

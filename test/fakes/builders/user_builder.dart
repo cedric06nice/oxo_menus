@@ -1,5 +1,5 @@
-import 'package:oxo_menus/domain/entities/area.dart';
-import 'package:oxo_menus/domain/entities/user.dart';
+import 'package:oxo_menus/shared/domain/entities/area.dart';
+import 'package:oxo_menus/shared/domain/entities/user.dart';
 
 /// Builds a [User] with sensible test defaults.
 ///

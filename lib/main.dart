@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
-import 'package:oxo_menus/presentation/providers/app_lifecycle_provider.dart';
-import 'package:oxo_menus/presentation/theme/app_theme.dart';
+import 'package:oxo_menus/shared/presentation/providers/app_lifecycle_provider.dart';
+import 'package:oxo_menus/shared/presentation/theme/app_theme.dart';
 import 'main.reflectable.dart';
 
 void main() {

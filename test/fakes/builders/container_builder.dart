@@ -1,5 +1,5 @@
-import 'package:oxo_menus/domain/entities/container.dart';
-import 'package:oxo_menus/domain/entities/menu.dart';
+import 'package:oxo_menus/features/menu/domain/entities/container.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu.dart';
 
 /// Builds a [Container] with sensible test defaults.
 ///

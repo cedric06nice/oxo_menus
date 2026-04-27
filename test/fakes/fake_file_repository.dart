@@ -2,8 +2,8 @@ import 'dart:typed_data';
 
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/image_file_info.dart';
-import 'package:oxo_menus/domain/repositories/file_repository.dart';
+import 'package:oxo_menus/shared/domain/entities/image_file_info.dart';
+import 'package:oxo_menus/shared/domain/repositories/file_repository.dart';
 
 // ---------------------------------------------------------------------------
 // Call-record types

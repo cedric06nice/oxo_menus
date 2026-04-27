@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/menu.dart';
-import 'package:oxo_menus/domain/entities/status.dart';
-import 'package:oxo_menus/domain/repositories/menu_repository.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu.dart';
+import 'package:oxo_menus/shared/domain/entities/status.dart';
+import 'package:oxo_menus/features/menu/domain/repositories/menu_repository.dart';
 
 import 'builders/menu_builder.dart';
 import 'fake_menu_repository.dart';

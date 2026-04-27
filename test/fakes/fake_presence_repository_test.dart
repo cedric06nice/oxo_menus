@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/types/result.dart';
-import 'package:oxo_menus/domain/entities/menu_presence.dart';
+import 'package:oxo_menus/features/collaboration/domain/entities/menu_presence.dart';
 
 import 'fake_presence_repository.dart';
 import 'result_helpers.dart';

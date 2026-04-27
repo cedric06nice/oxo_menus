@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:oxo_menus/domain/repositories/asset_loader_repository.dart';
+import 'package:oxo_menus/shared/domain/repositories/asset_loader_repository.dart';
 
 // ---------------------------------------------------------------------------
 // Call-record types

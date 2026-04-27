@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:oxo_menus/domain/entities/menu_change_event.dart';
-import 'package:oxo_menus/domain/repositories/menu_subscription_repository.dart';
+import 'package:oxo_menus/features/collaboration/domain/entities/menu_change_event.dart';
+import 'package:oxo_menus/features/collaboration/domain/repositories/menu_subscription_repository.dart';
 
 // ---------------------------------------------------------------------------
 // Call-record types

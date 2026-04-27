@@ -1,4 +1,4 @@
-import 'package:oxo_menus/domain/entities/menu_bundle.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu_bundle.dart';
 
 /// Builds a [MenuBundle] with sensible test defaults.
 ///
