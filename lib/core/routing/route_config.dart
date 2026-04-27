@@ -36,6 +36,20 @@ final class ForgotPasswordRouteConfig extends RouteConfig {
   String toString() => 'ForgotPasswordRouteConfig()';
 }
 
+/// Home screen — the post-login destination.
+final class HomeRouteConfig extends RouteConfig {
+  const HomeRouteConfig();
+
+  @override
+  bool operator ==(Object other) => other is HomeRouteConfig;
+
+  @override
+  int get hashCode => (HomeRouteConfig).hashCode;
+
+  @override
+  String toString() => 'HomeRouteConfig()';
+}
+
 /// Fallback variant for URIs that do not yet match a migrated feature.
 ///
 /// During the migration the legacy `go_router` handles all unknown paths;

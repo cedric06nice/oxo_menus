@@ -11,6 +11,8 @@ import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_rou
 import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
+import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dart';
+import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
 
 /// Application-wide router and DI root for the migrated stack.
 ///
@@ -30,7 +32,7 @@ import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
 /// removed.
 class MainRouter extends RouterDelegate<RouteConfig>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<RouteConfig>
-    implements LoginRouter, ForgotPasswordRouter {
+    implements LoginRouter, ForgotPasswordRouter, HomeRouter {
   MainRouter({
     required AppContainer container,
     LegacyNavigator? legacyNavigator,
@@ -123,6 +125,8 @@ class MainRouter extends RouterDelegate<RouteConfig>
           ForgotPasswordRoutePage(router: this),
           identity: 'forgot-password',
         );
+      case HomeRouteConfig():
+        _replaceWithSingle(HomeRoutePage(router: this), identity: 'home');
       case UnknownRouteConfig():
         // Migration fallback: legacy go_router still serves this URI.
         return;
@@ -143,7 +147,10 @@ class MainRouter extends RouterDelegate<RouteConfig>
 
   @override
   void goToHomeAfterLogin() {
-    _legacyNavigator?.go(AppRoutes.home);
+    if (_disposed) {
+      return;
+    }
+    _replaceWithSingle(HomeRoutePage(router: this), identity: 'home');
   }
 
   @override
@@ -179,6 +186,22 @@ class MainRouter extends RouterDelegate<RouteConfig>
       notifyListeners();
     }
   }
+
+  // ----------------------------------------------------------------- HomeRouter
+
+  @override
+  void goToMenus() => _legacyNavigator?.go(AppRoutes.menus);
+
+  @override
+  void goToAdminTemplates() => _legacyNavigator?.go(AppRoutes.adminTemplates);
+
+  @override
+  void goToAdminTemplateCreate() =>
+      _legacyNavigator?.go(AppRoutes.adminTemplateCreate);
+
+  @override
+  void goToAdminExportableMenus() =>
+      _legacyNavigator?.go(AppRoutes.adminExportableMenus);
 
   @override
   Widget build(BuildContext context) {

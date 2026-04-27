@@ -43,6 +43,19 @@ void main() {
         isNot(const ForgotPasswordRouteConfig()),
       );
     });
+
+    test('HomeRouteConfig is a singleton-equal value', () {
+      const a = HomeRouteConfig();
+      const b = HomeRouteConfig();
+
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('HomeRouteConfig is not equal to other migrated configs', () {
+      expect(const HomeRouteConfig(), isNot(const LoginRouteConfig()));
+      expect(const HomeRouteConfig(), isNot(const ForgotPasswordRouteConfig()));
+    });
   });
 
   group('AppRouteInformationParser', () {
@@ -101,6 +114,21 @@ void main() {
 
       expect(restored, isNotNull);
       expect(restored!.uri.path, '/app/forgot-password');
+    });
+
+    test('parses /app/home into HomeRouteConfig', () async {
+      final config = await parser.parseRouteInformation(
+        RouteInformation(uri: Uri.parse('/app/home')),
+      );
+
+      expect(config, const HomeRouteConfig());
+    });
+
+    test('round-trips a HomeRouteConfig to /app/home', () {
+      final restored = parser.restoreRouteInformation(const HomeRouteConfig());
+
+      expect(restored, isNotNull);
+      expect(restored!.uri.path, '/app/home');
     });
 
     test('handles root path', () async {

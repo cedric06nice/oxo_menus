@@ -14,6 +14,8 @@ import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_rou
 import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
+import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dart';
+import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/shared/domain/repositories/auth_repository.dart';
 
@@ -222,29 +224,43 @@ void main() {
       },
     );
 
-    test('goToHomeAfterLogin asks the legacy navigator for /home', () {
-      final navigator = _RecordingLegacyNavigator();
-      final router = MainRouter(
-        container: _makeContainer(),
-        legacyNavigator: navigator,
-      );
+    test('goToHomeAfterLogin replaces the stack with a HomeRoutePage', () {
+      final router = MainRouter(container: _makeContainer())
+        ..push(LoginRoutePage(router: MainRouter(container: _makeContainer())));
 
       router.goToHomeAfterLogin();
 
-      expect(navigator.goCalls.single.location, AppRoutes.home);
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<HomeRoutePage>());
     });
 
     test(
-      'goToHomeAfterLogin is a no-op when no LegacyNavigator was provided',
+      'goToHomeAfterLogin disposes the previous LoginRoutePage on the stack',
       () {
         final router = MainRouter(container: _makeContainer());
+        final loginPage = LoginRoutePage(
+          router: MainRouter(container: _makeContainer()),
+        );
+        router.push(loginPage);
+        // Build the screen so the VM is constructed.
+        loginPage.buildScreen(router.container);
+        final loginVm =
+            (loginPage.buildScreen(router.container) as dynamic).viewModel;
 
-        // No throw, no observable side effect.
         router.goToHomeAfterLogin();
 
-        expect(router.stack, isEmpty);
+        expect(loginVm.isDisposed, isTrue);
       },
     );
+
+    test('goToHomeAfterLogin does not require a LegacyNavigator', () {
+      final router = MainRouter(container: _makeContainer());
+
+      router.goToHomeAfterLogin();
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<HomeRoutePage>());
+    });
   });
 
   group('MainRouter — ForgotPasswordRouter integration', () {
@@ -354,5 +370,105 @@ void main() {
       expect(router.stack, hasLength(1));
       expect(router.stack.single, isA<LoginRoutePage>());
     });
+  });
+
+  group('MainRouter — HomeRouter integration', () {
+    test('implements HomeRouter so it can be injected into the VM', () {
+      final router = MainRouter(container: _makeContainer());
+
+      expect(router, isA<HomeRouter>());
+    });
+
+    test(
+      'setNewRoutePath(HomeRouteConfig) replaces the stack with HomeRoutePage',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+
+        await router.setNewRoutePath(const HomeRouteConfig());
+
+        expect(router.stack, hasLength(1));
+        expect(router.stack.single, isA<HomeRoutePage>());
+        expect(router.currentConfiguration, const HomeRouteConfig());
+      },
+    );
+
+    test(
+      'pushing HomeRouteConfig twice keeps a single HomeRoutePage on the stack',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+
+        await router.setNewRoutePath(const HomeRouteConfig());
+        await router.setNewRoutePath(const HomeRouteConfig());
+
+        expect(router.stack, hasLength(1));
+      },
+    );
+
+    test('goToMenus delegates to the legacy navigator with /menus', () {
+      final navigator = _RecordingLegacyNavigator();
+      final router = MainRouter(
+        container: _makeContainer(),
+        legacyNavigator: navigator,
+      );
+
+      router.goToMenus();
+
+      expect(navigator.goCalls.single.location, AppRoutes.menus);
+    });
+
+    test(
+      'goToAdminTemplates delegates to the legacy navigator with /admin/templates',
+      () {
+        final navigator = _RecordingLegacyNavigator();
+        final router = MainRouter(
+          container: _makeContainer(),
+          legacyNavigator: navigator,
+        );
+
+        router.goToAdminTemplates();
+
+        expect(navigator.goCalls.single.location, AppRoutes.adminTemplates);
+      },
+    );
+
+    test('goToAdminTemplateCreate delegates to the legacy navigator with '
+        '/admin/templates/create', () {
+      final navigator = _RecordingLegacyNavigator();
+      final router = MainRouter(
+        container: _makeContainer(),
+        legacyNavigator: navigator,
+      );
+
+      router.goToAdminTemplateCreate();
+
+      expect(navigator.goCalls.single.location, AppRoutes.adminTemplateCreate);
+    });
+
+    test('goToAdminExportableMenus delegates to the legacy navigator with '
+        '/admin/exportable_menus', () {
+      final navigator = _RecordingLegacyNavigator();
+      final router = MainRouter(
+        container: _makeContainer(),
+        legacyNavigator: navigator,
+      );
+
+      router.goToAdminExportableMenus();
+
+      expect(navigator.goCalls.single.location, AppRoutes.adminExportableMenus);
+    });
+
+    test(
+      'HomeRouter quick-action methods are no-ops without a LegacyNavigator',
+      () {
+        final router = MainRouter(container: _makeContainer());
+
+        router.goToMenus();
+        router.goToAdminTemplates();
+        router.goToAdminTemplateCreate();
+        router.goToAdminExportableMenus();
+
+        expect(router.stack, isEmpty);
+      },
+    );
   });
 }
