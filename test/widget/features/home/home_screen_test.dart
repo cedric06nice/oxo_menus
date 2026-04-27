@@ -28,12 +28,16 @@ class _StubGetHomeOverviewUseCase implements GetHomeOverviewUseCase {
 
 class _RecordingHomeRouter implements HomeRouter {
   int menusCalls = 0;
+  int settingsCalls = 0;
   int adminTemplatesCalls = 0;
   int adminTemplateCreateCalls = 0;
   int adminExportableMenusCalls = 0;
 
   @override
   void goToMenus() => menusCalls++;
+
+  @override
+  void goToSettings() => settingsCalls++;
 
   @override
   void goToAdminTemplates() => adminTemplatesCalls++;
@@ -217,6 +221,23 @@ void main() {
 
       expect(router.menusCalls, 1);
     });
+
+    testWidgets(
+      'tapping the Settings AppBar action calls router.goToSettings',
+      (tester) async {
+        final router = _RecordingHomeRouter();
+        await pumpScreenWithViewModel<HomeViewModel>(
+          tester,
+          viewModel: _viewModelWith(router: router),
+          screenBuilder: (vm) => HomeScreen(viewModel: vm),
+        );
+
+        await tester.tap(find.byKey(const Key('home_action_settings')));
+        await tester.pump();
+
+        expect(router.settingsCalls, 1);
+      },
+    );
 
     testWidgets('tapping Manage Templates calls router.goToAdminTemplates', (
       tester,

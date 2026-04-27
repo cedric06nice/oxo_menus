@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
+import 'package:oxo_menus/core/gateways/admin_view_as_user_gateway.dart';
+import 'package:oxo_menus/core/gateways/app_version_gateway.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/types/result.dart';
@@ -112,6 +114,7 @@ void main() {
 
       expect(container.authGateway.isDisposed, isTrue);
       expect(container.connectivityGateway.isDisposed, isTrue);
+      expect(container.adminViewAsUserGateway.isDisposed, isTrue);
       expect(container.isDisposed, isTrue);
     });
 
@@ -122,5 +125,41 @@ void main() {
 
       expect(() => container.dispose(), returnsNormally);
     });
+
+    test(
+      'exposes appVersionGateway and adminViewAsUserGateway when injected',
+      () {
+        final version = _FakeAppVersionGateway();
+        final viewAs = AdminViewAsUserGateway();
+        final container = AppContainer(
+          authGateway: AuthGateway(repository: _StubAuthRepository()),
+          connectivityGateway: ConnectivityGateway(
+            repository: _StubConnectivityRepository(),
+          ),
+          appVersionGateway: version,
+          adminViewAsUserGateway: viewAs,
+        );
+
+        expect(container.appVersionGateway, same(version));
+        expect(container.adminViewAsUserGateway, same(viewAs));
+      },
+    );
+
+    test('defaults appVersionGateway/adminViewAsUserGateway when omitted', () {
+      final container = AppContainer(
+        authGateway: AuthGateway(repository: _StubAuthRepository()),
+        connectivityGateway: ConnectivityGateway(
+          repository: _StubConnectivityRepository(),
+        ),
+      );
+
+      expect(container.appVersionGateway, isA<PackageInfoAppVersionGateway>());
+      expect(container.adminViewAsUserGateway, isA<AdminViewAsUserGateway>());
+    });
   });
+}
+
+class _FakeAppVersionGateway implements AppVersionGateway {
+  @override
+  Future<String> read() async => '1.0.0';
 }

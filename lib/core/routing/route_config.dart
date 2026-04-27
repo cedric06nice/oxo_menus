@@ -64,6 +64,20 @@ final class MenuListRouteConfig extends RouteConfig {
   String toString() => 'MenuListRouteConfig()';
 }
 
+/// Settings — user profile, preferences, logout. Reachable from Home.
+final class SettingsRouteConfig extends RouteConfig {
+  const SettingsRouteConfig();
+
+  @override
+  bool operator ==(Object other) => other is SettingsRouteConfig;
+
+  @override
+  int get hashCode => (SettingsRouteConfig).hashCode;
+
+  @override
+  String toString() => 'SettingsRouteConfig()';
+}
+
 /// Fallback variant for URIs that do not yet match a migrated feature.
 ///
 /// During the migration the legacy `go_router` handles all unknown paths;

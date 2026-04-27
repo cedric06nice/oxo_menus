@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:oxo_menus/core/di/app_container.dart';
+import 'package:oxo_menus/core/gateways/admin_view_as_user_gateway.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
@@ -98,17 +100,54 @@ final currentUserProvider = Provider<User?>((ref) {
   return authState.maybeWhen(authenticated: (user) => user, orElse: () => null);
 });
 
-/// Admin "view as user" override notifier
+/// Admin "view as user" override notifier.
 ///
 /// Session-only toggle that lets an admin pretend to be a regular user.
 /// When `true`, [isAdminProvider] returns `false` even for admin users.
+///
+/// Reads/writes through the [AdminViewAsUserGateway] on the [AppContainer]
+/// so the migrated Settings VM and the legacy go_router shell stay in sync.
+/// In tests where the container is not overridden, the notifier silently
+/// falls back to local state so existing widget tests keep working.
 class AdminViewAsUserNotifier extends Notifier<bool> {
+  StreamSubscription<bool>? _subscription;
+  AdminViewAsUserGateway? _gateway;
+
   @override
-  bool build() => false;
+  bool build() {
+    final gateway = _safeGateway();
+    _gateway = gateway;
+    if (gateway != null) {
+      _subscription = gateway.valueStream.listen((value) {
+        state = value;
+      });
+      ref.onDispose(() => _subscription?.cancel());
+      return gateway.currentValue;
+    }
+    return false;
+  }
 
-  void set(bool value) => state = value;
+  void set(bool value) {
+    final gateway = _gateway;
+    if (gateway != null) {
+      gateway.set(value);
+      // The stream listener will mirror the change into [state]; mirror
+      // synchronously too so callers that read immediately see the new value.
+      state = gateway.currentValue;
+      return;
+    }
+    state = value;
+  }
 
-  void toggle() => state = !state;
+  void toggle() => set(!state);
+
+  AdminViewAsUserGateway? _safeGateway() {
+    try {
+      return ref.read(appContainerProvider).adminViewAsUserGateway;
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 final adminViewAsUserProvider = NotifierProvider<AdminViewAsUserNotifier, bool>(

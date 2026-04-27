@@ -8,6 +8,9 @@ abstract class HomeRouter implements FeatureRouter {
   /// Quick-action: jump to the menu list.
   void goToMenus();
 
+  /// AppBar action: jump to settings.
+  void goToSettings();
+
   /// Quick-action (admin only): jump to the templates list.
   void goToAdminTemplates();
 

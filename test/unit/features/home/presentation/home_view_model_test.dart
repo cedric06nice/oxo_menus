@@ -26,12 +26,16 @@ class _FakeGetHomeOverviewUseCase implements GetHomeOverviewUseCase {
 
 class _RecordingHomeRouter implements HomeRouter {
   int menusCalls = 0;
+  int settingsCalls = 0;
   int adminTemplatesCalls = 0;
   int adminTemplateCreateCalls = 0;
   int adminExportableMenusCalls = 0;
 
   @override
   void goToMenus() => menusCalls++;
+
+  @override
+  void goToSettings() => settingsCalls++;
 
   @override
   void goToAdminTemplates() => adminTemplatesCalls++;
@@ -210,6 +214,16 @@ void main() {
       vm.goToMenus();
 
       expect(router.menusCalls, 1);
+    });
+
+    test('goToSettings delegates to the router', () {
+      final router = _RecordingHomeRouter();
+      final vm = _buildViewModel(router: router);
+      addTearDown(vm.dispose);
+
+      vm.goToSettings();
+
+      expect(router.settingsCalls, 1);
     });
 
     test('goToAdminTemplates delegates to the router', () {

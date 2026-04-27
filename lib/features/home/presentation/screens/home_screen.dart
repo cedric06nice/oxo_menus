@@ -44,7 +44,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Home')),
+      appBar: AppBar(
+        title: const Text('Home'),
+        actions: <Widget>[
+          IconButton(
+            key: const Key('home_action_settings'),
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Settings',
+            onPressed: widget.viewModel.goToSettings,
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Center(
           child: ConstrainedBox(

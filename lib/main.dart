@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
+import 'package:oxo_menus/core/gateways/admin_view_as_user_gateway.dart';
+import 'package:oxo_menus/core/gateways/app_version_gateway.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
@@ -36,9 +38,12 @@ void main() {
       dnsProbe: kIsWeb ? () async => true : null,
     ),
   );
+  final adminViewAsUserGateway = AdminViewAsUserGateway();
   final appContainer = AppContainer(
     authGateway: authGateway,
     connectivityGateway: connectivityGateway,
+    appVersionGateway: PackageInfoAppVersionGateway(),
+    adminViewAsUserGateway: adminViewAsUserGateway,
     directusDataSource: dataSource,
   );
 

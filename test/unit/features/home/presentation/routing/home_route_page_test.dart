@@ -55,6 +55,9 @@ class _NoopHomeRouter implements HomeRouter {
   void goToMenus() {}
 
   @override
+  void goToSettings() {}
+
+  @override
   void goToAdminTemplates() {}
 
   @override

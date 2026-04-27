@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/core/gateways/admin_view_as_user_gateway.dart';
+import 'package:oxo_menus/core/gateways/app_version_gateway.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/shared/data/datasources/directus_data_source.dart';
@@ -16,19 +18,30 @@ class AppContainer {
   AppContainer({
     required AuthGateway authGateway,
     required ConnectivityGateway connectivityGateway,
+    AppVersionGateway? appVersionGateway,
+    AdminViewAsUserGateway? adminViewAsUserGateway,
     DirectusDataSource? directusDataSource,
   }) : _authGateway = authGateway,
        _connectivityGateway = connectivityGateway,
+       _appVersionGateway = appVersionGateway ?? PackageInfoAppVersionGateway(),
+       _adminViewAsUserGateway =
+           adminViewAsUserGateway ?? AdminViewAsUserGateway(),
        _directusDataSource = directusDataSource;
 
   final AuthGateway _authGateway;
   final ConnectivityGateway _connectivityGateway;
+  final AppVersionGateway _appVersionGateway;
+  final AdminViewAsUserGateway _adminViewAsUserGateway;
   final DirectusDataSource? _directusDataSource;
   bool _disposed = false;
 
   AuthGateway get authGateway => _authGateway;
 
   ConnectivityGateway get connectivityGateway => _connectivityGateway;
+
+  AppVersionGateway get appVersionGateway => _appVersionGateway;
+
+  AdminViewAsUserGateway get adminViewAsUserGateway => _adminViewAsUserGateway;
 
   /// The shared Directus data source. Route pages use it to construct
   /// repositories on demand inside `buildScreen()`. Tests that exercise
@@ -55,6 +68,7 @@ class AppContainer {
     _disposed = true;
     _authGateway.dispose();
     _connectivityGateway.dispose();
+    _adminViewAsUserGateway.dispose();
   }
 }
 

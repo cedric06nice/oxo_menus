@@ -61,6 +61,8 @@ class HomeViewModel extends ViewModel<HomeState> {
 
   void goToMenus() => _router.goToMenus();
 
+  void goToSettings() => _router.goToSettings();
+
   void goToAdminTemplates() => _router.goToAdminTemplates();
 
   void goToAdminTemplateCreate() => _router.goToAdminTemplateCreate();

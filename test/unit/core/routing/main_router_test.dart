@@ -23,6 +23,8 @@ import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dar
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_route_page.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_router.dart';
+import 'package:oxo_menus/features/settings/presentation/routing/settings_route_page.dart';
+import 'package:oxo_menus/features/settings/presentation/routing/settings_router.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/shared/domain/repositories/auth_repository.dart';
 
@@ -584,6 +586,72 @@ void main() {
       router.goToAdminTemplateEditor(1);
 
       expect(router.stack, isEmpty);
+    });
+  });
+
+  group('MainRouter — SettingsRouter integration', () {
+    test('implements SettingsRouter so it can be injected into the VM', () {
+      final router = MainRouter(container: _makeContainer());
+
+      expect(router, isA<SettingsRouter>());
+    });
+
+    test('setNewRoutePath(SettingsRouteConfig) replaces the stack with '
+        'SettingsRoutePage', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const SettingsRouteConfig());
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<SettingsRoutePage>());
+      expect(router.currentConfiguration, const SettingsRouteConfig());
+    });
+
+    test(
+      'pushing SettingsRouteConfig twice keeps a single page on the stack',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+
+        await router.setNewRoutePath(const SettingsRouteConfig());
+        await router.setNewRoutePath(const SettingsRouteConfig());
+
+        expect(router.stack, hasLength(1));
+      },
+    );
+
+    test('goToSettings pushes a SettingsRoutePage onto the stack', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const HomeRouteConfig());
+
+      router.goToSettings();
+
+      expect(router.stack, hasLength(2));
+      expect(router.stack.last, isA<SettingsRoutePage>());
+    });
+
+    test(
+      'goToSettings is idempotent when SettingsRoutePage is already on top',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+        await router.setNewRoutePath(const SettingsRouteConfig());
+
+        router.goToSettings();
+
+        expect(router.stack, hasLength(1));
+        expect(router.stack.single, isA<SettingsRoutePage>());
+      },
+    );
+
+    test('goBack pops the settings page off the stack', () async {
+      final router = MainRouter(container: _makeContainer());
+      await router.setNewRoutePath(const HomeRouteConfig());
+      router.goToSettings();
+      expect(router.stack, hasLength(2));
+
+      router.goBack();
+
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<HomeRoutePage>());
     });
   });
 }

@@ -69,6 +69,19 @@ void main() {
       expect(const MenuListRouteConfig(), isNot(const HomeRouteConfig()));
       expect(const MenuListRouteConfig(), isNot(const LoginRouteConfig()));
     });
+
+    test('SettingsRouteConfig is a singleton-equal value', () {
+      const a = SettingsRouteConfig();
+      const b = SettingsRouteConfig();
+
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+    });
+
+    test('SettingsRouteConfig is not equal to other migrated configs', () {
+      expect(const SettingsRouteConfig(), isNot(const HomeRouteConfig()));
+      expect(const SettingsRouteConfig(), isNot(const MenuListRouteConfig()));
+    });
   });
 
   group('AppRouteInformationParser', () {
@@ -84,11 +97,11 @@ void main() {
 
     test('parses an unmigrated /app/* URI into UnknownRouteConfig', () async {
       final config = await parser.parseRouteInformation(
-        RouteInformation(uri: Uri.parse('/app/settings')),
+        RouteInformation(uri: Uri.parse('/app/admin/templates')),
       );
 
       expect(config, isA<UnknownRouteConfig>());
-      expect(config, UnknownRouteConfig(Uri.parse('/app/settings')));
+      expect(config, UnknownRouteConfig(Uri.parse('/app/admin/templates')));
     });
 
     test('round-trips an UnknownRouteConfig back to the same URI', () async {
@@ -159,6 +172,23 @@ void main() {
 
       expect(restored, isNotNull);
       expect(restored!.uri.path, '/app/menus');
+    });
+
+    test('parses /app/settings into SettingsRouteConfig', () async {
+      final config = await parser.parseRouteInformation(
+        RouteInformation(uri: Uri.parse('/app/settings')),
+      );
+
+      expect(config, const SettingsRouteConfig());
+    });
+
+    test('round-trips a SettingsRouteConfig to /app/settings', () {
+      final restored = parser.restoreRouteInformation(
+        const SettingsRouteConfig(),
+      );
+
+      expect(restored, isNotNull);
+      expect(restored!.uri.path, '/app/settings');
     });
 
     test('handles root path', () async {
