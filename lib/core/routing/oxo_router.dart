@@ -30,10 +30,30 @@ class OxoRouter implements RouterConfig<OxoRouteState> {
          refreshListenable: refreshListenable,
          redirect: redirect,
        ),
-       _parser = const OxoRouteInformationParser();
+       _parser = const OxoRouteInformationParser(),
+       _provider = PlatformRouteInformationProvider(
+         initialRouteInformation: RouteInformation(
+           uri: Uri.parse(_resolveInitialPlatformLocation(initialLocation)),
+         ),
+       ),
+       _backButtonDispatcher = RootBackButtonDispatcher();
+
+  /// Picks the location the platform [RouteInformationProvider] should report
+  /// on first attach. On web, `defaultRouteName` carries the URL the user
+  /// opened the app with — when it's anything other than `'/'` we honour it so
+  /// deep-links land on the right screen. On native (and in tests) it's the
+  /// engine's `'/'` placeholder; we fall back to [initialLocation] so the app
+  /// boots at its declared start route instead of an unmatched `'/'`.
+  static String _resolveInitialPlatformLocation(String initialLocation) {
+    final platformDefault =
+        WidgetsBinding.instance.platformDispatcher.defaultRouteName;
+    return platformDefault == '/' ? initialLocation : platformDefault;
+  }
 
   final OxoRouterDelegate _delegate;
   final OxoRouteInformationParser _parser;
+  final PlatformRouteInformationProvider _provider;
+  final RootBackButtonDispatcher _backButtonDispatcher;
 
   @override
   RouterDelegate<OxoRouteState> get routerDelegate => _delegate;
@@ -42,10 +62,10 @@ class OxoRouter implements RouterConfig<OxoRouteState> {
   RouteInformationParser<OxoRouteState> get routeInformationParser => _parser;
 
   @override
-  RouteInformationProvider? get routeInformationProvider => null;
+  RouteInformationProvider? get routeInformationProvider => _provider;
 
   @override
-  BackButtonDispatcher? get backButtonDispatcher => null;
+  BackButtonDispatcher? get backButtonDispatcher => _backButtonDispatcher;
 
   /// Replace the entire navigation stack with a single entry pointing at
   /// [location]. Equivalent to `go_router`'s `context.go(location)`.
