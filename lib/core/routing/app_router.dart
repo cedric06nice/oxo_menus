@@ -23,7 +23,10 @@ import 'package:oxo_menus/features/auth/presentation/screens/reset_password_scre
 import 'package:oxo_menus/features/auth/presentation/view_models/forgot_password_view_model.dart';
 import 'package:oxo_menus/features/auth/presentation/view_models/login_view_model.dart';
 import 'package:oxo_menus/features/auth/presentation/view_models/reset_password_view_model.dart';
-import 'package:oxo_menus/features/home/presentation/pages/home_page.dart';
+import 'package:oxo_menus/features/home/domain/use_cases/get_home_overview_use_case.dart';
+import 'package:oxo_menus/features/home/presentation/routing/legacy_home_router.dart';
+import 'package:oxo_menus/features/home/presentation/screens/home_screen.dart';
+import 'package:oxo_menus/features/home/presentation/view_models/home_view_model.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/pages/pdf_preview_page.dart';
 import 'package:oxo_menus/features/menu_list/presentation/pages/menu_list_page.dart';
 import 'package:oxo_menus/features/settings/domain/use_cases/get_app_version_use_case.dart';
@@ -196,7 +199,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.home,
             name: 'home',
-            builder: (context, state) => const HomePage(),
+            builder: (context, state) {
+              final container = ref.watch(appContainerProvider);
+              return _LegacyHomeRouteHost(container: container);
+            },
           ),
           GoRoute(
             path: AppRoutes.settings,
@@ -402,6 +408,51 @@ String? _resolveLegacyResetUrl() {
 }
 
 // ---------------------------------------------------------------------------
+// Phase 17 — legacy /home route host
+//
+// Owns the HomeViewModel for the lifetime of the legacy GoRoute under the
+// AppShell. The MVVM HomeScreen is pure (no Riverpod, no BuildContext use) so
+// this host bridges go_router into it via LegacyHomeRouter. Will be deleted
+// when the home feature is fully cut over to the MainRouter stack.
+// ---------------------------------------------------------------------------
+
+class _LegacyHomeRouteHost extends StatefulWidget {
+  const _LegacyHomeRouteHost({required this.container});
+
+  final AppContainer container;
+
+  @override
+  State<_LegacyHomeRouteHost> createState() => _LegacyHomeRouteHostState();
+}
+
+class _LegacyHomeRouteHostState extends State<_LegacyHomeRouteHost> {
+  late final HomeViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = HomeViewModel(
+      getHomeOverview: GetHomeOverviewUseCase(
+        gateway: widget.container.authGateway,
+      ),
+      router: LegacyHomeRouter(GoRouterLegacyNavigator(context)),
+      clock: DateTime.now,
+    );
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return HomeScreen(viewModel: _viewModel);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Phase 16 — legacy /settings route host
 //
 // Owns the SettingsViewModel for the lifetime of the legacy GoRoute under the
@@ -432,9 +483,7 @@ class _LegacySettingsRouteHostState extends State<_LegacySettingsRouteHost> {
         authGateway: container.authGateway,
         adminViewAsUserGateway: container.adminViewAsUserGateway,
       ),
-      getAppVersion: GetAppVersionUseCase(
-        gateway: container.appVersionGateway,
-      ),
+      getAppVersion: GetAppVersionUseCase(gateway: container.appVersionGateway),
       requestPasswordReset:
           settings_request_password_reset.RequestPasswordResetUseCase(
             authGateway: container.authGateway,

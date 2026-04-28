@@ -12,6 +12,7 @@ import 'package:oxo_menus/features/auth/presentation/screens/forgot_password_scr
 import 'package:oxo_menus/features/auth/presentation/screens/login_screen.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/features/home/presentation/screens/home_screen.dart';
 import 'package:oxo_menus/features/settings/presentation/screens/settings_screen.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/pages/admin_template_creator_page.dart';
@@ -563,6 +564,35 @@ void main() {
 
       expect(find.byType(ResetPasswordScreen), findsOneWidget);
       expect(find.text('Invalid or missing reset token'), findsOneWidget);
+    });
+  });
+
+  // Phase 17 — the legacy /home GoRoute now hosts the MVVM HomeScreen
+  // directly instead of the retired HomePage widget. This test pins the
+  // cutover so the screen cannot silently regress.
+  group('AppRouter — legacy /home hosts MVVM screen', () {
+    testWidgets('/home mounts HomeScreen', (tester) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
+
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/home');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(HomeScreen), findsOneWidget);
     });
   });
 
