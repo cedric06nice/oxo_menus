@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
+import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/routing/migration/main_router_host.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/features/menu/domain/entities/menu_display_options.dart';
@@ -11,12 +13,19 @@ import 'package:oxo_menus/features/admin_exportable_menus/presentation/admin_exp
 import 'package:oxo_menus/features/admin_sizes/presentation/admin_sizes_page.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/pages/admin_template_creator_page.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/admin_templates_page.dart';
+import 'package:oxo_menus/features/auth/domain/use_cases/confirm_password_reset_use_case.dart';
+import 'package:oxo_menus/features/auth/domain/use_cases/login_use_case.dart';
+import 'package:oxo_menus/features/auth/domain/use_cases/request_password_reset_use_case.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/legacy_auth_router.dart';
+import 'package:oxo_menus/features/auth/presentation/screens/forgot_password_screen.dart';
+import 'package:oxo_menus/features/auth/presentation/screens/login_screen.dart';
+import 'package:oxo_menus/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:oxo_menus/features/auth/presentation/view_models/forgot_password_view_model.dart';
+import 'package:oxo_menus/features/auth/presentation/view_models/login_view_model.dart';
+import 'package:oxo_menus/features/auth/presentation/view_models/reset_password_view_model.dart';
 import 'package:oxo_menus/features/home/presentation/pages/home_page.dart';
-import 'package:oxo_menus/features/auth/presentation/pages/login_page.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/pages/pdf_preview_page.dart';
 import 'package:oxo_menus/features/menu_list/presentation/pages/menu_list_page.dart';
-import 'package:oxo_menus/features/auth/presentation/pages/forgot_password_page.dart';
-import 'package:oxo_menus/features/auth/presentation/pages/reset_password_page.dart';
 import 'package:oxo_menus/features/settings/presentation/pages/settings_page.dart';
 import 'package:oxo_menus/shared/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/features/connectivity/presentation/providers/connectivity_provider.dart';
@@ -131,21 +140,35 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'splash',
         builder: (context, state) => const _SplashScreen(),
       ),
+      // Phase 15 — auth screens are served by the MVVM stack at the legacy
+      // paths. The retired `*_page.dart` widgets used to live here. Each host
+      // owns the ViewModel and disposes it when the route leaves the stack.
       GoRoute(
         path: AppRoutes.login,
         name: 'login',
-        builder: (context, state) => const LoginPage(),
+        builder: (context, state) {
+          final container = ref.watch(appContainerProvider);
+          return _LegacyLoginRouteHost(container: container);
+        },
       ),
       GoRoute(
         path: AppRoutes.forgotPassword,
         name: 'forgot-password',
-        builder: (context, state) => const ForgotPasswordPage(),
+        builder: (context, state) {
+          final container = ref.watch(appContainerProvider);
+          return _LegacyForgotPasswordRouteHost(container: container);
+        },
       ),
       GoRoute(
         path: AppRoutes.resetPassword,
         name: 'reset-password',
-        builder: (context, state) =>
-            ResetPasswordPage(token: state.uri.queryParameters['token']),
+        builder: (context, state) {
+          final container = ref.watch(appContainerProvider);
+          return _LegacyResetPasswordRouteHost(
+            container: container,
+            token: state.uri.queryParameters['token'],
+          );
+        },
       ),
       // Phase 0 bridge: a single sub-tree under '/app' is rendered by the new
       // MainRouter. Migrated features push their RoutePage onto MainRouter;
@@ -224,3 +247,145 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+// ---------------------------------------------------------------------------
+// Phase 15 — legacy auth route hosts
+//
+// Each host is a small StatefulWidget that owns the ViewModel for its screen
+// for the lifetime of the legacy GoRoute. The MVVM auth screens are pure
+// (no Riverpod, no BuildContext use), so the host is the single place that
+// bridges go_router's `BuildContext` into the screen via `LegacyAuthRouter`.
+// These will be deleted when the auth feature is fully cut over to the
+// MainRouter stack.
+// ---------------------------------------------------------------------------
+
+class _LegacyLoginRouteHost extends StatefulWidget {
+  const _LegacyLoginRouteHost({required this.container});
+
+  final AppContainer container;
+
+  @override
+  State<_LegacyLoginRouteHost> createState() => _LegacyLoginRouteHostState();
+}
+
+class _LegacyLoginRouteHostState extends State<_LegacyLoginRouteHost> {
+  late final LoginViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = LoginViewModel(
+      login: LoginUseCase(gateway: widget.container.authGateway),
+      router: LegacyAuthRouter(GoRouterLegacyNavigator(context)),
+      connectivityGateway: widget.container.connectivityGateway,
+    );
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LoginScreen(viewModel: _viewModel);
+  }
+}
+
+class _LegacyForgotPasswordRouteHost extends StatefulWidget {
+  const _LegacyForgotPasswordRouteHost({required this.container});
+
+  final AppContainer container;
+
+  @override
+  State<_LegacyForgotPasswordRouteHost> createState() =>
+      _LegacyForgotPasswordRouteHostState();
+}
+
+class _LegacyForgotPasswordRouteHostState
+    extends State<_LegacyForgotPasswordRouteHost> {
+  late final ForgotPasswordViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = ForgotPasswordViewModel(
+      requestPasswordReset: RequestPasswordResetUseCase(
+        gateway: widget.container.authGateway,
+      ),
+      router: LegacyAuthRouter(GoRouterLegacyNavigator(context)),
+      connectivityGateway: widget.container.connectivityGateway,
+      resetUrl: _resolveLegacyResetUrl(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ForgotPasswordScreen(viewModel: _viewModel);
+  }
+}
+
+class _LegacyResetPasswordRouteHost extends StatefulWidget {
+  const _LegacyResetPasswordRouteHost({
+    required this.container,
+    required this.token,
+  });
+
+  final AppContainer container;
+  final String? token;
+
+  @override
+  State<_LegacyResetPasswordRouteHost> createState() =>
+      _LegacyResetPasswordRouteHostState();
+}
+
+class _LegacyResetPasswordRouteHostState
+    extends State<_LegacyResetPasswordRouteHost> {
+  late final ResetPasswordViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = ResetPasswordViewModel(
+      confirmPasswordReset: ConfirmPasswordResetUseCase(
+        gateway: widget.container.authGateway,
+      ),
+      router: LegacyAuthRouter(GoRouterLegacyNavigator(context)),
+      connectivityGateway: widget.container.connectivityGateway,
+      token: widget.token,
+    );
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ResetPasswordScreen(viewModel: _viewModel);
+  }
+}
+
+/// Resolves the deep-link URL embedded in the password-reset email when the
+/// forgot-password screen is mounted under the legacy go_router tree. Mirrors
+/// the resolver inside `ForgotPasswordRoutePage` so the legacy and migrated
+/// hosts emit identical reset links.
+String? _resolveLegacyResetUrl() {
+  if (kIsWeb) {
+    return Uri.base.resolve(AppRoutes.resetPassword).toString();
+  }
+  const resetUrlBase = String.fromEnvironment('RESET_URL_BASE');
+  if (resetUrlBase.isNotEmpty) {
+    return '$resetUrlBase${AppRoutes.resetPassword}';
+  }
+  return null;
+}

@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
+import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/features/auth/presentation/screens/forgot_password_screen.dart';
+import 'package:oxo_menus/features/auth/presentation/screens/login_screen.dart';
+import 'package:oxo_menus/features/auth/presentation/screens/reset_password_screen.dart';
+import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/pages/admin_template_creator_page.dart';
 import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
@@ -19,6 +25,7 @@ import 'package:oxo_menus/features/menu/domain/usecases/fetch_menu_tree_usecase.
 
 import '../../../fakes/fake_auth_repository.dart';
 import '../../../fakes/fake_area_repository.dart';
+import '../../../fakes/fake_connectivity_repository.dart';
 import '../../../fakes/fake_menu_repository.dart';
 import '../../../fakes/fake_size_repository.dart';
 import '../../../fakes/builders/user_builder.dart';
@@ -125,6 +132,19 @@ Widget _buildApp({
       menuRepositoryProvider.overrideWithValue(fakeMenu),
       duplicateMenuUseCaseProvider.overrideWithValue(
         _FakeDuplicateMenuUseCase(),
+      ),
+      // Phase 15 — the legacy /login, /forgot-password, /reset-password
+      // GoRoutes mount the MVVM screens directly, which read use cases and
+      // gateways through the AppContainer. Wire it up so the same
+      // AuthGateway backs the auth state machine and the auth screens.
+      appContainerProvider.overrideWith(
+        (ref) => AppContainer(
+          authGateway: ref.watch(authGatewayProvider),
+          connectivityGateway: ConnectivityGateway(
+            repository: FakeConnectivityRepository()
+              ..whenCheckConnectivity(ConnectivityStatus.online),
+          ),
+        ),
       ),
       ...extraOverrides.cast(),
     ],
@@ -412,6 +432,125 @@ void main() {
 
       expect(find.text('Reset Password'), findsAtLeast(1));
       expect(find.byKey(const Key('login_button')), findsNothing);
+    });
+  });
+
+  // Phase 15 — the legacy /login, /forgot-password, /reset-password GoRoutes
+  // now host the MVVM screens directly (LoginScreen, ForgotPasswordScreen,
+  // ResetPasswordScreen) instead of the retired *_page.dart widgets. These
+  // tests pin the cutover so the screens cannot silently regress.
+  group('AppRouter — legacy auth paths host MVVM screens', () {
+    testWidgets('/login mounts LoginScreen', (tester) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = const Failure(
+        UnauthorizedError(),
+      );
+
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/login');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LoginScreen), findsOneWidget);
+    });
+
+    testWidgets('/forgot-password mounts ForgotPasswordScreen', (tester) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = const Failure(
+        UnauthorizedError(),
+      );
+
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/forgot-password');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ForgotPasswordScreen), findsOneWidget);
+    });
+
+    testWidgets(
+      '/reset-password?token=… mounts ResetPasswordScreen with a usable token',
+      (tester) async {
+        final fakeAuth = FakeAuthRepository();
+        fakeAuth.defaultTryRestoreSessionResponse = const Failure(
+          UnauthorizedError(),
+        );
+
+        final fakeMenu = FakeMenuRepository();
+        _configureMenuRepository(fakeMenu);
+
+        late GoRouter router;
+
+        await tester.pumpWidget(
+          _buildApp(
+            fakeAuth: fakeAuth,
+            fakeMenu: fakeMenu,
+            onRouter: (r) => router = r,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        router.go('/reset-password?token=abc123');
+        await tester.pumpAndSettle();
+
+        expect(find.byType(ResetPasswordScreen), findsOneWidget);
+        // Token is captured — the screen renders the form, not the
+        // missing-token branch.
+        expect(find.byKey(const Key('reset_password_button')), findsOneWidget);
+        expect(find.text('Invalid or missing reset token'), findsNothing);
+      },
+    );
+
+    testWidgets('/reset-password without a token mounts ResetPasswordScreen in '
+        'missing-token branch', (tester) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = const Failure(
+        UnauthorizedError(),
+      );
+
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/reset-password');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ResetPasswordScreen), findsOneWidget);
+      expect(find.text('Invalid or missing reset token'), findsOneWidget);
     });
   });
 
