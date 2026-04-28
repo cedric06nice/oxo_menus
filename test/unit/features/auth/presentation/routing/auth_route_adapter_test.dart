@@ -9,9 +9,16 @@ import 'package:oxo_menus/features/auth/presentation/routing/reset_password_rout
 class _RecordingRouteNavigator implements RouteNavigator {
   final List<({String location, Object? extra})> calls = [];
 
+  final List<({String location, Object? extra})> pushCalls = [];
+
   @override
   void go(String location, {Object? extra}) {
     calls.add((location: location, extra: extra));
+  }
+
+  @override
+  void push(String location, {Object? extra}) {
+    pushCalls.add((location: location, extra: extra));
   }
 }
 

@@ -1,29 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:oxo_menus/shared/domain/entities/vertical_alignment.dart';
+import 'package:oxo_menus/core/gateways/image_gateway.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/features/menu/presentation/widgets/canvas/widget_renderer.dart';
+import 'package:oxo_menus/features/widget_system/domain/entities/widget_type_config.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
+import 'package:oxo_menus/shared/domain/entities/vertical_alignment.dart';
 
 /// Template Canvas
 ///
 /// Renders the full menu template with all pages, containers, columns, and widgets.
-/// This component provides a visual representation of the menu structure and can be
-/// used in both editable (menu editor) and read-only (preview) modes.
-class TemplateCanvas extends ConsumerWidget {
+/// Used in both editable (menu editor) and read-only (preview) modes.
+///
+/// Plain [StatelessWidget]: takes [registry], [displayOptions], and
+/// [allowedWidgets] as constructor args and forwards them to every nested
+/// [WidgetRenderer].
+class TemplateCanvas extends StatelessWidget {
   final MenuTree menuTree;
+  final PresentableWidgetRegistry registry;
+  final MenuDisplayOptions? displayOptions;
+  final List<WidgetTypeConfig> allowedWidgets;
+  final ImageGateway? imageGateway;
   final bool isEditable;
   final VoidCallback? onWidgetTap;
 
   const TemplateCanvas({
     super.key,
     required this.menuTree,
+    required this.registry,
+    this.displayOptions,
+    this.allowedWidgets = const [],
+    this.imageGateway,
     this.isEditable = false,
     this.onWidgetTap,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // If there are no pages, show empty state
+  Widget build(BuildContext context) {
     if (menuTree.pages.isEmpty) {
       return Center(
         child: Padding(
@@ -39,17 +52,19 @@ class TemplateCanvas extends ConsumerWidget {
       );
     }
 
-    // Single page: show directly without PageView
     if (menuTree.pages.length == 1) {
       return PageCanvas(
         page: menuTree.pages.first,
         headerPage: menuTree.headerPage,
         footerPage: menuTree.footerPage,
+        registry: registry,
+        displayOptions: displayOptions,
+        allowedWidgets: allowedWidgets,
+        imageGateway: imageGateway,
         isEditable: isEditable,
       );
     }
 
-    // Multiple pages: use PageView for swipe navigation
     return PageView.builder(
       itemCount: menuTree.pages.length,
       itemBuilder: (context, pageIndex) {
@@ -58,6 +73,10 @@ class TemplateCanvas extends ConsumerWidget {
           page: pageData,
           headerPage: menuTree.headerPage,
           footerPage: menuTree.footerPage,
+          registry: registry,
+          displayOptions: displayOptions,
+          allowedWidgets: allowedWidgets,
+          imageGateway: imageGateway,
           isEditable: isEditable,
         );
       },
@@ -72,6 +91,10 @@ class PageCanvas extends StatelessWidget {
   final PageWithContainers page;
   final PageWithContainers? headerPage;
   final PageWithContainers? footerPage;
+  final PresentableWidgetRegistry registry;
+  final MenuDisplayOptions? displayOptions;
+  final List<WidgetTypeConfig> allowedWidgets;
+  final ImageGateway? imageGateway;
   final bool isEditable;
 
   const PageCanvas({
@@ -79,6 +102,10 @@ class PageCanvas extends StatelessWidget {
     required this.page,
     this.headerPage,
     this.footerPage,
+    required this.registry,
+    this.displayOptions,
+    this.allowedWidgets = const [],
+    this.imageGateway,
     required this.isEditable,
   });
 
@@ -88,16 +115,18 @@ class PageCanvas extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header containers
           if (headerPage != null)
             ...headerPage!.containers.map((containerData) {
               return ContainerCanvas(
                 container: containerData,
+                registry: registry,
+                displayOptions: displayOptions,
+                allowedWidgets: allowedWidgets,
+                imageGateway: imageGateway,
                 isEditable: isEditable,
               );
             }),
 
-          // Page title (optional, can be shown or hidden based on design)
           if (isEditable)
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -107,19 +136,25 @@ class PageCanvas extends StatelessWidget {
               ),
             ),
 
-          // Content containers
           ...page.containers.map((containerData) {
             return ContainerCanvas(
               container: containerData,
+              registry: registry,
+              displayOptions: displayOptions,
+              allowedWidgets: allowedWidgets,
+              imageGateway: imageGateway,
               isEditable: isEditable,
             );
           }),
 
-          // Footer containers
           if (footerPage != null)
             ...footerPage!.containers.map((containerData) {
               return ContainerCanvas(
                 container: containerData,
+                registry: registry,
+                displayOptions: displayOptions,
+                allowedWidgets: allowedWidgets,
+                imageGateway: imageGateway,
                 isEditable: isEditable,
               );
             }),
@@ -134,11 +169,19 @@ class PageCanvas extends StatelessWidget {
 /// Renders a container (section) with its columns in a horizontal layout.
 class ContainerCanvas extends StatelessWidget {
   final ContainerWithColumns container;
+  final PresentableWidgetRegistry registry;
+  final MenuDisplayOptions? displayOptions;
+  final List<WidgetTypeConfig> allowedWidgets;
+  final ImageGateway? imageGateway;
   final bool isEditable;
 
   const ContainerCanvas({
     super.key,
     required this.container,
+    required this.registry,
+    this.displayOptions,
+    this.allowedWidgets = const [],
+    this.imageGateway,
     required this.isEditable,
   });
 
@@ -149,7 +192,6 @@ class ContainerCanvas extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Container name (optional header)
           if (container.container.name != null && isEditable)
             Padding(
               padding: const EdgeInsets.only(left: 8.0, bottom: 8.0),
@@ -159,10 +201,8 @@ class ContainerCanvas extends StatelessWidget {
               ),
             ),
 
-          // Group container: render child containers
           if (container.children.isNotEmpty) _buildChildContainers(),
 
-          // Leaf container: columns in a row
           if (container.children.isEmpty && container.columns.isNotEmpty)
             IntrinsicHeight(
               child: Row(
@@ -173,6 +213,10 @@ class ContainerCanvas extends StatelessWidget {
                     flex: column.flex ?? 1,
                     child: ColumnCanvas(
                       column: columnData,
+                      registry: registry,
+                      displayOptions: displayOptions,
+                      allowedWidgets: allowedWidgets,
+                      imageGateway: imageGateway,
                       isEditable: isEditable,
                     ),
                   );
@@ -192,7 +236,14 @@ class ContainerCanvas extends StatelessWidget {
 
     final childWidgets = container.children
         .map(
-          (child) => ContainerCanvas(container: child, isEditable: isEditable),
+          (child) => ContainerCanvas(
+            container: child,
+            registry: registry,
+            displayOptions: displayOptions,
+            allowedWidgets: allowedWidgets,
+            imageGateway: imageGateway,
+            isEditable: isEditable,
+          ),
         )
         .toList();
 
@@ -228,18 +279,26 @@ class ContainerCanvas extends StatelessWidget {
 /// Column Canvas
 ///
 /// Renders a column with its widgets.
-class ColumnCanvas extends ConsumerWidget {
+class ColumnCanvas extends StatelessWidget {
   final ColumnWithWidgets column;
+  final PresentableWidgetRegistry registry;
+  final MenuDisplayOptions? displayOptions;
+  final List<WidgetTypeConfig> allowedWidgets;
+  final ImageGateway? imageGateway;
   final bool isEditable;
 
   const ColumnCanvas({
     super.key,
     required this.column,
+    required this.registry,
+    this.displayOptions,
+    this.allowedWidgets = const [],
+    this.imageGateway,
     required this.isEditable,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -255,18 +314,20 @@ class ColumnCanvas extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: _getMainAxisAlignment(),
         children: [
-          // Widgets
           ...column.widgets.map((widget) {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: WidgetRenderer(
                 widgetInstance: widget,
+                registry: registry,
+                displayOptions: displayOptions,
+                allowedWidgets: allowedWidgets,
+                imageGateway: imageGateway,
                 isEditable: isEditable,
               ),
             );
           }),
 
-          // Empty state for editable mode
           if (isEditable && column.widgets.isEmpty)
             Center(
               child: Padding(

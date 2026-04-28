@@ -22,6 +22,7 @@ import 'package:oxo_menus/features/menu_editor/domain/use_cases/watch_menu_chang
 import 'package:oxo_menus/features/menu_editor/presentation/routing/menu_editor_router.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/screens/menu_editor_screen.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/view_models/menu_editor_view_model.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/shared/domain/entities/status.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/shared/domain/repositories/auth_repository.dart';
@@ -113,6 +114,7 @@ Future<MenuEditorViewModel> _makeVm(
     authGateway: gateway,
     connectivityGateway: connectivityGateway,
     router: _NoopRouter(),
+    registry: PresentableWidgetRegistry(),
     loadMenu: LoadMenuForEditorUseCase(
       authGateway: gateway,
       menuRepository: menuRepo,

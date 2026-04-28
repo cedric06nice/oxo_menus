@@ -1,22 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
-import 'package:oxo_menus/features/connectivity/presentation/providers/connectivity_provider.dart';
-import 'package:oxo_menus/features/connectivity/presentation/widgets/offline_error_page.dart';
 import 'package:oxo_menus/features/collaboration/presentation/widgets/presence_bar.dart';
+import 'package:oxo_menus/features/connectivity/presentation/widgets/offline_error_page.dart';
 import 'package:oxo_menus/features/menu/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/features/menu/domain/entities/container.dart'
     as entity;
 import 'package:oxo_menus/features/menu/domain/entities/page.dart' as entity;
-import 'package:oxo_menus/features/menu/presentation/providers/menu_display_options_provider.dart';
 import 'package:oxo_menus/features/menu/presentation/widgets/editor/auto_scroll_listener.dart';
 import 'package:oxo_menus/features/menu/presentation/widgets/editor/draggable_widget_item.dart';
 import 'package:oxo_menus/features/menu/presentation/widgets/editor/editor_column_card.dart';
 import 'package:oxo_menus/features/menu/presentation/widgets/editor/widget_palette.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/state/menu_editor_screen_state.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/view_models/menu_editor_view_model.dart';
-import 'package:oxo_menus/features/widget_system/presentation/providers/allowed_widgets_provider.dart';
-import 'package:oxo_menus/features/widget_system/presentation/providers/widget_registry_provider.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/shared/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/shared/presentation/theme/app_spacing.dart';
 import 'package:oxo_menus/shared/presentation/widgets/adaptive_error_state.dart';
@@ -26,11 +21,10 @@ import 'package:oxo_menus/shared/presentation/widgets/delete_confirmation_dialog
 
 /// MVVM-stack consumer-facing menu editor screen.
 ///
-/// Pure widget — owns no Riverpod providers other than the bridge that keeps
-/// `menuDisplayOptionsProvider` + `allowedWidgetsProvider` in sync with the VM
-/// state so the legacy widget renderer (still a ConsumerWidget) keeps showing
-/// live edits. Uses [WidgetsBindingObserver] to forward app lifecycle changes
-/// into the VM so collaboration subscriptions can pause/resume.
+/// Pure widget — owns no Riverpod providers. Reads its snapshot from the
+/// injected [MenuEditorViewModel] and forwards user actions back to it.
+/// Forwards lifecycle changes through [WidgetsBindingObserver] so collaboration
+/// subscriptions can pause / resume.
 class MenuEditorScreen extends StatefulWidget {
   const MenuEditorScreen({super.key, required this.viewModel});
 
@@ -129,75 +123,54 @@ class _MenuEditorScreenState extends State<MenuEditorScreen>
     final tree = state.tree;
     final menu = tree?.menu;
     final title = menu?.name ?? 'Menu Editor';
-    return Consumer(
-      builder: (context, ref, _) {
-        final isOffline =
-            ref.watch(connectivityProvider).value == ConnectivityStatus.offline;
-        if (isOffline) {
-          return AuthenticatedScaffold(
-            title: title,
-            body: OfflineErrorPage(
-              onRetry: () => ref.invalidate(connectivityProvider),
-            ),
-          );
-        }
-        if (state.errorMessage != null && tree == null) {
-          return AuthenticatedScaffold(
-            title: 'Error',
-            body: AdaptiveErrorState(
-              message: state.errorMessage!,
-              onRetry: widget.viewModel.reload,
-            ),
-          );
-        }
-        if (tree == null) {
-          return AuthenticatedScaffold(
-            title: title,
-            body: const Center(child: AdaptiveLoadingIndicator()),
-          );
-        }
-        // Bridge VM tree to legacy global providers so the existing
-        // WidgetRenderer (still a ConsumerWidget) keeps showing live values.
-        // Scheduled post-frame because Riverpod forbids provider mutation
-        // during a build phase.
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!context.mounted) return;
-          ref
-              .read(menuDisplayOptionsProvider.notifier)
-              .set(menu?.displayOptions);
-          ref
-              .read(allowedWidgetsProvider.notifier)
-              .set(menu?.allowedWidgets ?? const []);
-        });
-        final registry = ref.watch(widgetRegistryProvider);
-        return AuthenticatedScaffold(
-          title: title,
-          actions: <Widget>[
-            if (state.currentUserId != null)
-              PresenceBar(
-                presences: state.presences,
-                currentUserId: state.currentUserId!,
-              ),
-            IconButton(
-              key: const Key('show_pdf_button'),
-              onPressed: state.savingState == MenuSavingState.publishingBundles
-                  ? null
-                  : _onShowPdfPressed,
-              icon: const Icon(Icons.file_present),
-              tooltip: 'Show PDF',
-            ),
-            IconButton(
-              key: const Key('save_menu_button'),
-              icon: const Icon(Icons.save),
-              onPressed: state.savingState == MenuSavingState.saving
-                  ? null
-                  : _onSavePressed,
-              tooltip: 'Save',
-            ),
-          ],
-          body: _buildBody(state, tree, menu, registry),
-        );
-      },
+    if (state.isOffline) {
+      return AuthenticatedScaffold(
+        title: title,
+        body: OfflineErrorPage(onRetry: widget.viewModel.retryConnectivity),
+      );
+    }
+    if (state.errorMessage != null && tree == null) {
+      return AuthenticatedScaffold(
+        title: 'Error',
+        body: AdaptiveErrorState(
+          message: state.errorMessage!,
+          onRetry: widget.viewModel.reload,
+        ),
+      );
+    }
+    if (tree == null) {
+      return AuthenticatedScaffold(
+        title: title,
+        body: const Center(child: AdaptiveLoadingIndicator()),
+      );
+    }
+    final registry = widget.viewModel.registry;
+    return AuthenticatedScaffold(
+      title: title,
+      actions: <Widget>[
+        if (state.currentUserId != null)
+          PresenceBar(
+            presences: state.presences,
+            currentUserId: state.currentUserId!,
+          ),
+        IconButton(
+          key: const Key('show_pdf_button'),
+          onPressed: state.savingState == MenuSavingState.publishingBundles
+              ? null
+              : _onShowPdfPressed,
+          icon: const Icon(Icons.file_present),
+          tooltip: 'Show PDF',
+        ),
+        IconButton(
+          key: const Key('save_menu_button'),
+          icon: const Icon(Icons.save),
+          onPressed: state.savingState == MenuSavingState.saving
+              ? null
+              : _onSavePressed,
+          tooltip: 'Save',
+        ),
+      ],
+      body: _buildBody(state, tree, menu, registry),
     );
   }
 
@@ -205,7 +178,7 @@ class _MenuEditorScreenState extends State<MenuEditorScreen>
     MenuEditorScreenState state,
     dynamic tree,
     dynamic menu,
-    dynamic registry,
+    PresentableWidgetRegistry registry,
   ) {
     final theme = Theme.of(context);
     final pages = (tree.pages as List<entity.Page>)
@@ -286,7 +259,7 @@ class _MenuEditorScreenState extends State<MenuEditorScreen>
   Widget _buildCanvas(
     List<entity.Page> pages,
     MenuEditorScreenState state,
-    dynamic registry,
+    PresentableWidgetRegistry registry,
   ) {
     return AutoScrollListener(
       scrollController: _scrollController,
@@ -313,7 +286,7 @@ class _MenuEditorScreenState extends State<MenuEditorScreen>
   Widget _buildPageCard(
     entity.Page page,
     MenuEditorScreenState state,
-    dynamic registry,
+    PresentableWidgetRegistry registry,
   ) {
     final tree = state.tree!;
     final containers = tree.containers[page.id] ?? <entity.Container>[];
@@ -338,7 +311,7 @@ class _MenuEditorScreenState extends State<MenuEditorScreen>
   Widget _buildContainerCard(
     entity.Container container,
     MenuEditorScreenState state,
-    dynamic registry,
+    PresentableWidgetRegistry registry,
   ) {
     final tree = state.tree!;
     final columns = tree.columns[container.id] ?? <entity.Column>[];
@@ -385,7 +358,7 @@ class _MenuEditorScreenState extends State<MenuEditorScreen>
   Widget _buildColumnCard(
     entity.Column column,
     MenuEditorScreenState state,
-    dynamic registry,
+    PresentableWidgetRegistry registry,
   ) {
     final tree = state.tree!;
     final widgets = tree.widgets[column.id] ?? const [];
@@ -425,6 +398,10 @@ class _MenuEditorScreenState extends State<MenuEditorScreen>
       widgetItemBuilder: (widgetInstance, columnId) => DraggableWidgetItem(
         widgetInstance: widgetInstance,
         columnId: columnId,
+        registry: registry,
+        displayOptions: menu.displayOptions,
+        allowedWidgets: menu.allowedWidgets,
+        imageGateway: widget.viewModel.imageGateway,
         isEditable: !widgetInstance.lockedForEdition,
         isLocked: widgetInstance.lockedForEdition,
         currentUserId: state.currentUserId,

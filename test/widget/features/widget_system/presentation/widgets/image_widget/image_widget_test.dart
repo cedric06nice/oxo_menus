@@ -2,15 +2,14 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
+import 'package:oxo_menus/core/gateways/image_gateway.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/shared/domain/entities/image_file_info.dart';
 import 'package:oxo_menus/shared/domain/repositories/file_repository.dart';
 import 'package:oxo_menus/features/widget_system/domain/widgets/image/image_props.dart';
 import 'package:oxo_menus/features/widget_system/domain/widget_definition.dart';
-import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/features/widget_system/presentation/widgets/image_widget/image_widget.dart';
 
 import '../../../../../../helpers/test_image_data.dart';
@@ -63,27 +62,25 @@ class _ControllableFileRepository implements FileRepository {
 void main() {
   group('ImageWidget', () {
     late FakeFileRepository fakeFileRepository;
+    late ImageGateway gateway;
 
     setUp(() {
       fakeFileRepository = FakeFileRepository();
       fakeFileRepository.whenDownloadFile(Success(kTestPngBytes));
+      gateway = ImageGateway(repository: fakeFileRepository);
     });
 
     Widget buildWidget({
       ImageProps props = const ImageProps(fileId: 'test-file-id'),
-      WidgetContext context = const WidgetContext(isEditable: false),
-      FileRepository? fileRepo,
+      WidgetContext? context,
+      ImageGateway? imageGateway,
     }) {
-      return ProviderScope(
-        overrides: [
-          fileRepositoryProvider.overrideWithValue(
-            fileRepo ?? fakeFileRepository,
-          ),
-        ],
-        child: MaterialApp(
-          home: Scaffold(
-            body: ImageWidget(props: props, context: context),
-          ),
+      final effectiveGateway = imageGateway ?? gateway;
+      final effectiveContext =
+          context ?? WidgetContext(isEditable: false, imageGateway: effectiveGateway);
+      return MaterialApp(
+        home: Scaffold(
+          body: ImageWidget(props: props, context: effectiveContext),
         ),
       );
     }
@@ -110,10 +107,11 @@ void main() {
       // Arrange
       final completer = Completer<Result<Uint8List, DomainError>>();
       final slowRepo = _ControllableFileRepository(completer);
+      final slowGateway = ImageGateway(repository: slowRepo);
 
       // Act
-      await tester.pumpWidget(buildWidget(fileRepo: slowRepo));
-      // One pump triggers the FutureProvider but does not settle it
+      await tester.pumpWidget(buildWidget(imageGateway: slowGateway));
+      // One pump triggers the FutureBuilder but does not settle it
       await tester.pump();
 
       // Assert — loading state visible
@@ -188,7 +186,11 @@ void main() {
       // Act
       await tester.pumpWidget(
         buildWidget(
-          context: const WidgetContext(isEditable: true, onUpdate: _noOp),
+          context: WidgetContext(
+            isEditable: true,
+            onUpdate: _noOp,
+            imageGateway: gateway,
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -229,6 +231,7 @@ void main() {
               onUpdate: (_) {},
               onEditStarted: () => editStartedCount++,
               onEditEnded: () => editEndedCount++,
+              imageGateway: gateway,
             ),
           ),
         );
@@ -261,7 +264,11 @@ void main() {
       // Act
       await tester.pumpWidget(
         buildWidget(
-          context: const WidgetContext(isEditable: true, onUpdate: _noOp),
+          context: WidgetContext(
+            isEditable: true,
+            onUpdate: _noOp,
+            imageGateway: gateway,
+          ),
         ),
       );
       await tester.pumpAndSettle();

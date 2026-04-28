@@ -3,14 +3,13 @@ import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
+import 'package:oxo_menus/core/gateways/image_gateway.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/shared/domain/entities/image_file_info.dart';
 import 'package:oxo_menus/shared/domain/repositories/file_repository.dart';
 import 'package:oxo_menus/features/widget_system/domain/widgets/image/image_props.dart';
-import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/features/widget_system/presentation/widgets/image_widget/image_edit_dialog.dart';
 
 import '../../../../../../helpers/test_image_data.dart';
@@ -56,11 +55,13 @@ class _BlockingFileRepository implements FileRepository {
 
 void main() {
   late FakeFileRepository fakeFileRepository;
+  late ImageGateway gateway;
 
   setUp(() {
     fakeFileRepository = FakeFileRepository();
     // Default: download succeeds with test PNG bytes
     fakeFileRepository.whenDownloadFile(Success(kTestPngBytes));
+    gateway = ImageGateway(repository: fakeFileRepository);
   });
 
   Widget buildDialog({
@@ -68,34 +69,36 @@ void main() {
     void Function(ImageProps)? onSave,
     TargetPlatform? platform,
     bool useRoute = false,
-    FileRepository? fileRepo,
+    ImageGateway? imageGateway,
   }) {
-    final repo = fileRepo ?? fakeFileRepository;
-    return ProviderScope(
-      overrides: [fileRepositoryProvider.overrideWithValue(repo)],
-      child: MaterialApp(
-        theme: platform != null ? ThemeData(platform: platform) : null,
-        home: useRoute
-            ? Scaffold(
-                body: Builder(
-                  builder: (context) => ElevatedButton(
-                    onPressed: () => Navigator.of(context).push(
-                      CupertinoPageRoute<void>(
-                        fullscreenDialog: true,
-                        builder: (_) => ImageEditDialog(
-                          props: props,
-                          onSave: onSave ?? (_) {},
-                        ),
+    final effectiveGateway = imageGateway ?? gateway;
+    return MaterialApp(
+      theme: platform != null ? ThemeData(platform: platform) : null,
+      home: useRoute
+          ? Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => Navigator.of(context).push(
+                    CupertinoPageRoute<void>(
+                      fullscreenDialog: true,
+                      builder: (_) => ImageEditDialog(
+                        props: props,
+                        onSave: onSave ?? (_) {},
+                        imageGateway: effectiveGateway,
                       ),
                     ),
-                    child: const Text('Open'),
                   ),
+                  child: const Text('Open'),
                 ),
-              )
-            : Scaffold(
-                body: ImageEditDialog(props: props, onSave: onSave ?? (_) {}),
               ),
-      ),
+            )
+          : Scaffold(
+              body: ImageEditDialog(
+                props: props,
+                onSave: onSave ?? (_) {},
+                imageGateway: effectiveGateway,
+              ),
+            ),
     );
   }
 
@@ -106,9 +109,10 @@ void main() {
       // Arrange
       final completer = Completer<Result<List<ImageFileInfo>, DomainError>>();
       final slowRepo = _BlockingFileRepository(completer);
+      final slowGateway = ImageGateway(repository: slowRepo);
 
       // Act
-      await tester.pumpWidget(buildDialog(fileRepo: slowRepo));
+      await tester.pumpWidget(buildDialog(imageGateway: slowGateway));
       // Pump once to trigger addPostFrameCallback (starts loading)
       await tester.pump();
 
@@ -351,13 +355,14 @@ void main() {
       // Arrange
       final completer = Completer<Result<List<ImageFileInfo>, DomainError>>();
       final slowRepo = _BlockingFileRepository(completer);
+      final slowGateway = ImageGateway(repository: slowRepo);
 
       // Act
       await tester.pumpWidget(
         buildDialog(
           platform: TargetPlatform.iOS,
           useRoute: true,
-          fileRepo: slowRepo,
+          imageGateway: slowGateway,
         ),
       );
       await tester.tap(find.text('Open'));

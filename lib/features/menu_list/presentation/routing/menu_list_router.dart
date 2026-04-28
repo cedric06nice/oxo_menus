@@ -12,6 +12,11 @@ abstract class MenuListRouter implements FeatureRouter {
   /// Open the admin template editor for [menuId].
   void goToAdminTemplateEditor(int menuId);
 
+  /// Push the admin sizes screen on top of the menu-list stack so the user
+  /// can return with back navigation. Used by the template-create dialog
+  /// when the user has no sizes yet.
+  void pushAdminSizes();
+
   /// Pop the menu list off the stack — typically returns to the home screen.
   void goBack();
 }

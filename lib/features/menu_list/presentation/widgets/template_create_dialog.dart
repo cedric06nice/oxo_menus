@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/shared/domain/entities/area.dart';
 import 'package:oxo_menus/features/menu/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/shared/domain/entities/status.dart';
@@ -32,7 +30,16 @@ class TemplateCreateResult {
 class TemplateCreateDialog extends ConsumerStatefulWidget {
   final void Function(TemplateCreateResult) onSave;
 
-  const TemplateCreateDialog({super.key, required this.onSave});
+  /// Invoked when the user taps the "Manage Sizes" CTA shown when no sizes
+  /// exist yet. The screen wires this through `MenuListRouter.pushAdminSizes`
+  /// so the user can return to the dialog with back navigation.
+  final VoidCallback? onOpenSizes;
+
+  const TemplateCreateDialog({
+    super.key,
+    required this.onSave,
+    this.onOpenSizes,
+  });
 
   @override
   ConsumerState<TemplateCreateDialog> createState() =>
@@ -174,10 +181,12 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
             const SizedBox(height: 8),
             CupertinoButton(
               padding: EdgeInsets.zero,
-              onPressed: () {
-                Navigator.of(context).pop();
-                context.push(AppRoutes.adminSizes);
-              },
+              onPressed: widget.onOpenSizes == null
+                  ? null
+                  : () {
+                      Navigator.of(context).pop();
+                      widget.onOpenSizes!();
+                    },
               child: const Text('Manage Page Sizes'),
             ),
           ],
@@ -321,10 +330,12 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
           ),
           const SizedBox(height: 8),
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.push(AppRoutes.adminSizes);
-            },
+            onPressed: widget.onOpenSizes == null
+                ? null
+                : () {
+                    Navigator.of(context).pop();
+                    widget.onOpenSizes!();
+                  },
             child: const Text('Manage Page Sizes'),
           ),
         ],

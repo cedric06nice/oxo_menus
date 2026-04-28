@@ -141,6 +141,11 @@ class MenuListViewModel extends ViewModel<MenuListState> {
   void openTemplateEditor(int menuId) =>
       _router.goToAdminTemplateEditor(menuId);
 
+  /// Push the admin Sizes screen on top of the menu-list stack so the user
+  /// can return with back navigation. Used by the template-create dialog
+  /// when no sizes exist yet.
+  void pushAdminSizes() => _router.pushAdminSizes();
+
   void goBack() => _router.goBack();
 
   Future<void> _loadMenus() async {

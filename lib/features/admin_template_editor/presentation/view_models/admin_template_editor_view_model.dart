@@ -5,6 +5,7 @@ import 'package:oxo_menus/core/architecture/view_model.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
+import 'package:oxo_menus/core/gateways/image_gateway.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/create_column_in_template_use_case.dart';
 import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/create_container_in_template_use_case.dart';
@@ -26,6 +27,7 @@ import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update
 import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_widget_in_template_use_case.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/routing/admin_template_editor_router.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/state/admin_template_editor_screen_state.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/state/editor_selection.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/features/menu/domain/entities/column.dart' as entity;
@@ -70,6 +72,7 @@ class AdminTemplateEditorViewModel
     required AuthGateway authGateway,
     required ConnectivityGateway connectivityGateway,
     required AdminTemplateEditorRouter router,
+    required PresentableWidgetRegistry registry,
     required LoadTemplateForEditorUseCase loadTemplate,
     required CreatePageInTemplateUseCase createPage,
     required DeletePageInTemplateUseCase deletePage,
@@ -88,9 +91,12 @@ class AdminTemplateEditorViewModel
     required UpdateTemplateMenuUseCase updateMenu,
     required ListAreasForTemplateUseCase listAreas,
     required ListSizesForTemplateUseCase listSizes,
+    ImageGateway? imageGateway,
   }) : _menuId = menuId,
        _connectivityGateway = connectivityGateway,
        _router = router,
+       _registry = registry,
+       _imageGateway = imageGateway,
        _loadTemplate = loadTemplate,
        _createPage = createPage,
        _deletePage = deletePage,
@@ -120,6 +126,15 @@ class AdminTemplateEditorViewModel
   final int _menuId;
   final ConnectivityGateway _connectivityGateway;
   final AdminTemplateEditorRouter _router;
+  final PresentableWidgetRegistry _registry;
+  final ImageGateway? _imageGateway;
+
+  /// Registry the screen passes to `WidgetRenderer`/`DraggableWidgetItem` so
+  /// they can look up widget definitions without reaching into Riverpod.
+  PresentableWidgetRegistry get registry => _registry;
+
+  /// Gateway used by the `image` widget type for byte loading. Optional.
+  ImageGateway? get imageGateway => _imageGateway;
 
   final LoadTemplateForEditorUseCase _loadTemplate;
   final CreatePageInTemplateUseCase _createPage;

@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
-import 'package:oxo_menus/shared/presentation/providers/auth_provider.dart';
-import 'package:oxo_menus/features/connectivity/presentation/providers/connectivity_provider.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/shared/presentation/widgets/app_shell.dart';
 import 'package:oxo_menus/features/connectivity/presentation/widgets/offline_banner.dart';
 
 void main() {
-  Widget buildTestApp({
-    required Stream<ConnectivityStatus> connectivityStream,
-  }) {
+  Widget buildTestApp({required bool isOffline}) {
     final router = GoRouter(
       initialLocation: '/home',
       routes: [
         ShellRoute(
-          builder: (context, state, child) => AppShell(child: child),
+          builder: (context, state, child) => AppShell(
+            navigator: GoRouterRouteNavigator(context),
+            currentLocation: state.matchedLocation,
+            isAdmin: false,
+            isOffline: isOffline,
+            child: child,
+          ),
           routes: [
             GoRoute(
               path: '/home',
@@ -27,22 +28,12 @@ void main() {
       ],
     );
 
-    return ProviderScope(
-      overrides: [
-        isAdminProvider.overrideWithValue(false),
-        connectivityProvider.overrideWith((_) => connectivityStream),
-      ],
-      child: MaterialApp.router(routerConfig: router),
-    );
+    return MaterialApp.router(routerConfig: router);
   }
 
   group('AppShell offline banner', () {
     testWidgets('shows OfflineBanner when offline', (tester) async {
-      await tester.pumpWidget(
-        buildTestApp(
-          connectivityStream: Stream.value(ConnectivityStatus.offline),
-        ),
-      );
+      await tester.pumpWidget(buildTestApp(isOffline: true));
       await tester.pumpAndSettle();
 
       expect(find.byType(OfflineBanner), findsOneWidget);
@@ -50,22 +41,14 @@ void main() {
     });
 
     testWidgets('does not show OfflineBanner when online', (tester) async {
-      await tester.pumpWidget(
-        buildTestApp(
-          connectivityStream: Stream.value(ConnectivityStatus.online),
-        ),
-      );
+      await tester.pumpWidget(buildTestApp(isOffline: false));
       await tester.pumpAndSettle();
 
       expect(find.byType(OfflineBanner), findsNothing);
     });
 
     testWidgets('does not show OfflineBanner when loading', (tester) async {
-      await tester.pumpWidget(
-        buildTestApp(
-          connectivityStream: const Stream<ConnectivityStatus>.empty(),
-        ),
-      );
+      await tester.pumpWidget(buildTestApp(isOffline: false));
       await tester.pump();
 
       expect(find.byType(OfflineBanner), findsNothing);

@@ -22,5 +22,8 @@ class MenuListRouteAdapter implements MenuListRouter {
       _navigator.go(AppRoutes.adminTemplateEditor(menuId));
 
   @override
+  void pushAdminSizes() => _navigator.push(AppRoutes.adminSizes);
+
+  @override
   void goBack() => _navigator.go(AppRoutes.home);
 }

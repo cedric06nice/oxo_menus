@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
-import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
-import 'package:oxo_menus/shared/presentation/providers/auth_provider.dart';
-import 'package:oxo_menus/features/connectivity/presentation/providers/connectivity_provider.dart';
-import 'package:oxo_menus/shared/presentation/theme/app_spacing.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/features/connectivity/presentation/widgets/offline_banner.dart';
+import 'package:oxo_menus/shared/presentation/theme/app_spacing.dart';
 
 /// Adaptive navigation scaffold using LayoutBuilder.
 ///
@@ -14,24 +10,32 @@ import 'package:oxo_menus/features/connectivity/presentation/widgets/offline_ban
 /// - **Tablet (600–1200px)**: `NavigationRail` (icons only, left side)
 /// - **Desktop/Web (>1200px)**: Permanent `NavigationDrawer` (icons + labels)
 ///
-/// Destinations are role-aware via [isAdminProvider].
-class AppShell extends ConsumerWidget {
+/// Pure widget — receives [navigator], [currentLocation], [isAdmin], and
+/// [isOffline] from the parent (`ShellRoute.builder`). No Riverpod, no
+/// `go_router` import.
+class AppShell extends StatelessWidget {
   final Widget child;
+  final RouteNavigator navigator;
+  final String currentLocation;
+  final bool isAdmin;
+  final bool isOffline;
 
-  const AppShell({super.key, required this.child});
+  const AppShell({
+    super.key,
+    required this.child,
+    required this.navigator,
+    required this.currentLocation,
+    required this.isAdmin,
+    required this.isOffline,
+  });
 
   static const _mobileBreakpoint = AppBreakpoints.mobile;
   static const _desktopBreakpoint = AppBreakpoints.desktop;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isAdmin = ref.watch(isAdminProvider);
+  Widget build(BuildContext context) {
     final destinations = _buildDestinations(isAdmin);
-    final location = GoRouterState.of(context).matchedLocation;
-    final selectedIndex = _locationToIndex(location, isAdmin);
-
-    final connectivityAsync = ref.watch(connectivityProvider);
-    final isOffline = connectivityAsync.value == ConnectivityStatus.offline;
+    final selectedIndex = _locationToIndex(currentLocation, isAdmin);
 
     final wrappedChild = isOffline
         ? Column(
@@ -51,7 +55,7 @@ class AppShell extends ConsumerWidget {
             destinations: destinations,
             selectedIndex: selectedIndex,
             onDestinationSelected: (index) =>
-                _onDestinationSelected(context, index, isAdmin),
+                _onDestinationSelected(index, isAdmin),
             child: wrappedChild,
           );
         }
@@ -61,7 +65,7 @@ class AppShell extends ConsumerWidget {
             destinations: destinations,
             selectedIndex: selectedIndex,
             onDestinationSelected: (index) =>
-                _onDestinationSelected(context, index, isAdmin),
+                _onDestinationSelected(index, isAdmin),
             child: wrappedChild,
           );
         }
@@ -70,7 +74,7 @@ class AppShell extends ConsumerWidget {
           destinations: destinations,
           selectedIndex: selectedIndex,
           onDestinationSelected: (index) =>
-              _onDestinationSelected(context, index, isAdmin),
+              _onDestinationSelected(index, isAdmin),
           child: wrappedChild,
         );
       },
@@ -122,10 +126,10 @@ class AppShell extends ConsumerWidget {
     return 0;
   }
 
-  void _onDestinationSelected(BuildContext context, int index, bool isAdmin) {
+  void _onDestinationSelected(int index, bool isAdmin) {
     final destinations = _buildDestinations(isAdmin);
     if (index >= 0 && index < destinations.length) {
-      context.go(destinations[index].route);
+      navigator.go(destinations[index].route);
     }
   }
 }

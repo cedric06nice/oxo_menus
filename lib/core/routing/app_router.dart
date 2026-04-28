@@ -267,7 +267,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       // All authenticated routes wrapped in AppShell for persistent navigation
       ShellRoute(
-        builder: (context, state, child) => AppShell(child: child),
+        builder: (context, state, child) => Consumer(
+          builder: (context, ref, _) {
+            final connectivity = ref.watch(connectivityProvider).value;
+            return AppShell(
+              navigator: GoRouterRouteNavigator(context),
+              currentLocation: state.matchedLocation,
+              isAdmin: ref.watch(isAdminProvider),
+              isOffline: connectivity == ConnectivityStatus.offline,
+              child: child,
+            );
+          },
+        ),
         routes: [
           GoRoute(
             path: AppRoutes.home,
@@ -1348,6 +1359,8 @@ MenuEditorViewModel _defaultMenuEditorViewModelBuilder(
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
     router: MenuEditorRouteAdapter(GoRouterRouteNavigator(context)),
+    registry: container.widgetRegistry,
+    imageGateway: container.imageGateway,
     loadMenu: LoadMenuForEditorUseCase(
       authGateway: container.authGateway,
       menuRepository: menuRepository,
@@ -1487,6 +1500,8 @@ AdminTemplateEditorViewModel _defaultAdminTemplateEditorViewModelBuilder(
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
     router: AdminTemplateEditorRouteAdapter(GoRouterRouteNavigator(context)),
+    registry: container.widgetRegistry,
+    imageGateway: container.imageGateway,
     loadTemplate: LoadTemplateForEditorUseCase(
       authGateway: container.authGateway,
       menuRepository: menuRepository,

@@ -8,7 +8,7 @@ import 'package:oxo_menus/features/connectivity/domain/repositories/connectivity
 class _StubConnectivityRepository implements ConnectivityRepository {
   _StubConnectivityRepository({this.initialStatus = ConnectivityStatus.online});
 
-  final ConnectivityStatus initialStatus;
+  ConnectivityStatus initialStatus;
   final StreamController<ConnectivityStatus> controller =
       StreamController<ConnectivityStatus>.broadcast();
   int watchCalls = 0;
@@ -157,6 +157,70 @@ void main() {
 
       // Before any event arrives.
       expect(gateway.currentStatus, ConnectivityStatus.online);
+    });
+
+    group('recheck', () {
+      test(
+        'invokes the repository probe and emits the result via statusStream',
+        () async {
+          final repo = _StubConnectivityRepository(
+            initialStatus: ConnectivityStatus.offline,
+          );
+          final gateway = ConnectivityGateway(repository: repo);
+          addTearDown(gateway.dispose);
+          addTearDown(repo.close);
+
+          // Wait for the constructor's initial probe to complete.
+          await Future<void>.delayed(Duration.zero);
+          final initialChecks = repo.checkCalls;
+
+          final received = <ConnectivityStatus>[];
+          final sub = gateway.statusStream.listen(received.add);
+          addTearDown(sub.cancel);
+
+          repo.initialStatus = ConnectivityStatus.online;
+          await gateway.recheck();
+          await Future<void>.delayed(Duration.zero);
+
+          expect(repo.checkCalls, initialChecks + 1);
+          expect(received, [ConnectivityStatus.online]);
+          expect(gateway.currentStatus, ConnectivityStatus.online);
+        },
+      );
+
+      test('emits even when the probed status equals currentStatus', () async {
+        final repo = _StubConnectivityRepository(
+          initialStatus: ConnectivityStatus.offline,
+        );
+        final gateway = ConnectivityGateway(repository: repo);
+        addTearDown(gateway.dispose);
+        addTearDown(repo.close);
+
+        await Future<void>.delayed(Duration.zero);
+
+        final received = <ConnectivityStatus>[];
+        final sub = gateway.statusStream.listen(received.add);
+        addTearDown(sub.cancel);
+
+        await gateway.recheck();
+        await Future<void>.delayed(Duration.zero);
+
+        expect(received, [ConnectivityStatus.offline]);
+      });
+
+      test('is a no-op after dispose', () async {
+        final repo = _StubConnectivityRepository();
+        final gateway = ConnectivityGateway(repository: repo);
+        addTearDown(repo.close);
+
+        await Future<void>.delayed(Duration.zero);
+        gateway.dispose();
+        final beforeChecks = repo.checkCalls;
+
+        await gateway.recheck();
+
+        expect(repo.checkCalls, beforeChecks);
+      });
     });
   });
 }

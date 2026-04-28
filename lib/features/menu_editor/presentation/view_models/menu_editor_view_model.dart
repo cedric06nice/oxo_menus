@@ -4,7 +4,9 @@ import 'package:oxo_menus/core/architecture/view_model.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
+import 'package:oxo_menus/core/gateways/image_gateway.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/features/collaboration/domain/entities/menu_change_event.dart';
 import 'package:oxo_menus/features/collaboration/domain/entities/menu_presence.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
@@ -65,6 +67,7 @@ class MenuEditorViewModel extends ViewModel<MenuEditorScreenState> {
     required AuthGateway authGateway,
     required ConnectivityGateway connectivityGateway,
     required MenuEditorRouter router,
+    required PresentableWidgetRegistry registry,
     required LoadMenuForEditorUseCase loadMenu,
     required CreateWidgetInMenuUseCase createWidget,
     required UpdateWidgetInMenuUseCase updateWidget,
@@ -76,10 +79,13 @@ class MenuEditorViewModel extends ViewModel<MenuEditorScreenState> {
     required PublishExportableBundlesForMenuUseCase publishBundles,
     required WatchMenuChangesUseCase watchChanges,
     required MenuPresenceUseCase presence,
+    ImageGateway? imageGateway,
   }) : _menuId = menuId,
        _authGateway = authGateway,
        _connectivityGateway = connectivityGateway,
        _router = router,
+       _registry = registry,
+       _imageGateway = imageGateway,
        _loadMenu = loadMenu,
        _createWidget = createWidget,
        _updateWidget = updateWidget,
@@ -92,7 +98,7 @@ class MenuEditorViewModel extends ViewModel<MenuEditorScreenState> {
        _watchChanges = watchChanges,
        _presence = presence,
        _lastConnectivity = connectivityGateway.currentStatus,
-       super(_initialState(authGateway)) {
+       super(_initialState(authGateway, connectivityGateway)) {
     _connectivitySubscription = _connectivityGateway.statusStream.listen(
       _onConnectivityChanged,
     );
@@ -109,6 +115,16 @@ class MenuEditorViewModel extends ViewModel<MenuEditorScreenState> {
   final AuthGateway _authGateway;
   final ConnectivityGateway _connectivityGateway;
   final MenuEditorRouter _router;
+  final PresentableWidgetRegistry _registry;
+  final ImageGateway? _imageGateway;
+
+  /// Registry the screen passes to `WidgetRenderer`/`DraggableWidgetItem` so
+  /// they can look up widget definitions without reaching into Riverpod.
+  PresentableWidgetRegistry get registry => _registry;
+
+  /// Gateway used by the `image` widget type for byte loading. Optional —
+  /// tests that don't exercise image rendering omit it.
+  ImageGateway? get imageGateway => _imageGateway;
 
   final LoadMenuForEditorUseCase _loadMenu;
   final CreateWidgetInMenuUseCase _createWidget;
@@ -132,12 +148,22 @@ class MenuEditorViewModel extends ViewModel<MenuEditorScreenState> {
   Timer? _heartbeatTimer;
   Timer? _pollingTimer;
 
-  static MenuEditorScreenState _initialState(AuthGateway gateway) =>
-      MenuEditorScreenState(currentUserId: gateway.currentUser?.id);
+  static MenuEditorScreenState _initialState(
+    AuthGateway gateway,
+    ConnectivityGateway connectivityGateway,
+  ) => MenuEditorScreenState(
+    currentUserId: gateway.currentUser?.id,
+    isOffline: connectivityGateway.currentStatus == ConnectivityStatus.offline,
+  );
 
   /// Reload the menu tree. Used by the retry button and by the
   /// connectivity-restore listener.
   Future<void> reload() => _load();
+
+  /// Re-probe connectivity through the gateway. Used by the offline error
+  /// page's retry button to force a fresh probe rather than wait for the
+  /// next ambient transition.
+  Future<void> retryConnectivity() => _connectivityGateway.recheck();
 
   void clearError() {
     if (state.errorMessage == null) {
@@ -463,6 +489,9 @@ class MenuEditorViewModel extends ViewModel<MenuEditorScreenState> {
     final wasOffline = _lastConnectivity == ConnectivityStatus.offline;
     _lastConnectivity = next;
     final isOffline = next == ConnectivityStatus.offline;
+    if (state.isOffline != isOffline) {
+      emit(state.copyWith(isOffline: isOffline));
+    }
     if (isOffline && !state.isPaused) {
       _pauseSubscriptions();
       return;

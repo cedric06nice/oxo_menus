@@ -1,3 +1,4 @@
+import 'package:oxo_menus/core/gateways/image_gateway.dart';
 import 'package:oxo_menus/features/menu/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/features/widget_system/domain/widgets/shared/widget_alignment.dart';
 
@@ -27,6 +28,11 @@ class WidgetContext {
   /// Template-level alignment applied to this widget's content.
   final WidgetAlignment alignment;
 
+  /// Gateway used by image-bearing widgets (currently `image`) to load bytes
+  /// and list available images. Optional — widgets that don't need image data
+  /// ignore it.
+  final ImageGateway? imageGateway;
+
   const WidgetContext({
     required this.isEditable,
     this.onUpdate,
@@ -35,6 +41,7 @@ class WidgetContext {
     this.onEditEnded,
     this.displayOptions,
     this.alignment = WidgetAlignment.start,
+    this.imageGateway,
   });
 }
 

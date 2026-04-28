@@ -26,6 +26,7 @@ class MenuEditorScreenState {
     this.wsErrorCount = 0,
     this.isReloadingMenu = false,
     this.savingState = MenuSavingState.idle,
+    this.isOffline = false,
   });
 
   /// True while the initial load (or a connectivity-driven reload) is in
@@ -69,6 +70,11 @@ class MenuEditorScreenState {
   /// background "Show PDF" bundle publish loop is running.
   final MenuSavingState savingState;
 
+  /// `true` while the connectivity gateway reports `offline`. Drives the
+  /// screen's offline error page; the VM tracks transitions internally to
+  /// pause / resume WebSocket subscriptions.
+  final bool isOffline;
+
   MenuEditorScreenState copyWith({
     bool? isLoading,
     Object? errorMessage = _sentinel,
@@ -80,6 +86,7 @@ class MenuEditorScreenState {
     int? wsErrorCount,
     bool? isReloadingMenu,
     MenuSavingState? savingState,
+    bool? isOffline,
   }) {
     return MenuEditorScreenState(
       isLoading: isLoading ?? this.isLoading,
@@ -96,6 +103,7 @@ class MenuEditorScreenState {
       wsErrorCount: wsErrorCount ?? this.wsErrorCount,
       isReloadingMenu: isReloadingMenu ?? this.isReloadingMenu,
       savingState: savingState ?? this.savingState,
+      isOffline: isOffline ?? this.isOffline,
     );
   }
 
@@ -113,7 +121,8 @@ class MenuEditorScreenState {
       other.isPaused == isPaused &&
       other.wsErrorCount == wsErrorCount &&
       other.isReloadingMenu == isReloadingMenu &&
-      other.savingState == savingState;
+      other.savingState == savingState &&
+      other.isOffline == isOffline;
 
   @override
   int get hashCode => Object.hash(
@@ -127,6 +136,7 @@ class MenuEditorScreenState {
     wsErrorCount,
     isReloadingMenu,
     savingState,
+    isOffline,
   );
 
   static bool _listEquals<T>(List<T> a, List<T> b) {

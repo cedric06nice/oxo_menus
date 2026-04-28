@@ -172,12 +172,16 @@ class _RecordingMenuListRouter implements MenuListRouter {
   final List<int> menuTaps = [];
   final List<int> editorTaps = [];
   int backCalls = 0;
+  int adminSizesPushCalls = 0;
 
   @override
   void goToMenuEditor(int menuId) => menuTaps.add(menuId);
 
   @override
   void goToAdminTemplateEditor(int menuId) => editorTaps.add(menuId);
+
+  @override
+  void pushAdminSizes() => adminSizesPushCalls++;
 
   @override
   void goBack() => backCalls++;
@@ -238,7 +242,10 @@ _buildVm({
   );
 }
 
-Future<CreateMenuInput?> _noopOpener(BuildContext context) async => null;
+Future<CreateMenuInput?> _noopOpener(
+  BuildContext context, {
+  VoidCallback? onOpenSizes,
+}) async => null;
 
 void main() {
   group('MenuListScreen — chrome', () {
@@ -565,7 +572,10 @@ void main() {
     ) async {
       final harness = await _buildVm(user: _adminUser);
       var openerCalls = 0;
-      Future<CreateMenuInput?> opener(BuildContext context) async {
+      Future<CreateMenuInput?> opener(
+        BuildContext context, {
+        VoidCallback? onOpenSizes,
+      }) async {
         openerCalls++;
         return null;
       }
@@ -595,7 +605,7 @@ void main() {
         viewModel: harness.vm,
         screenBuilder: (vm) => MenuListScreen(
           viewModel: vm,
-          openCreateTemplateDialog: (_) async => input,
+          openCreateTemplateDialog: (_, {onOpenSizes}) async => input,
         ),
       );
       await tester.pumpAndSettle();

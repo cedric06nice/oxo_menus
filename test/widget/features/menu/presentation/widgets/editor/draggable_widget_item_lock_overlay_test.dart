@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/features/menu/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
-import 'package:oxo_menus/features/widget_system/presentation/providers/widget_registry_provider.dart';
 import 'package:oxo_menus/features/widget_system/presentation/widgets/dish_widget/dish_widget_definition.dart';
 import 'package:oxo_menus/features/menu/presentation/widgets/editor/draggable_widget_item.dart';
 
@@ -24,7 +23,6 @@ void main() {
   }) {
     return ProviderScope(
       overrides: [
-        widgetRegistryProvider.overrideWithValue(registry),
         directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
         directusAccessTokenProvider.overrideWithValue('test-token'),
       ],
@@ -33,6 +31,7 @@ void main() {
           body: DraggableWidgetItem(
             widgetInstance: widgetInstance,
             columnId: 1,
+            registry: registry,
             isEditable: true,
             currentUserId: currentUserId,
             editingUserName: editingUserName,

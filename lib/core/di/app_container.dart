@@ -3,7 +3,11 @@ import 'package:oxo_menus/core/gateways/admin_view_as_user_gateway.dart';
 import 'package:oxo_menus/core/gateways/app_version_gateway.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
+import 'package:oxo_menus/core/gateways/image_gateway.dart';
+import 'package:oxo_menus/features/widget_system/presentation/providers/widget_registry_provider.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/shared/data/datasources/directus_data_source.dart';
+import 'package:oxo_menus/shared/data/repositories/file_repository_impl.dart';
 
 /// Application-wide dependency container.
 ///
@@ -34,6 +38,8 @@ class AppContainer {
   final AdminViewAsUserGateway _adminViewAsUserGateway;
   final DirectusDataSource? _directusDataSource;
   final String? _directusBaseUrl;
+  PresentableWidgetRegistry? _widgetRegistry;
+  ImageGateway? _imageGateway;
   bool _disposed = false;
 
   AuthGateway get authGateway => _authGateway;
@@ -65,6 +71,28 @@ class AppContainer {
     }
     return ds;
   }
+
+  /// Lazily-built registry of all presentable widget definitions.
+  /// First access constructs the registry from `allWidgetDefinitions`; later
+  /// accesses return the same instance.
+  PresentableWidgetRegistry get widgetRegistry =>
+      _widgetRegistry ??= _buildWidgetRegistry();
+
+  PresentableWidgetRegistry _buildWidgetRegistry() {
+    final registry = PresentableWidgetRegistry();
+    for (final definition in allWidgetDefinitions) {
+      registry.register(definition);
+    }
+    return registry;
+  }
+
+  /// Lazily-built [ImageGateway] backed by [FileRepositoryImpl] over
+  /// [directusDataSource]. Throws the same `StateError` as
+  /// [directusDataSource] when the container was constructed without one.
+  ImageGateway get imageGateway =>
+      _imageGateway ??= ImageGateway(
+        repository: FileRepositoryImpl(directusDataSource),
+      );
 
   bool get isDisposed => _disposed;
 

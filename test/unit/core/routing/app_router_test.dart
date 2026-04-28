@@ -115,6 +115,7 @@ import 'package:oxo_menus/features/menu/domain/repositories/page_repository.dart
 import 'package:oxo_menus/features/menu/domain/repositories/size_repository.dart';
 import 'package:oxo_menus/features/menu/domain/repositories/widget_repository.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/fetch_menu_tree_usecase.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 
 import '../../../fakes/fake_auth_repository.dart';
 import '../../../fakes/fake_connectivity_repository.dart';
@@ -568,6 +569,7 @@ MenuEditorViewModel _buildMenuEditorVm(
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
     router: MenuEditorRouteAdapter(GoRouterRouteNavigator(context)),
+    registry: PresentableWidgetRegistry(),
     loadMenu: _StubLoadMenuForEditorUseCase(),
     createWidget: _StubCreateWidgetInMenuUseCase(),
     updateWidget: _StubUpdateWidgetInMenuUseCase(),
@@ -728,6 +730,7 @@ AdminTemplateEditorViewModel _buildAdminTemplateEditorVm(
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
     router: AdminTemplateEditorRouteAdapter(GoRouterRouteNavigator(context)),
+    registry: PresentableWidgetRegistry(),
     loadTemplate: _StubLoadTemplateForEditorUseCase(),
     createPage: _StubCreatePageInTemplateUseCase(),
     deletePage: _StubDeletePageInTemplateUseCase(),

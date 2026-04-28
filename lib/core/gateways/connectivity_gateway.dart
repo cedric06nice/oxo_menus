@@ -55,6 +55,17 @@ class ConnectivityGateway {
     _controller.add(next);
   }
 
+  /// Trigger a one-shot probe through the underlying repository and emit the
+  /// result on [statusStream]. Used by retry buttons that want to force-check
+  /// connectivity rather than wait for the next ambient transition.
+  Future<void> recheck() async {
+    if (_disposed) {
+      return;
+    }
+    final next = await _repository.checkConnectivity();
+    _emit(next);
+  }
+
   void dispose() {
     if (_disposed) {
       return;

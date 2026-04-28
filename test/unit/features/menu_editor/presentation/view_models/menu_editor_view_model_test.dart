@@ -4,6 +4,7 @@ import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/features/menu/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/features/menu/domain/entities/container.dart'
     as entity;
@@ -131,6 +132,7 @@ _build({void Function(_Fakes fakes)? configure}) async {
     authGateway: gateway,
     connectivityGateway: connectivityGateway,
     router: router,
+    registry: PresentableWidgetRegistry(),
     loadMenu: LoadMenuForEditorUseCase(
       authGateway: gateway,
       menuRepository: fakes.menuRepo,

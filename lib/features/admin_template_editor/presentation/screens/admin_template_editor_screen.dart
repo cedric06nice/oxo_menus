@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/state/admin_template_editor_screen_state.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/state/editor_selection.dart';
@@ -18,9 +17,7 @@ import 'package:oxo_menus/features/menu/domain/entities/page.dart' as entity;
 import 'package:oxo_menus/features/menu/domain/entities/size.dart' as domain;
 import 'package:oxo_menus/features/menu/domain/usecases/reorder_container_usecase.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/widgets/menu_display_options_dialog.dart';
-import 'package:oxo_menus/features/widget_system/presentation/providers/allowed_widgets_provider.dart';
-import 'package:oxo_menus/features/widget_system/presentation/providers/widget_registry_provider.dart';
-import 'package:oxo_menus/features/menu/presentation/providers/menu_display_options_provider.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/shared/domain/entities/area.dart';
 import 'package:oxo_menus/shared/presentation/helpers/snackbar_helper.dart';
 import 'package:oxo_menus/shared/presentation/theme/app_spacing.dart';
@@ -32,10 +29,9 @@ import 'package:oxo_menus/shared/presentation/widgets/delete_confirmation_dialog
 ///
 /// Pure widget — owns no Riverpod providers and no navigation. Reads its
 /// snapshot from the injected [AdminTemplateEditorViewModel] and forwards user
-/// actions back to it. Uses a small [Consumer] bridge to keep the legacy
-/// `menuDisplayOptionsProvider` + `allowedWidgetsProvider` in sync so widget
-/// rendering still picks up live edits while Phase 12 (menu editor migration)
-/// retires the legacy `editor_tree` Riverpod stack.
+/// actions back to it. The widget registry, menu display options, allowed
+/// widgets, and image gateway are sourced from the view model and threaded
+/// through to [DraggableWidgetItem] / `WidgetRenderer` via constructor.
 class AdminTemplateEditorScreen extends StatefulWidget {
   const AdminTemplateEditorScreen({super.key, required this.viewModel});
 
@@ -290,21 +286,9 @@ class _AdminTemplateEditorScreenState extends State<AdminTemplateEditorScreen> {
           tooltip: 'Publish',
         ),
       ],
-      body: Consumer(
-        builder: (context, ref, child) {
-          // Bridge VM tree to legacy global providers so the existing
-          // WidgetRenderer (still a ConsumerWidget during the migration) keeps
-          // showing the live displayOptions / allowedWidgets values. Scheduled
-          // post-frame because Riverpod forbids provider mutation during a
-          // build phase.
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!context.mounted) return;
-            ref
-                .read(menuDisplayOptionsProvider.notifier)
-                .set(menu.displayOptions);
-            ref.read(allowedWidgetsProvider.notifier).set(menu.allowedWidgets);
-          });
-          final registry = ref.watch(widgetRegistryProvider);
+      body: Builder(
+        builder: (context) {
+          final registry = widget.viewModel.registry;
           return LayoutBuilder(
             builder: (context, constraints) {
               _isNarrow = constraints.maxWidth < _narrowBreakpoint;
@@ -436,7 +420,10 @@ class _AdminTemplateEditorScreenState extends State<AdminTemplateEditorScreen> {
     return null;
   }
 
-  Widget _buildCanvas(AdminTemplateEditorScreenState state, dynamic registry) {
+  Widget _buildCanvas(
+    AdminTemplateEditorScreenState state,
+    PresentableWidgetRegistry registry,
+  ) {
     final tree = state.tree!;
     return AutoScrollListener(
       scrollController: _scrollController,
@@ -522,7 +509,7 @@ class _AdminTemplateEditorScreenState extends State<AdminTemplateEditorScreen> {
   Widget _buildPageCard(
     entity.Page page,
     dynamic tree,
-    dynamic registry,
+    PresentableWidgetRegistry registry,
     AdminTemplateEditorScreenState state,
   ) {
     final treeData = state.tree!;
@@ -608,7 +595,7 @@ class _AdminTemplateEditorScreenState extends State<AdminTemplateEditorScreen> {
 
   Widget _buildContainerCard(
     entity.Container container,
-    dynamic registry,
+    PresentableWidgetRegistry registry,
     AdminTemplateEditorScreenState state, {
     List<entity.Container> siblings = const [],
   }) {
@@ -746,7 +733,7 @@ class _AdminTemplateEditorScreenState extends State<AdminTemplateEditorScreen> {
 
   Widget _buildColumnCard(
     entity.Column column,
-    dynamic registry,
+    PresentableWidgetRegistry registry,
     AdminTemplateEditorScreenState state,
   ) {
     final tree = state.tree!;
@@ -815,6 +802,10 @@ class _AdminTemplateEditorScreenState extends State<AdminTemplateEditorScreen> {
       widgetItemBuilder: (widgetInstance, columnId) => DraggableWidgetItem(
         widgetInstance: widgetInstance,
         columnId: columnId,
+        registry: registry,
+        displayOptions: tree.menu.displayOptions,
+        allowedWidgets: tree.menu.allowedWidgets,
+        imageGateway: widget.viewModel.imageGateway,
         isEditable: true,
         showLockToggle: true,
         isLockedForEdition: widgetInstance.lockedForEdition,

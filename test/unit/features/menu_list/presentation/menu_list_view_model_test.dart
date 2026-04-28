@@ -173,12 +173,16 @@ class _RecordingMenuListRouter implements MenuListRouter {
   final List<int> menuTaps = [];
   final List<int> editorTaps = [];
   int backCalls = 0;
+  int adminSizesPushCalls = 0;
 
   @override
   void goToMenuEditor(int menuId) => menuTaps.add(menuId);
 
   @override
   void goToAdminTemplateEditor(int menuId) => editorTaps.add(menuId);
+
+  @override
+  void pushAdminSizes() => adminSizesPushCalls++;
 
   @override
   void goBack() => backCalls++;

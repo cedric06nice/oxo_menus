@@ -7,9 +7,16 @@ import 'package:oxo_menus/features/admin_template_creator/presentation/routing/a
 class _RecordingRouteNavigator implements RouteNavigator {
   final List<({String location, Object? extra})> calls = [];
 
+  final List<({String location, Object? extra})> pushCalls = [];
+
   @override
   void go(String location, {Object? extra}) {
     calls.add((location: location, extra: extra));
+  }
+
+  @override
+  void push(String location, {Object? extra}) {
+    pushCalls.add((location: location, extra: extra));
   }
 }
 

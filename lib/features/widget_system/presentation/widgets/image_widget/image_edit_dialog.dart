@@ -1,31 +1,45 @@
+import 'dart:typed_data';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/core/gateways/image_gateway.dart';
+import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/features/widget_system/domain/widgets/image/image_props.dart';
+import 'package:oxo_menus/shared/domain/entities/image_file_info.dart';
 import 'package:oxo_menus/shared/presentation/helpers/cupertino_picker_helper.dart';
-import 'package:oxo_menus/features/menu/presentation/providers/image_files/image_files_provider.dart';
-import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/shared/presentation/utils/platform_detection.dart';
 import 'package:oxo_menus/shared/presentation/widgets/adaptive_edit_scaffold.dart';
 import 'package:oxo_menus/shared/presentation/widgets/adaptive_loading_indicator.dart';
-import 'package:oxo_menus/shared/presentation/utils/platform_detection.dart';
 
-/// Dialog for editing image properties
-class ImageEditDialog extends ConsumerStatefulWidget {
+/// Dialog for editing image properties.
+///
+/// Loads the available image list and per-thumbnail bytes through the injected
+/// [ImageGateway]. Pure widget — no Riverpod.
+class ImageEditDialog extends StatefulWidget {
   final ImageProps props;
+  final ImageGateway? imageGateway;
   final void Function(ImageProps) onSave;
 
-  const ImageEditDialog({super.key, required this.props, required this.onSave});
+  const ImageEditDialog({
+    super.key,
+    required this.props,
+    required this.onSave,
+    this.imageGateway,
+  });
 
   @override
-  ConsumerState<ImageEditDialog> createState() => _ImageEditDialogState();
+  State<ImageEditDialog> createState() => _ImageEditDialogState();
 }
 
-class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
+class _ImageEditDialogState extends State<ImageEditDialog> {
   late String _selectedFileId;
   late TextEditingController _widthController;
   late TextEditingController _heightController;
   late String _align;
   late String _fit;
+  bool _isLoadingFiles = false;
+  String? _filesErrorMessage;
+  List<ImageFileInfo> _imageFiles = const [];
 
   @override
   void initState() {
@@ -40,7 +54,8 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     _align = widget.props.align;
     _fit = widget.props.fit;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(imageFilesProvider.notifier).loadImageFiles();
+      if (!mounted) return;
+      _loadImageFiles();
     });
   }
 
@@ -49,6 +64,28 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
     _widthController.dispose();
     _heightController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadImageFiles() async {
+    final gateway = widget.imageGateway;
+    if (gateway == null) {
+      return;
+    }
+    setState(() {
+      _isLoadingFiles = true;
+      _filesErrorMessage = null;
+    });
+    final result = await gateway.listImages();
+    if (!mounted) return;
+    setState(() {
+      _isLoadingFiles = false;
+      switch (result) {
+        case Success(:final value):
+          _imageFiles = value;
+        case Failure(:final error):
+          _filesErrorMessage = error.message;
+      }
+    });
   }
 
   @override
@@ -125,7 +162,6 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
 
   List<Widget> _buildMaterialFormChildren(BuildContext context) {
     return [
-      // Thumbnail grid section
       _buildImageGrid(),
       const SizedBox(height: 12),
       DropdownButtonFormField<String>(
@@ -181,25 +217,21 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
   }
 
   Widget _buildImageGrid() {
-    final imageFilesState = ref.watch(imageFilesProvider);
-
-    if (imageFilesState.isLoading) {
-      return SizedBox(
+    if (_isLoadingFiles) {
+      return const SizedBox(
         height: 100,
-        child: const Center(child: AdaptiveLoadingIndicator()),
+        child: Center(child: AdaptiveLoadingIndicator()),
       );
     }
 
-    if (imageFilesState.errorMessage != null) {
+    if (_filesErrorMessage != null) {
       return Text(
-        'Error loading images: ${imageFilesState.errorMessage}',
+        'Error loading images: $_filesErrorMessage',
         style: TextStyle(color: Theme.of(context).colorScheme.error),
       );
     }
 
-    final imageFiles = imageFilesState.files;
-
-    if (imageFiles.isEmpty) {
+    if (_imageFiles.isEmpty) {
       return const Text('No images available');
     }
 
@@ -211,9 +243,9 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
         ),
-        itemCount: imageFiles.length,
+        itemCount: _imageFiles.length,
         itemBuilder: (context, index) {
-          final file = imageFiles[index];
+          final file = _imageFiles[index];
           final isSelected = file.id == _selectedFileId;
 
           return GestureDetector(
@@ -232,28 +264,7 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
                 borderRadius: BorderRadius.circular(7),
                 child: Column(
                   children: [
-                    Expanded(
-                      child: Consumer(
-                        builder: (context, ref, _) {
-                          final asyncBytes = ref.watch(
-                            imageDataProvider(file.id),
-                          );
-                          return asyncBytes.when(
-                            data: (bytes) => Image.memory(
-                              bytes,
-                              fit: BoxFit.contain,
-                              width: double.infinity,
-                            ),
-                            loading: () => const AdaptiveLoadingIndicator(),
-                            error: (_, _) => Icon(
-                              isApplePlatform(context)
-                                  ? CupertinoIcons.photo
-                                  : Icons.broken_image,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+                    Expanded(child: _buildThumbnail(file.id)),
                     if (file.title != null)
                       Padding(
                         padding: const EdgeInsets.all(2),
@@ -270,6 +281,37 @@ class _ImageEditDialogState extends ConsumerState<ImageEditDialog> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildThumbnail(String fileId) {
+    final gateway = widget.imageGateway;
+    if (gateway == null) {
+      return Icon(
+        isApplePlatform(context)
+            ? CupertinoIcons.photo
+            : Icons.broken_image,
+      );
+    }
+    return FutureBuilder<Uint8List>(
+      future: gateway.getBytes(fileId),
+      builder: (_, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const AdaptiveLoadingIndicator();
+        }
+        if (snapshot.hasError || !snapshot.hasData) {
+          return Icon(
+            isApplePlatform(context)
+                ? CupertinoIcons.photo
+                : Icons.broken_image,
+          );
+        }
+        return Image.memory(
+          snapshot.data!,
+          fit: BoxFit.contain,
+          width: double.infinity,
+        );
+      },
     );
   }
 

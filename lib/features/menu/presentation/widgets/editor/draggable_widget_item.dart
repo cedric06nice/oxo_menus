@@ -1,9 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:oxo_menus/core/gateways/image_gateway.dart';
 import 'package:oxo_menus/features/collaboration/presentation/widgets/editing_user_badge.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/features/menu/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/features/menu/presentation/widgets/canvas/widget_renderer.dart';
 import 'package:oxo_menus/features/menu/presentation/widgets/editor/widget_drag_data.dart';
+import 'package:oxo_menus/features/widget_system/domain/entities/widget_type_config.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/shared/presentation/utils/platform_detection.dart';
 
 /// A draggable and dismissible widget item for the editor.
@@ -14,6 +18,10 @@ import 'package:oxo_menus/shared/presentation/utils/platform_detection.dart';
 class DraggableWidgetItem extends StatelessWidget {
   final WidgetInstance widgetInstance;
   final int columnId;
+  final PresentableWidgetRegistry registry;
+  final MenuDisplayOptions? displayOptions;
+  final List<WidgetTypeConfig> allowedWidgets;
+  final ImageGateway? imageGateway;
   final bool isEditable;
   final bool isLocked;
   final String? currentUserId;
@@ -33,6 +41,10 @@ class DraggableWidgetItem extends StatelessWidget {
     super.key,
     required this.widgetInstance,
     required this.columnId,
+    required this.registry,
+    this.displayOptions,
+    this.allowedWidgets = const [],
+    this.imageGateway,
     this.isEditable = true,
     this.isLocked = false,
     this.currentUserId,
@@ -87,6 +99,10 @@ class DraggableWidgetItem extends StatelessWidget {
                 opacity: 0.5,
                 child: WidgetRenderer(
                   widgetInstance: widgetInstance,
+                  registry: registry,
+                  displayOptions: displayOptions,
+                  allowedWidgets: allowedWidgets,
+                  imageGateway: imageGateway,
                   isEditable: false,
                 ),
               ),
@@ -112,7 +128,14 @@ class DraggableWidgetItem extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 8),
           child: Stack(
             children: [
-              WidgetRenderer(widgetInstance: widgetInstance, isEditable: false),
+              WidgetRenderer(
+                widgetInstance: widgetInstance,
+                registry: registry,
+                displayOptions: displayOptions,
+                allowedWidgets: allowedWidgets,
+                imageGateway: imageGateway,
+                isEditable: false,
+              ),
               Positioned(
                 top: 4,
                 right: 4,
@@ -134,6 +157,10 @@ class DraggableWidgetItem extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 0),
         child: WidgetRenderer(
           widgetInstance: widgetInstance,
+          registry: registry,
+          displayOptions: displayOptions,
+          allowedWidgets: allowedWidgets,
+          imageGateway: imageGateway,
           isEditable: isEditable,
           onUpdate: onUpdate,
           onDelete: onDelete,

@@ -28,6 +28,7 @@ import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update
 import 'package:oxo_menus/features/admin_template_editor/presentation/routing/admin_template_editor_router.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/screens/admin_template_editor_screen.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/view_models/admin_template_editor_view_model.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/features/connectivity/domain/repositories/connectivity_repository.dart';
 import 'package:oxo_menus/features/menu/domain/entities/menu.dart';
@@ -128,6 +129,7 @@ _build({void Function(_Fakes)? configure}) async {
     authGateway: gateway,
     connectivityGateway: connectivityGateway,
     router: router,
+    registry: PresentableWidgetRegistry(),
     loadTemplate: LoadTemplateForEditorUseCase(
       authGateway: gateway,
       menuRepository: fakes.menuRepo,

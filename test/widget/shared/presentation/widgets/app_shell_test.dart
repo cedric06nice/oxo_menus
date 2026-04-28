@@ -1,36 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oxo_menus/shared/domain/entities/user.dart';
-import 'package:oxo_menus/shared/presentation/providers/auth_provider.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/shared/presentation/widgets/app_shell.dart';
 
 void main() {
-  const adminUser = User(
-    id: '1',
-    email: 'admin@test.com',
-    role: UserRole.admin,
-    firstName: 'Admin',
-  );
-
-  const regularUser = User(
-    id: '2',
-    email: 'user@test.com',
-    role: UserRole.user,
-    firstName: 'User',
-  );
-
   Widget buildTestApp({
-    User? user,
     bool isAdmin = false,
+    bool isOffline = false,
     String initialLocation = '/home',
   }) {
     final router = GoRouter(
       initialLocation: initialLocation,
       routes: [
         ShellRoute(
-          builder: (context, state, child) => AppShell(child: child),
+          builder: (context, state, child) => AppShell(
+            navigator: GoRouterRouteNavigator(context),
+            currentLocation: state.matchedLocation,
+            isAdmin: isAdmin,
+            isOffline: isOffline,
+            child: child,
+          ),
           routes: [
             GoRoute(
               path: '/home',
@@ -57,13 +47,7 @@ void main() {
       ],
     );
 
-    return ProviderScope(
-      overrides: [
-        currentUserProvider.overrideWithValue(user),
-        isAdminProvider.overrideWithValue(isAdmin),
-      ],
-      child: MaterialApp.router(routerConfig: router),
-    );
+    return MaterialApp.router(routerConfig: router);
   }
 
   void setScreenSize(WidgetTester tester, double width, double height) {
@@ -78,7 +62,7 @@ void main() {
         addTearDown(() => tester.view.resetPhysicalSize());
         addTearDown(() => tester.view.resetDevicePixelRatio());
 
-        await tester.pumpWidget(buildTestApp(user: regularUser));
+        await tester.pumpWidget(buildTestApp());
         await tester.pumpAndSettle();
 
         expect(find.byType(NavigationBar), findsOneWidget);
@@ -90,7 +74,7 @@ void main() {
         addTearDown(() => tester.view.resetPhysicalSize());
         addTearDown(() => tester.view.resetDevicePixelRatio());
 
-        await tester.pumpWidget(buildTestApp(user: regularUser));
+        await tester.pumpWidget(buildTestApp());
         await tester.pumpAndSettle();
 
         // Home, Menus, Settings
@@ -105,7 +89,7 @@ void main() {
         addTearDown(() => tester.view.resetPhysicalSize());
         addTearDown(() => tester.view.resetDevicePixelRatio());
 
-        await tester.pumpWidget(buildTestApp(user: adminUser, isAdmin: true));
+        await tester.pumpWidget(buildTestApp(isAdmin: true));
         await tester.pumpAndSettle();
 
         // Home, Menus, Templates, Sizes, Settings
@@ -119,7 +103,7 @@ void main() {
         addTearDown(() => tester.view.resetPhysicalSize());
         addTearDown(() => tester.view.resetDevicePixelRatio());
 
-        await tester.pumpWidget(buildTestApp(user: regularUser));
+        await tester.pumpWidget(buildTestApp());
         await tester.pumpAndSettle();
 
         expect(find.text('Home Content'), findsOneWidget);
@@ -130,7 +114,7 @@ void main() {
         addTearDown(() => tester.view.resetPhysicalSize());
         addTearDown(() => tester.view.resetDevicePixelRatio());
 
-        await tester.pumpWidget(buildTestApp(user: regularUser));
+        await tester.pumpWidget(buildTestApp());
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Menus'));
@@ -146,7 +130,7 @@ void main() {
         addTearDown(() => tester.view.resetPhysicalSize());
         addTearDown(() => tester.view.resetDevicePixelRatio());
 
-        await tester.pumpWidget(buildTestApp(user: regularUser));
+        await tester.pumpWidget(buildTestApp());
         await tester.pumpAndSettle();
 
         expect(find.byType(NavigationRail), findsOneWidget);
@@ -160,7 +144,7 @@ void main() {
         addTearDown(() => tester.view.resetPhysicalSize());
         addTearDown(() => tester.view.resetDevicePixelRatio());
 
-        await tester.pumpWidget(buildTestApp(user: regularUser));
+        await tester.pumpWidget(buildTestApp());
         await tester.pumpAndSettle();
 
         expect(find.byType(NavigationDrawer), findsOneWidget);
@@ -175,9 +159,7 @@ void main() {
         addTearDown(() => tester.view.resetPhysicalSize());
         addTearDown(() => tester.view.resetDevicePixelRatio());
 
-        await tester.pumpWidget(
-          buildTestApp(user: regularUser, initialLocation: '/menus'),
-        );
+        await tester.pumpWidget(buildTestApp(initialLocation: '/menus'));
         await tester.pumpAndSettle();
 
         expect(find.text('Menus Content'), findsOneWidget);
@@ -188,9 +170,7 @@ void main() {
         addTearDown(() => tester.view.resetPhysicalSize());
         addTearDown(() => tester.view.resetDevicePixelRatio());
 
-        await tester.pumpWidget(
-          buildTestApp(user: regularUser, initialLocation: '/settings'),
-        );
+        await tester.pumpWidget(buildTestApp(initialLocation: '/settings'));
         await tester.pumpAndSettle();
 
         expect(find.text('Settings Content'), findsOneWidget);

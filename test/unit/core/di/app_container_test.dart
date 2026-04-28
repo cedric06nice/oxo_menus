@@ -10,6 +10,7 @@ import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/features/connectivity/domain/repositories/connectivity_repository.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/shared/data/datasources/directus_data_source.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/shared/domain/repositories/auth_repository.dart';
@@ -155,6 +156,36 @@ void main() {
 
       expect(container.appVersionGateway, isA<PackageInfoAppVersionGateway>());
       expect(container.adminViewAsUserGateway, isA<AdminViewAsUserGateway>());
+    });
+
+    group('widgetRegistry', () {
+      test('exposes a PresentableWidgetRegistry with all 8 widget types', () {
+        final container = _makeContainer();
+
+        final registry = container.widgetRegistry;
+
+        expect(registry, isA<PresentableWidgetRegistry>());
+        expect(registry.count, 8);
+        expect(registry.registeredTypes, containsAll(<String>[
+          'dish',
+          'dish_to_share',
+          'image',
+          'section',
+          'set_menu_dish',
+          'set_menu_title',
+          'text',
+          'wine',
+        ]));
+      });
+
+      test('returns the same instance on repeated access (lazy singleton)', () {
+        final container = _makeContainer();
+
+        final first = container.widgetRegistry;
+        final second = container.widgetRegistry;
+
+        expect(identical(first, second), isTrue);
+      });
     });
   });
 }

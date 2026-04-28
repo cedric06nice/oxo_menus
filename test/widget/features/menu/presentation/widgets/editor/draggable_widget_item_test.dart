@@ -1,10 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/features/menu/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/features/menu/presentation/widgets/editor/draggable_widget_item.dart';
 import 'package:oxo_menus/features/menu/presentation/widgets/canvas/widget_renderer.dart';
+import 'package:oxo_menus/features/widget_system/presentation/providers/widget_registry_provider.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
+
+PresentableWidgetRegistry buildRegistry() {
+  final registry = PresentableWidgetRegistry();
+  for (final definition in allWidgetDefinitions) {
+    registry.register(definition);
+  }
+  return registry;
+}
 
 void main() {
   group('DraggableWidgetItem', () {
@@ -22,11 +31,9 @@ void main() {
       required Widget child,
       TargetPlatform platform = TargetPlatform.android,
     }) {
-      return ProviderScope(
-        child: MaterialApp(
-          theme: ThemeData(platform: platform),
-          home: Scaffold(body: child),
-        ),
+      return MaterialApp(
+        theme: ThemeData(platform: platform),
+        home: Scaffold(body: child),
       );
     }
 
@@ -39,6 +46,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
             ),
@@ -54,6 +62,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
             ),
@@ -72,6 +81,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
             ),
@@ -89,6 +99,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
             ),
@@ -111,6 +122,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
               onUpdate: (props) => updatedProps = props,
@@ -136,6 +148,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
               onConfirmDismiss: () async {
@@ -168,6 +181,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
               onEditStarted: () => editStartedCalled = true,
@@ -199,6 +213,7 @@ void main() {
               child: DraggableWidgetItem(
                 widgetInstance: testWidget,
                 columnId: 1,
+                registry: buildRegistry(),
                 isEditable: true,
                 isLocked: false,
               ),
@@ -241,6 +256,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
               onConfirmDismiss: () async => false,
@@ -284,6 +300,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
               onConfirmDismiss: () async => false,
@@ -325,6 +342,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
             ),
@@ -355,6 +373,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: templateWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: false,
               isLocked: true,
             ),
@@ -387,6 +406,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: templateWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: false,
               isLocked: true,
             ),
@@ -402,6 +422,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: templateWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: false,
               isLocked: true,
             ),
@@ -419,6 +440,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: templateWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: false,
               isLocked: true,
             ),
@@ -440,6 +462,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: templateWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: false,
               isLocked: true,
             ),
@@ -457,6 +480,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: templateWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: false,
               isLocked: true,
             ),
@@ -478,6 +502,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: templateWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: false,
               isLocked: true,
             ),
@@ -498,6 +523,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
             ),
@@ -515,6 +541,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
               showLockToggle: true,
@@ -537,6 +564,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
               showLockToggle: true,
@@ -561,6 +589,7 @@ void main() {
               child: DraggableWidgetItem(
                 widgetInstance: testWidget,
                 columnId: 1,
+                registry: buildRegistry(),
                 isEditable: true,
                 isLocked: false,
                 showLockToggle: true,
@@ -588,6 +617,7 @@ void main() {
             child: DraggableWidgetItem(
               widgetInstance: testWidget,
               columnId: 1,
+              registry: buildRegistry(),
               isEditable: true,
               isLocked: false,
               onConfirmDismiss: () async => false,

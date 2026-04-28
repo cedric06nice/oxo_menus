@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/core/gateways/image_gateway.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/features/menu/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/features/widget_system/domain/entities/widget_type_config.dart';
 import 'package:oxo_menus/features/widget_system/domain/widget_definition.dart';
-import 'package:oxo_menus/features/widget_system/presentation/providers/allowed_widgets_provider.dart';
-import 'package:oxo_menus/features/menu/presentation/providers/menu_display_options_provider.dart';
-import 'package:oxo_menus/features/widget_system/presentation/providers/widget_registry_provider.dart';
+import 'package:oxo_menus/features/widget_system/domain/widgets/shared/widget_alignment.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 
 /// Widget Renderer
 ///
 /// Renders a widget instance using the widget registry.
 /// Handles type-safe rendering of widgets with proper error handling.
-class WidgetRenderer extends ConsumerWidget {
+///
+/// Takes the [registry], the menu's [displayOptions], and the menu's
+/// [allowedWidgets] (used to look up the per-type [WidgetAlignment]) as
+/// constructor args. Pure widget — no Riverpod.
+class WidgetRenderer extends StatelessWidget {
   final WidgetInstance widgetInstance;
+  final PresentableWidgetRegistry registry;
+  final MenuDisplayOptions? displayOptions;
+  final List<WidgetTypeConfig> allowedWidgets;
+  final ImageGateway? imageGateway;
   final bool isEditable;
   final void Function(Map<String, dynamic>)? onUpdate;
   final VoidCallback? onDelete;
@@ -22,6 +30,10 @@ class WidgetRenderer extends ConsumerWidget {
   const WidgetRenderer({
     super.key,
     required this.widgetInstance,
+    required this.registry,
+    this.displayOptions,
+    this.allowedWidgets = const [],
+    this.imageGateway,
     this.isEditable = false,
     this.onUpdate,
     this.onDelete,
@@ -29,18 +41,17 @@ class WidgetRenderer extends ConsumerWidget {
     this.onEditEnded,
   });
 
+  WidgetAlignment _resolveAlignment() {
+    for (final config in allowedWidgets) {
+      if (config.type == widgetInstance.type) {
+        return config.alignment;
+      }
+    }
+    return WidgetAlignment.start;
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final registry = ref.watch(widgetRegistryProvider);
-    final displayOptions = ref.watch(menuDisplayOptionsProvider);
-    // Watching the state (not the notifier) rebuilds when the list changes.
-    final allowed = ref.watch(allowedWidgetsProvider);
-    final alignment = allowed
-        .firstWhere(
-          (c) => c.type == widgetInstance.type,
-          orElse: () => WidgetTypeConfig(type: widgetInstance.type),
-        )
-        .alignment;
+  Widget build(BuildContext context) {
     final definition = registry.getDefinition(widgetInstance.type);
 
     if (definition == null) {
@@ -52,10 +63,7 @@ class WidgetRenderer extends ConsumerWidget {
     }
 
     try {
-      // Parse props using the definition's parseProps function
       final props = definition.parseProps(widgetInstance.props);
-
-      // Create widget context
       final widgetContext = WidgetContext(
         isEditable: isEditable,
         onUpdate: onUpdate,
@@ -63,10 +71,9 @@ class WidgetRenderer extends ConsumerWidget {
         onEditStarted: onEditStarted,
         onEditEnded: onEditEnded,
         displayOptions: displayOptions,
-        alignment: alignment,
+        alignment: _resolveAlignment(),
+        imageGateway: imageGateway,
       );
-
-      // Render the widget using the presentable definition
       return definition.renderDynamic(props, widgetContext);
     } catch (e) {
       return Container(

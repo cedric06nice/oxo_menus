@@ -17,13 +17,22 @@ import 'package:oxo_menus/shared/presentation/widgets/status_filter_bar.dart';
 /// Tests inject a fake opener that returns a canned [CreateMenuInput] so the
 /// screen can be exercised without spinning up the (Riverpod-bound) legacy
 /// [TemplateCreateDialog]. Production code uses [defaultCreateTemplateOpener].
+///
+/// The [onOpenSizes] callback is forwarded to the dialog so the "Manage Sizes"
+/// CTA can navigate without the dialog itself depending on the router.
 typedef CreateTemplateOpener =
-    Future<CreateMenuInput?> Function(BuildContext context);
+    Future<CreateMenuInput?> Function(
+      BuildContext context, {
+      VoidCallback? onOpenSizes,
+    });
 
 /// Default production implementation: shows the legacy [TemplateCreateDialog]
 /// inside the existing Riverpod scope and adapts its `onSave` callback into
 /// the [CreateMenuInput] this screen expects.
-Future<CreateMenuInput?> defaultCreateTemplateOpener(BuildContext context) {
+Future<CreateMenuInput?> defaultCreateTemplateOpener(
+  BuildContext context, {
+  VoidCallback? onOpenSizes,
+}) {
   final completer = _CreateTemplateCompleter();
   return showDialog<void>(
     context: context,
@@ -39,6 +48,7 @@ Future<CreateMenuInput?> defaultCreateTemplateOpener(BuildContext context) {
           ),
         );
       },
+      onOpenSizes: onOpenSizes,
     ),
   ).then((_) => completer.value);
 }
@@ -235,7 +245,10 @@ class _MenuListScreenState extends State<MenuListScreen> {
   }
 
   Future<void> _handleCreateTemplate() async {
-    final input = await widget.openCreateTemplateDialog(context);
+    final input = await widget.openCreateTemplateDialog(
+      context,
+      onOpenSizes: widget.viewModel.pushAdminSizes,
+    );
     if (input == null || !mounted) {
       return;
     }

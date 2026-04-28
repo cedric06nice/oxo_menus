@@ -28,6 +28,7 @@ import 'package:oxo_menus/features/admin_template_editor/presentation/routing/ad
 import 'package:oxo_menus/features/admin_template_editor/presentation/state/admin_template_editor_screen_state.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/state/editor_selection.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/view_models/admin_template_editor_view_model.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/features/menu/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/features/menu/domain/entities/container.dart'
@@ -146,6 +147,7 @@ _build({bool admin = true, void Function(_Fakes fakes)? configure}) async {
     authGateway: gateway,
     connectivityGateway: connectivityGateway,
     router: router,
+    registry: PresentableWidgetRegistry(),
     loadTemplate: loadTemplate,
     createPage: CreatePageInTemplateUseCase(
       authGateway: gateway,
