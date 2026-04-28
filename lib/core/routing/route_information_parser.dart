@@ -11,6 +11,7 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
 
   static const String _loginPath = '/app/login';
   static const String _forgotPasswordPath = '/app/forgot-password';
+  static const String _resetPasswordPath = '/app/reset-password';
   static const String _homePath = '/app/home';
   static const String _menuListPath = '/app/menus';
   static const String _settingsPath = '/app/settings';
@@ -29,6 +30,9 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
     }
     if (uri.path == _forgotPasswordPath) {
       return const ForgotPasswordRouteConfig();
+    }
+    if (uri.path == _resetPasswordPath) {
+      return ResetPasswordRouteConfig(uri.queryParameters['token']);
     }
     if (uri.path == _homePath) {
       return const HomeRouteConfig();
@@ -132,6 +136,14 @@ class AppRouteInformationParser extends RouteInformationParser<RouteConfig> {
       LoginRouteConfig() => RouteInformation(uri: Uri.parse(_loginPath)),
       ForgotPasswordRouteConfig() => RouteInformation(
         uri: Uri.parse(_forgotPasswordPath),
+      ),
+      ResetPasswordRouteConfig(:final token) => RouteInformation(
+        uri: token == null
+            ? Uri.parse(_resetPasswordPath)
+            : Uri(
+                path: _resetPasswordPath,
+                queryParameters: <String, String>{'token': token},
+              ),
       ),
       HomeRouteConfig() => RouteInformation(uri: Uri.parse(_homePath)),
       MenuListRouteConfig() => RouteInformation(uri: Uri.parse(_menuListPath)),

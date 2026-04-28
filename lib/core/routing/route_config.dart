@@ -199,6 +199,26 @@ final class PdfPreviewRouteConfig extends RouteConfig {
   String toString() => 'PdfPreviewRouteConfig($menuId)';
 }
 
+/// Reset-password — the deep-link landing page from a reset email. Carries
+/// the optional [token] captured from the `?token=…` query parameter so the
+/// view model can confirm the reset for the right account. A null/empty token
+/// puts the screen in a missing-token branch.
+final class ResetPasswordRouteConfig extends RouteConfig {
+  const ResetPasswordRouteConfig(this.token);
+
+  final String? token;
+
+  @override
+  bool operator ==(Object other) =>
+      other is ResetPasswordRouteConfig && other.token == token;
+
+  @override
+  int get hashCode => Object.hash((ResetPasswordRouteConfig).hashCode, token);
+
+  @override
+  String toString() => 'ResetPasswordRouteConfig($token)';
+}
+
 /// Fallback variant for URIs that do not yet match a migrated feature.
 ///
 /// During the migration the legacy `go_router` handles all unknown paths;

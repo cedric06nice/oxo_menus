@@ -12,10 +12,16 @@ class _FakeAuthRepository implements AuthRepository {
   );
   Result<User, DomainError> currentUserResult = Success(_alice);
   Result<void, DomainError> logoutResult = const Success(null);
+  Result<void, DomainError> requestPasswordResetResult = const Success(null);
+  Result<void, DomainError> confirmPasswordResetResult = const Success(null);
 
   int loginCalls = 0;
   int logoutCalls = 0;
   int restoreCalls = 0;
+  final List<({String email, String? resetUrl})> requestResetCalls =
+      <({String email, String? resetUrl})>[];
+  final List<({String token, String password})> confirmResetCalls =
+      <({String token, String password})>[];
 
   @override
   Future<Result<User, DomainError>> login(String email, String password) async {
@@ -46,13 +52,19 @@ class _FakeAuthRepository implements AuthRepository {
   Future<Result<void, DomainError>> requestPasswordReset(
     String email, {
     String? resetUrl,
-  }) async => const Success(null);
+  }) async {
+    requestResetCalls.add((email: email, resetUrl: resetUrl));
+    return requestPasswordResetResult;
+  }
 
   @override
   Future<Result<void, DomainError>> confirmPasswordReset({
     required String token,
     required String password,
-  }) async => const Success(null);
+  }) async {
+    confirmResetCalls.add((token: token, password: password));
+    return confirmPasswordResetResult;
+  }
 }
 
 const _alice = User(id: 'u-1', email: 'alice@example.com', role: UserRole.user);
@@ -184,6 +196,54 @@ void main() {
       await gateway.refresh();
 
       expect(gateway.status, const AuthStatusUnauthenticated());
+    });
+
+    group('confirmPasswordReset (side-channel)', () {
+      test('forwards token and password to the repository', () async {
+        final repo = _FakeAuthRepository();
+        final gateway = AuthGateway(repository: repo);
+
+        final result = await gateway.confirmPasswordReset(
+          token: 'tk-123',
+          password: 'p@ssw0rd',
+        );
+
+        expect(result.isSuccess, isTrue);
+        expect(repo.confirmResetCalls, hasLength(1));
+        expect(repo.confirmResetCalls.single.token, 'tk-123');
+        expect(repo.confirmResetCalls.single.password, 'p@ssw0rd');
+      });
+
+      test(
+        'on success leaves the auth status untouched (does not authenticate)',
+        () async {
+          final repo = _FakeAuthRepository();
+          final gateway = AuthGateway(repository: repo);
+
+          await gateway.confirmPasswordReset(token: 't', password: 'p');
+
+          expect(gateway.status, const AuthStatusInitial());
+        },
+      );
+
+      test(
+        'on failure leaves the auth status untouched and forwards the error',
+        () async {
+          final repo = _FakeAuthRepository()
+            ..confirmPasswordResetResult = const Failure(
+              ValidationError('expired'),
+            );
+          final gateway = AuthGateway(repository: repo);
+
+          final result = await gateway.confirmPasswordReset(
+            token: 't',
+            password: 'p',
+          );
+
+          expect(result.isFailure, isTrue);
+          expect(gateway.status, const AuthStatusInitial());
+        },
+      );
     });
 
     test('dispose closes the stream', () async {

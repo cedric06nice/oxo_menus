@@ -144,6 +144,17 @@ class AuthGateway {
     return _repository.requestPasswordReset(email, resetUrl: resetUrl);
   }
 
+  /// Confirm a password reset using the [token] from the reset email.
+  ///
+  /// Side-channel operation: it does NOT change the gateway's auth status —
+  /// the user must log in afterwards with their new password.
+  Future<Result<void, DomainError>> confirmPasswordReset({
+    required String token,
+    required String password,
+  }) {
+    return _repository.confirmPasswordReset(token: token, password: password);
+  }
+
   /// Re-checks the current user with the backend. Used to refresh stale
   /// authentication data without forcing a re-login.
   Future<Result<User, DomainError>> refresh() async {

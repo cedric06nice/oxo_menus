@@ -15,6 +15,8 @@ import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_rou
 import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/reset_password_route_page.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/reset_password_router.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/features/connectivity/domain/repositories/connectivity_repository.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dart';
@@ -289,6 +291,89 @@ void main() {
       expect(router.stack, hasLength(1));
       expect(router.stack.single, isA<HomeRoutePage>());
     });
+  });
+
+  group('MainRouter — ResetPasswordRouter integration', () {
+    test(
+      'implements ResetPasswordRouter so it can be injected into the VM',
+      () {
+        final router = MainRouter(container: _makeContainer());
+
+        expect(router, isA<ResetPasswordRouter>());
+      },
+    );
+
+    test(
+      'setNewRoutePath(ResetPasswordRouteConfig) replaces the stack with '
+      'a ResetPasswordRoutePage carrying the token',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+
+        await router.setNewRoutePath(const ResetPasswordRouteConfig('tk-1'));
+
+        expect(router.stack, hasLength(1));
+        expect(router.stack.single, isA<ResetPasswordRoutePage>());
+        expect(
+          (router.stack.single as ResetPasswordRoutePage).token,
+          'tk-1',
+        );
+        expect(
+          router.currentConfiguration,
+          const ResetPasswordRouteConfig('tk-1'),
+        );
+      },
+    );
+
+    test(
+      'pushing the same ResetPasswordRouteConfig twice keeps a single page on '
+      'the stack',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+
+        await router.setNewRoutePath(const ResetPasswordRouteConfig('tk-1'));
+        await router.setNewRoutePath(const ResetPasswordRouteConfig('tk-1'));
+
+        expect(router.stack, hasLength(1));
+      },
+    );
+
+    test('pushing a different token replaces the page', () async {
+      final router = MainRouter(container: _makeContainer());
+
+      await router.setNewRoutePath(const ResetPasswordRouteConfig('tk-1'));
+      await router.setNewRoutePath(const ResetPasswordRouteConfig('tk-2'));
+
+      expect(router.stack, hasLength(1));
+      expect(
+        (router.stack.single as ResetPasswordRoutePage).token,
+        'tk-2',
+      );
+    });
+
+    test(
+      'goToLogin from reset-password replaces the stack with LoginRoutePage',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+        await router.setNewRoutePath(const ResetPasswordRouteConfig('tk-1'));
+
+        router.goToLogin();
+
+        expect(router.stack, hasLength(1));
+        expect(router.stack.single, isA<LoginRoutePage>());
+      },
+    );
+
+    test(
+      'goToForgotPassword from reset-password lands on ForgotPasswordRoutePage',
+      () async {
+        final router = MainRouter(container: _makeContainer());
+        await router.setNewRoutePath(const ResetPasswordRouteConfig(null));
+
+        router.goToForgotPassword();
+
+        expect(router.stack.last, isA<ForgotPasswordRoutePage>());
+      },
+    );
   });
 
   group('MainRouter — ForgotPasswordRouter integration', () {

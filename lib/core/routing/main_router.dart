@@ -20,6 +20,8 @@ import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_rou
 import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_route_page.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/reset_password_route_page.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/reset_password_router.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_route_page.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/routing/menu_editor_route_page.dart';
@@ -52,6 +54,7 @@ class MainRouter extends RouterDelegate<RouteConfig>
     implements
         LoginRouter,
         ForgotPasswordRouter,
+        ResetPasswordRouter,
         HomeRouter,
         MenuListRouter,
         SettingsRouter,
@@ -154,6 +157,11 @@ class MainRouter extends RouterDelegate<RouteConfig>
         _replaceWithSingle(
           ForgotPasswordRoutePage(router: this),
           identity: 'forgot-password',
+        );
+      case ResetPasswordRouteConfig(:final token):
+        _replaceWithSingle(
+          ResetPasswordRoutePage(router: this, token: token),
+          identity: 'reset-password-${token ?? ''}',
         );
       case HomeRouteConfig():
         _replaceWithSingle(HomeRoutePage(router: this), identity: 'home');
@@ -260,6 +268,20 @@ class MainRouter extends RouterDelegate<RouteConfig>
     if (changed) {
       notifyListeners();
     }
+  }
+
+  // ---------------------------------------------------------- ResetPasswordRouter
+
+  /// Reset-password is reached only via deep-link, so the stack is typically
+  /// just the reset page. Replace it with a fresh login screen — both on the
+  /// post-reset success path and from the missing-token / error affordances
+  /// that route the user back to login.
+  @override
+  void goToLogin() {
+    if (_disposed) {
+      return;
+    }
+    _replaceWithSingle(LoginRoutePage(router: this), identity: 'login');
   }
 
   // ----------------------------------------------------------------- HomeRouter

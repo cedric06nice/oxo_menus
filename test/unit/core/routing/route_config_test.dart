@@ -217,6 +217,31 @@ void main() {
         );
       },
     );
+
+    test('ResetPasswordRouteConfig equality compares token', () {
+      const a = ResetPasswordRouteConfig('tk-1');
+      const b = ResetPasswordRouteConfig('tk-1');
+      const c = ResetPasswordRouteConfig('tk-2');
+      const d = ResetPasswordRouteConfig(null);
+      const e = ResetPasswordRouteConfig(null);
+
+      expect(a, equals(b));
+      expect(a.hashCode, b.hashCode);
+      expect(a, isNot(equals(c)));
+      expect(a, isNot(equals(d)));
+      expect(d, equals(e));
+    });
+
+    test('ResetPasswordRouteConfig is not equal to other migrated configs', () {
+      expect(
+        const ResetPasswordRouteConfig('tk'),
+        isNot(const ForgotPasswordRouteConfig()),
+      );
+      expect(
+        const ResetPasswordRouteConfig('tk'),
+        isNot(const LoginRouteConfig()),
+      );
+    });
   });
 
   group('AppRouteInformationParser', () {
@@ -495,6 +520,58 @@ void main() {
       expect(restored, isNotNull);
       expect(restored!.uri.path, '/app/menus/42/edit');
     });
+
+    test(
+      'parses /app/reset-password without query into a ResetPasswordRouteConfig '
+      'with a null token',
+      () async {
+        final config = await parser.parseRouteInformation(
+          RouteInformation(uri: Uri.parse('/app/reset-password')),
+        );
+
+        expect(config, const ResetPasswordRouteConfig(null));
+      },
+    );
+
+    test(
+      'parses /app/reset-password?token=… into a ResetPasswordRouteConfig with '
+      'the captured token',
+      () async {
+        final config = await parser.parseRouteInformation(
+          RouteInformation(uri: Uri.parse('/app/reset-password?token=tk-77')),
+        );
+
+        expect(config, const ResetPasswordRouteConfig('tk-77'));
+      },
+    );
+
+    test(
+      'round-trips a ResetPasswordRouteConfig with a token to '
+      '/app/reset-password?token=…',
+      () {
+        final restored = parser.restoreRouteInformation(
+          const ResetPasswordRouteConfig('tk-77'),
+        );
+
+        expect(restored, isNotNull);
+        expect(restored!.uri.path, '/app/reset-password');
+        expect(restored.uri.queryParameters['token'], 'tk-77');
+      },
+    );
+
+    test(
+      'round-trips a token-less ResetPasswordRouteConfig to '
+      '/app/reset-password',
+      () {
+        final restored = parser.restoreRouteInformation(
+          const ResetPasswordRouteConfig(null),
+        );
+
+        expect(restored, isNotNull);
+        expect(restored!.uri.path, '/app/reset-password');
+        expect(restored.uri.hasQuery, isFalse);
+      },
+    );
 
     test('handles root path', () async {
       final config = await parser.parseRouteInformation(
