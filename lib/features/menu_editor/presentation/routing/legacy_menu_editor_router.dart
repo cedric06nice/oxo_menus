@@ -2,14 +2,12 @@ import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/routing/menu_editor_router.dart';
 
-/// Adapter that fulfills [MenuEditorRouter] by forwarding to the legacy
-/// `go_router` tree via a [LegacyNavigator].
+/// Adapter that fulfills [MenuEditorRouter] by forwarding to the `go_router`
+/// tree via a [LegacyNavigator]. [goBack] returns to `/menus` and
+/// [goToPdfPreview] deep-links to `/menus/pdf/:id`.
 ///
-/// Used while the menu editor lives at the legacy `/menus/:id` path inside
-/// `app_router.dart`. [goBack] returns to the menu list and [goToPdfPreview]
-/// deep-links to the legacy PDF-preview path served by the same go_router
-/// tree. Once `MainRouter` mounts the menu list and the PDF preview itself
-/// this adapter can be deleted.
+/// Wired by `_LegacyMenuEditorRouteHost` in `app_router.dart` for the
+/// `/menus/:id` GoRoute.
 class LegacyMenuEditorRouter implements MenuEditorRouter {
   LegacyMenuEditorRouter(this._navigator);
 

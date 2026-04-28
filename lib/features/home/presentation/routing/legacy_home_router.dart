@@ -3,11 +3,10 @@ import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
 
 /// Adapter that fulfills [HomeRouter] by forwarding quick-action taps to the
-/// legacy `go_router` tree via a [LegacyNavigator].
+/// `go_router` tree via a [LegacyNavigator].
 ///
-/// Used while the home feature lives at the legacy `/home` path inside
-/// `app_router.dart`. Once `MainRouter` mounts the home screen itself this
-/// adapter can be deleted.
+/// Wired by `_LegacyHomeRouteHost` in `app_router.dart` for the `/home`
+/// GoRoute.
 class LegacyHomeRouter implements HomeRouter {
   LegacyHomeRouter(this._navigator);
 

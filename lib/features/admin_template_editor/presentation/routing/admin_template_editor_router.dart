@@ -2,8 +2,9 @@ import 'package:oxo_menus/core/routing/feature_router.dart';
 
 /// Navigation contract for the admin template editor feature.
 ///
-/// `MainRouter` implements this; the [AdminTemplateEditorViewModel] depends on
-/// it so the view model never sees `BuildContext` or any concrete router.
+/// `LegacyAdminTemplateEditorRouter` implements this in production; the
+/// [AdminTemplateEditorViewModel] depends on it so the view model never sees
+/// `BuildContext` or any concrete router.
 abstract class AdminTemplateEditorRouter implements FeatureRouter {
   /// Pop the screen — typically returns to the menu list.
   void goBack();

@@ -66,10 +66,9 @@ final class AuthStatusError extends AuthStatus {
 
 /// Gateway that owns authentication state and exposes it as a stream.
 ///
-/// One instance lives on [AppContainer] for the app's lifetime. Both the
-/// MainRouter (auth gate) and the legacy go_router redirect subscribe to its
-/// [statusStream] so there is exactly one source of truth during the
-/// migration.
+/// One instance lives on [AppContainer] for the app's lifetime. The
+/// `go_router` auth redirect subscribes to its [statusStream] so there is
+/// exactly one source of truth.
 class AuthGateway {
   AuthGateway({required AuthRepository repository}) : _repository = repository;
 

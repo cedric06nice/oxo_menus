@@ -1472,10 +1472,8 @@ void main() {
     // dedicated cutover group below.
   });
 
-  // Phase 24 — the legacy /menus/:id GoRoute (which Phase 12 had removed in
-  // favour of /app/menus/{id}/edit on the MainRouter) is reinstated, hosting
-  // the MVVM MenuEditorScreen directly. This test pins the cutover so the
-  // screen cannot silently regress.
+  // /menus/:id hosts the MVVM MenuEditorScreen directly. Pins the cutover so
+  // the screen cannot silently regress.
   group('AppRouter — legacy /menus/:id hosts MVVM screen', () {
     testWidgets('/menus/2 mounts MenuEditorScreen', (tester) async {
       final fakeAuth = FakeAuthRepository();
@@ -1502,10 +1500,8 @@ void main() {
     });
   });
 
-  // Phase 24 — the legacy /admin/templates/:id GoRoute (which Phase 11 had
-  // removed in favour of /app/admin/templates/{id}/edit on the MainRouter) is
-  // reinstated, hosting the MVVM AdminTemplateEditorScreen directly. This
-  // test pins the cutover so the screen cannot silently regress.
+  // /admin/templates/:id hosts the MVVM AdminTemplateEditorScreen directly.
+  // Pins the cutover so the screen cannot silently regress.
   group('AppRouter — legacy /admin/templates/:id hosts MVVM screen', () {
     testWidgets('/admin/templates/3 mounts AdminTemplateEditorScreen', (
       tester,
@@ -1534,15 +1530,8 @@ void main() {
     });
   });
 
-  // Phase 21 — the legacy /admin/templates/create GoRoute now hosts the MVVM
-  // AdminTemplateCreatorScreen directly instead of the retired
-  // AdminTemplateCreatorPage widget. This test pins the cutover so the screen
-  // cannot silently regress.
-  //
-  // The /admin/templates/:id legacy route was removed in Phase 11. The
-  // template editor is now served by MainRouter at
-  // /app/admin/templates/{id}/edit (see main_router_test.dart and
-  // route_config_test.dart).
+  // /admin/templates/create hosts the MVVM AdminTemplateCreatorScreen
+  // directly. Pins the cutover so the screen cannot silently regress.
   group('AppRouter — legacy /admin/templates/create hosts MVVM screen', () {
     testWidgets('/admin/templates/create mounts AdminTemplateCreatorScreen', (
       tester,

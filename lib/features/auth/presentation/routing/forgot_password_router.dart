@@ -2,8 +2,9 @@ import 'package:oxo_menus/core/routing/feature_router.dart';
 
 /// Navigation contract for the forgot-password feature.
 ///
-/// `MainRouter` implements this; the [ForgotPasswordViewModel] depends on it
-/// so the view model never sees `BuildContext` or any concrete router.
+/// `LegacyAuthRouter` implements this in production; the
+/// [ForgotPasswordViewModel] depends on it so the view model never sees
+/// `BuildContext` or any concrete router.
 abstract class ForgotPasswordRouter implements FeatureRouter {
   /// Called when the user taps the "Back to login" affordance.
   ///

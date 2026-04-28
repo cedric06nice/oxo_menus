@@ -2,15 +2,12 @@ import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_router.dart';
 
-/// Adapter that fulfills [MenuListRouter] by forwarding to the legacy
-/// `go_router` tree via a [LegacyNavigator].
+/// Adapter that fulfills [MenuListRouter] by forwarding to the `go_router`
+/// tree via a [LegacyNavigator]. The editor methods deep-link into
+/// `/menus/:id` and `/admin/templates/:id`.
 ///
-/// Used while the menu list lives at the legacy `/menus` path inside
-/// `app_router.dart`. As of Phase 24 the downstream menu editor and admin
-/// template editor are also served by the legacy go_router tree (at
-/// `/menus/:id` and `/admin/templates/:id` respectively), so the editor
-/// methods deep-link directly into those paths. Once `MainRouter` mounts the
-/// menu list itself this adapter can be deleted.
+/// Wired by `_LegacyMenuListRouteHost` in `app_router.dart` for the `/menus`
+/// GoRoute.
 class LegacyMenuListRouter implements MenuListRouter {
   LegacyMenuListRouter(this._navigator);
 

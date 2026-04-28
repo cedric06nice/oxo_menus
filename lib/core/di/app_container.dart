@@ -9,11 +9,9 @@ import 'package:oxo_menus/shared/data/datasources/directus_data_source.dart';
 ///
 /// Holds the singletons that outlive any single screen — gateways, the
 /// Directus data source, and long-lived services. Constructed once in
-/// `main.dart` before `runApp`, passed into `MainRouter`, and used by each
-/// `RoutePage.buildScreen()` to wire use cases → view models → screens.
-///
-/// During the migration, [AppContainer] is also exposed to the legacy
-/// Riverpod providers so both worlds read from the same instances.
+/// `main.dart` before `runApp` and exposed via [appContainerProvider]; each
+/// `_Legacy*RouteHost` in `app_router.dart` reads it from Riverpod and uses
+/// it to wire use cases → view models → screens.
 class AppContainer {
   AppContainer({
     required AuthGateway authGateway,
@@ -47,14 +45,15 @@ class AppContainer {
   AdminViewAsUserGateway get adminViewAsUserGateway => _adminViewAsUserGateway;
 
   /// The Directus base URL the production data source was configured with.
-  /// Optional — tests omit this and route pages that need it fall back to
+  /// Optional — tests omit this and route hosts that need it fall back to
   /// an empty string.
   String? get directusBaseUrl => _directusBaseUrl;
 
-  /// The shared Directus data source. Route pages use it to construct
-  /// repositories on demand inside `buildScreen()`. Tests that exercise
-  /// feature wiring inject a custom view-model builder and never reach this
-  /// getter, which is why the data source is optional at construction.
+  /// The shared Directus data source. Route hosts use it to construct
+  /// repositories on demand inside their default view-model builders. Tests
+  /// that exercise feature wiring inject a custom view-model builder and
+  /// never reach this getter, which is why the data source is optional at
+  /// construction.
   DirectusDataSource get directusDataSource {
     final ds = _directusDataSource;
     if (ds == null) {

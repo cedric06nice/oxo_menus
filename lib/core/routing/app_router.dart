@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
-import 'package:oxo_menus/core/routing/migration/main_router_host.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/create_menu_bundle_for_admin_use_case.dart';
@@ -266,17 +265,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
-      // Phase 0 bridge: a single sub-tree under '/app' is rendered by the new
-      // MainRouter. Migrated features push their RoutePage onto MainRouter;
-      // un-migrated features stay on go_router.
-      GoRoute(
-        path: '/app',
-        name: 'app-root',
-        builder: (context, state) {
-          final container = ref.watch(appContainerProvider);
-          return MainRouterHost(container: container);
-        },
-      ),
       // All authenticated routes wrapped in AppShell for persistent navigation
       ShellRoute(
         builder: (context, state, child) => AppShell(child: child),
@@ -325,10 +313,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   );
                 },
               ),
-              // Phase 24 — the legacy /menus/:id path was retired in Phase 12
-              // (the editor moved to MainRouter at /app/menus/{id}/edit) and
-              // is reinstated here, hosting the MVVM MenuEditorScreen
-              // directly via _LegacyMenuEditorRouteHost.
+              // /menus/:id hosts the MVVM MenuEditorScreen directly via
+              // _LegacyMenuEditorRouteHost.
               GoRoute(
                 path: ':id',
                 name: 'menu-editor',
@@ -403,10 +389,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   );
                 },
               ),
-              // Phase 24 — the legacy /admin/templates/:id path was retired
-              // in Phase 11 (the editor moved to MainRouter at
-              // /app/admin/templates/{id}/edit) and is reinstated here,
-              // hosting the MVVM AdminTemplateEditorScreen directly via
+              // /admin/templates/:id hosts the MVVM
+              // AdminTemplateEditorScreen directly via
               // _LegacyAdminTemplateEditorRouteHost.
               GoRoute(
                 path: ':id',
@@ -439,8 +423,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 // for the lifetime of the legacy GoRoute. The MVVM auth screens are pure
 // (no Riverpod, no BuildContext use), so the host is the single place that
 // bridges go_router's `BuildContext` into the screen via `LegacyAuthRouter`.
-// These will be deleted when the auth feature is fully cut over to the
-// MainRouter stack.
 // ---------------------------------------------------------------------------
 
 class _LegacyLoginRouteHost extends StatefulWidget {
@@ -579,8 +561,7 @@ String? _resolveLegacyResetUrl() {
 //
 // Owns the HomeViewModel for the lifetime of the legacy GoRoute under the
 // AppShell. The MVVM HomeScreen is pure (no Riverpod, no BuildContext use) so
-// this host bridges go_router into it via LegacyHomeRouter. Will be deleted
-// when the home feature is fully cut over to the MainRouter stack.
+// this host bridges go_router into it via LegacyHomeRouter.
 // ---------------------------------------------------------------------------
 
 class _LegacyHomeRouteHost extends StatefulWidget {
@@ -624,8 +605,7 @@ class _LegacyHomeRouteHostState extends State<_LegacyHomeRouteHost> {
 //
 // Owns the SettingsViewModel for the lifetime of the legacy GoRoute under the
 // AppShell. The MVVM SettingsScreen is pure (no Riverpod, no BuildContext use)
-// so this host bridges go_router into it via LegacySettingsRouter. Will be
-// deleted when the settings feature is fully cut over to the MainRouter stack.
+// so this host bridges go_router into it via LegacySettingsRouter.
 // ---------------------------------------------------------------------------
 
 class _LegacySettingsRouteHost extends StatefulWidget {
@@ -681,11 +661,8 @@ class _LegacySettingsRouteHostState extends State<_LegacySettingsRouteHost> {
 //
 // Owns the MenuListViewModel for the lifetime of the legacy GoRoute under the
 // AppShell. The MVVM MenuListScreen is pure (no Riverpod, no BuildContext
-// reads) so this host bridges go_router into it via LegacyMenuListRouter. The
-// downstream menu editor and admin template editor are already served by the
-// migrated MainRouter (Phases 11 & 12), so the router deep-links straight into
-// `/app/...` paths. Will be deleted when the menu list is fully cut over to
-// the MainRouter stack.
+// reads) so this host bridges go_router into it via LegacyMenuListRouter,
+// which deep-links into `/menus/:id` and `/admin/templates/:id`.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
@@ -793,10 +770,8 @@ class _LegacyMenuListRouteHostState extends State<_LegacyMenuListRouteHost> {
 // Owns the AdminTemplatesViewModel for the lifetime of the legacy GoRoute
 // under the AppShell. The MVVM AdminTemplatesScreen is pure (no Riverpod, no
 // BuildContext reads) so this host bridges go_router into it via
-// LegacyAdminTemplatesRouter. The downstream admin template editor is already
-// served by the migrated MainRouter (Phase 11), so the router deep-links
-// straight into `/app/admin/templates/{id}/edit`. Will be deleted when the
-// admin templates list is fully cut over to the MainRouter stack.
+// LegacyAdminTemplatesRouter, which deep-links into
+// `/admin/templates/:id` for the editor.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
@@ -887,8 +862,7 @@ class _LegacyAdminTemplatesRouteHostState
 // the AppShell. The MVVM AdminSizesScreen is pure (no Riverpod, no
 // BuildContext reads) so this host bridges go_router into it via
 // LegacyAdminSizesRouter. The screen is a navigation leaf — the router only
-// exposes "back" — so no deep-link forwarding is needed. Will be deleted when
-// the admin sizes list is fully cut over to the MainRouter stack.
+// exposes "back" — so no deep-link forwarding is needed.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
@@ -986,11 +960,9 @@ class _LegacyAdminSizesRouteHostState
 // Owns the AdminTemplateCreatorViewModel for the lifetime of the legacy
 // GoRoute under the AppShell. The MVVM AdminTemplateCreatorScreen is pure (no
 // Riverpod, no BuildContext reads) so this host bridges go_router into it via
-// LegacyAdminTemplateCreatorRouter. The downstream admin template editor is
-// already served by the migrated MainRouter (Phase 11), so the router
-// deep-links straight into `/app/admin/templates/{id}/edit`. The "Manage Page
-// Sizes" CTA still resolves to the legacy `/admin/sizes` GoRoute. Will be
-// deleted when the create flow is fully cut over to the MainRouter stack.
+// LegacyAdminTemplateCreatorRouter, which deep-links into
+// `/admin/templates/:id` for the editor. The "Manage Page Sizes" CTA resolves
+// to the legacy `/admin/sizes` GoRoute.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
@@ -1091,8 +1063,7 @@ class _LegacyAdminTemplateCreatorRouteHostState
 // the AppShell. The MVVM PdfPreviewScreen is pure (no Riverpod, no
 // BuildContext reads) so this host bridges go_router into it via
 // LegacyPdfPreviewRouter. The screen is a navigation leaf — the router only
-// exposes "back" — so no deep-link forwarding is needed. Will be deleted when
-// the PDF-preview deep link is fully cut over to the MainRouter stack.
+// exposes "back" — so no deep-link forwarding is needed.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
@@ -1205,9 +1176,7 @@ class _LegacyPdfPreviewRouteHostState
 // GoRoute under the AppShell. The MVVM AdminExportableMenusScreen is pure (no
 // Riverpod, no BuildContext reads) so this host bridges go_router into it via
 // LegacyAdminExportableMenusRouter. The screen is a navigation leaf — the
-// router only exposes "back" — so no deep-link forwarding is needed. Will be
-// deleted when the admin exportable menus list is fully cut over to the
-// MainRouter stack.
+// router only exposes "back" — so no deep-link forwarding is needed.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
@@ -1341,9 +1310,8 @@ class _LegacyAdminExportableMenusRouteHostState
 // Owns the MenuEditorViewModel for the lifetime of the legacy GoRoute under
 // the AppShell. The MVVM MenuEditorScreen is pure (no Riverpod, no
 // BuildContext reads) so this host bridges go_router into it via
-// LegacyMenuEditorRouter, which deep-links `goToPdfPreview` back into the
-// legacy `/menus/pdf/:id` GoRoute. Will be deleted when the menu editor is
-// fully cut over to the MainRouter stack.
+// LegacyMenuEditorRouter, which deep-links `goToPdfPreview` into the
+// `/menus/pdf/:id` GoRoute.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
@@ -1506,9 +1474,7 @@ class _LegacyMenuEditorRouteHostState
 // GoRoute under the AppShell. The MVVM AdminTemplateEditorScreen is pure (no
 // Riverpod, no BuildContext reads) so this host bridges go_router into it
 // via LegacyAdminTemplateEditorRouter, which deep-links `goToPdfPreview` and
-// `goToAdminSizes` back into the legacy `/menus/pdf/:id` and `/admin/sizes`
-// GoRoutes. Will be deleted when the admin template editor is fully cut over
-// to the MainRouter stack.
+// `goToAdminSizes` into the `/menus/pdf/:id` and `/admin/sizes` GoRoutes.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real

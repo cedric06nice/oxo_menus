@@ -2,11 +2,9 @@ import 'package:oxo_menus/core/routing/feature_router.dart';
 
 /// Navigation contract for the admin-template-creator feature.
 ///
-/// `MainRouter` implements this; the [AdminTemplateCreatorViewModel] depends
-/// on it so the view model never sees `BuildContext` or any concrete router.
-/// While the admin template editor remains on the legacy stack,
-/// [goToAdminTemplateEditor] bridges through `LegacyNavigator`. Once the
-/// editor migrates the legacy hop disappears here automatically.
+/// `LegacyAdminTemplateCreatorRouter` implements this in production; the
+/// [AdminTemplateCreatorViewModel] depends on it so the view model never sees
+/// `BuildContext` or any concrete router.
 abstract class AdminTemplateCreatorRouter implements FeatureRouter {
   /// Pop the create screen — typically returns to the admin templates list.
   void goBack();

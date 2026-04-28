@@ -5,12 +5,12 @@ import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/reset_password_router.dart';
 
 /// Adapter that fulfills [LoginRouter], [ForgotPasswordRouter], and
-/// [ResetPasswordRouter] by forwarding to the legacy `go_router` tree via a
+/// [ResetPasswordRouter] by forwarding to the `go_router` tree via a
 /// [LegacyNavigator].
 ///
-/// Used by the auth feature while it lives at the legacy `/login`,
-/// `/forgot-password`, `/reset-password` paths inside `app_router.dart`. Once
-/// `MainRouter` mounts the auth screens itself this adapter can be deleted.
+/// Wired by the `_LegacyLoginRouteHost`, `_LegacyForgotPasswordRouteHost`, and
+/// `_LegacyResetPasswordRouteHost` in `app_router.dart` for the `/login`,
+/// `/forgot-password`, and `/reset-password` GoRoutes.
 class LegacyAuthRouter
     implements LoginRouter, ForgotPasswordRouter, ResetPasswordRouter {
   LegacyAuthRouter(this._navigator);

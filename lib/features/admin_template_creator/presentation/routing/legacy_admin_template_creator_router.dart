@@ -3,16 +3,12 @@ import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_router.dart';
 
 /// Adapter that fulfills [AdminTemplateCreatorRouter] by forwarding to the
-/// legacy `go_router` tree via a [LegacyNavigator].
+/// `go_router` tree via a [LegacyNavigator]. [goToAdminTemplateEditor]
+/// deep-links into `/admin/templates/:id`, [goToAdminSizes] into
+/// `/admin/sizes`, and [goBack] returns to `/admin/templates`.
 ///
-/// Used while the admin-template-creator screen lives at the legacy
-/// `/admin/templates/create` path inside `app_router.dart`. As of Phase 24
-/// the downstream admin template editor is also served by the legacy
-/// go_router tree (at `/admin/templates/:id`), so [goToAdminTemplateEditor]
-/// deep-links directly into that path. [goToAdminSizes] forwards to the
-/// legacy admin sizes path, and [goBack] returns to the admin templates list.
-/// Once `MainRouter` mounts the create screen itself this adapter can be
-/// deleted.
+/// Wired by `_LegacyAdminTemplateCreatorRouteHost` in `app_router.dart` for
+/// the `/admin/templates/create` GoRoute.
 class LegacyAdminTemplateCreatorRouter implements AdminTemplateCreatorRouter {
   LegacyAdminTemplateCreatorRouter(this._navigator);
 
