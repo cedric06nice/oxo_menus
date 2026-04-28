@@ -35,6 +35,7 @@ class ResetPasswordRoutePage extends RoutePage {
         gateway: container.authGateway,
       ),
       router: router,
+      connectivityGateway: container.connectivityGateway,
       token: token,
     );
     return ResetPasswordScreen(viewModel: vm);

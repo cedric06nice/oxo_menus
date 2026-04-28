@@ -303,26 +303,20 @@ void main() {
       },
     );
 
-    test(
-      'setNewRoutePath(ResetPasswordRouteConfig) replaces the stack with '
-      'a ResetPasswordRoutePage carrying the token',
-      () async {
-        final router = MainRouter(container: _makeContainer());
+    test('setNewRoutePath(ResetPasswordRouteConfig) replaces the stack with '
+        'a ResetPasswordRoutePage carrying the token', () async {
+      final router = MainRouter(container: _makeContainer());
 
-        await router.setNewRoutePath(const ResetPasswordRouteConfig('tk-1'));
+      await router.setNewRoutePath(const ResetPasswordRouteConfig('tk-1'));
 
-        expect(router.stack, hasLength(1));
-        expect(router.stack.single, isA<ResetPasswordRoutePage>());
-        expect(
-          (router.stack.single as ResetPasswordRoutePage).token,
-          'tk-1',
-        );
-        expect(
-          router.currentConfiguration,
-          const ResetPasswordRouteConfig('tk-1'),
-        );
-      },
-    );
+      expect(router.stack, hasLength(1));
+      expect(router.stack.single, isA<ResetPasswordRoutePage>());
+      expect((router.stack.single as ResetPasswordRoutePage).token, 'tk-1');
+      expect(
+        router.currentConfiguration,
+        const ResetPasswordRouteConfig('tk-1'),
+      );
+    });
 
     test(
       'pushing the same ResetPasswordRouteConfig twice keeps a single page on '
@@ -344,10 +338,7 @@ void main() {
       await router.setNewRoutePath(const ResetPasswordRouteConfig('tk-2'));
 
       expect(router.stack, hasLength(1));
-      expect(
-        (router.stack.single as ResetPasswordRoutePage).token,
-        'tk-2',
-      );
+      expect((router.stack.single as ResetPasswordRoutePage).token, 'tk-2');
     });
 
     test(

@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
+import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/features/auth/domain/use_cases/request_password_reset_use_case.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_router.dart';
 import 'package:oxo_menus/features/auth/presentation/state/forgot_password_state.dart';
 import 'package:oxo_menus/features/auth/presentation/view_models/forgot_password_view_model.dart';
+import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/features/connectivity/domain/repositories/connectivity_repository.dart';
 
 class _FakeRequestPasswordResetUseCase implements RequestPasswordResetUseCase {
   Result<void, DomainError> result = const Success(null);
@@ -41,39 +44,69 @@ class _RecordingForgotPasswordRouter implements ForgotPasswordRouter {
   void goBackToLogin() => loginCalls++;
 }
 
-ForgotPasswordViewModel _buildViewModel({
+class _StubConnectivityRepository implements ConnectivityRepository {
+  final StreamController<ConnectivityStatus> controller =
+      StreamController<ConnectivityStatus>.broadcast();
+
+  @override
+  Stream<ConnectivityStatus> watchConnectivity() => controller.stream;
+
+  @override
+  Future<ConnectivityStatus> checkConnectivity() async =>
+      ConnectivityStatus.online;
+
+  Future<void> close() => controller.close();
+}
+
+({
+  ForgotPasswordViewModel vm,
+  _StubConnectivityRepository connectivityRepo,
+  ConnectivityGateway connectivityGateway,
+})
+_buildViewModel({
   _FakeRequestPasswordResetUseCase? useCase,
   _RecordingForgotPasswordRouter? router,
   String? resetUrl,
 }) {
-  return ForgotPasswordViewModel(
+  final connectivityRepo = _StubConnectivityRepository();
+  final connectivityGateway = ConnectivityGateway(repository: connectivityRepo);
+  final vm = ForgotPasswordViewModel(
     requestPasswordReset: useCase ?? _FakeRequestPasswordResetUseCase(),
     router: router ?? _RecordingForgotPasswordRouter(),
+    connectivityGateway: connectivityGateway,
     resetUrl: resetUrl,
+  );
+  return (
+    vm: vm,
+    connectivityRepo: connectivityRepo,
+    connectivityGateway: connectivityGateway,
   );
 }
 
 void main() {
   group('ForgotPasswordState', () {
-    test('default state is idle with no errors and not submitting', () {
+    test('default state is idle, no errors, online', () {
       const state = ForgotPasswordState();
 
       expect(state.emailError, isNull);
       expect(state.errorMessage, isNull);
       expect(state.isSubmitting, isFalse);
       expect(state.emailSent, isFalse);
+      expect(state.isOffline, isFalse);
     });
 
-    test('value equality compares all four fields', () {
+    test('value equality compares all fields including isOffline', () {
       const a = ForgotPasswordState();
       const b = ForgotPasswordState();
       const c = ForgotPasswordState(emailSent: true);
       const d = ForgotPasswordState(errorMessage: 'oops');
+      const e = ForgotPasswordState(isOffline: true);
 
       expect(a, b);
       expect(a.hashCode, b.hashCode);
       expect(a, isNot(c));
       expect(a, isNot(d));
+      expect(a, isNot(e));
     });
 
     test('copyWith leaves untouched fields equal to the source', () {
@@ -82,6 +115,7 @@ void main() {
         isSubmitting: true,
         errorMessage: 'server',
         emailSent: false,
+        isOffline: true,
       );
 
       final next = source.copyWith(isSubmitting: false);
@@ -89,6 +123,7 @@ void main() {
       expect(next.emailError, 'bad email');
       expect(next.errorMessage, 'server');
       expect(next.emailSent, isFalse);
+      expect(next.isOffline, isTrue);
       expect(next.isSubmitting, isFalse);
     });
 
@@ -107,59 +142,69 @@ void main() {
 
   group('ForgotPasswordViewModel — initial state', () {
     test('starts in idle state', () {
-      final vm = _buildViewModel();
-      addTearDown(vm.dispose);
+      final harness = _buildViewModel();
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
 
-      expect(vm.state, const ForgotPasswordState());
+      expect(harness.vm.state, const ForgotPasswordState());
     });
   });
 
   group('ForgotPasswordViewModel — validation', () {
     test('empty email surfaces emailError and skips the use case', () async {
       final useCase = _FakeRequestPasswordResetUseCase();
-      final vm = _buildViewModel(useCase: useCase);
-      addTearDown(vm.dispose);
+      final harness = _buildViewModel(useCase: useCase);
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
 
-      await vm.submit(email: '');
+      await harness.vm.submit(email: '');
 
-      expect(vm.state.emailError, 'Please enter your email');
-      expect(vm.state.isSubmitting, isFalse);
-      expect(vm.state.emailSent, isFalse);
+      expect(harness.vm.state.emailError, 'Please enter your email');
+      expect(harness.vm.state.isSubmitting, isFalse);
+      expect(harness.vm.state.emailSent, isFalse);
       expect(useCase.calls, isEmpty);
     });
 
     test('whitespace-only email is treated as empty', () async {
       final useCase = _FakeRequestPasswordResetUseCase();
-      final vm = _buildViewModel(useCase: useCase);
-      addTearDown(vm.dispose);
+      final harness = _buildViewModel(useCase: useCase);
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
 
-      await vm.submit(email: '   ');
+      await harness.vm.submit(email: '   ');
 
-      expect(vm.state.emailError, 'Please enter your email');
+      expect(harness.vm.state.emailError, 'Please enter your email');
       expect(useCase.calls, isEmpty);
     });
 
     test('a successful resubmit clears previous validation errors', () async {
-      final vm = _buildViewModel();
-      addTearDown(vm.dispose);
-      await vm.submit(email: '');
+      final harness = _buildViewModel();
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
+      await harness.vm.submit(email: '');
 
-      await vm.submit(email: 'a@b.c');
+      await harness.vm.submit(email: 'a@b.c');
 
-      expect(vm.state.emailError, isNull);
+      expect(harness.vm.state.emailError, isNull);
     });
   });
 
   group('ForgotPasswordViewModel — submission', () {
     test('forwards trimmed email and resetUrl to the use case', () async {
       final useCase = _FakeRequestPasswordResetUseCase();
-      final vm = _buildViewModel(
+      final harness = _buildViewModel(
         useCase: useCase,
         resetUrl: 'https://app.example/reset',
       );
-      addTearDown(vm.dispose);
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
 
-      await vm.submit(email: '  a@b.c  ');
+      await harness.vm.submit(email: '  a@b.c  ');
 
       expect(useCase.calls.single.email, 'a@b.c');
       expect(useCase.calls.single.resetUrl, 'https://app.example/reset');
@@ -167,23 +212,27 @@ void main() {
 
     test('passes a null resetUrl through to the use case', () async {
       final useCase = _FakeRequestPasswordResetUseCase();
-      final vm = _buildViewModel(useCase: useCase);
-      addTearDown(vm.dispose);
+      final harness = _buildViewModel(useCase: useCase);
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
 
-      await vm.submit(email: 'a@b.c');
+      await harness.vm.submit(email: 'a@b.c');
 
       expect(useCase.calls.single.resetUrl, isNull);
     });
 
     test('emits isSubmitting=true while the use case is in flight', () async {
       final useCase = _FakeRequestPasswordResetUseCase()..blockNextCall();
-      final vm = _buildViewModel(useCase: useCase);
-      addTearDown(vm.dispose);
+      final harness = _buildViewModel(useCase: useCase);
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
 
-      final pending = vm.submit(email: 'a@b.c');
+      final pending = harness.vm.submit(email: 'a@b.c');
       await Future<void>.delayed(Duration.zero);
 
-      expect(vm.state.isSubmitting, isTrue);
+      expect(harness.vm.state.isSubmitting, isTrue);
 
       useCase.release();
       await pending;
@@ -192,28 +241,32 @@ void main() {
     test('on success emits emailSent=true and clears submitting', () async {
       final useCase = _FakeRequestPasswordResetUseCase();
       final router = _RecordingForgotPasswordRouter();
-      final vm = _buildViewModel(useCase: useCase, router: router);
-      addTearDown(vm.dispose);
+      final harness = _buildViewModel(useCase: useCase, router: router);
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
 
-      await vm.submit(email: 'a@b.c');
+      await harness.vm.submit(email: 'a@b.c');
 
-      expect(vm.state.emailSent, isTrue);
-      expect(vm.state.isSubmitting, isFalse);
-      expect(vm.state.errorMessage, isNull);
+      expect(harness.vm.state.emailSent, isTrue);
+      expect(harness.vm.state.isSubmitting, isFalse);
+      expect(harness.vm.state.errorMessage, isNull);
       expect(router.loginCalls, 0);
     });
 
     test('on failure exposes the error message and stops submitting', () async {
       final useCase = _FakeRequestPasswordResetUseCase()
         ..result = const Failure(NetworkError());
-      final vm = _buildViewModel(useCase: useCase);
-      addTearDown(vm.dispose);
+      final harness = _buildViewModel(useCase: useCase);
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
 
-      await vm.submit(email: 'a@b.c');
+      await harness.vm.submit(email: 'a@b.c');
 
-      expect(vm.state.isSubmitting, isFalse);
-      expect(vm.state.errorMessage, isNotNull);
-      expect(vm.state.emailSent, isFalse);
+      expect(harness.vm.state.isSubmitting, isFalse);
+      expect(harness.vm.state.errorMessage, isNotNull);
+      expect(harness.vm.state.emailSent, isFalse);
     });
 
     test(
@@ -221,26 +274,30 @@ void main() {
       () async {
         final useCase = _FakeRequestPasswordResetUseCase()
           ..result = const Failure(NetworkError());
-        final vm = _buildViewModel(useCase: useCase);
-        addTearDown(vm.dispose);
-        await vm.submit(email: 'a@b.c');
+        final harness = _buildViewModel(useCase: useCase);
+        addTearDown(harness.connectivityRepo.close);
+        addTearDown(harness.connectivityGateway.dispose);
+        addTearDown(harness.vm.dispose);
+        await harness.vm.submit(email: 'a@b.c');
 
         useCase.result = const Success(null);
-        await vm.submit(email: 'a@b.c');
+        await harness.vm.submit(email: 'a@b.c');
 
-        expect(vm.state.errorMessage, isNull);
-        expect(vm.state.emailSent, isTrue);
+        expect(harness.vm.state.errorMessage, isNull);
+        expect(harness.vm.state.emailSent, isTrue);
       },
     );
 
     test('rejects re-entrant submits while already submitting', () async {
       final useCase = _FakeRequestPasswordResetUseCase()..blockNextCall();
-      final vm = _buildViewModel(useCase: useCase);
-      addTearDown(vm.dispose);
+      final harness = _buildViewModel(useCase: useCase);
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
 
-      final first = vm.submit(email: 'a@b.c');
+      final first = harness.vm.submit(email: 'a@b.c');
       await Future<void>.delayed(Duration.zero);
-      final second = vm.submit(email: 'a@b.c');
+      final second = harness.vm.submit(email: 'a@b.c');
 
       useCase.release();
       await Future.wait<void>([first, second]);
@@ -249,28 +306,104 @@ void main() {
     });
   });
 
+  group('ForgotPasswordViewModel — connectivity', () {
+    test(
+      'initial state.isOffline reflects the gateway snapshot at construction',
+      () async {
+        final repo = _StubConnectivityRepository();
+        final gateway = ConnectivityGateway(repository: repo);
+        addTearDown(repo.close);
+        addTearDown(gateway.dispose);
+
+        repo.controller.add(ConnectivityStatus.offline);
+        await Future<void>.delayed(Duration.zero);
+
+        final vm = ForgotPasswordViewModel(
+          requestPasswordReset: _FakeRequestPasswordResetUseCase(),
+          router: _RecordingForgotPasswordRouter(),
+          connectivityGateway: gateway,
+        );
+        addTearDown(vm.dispose);
+
+        expect(vm.state.isOffline, isTrue);
+      },
+    );
+
+    test('state.isOffline flips on connectivity stream events', () async {
+      final harness = _buildViewModel();
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
+
+      expect(harness.vm.state.isOffline, isFalse);
+
+      harness.connectivityRepo.controller.add(ConnectivityStatus.offline);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(harness.vm.state.isOffline, isTrue);
+
+      harness.connectivityRepo.controller.add(ConnectivityStatus.online);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(harness.vm.state.isOffline, isFalse);
+    });
+
+    test('isOffline survives the emailSent terminal transition', () async {
+      final useCase = _FakeRequestPasswordResetUseCase();
+      final harness = _buildViewModel(useCase: useCase);
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
+
+      harness.connectivityRepo.controller.add(ConnectivityStatus.offline);
+      await Future<void>.delayed(Duration.zero);
+      expect(harness.vm.state.isOffline, isTrue);
+
+      await harness.vm.submit(email: 'a@b.c');
+
+      expect(harness.vm.state.emailSent, isTrue);
+      expect(harness.vm.state.isOffline, isTrue);
+    });
+
+    test('does not emit after dispose when connectivity flips', () async {
+      final harness = _buildViewModel();
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+
+      harness.vm.dispose();
+      harness.connectivityRepo.controller.add(ConnectivityStatus.offline);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(harness.vm.isDisposed, isTrue);
+    });
+  });
+
   group('ForgotPasswordViewModel — disposal', () {
     test('does not emit after dispose', () async {
       final useCase = _FakeRequestPasswordResetUseCase()..blockNextCall();
-      final vm = _buildViewModel(useCase: useCase);
+      final harness = _buildViewModel(useCase: useCase);
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
 
-      final pending = vm.submit(email: 'a@b.c');
+      final pending = harness.vm.submit(email: 'a@b.c');
       await Future<void>.delayed(Duration.zero);
-      vm.dispose();
+      harness.vm.dispose();
       useCase.release();
       await pending;
 
-      expect(vm.isDisposed, isTrue);
+      expect(harness.vm.isDisposed, isTrue);
     });
   });
 
   group('ForgotPasswordViewModel — navigation', () {
     test('goBackToLogin delegates to the router', () {
       final router = _RecordingForgotPasswordRouter();
-      final vm = _buildViewModel(router: router);
-      addTearDown(vm.dispose);
+      final harness = _buildViewModel(router: router);
+      addTearDown(harness.connectivityRepo.close);
+      addTearDown(harness.connectivityGateway.dispose);
+      addTearDown(harness.vm.dispose);
 
-      vm.goBackToLogin();
+      harness.vm.goBackToLogin();
 
       expect(router.loginCalls, 1);
     });

@@ -26,6 +26,7 @@ class LoginRoutePage extends RoutePage {
     final vm = _viewModel ??= LoginViewModel(
       login: LoginUseCase(gateway: container.authGateway),
       router: router,
+      connectivityGateway: container.connectivityGateway,
     );
     return LoginScreen(viewModel: vm);
   }

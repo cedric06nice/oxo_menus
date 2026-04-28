@@ -1,8 +1,8 @@
 /// Immutable state of the reset-password form.
 ///
-/// Defaults to "no error / not submitting / not changed yet", which is the
+/// Defaults to "no error / not submitting / not changed yet / online" — the
 /// state shown the first time the screen renders for a user who just clicked
-/// the email link.
+/// the email link on a working connection.
 final class ResetPasswordState {
   const ResetPasswordState({
     this.passwordError,
@@ -10,6 +10,7 @@ final class ResetPasswordState {
     this.isSubmitting = false,
     this.errorMessage,
     this.passwordChanged = false,
+    this.isOffline = false,
   });
 
   /// Field-level message for the new-password input, or `null` when valid.
@@ -28,12 +29,17 @@ final class ResetPasswordState {
   /// success state of the screen.
   final bool passwordChanged;
 
+  /// `true` when the device is currently offline. Drives the offline banner
+  /// at the top of the screen.
+  final bool isOffline;
+
   ResetPasswordState copyWith({
     Object? passwordError = _sentinel,
     Object? confirmError = _sentinel,
     bool? isSubmitting,
     Object? errorMessage = _sentinel,
     bool? passwordChanged,
+    bool? isOffline,
   }) {
     return ResetPasswordState(
       passwordError: identical(passwordError, _sentinel)
@@ -47,6 +53,7 @@ final class ResetPasswordState {
           ? this.errorMessage
           : errorMessage as String?,
       passwordChanged: passwordChanged ?? this.passwordChanged,
+      isOffline: isOffline ?? this.isOffline,
     );
   }
 
@@ -59,14 +66,16 @@ final class ResetPasswordState {
       other.confirmError == confirmError &&
       other.isSubmitting == isSubmitting &&
       other.errorMessage == errorMessage &&
-      other.passwordChanged == passwordChanged;
+      other.passwordChanged == passwordChanged &&
+      other.isOffline == isOffline;
 
   @override
   int get hashCode => Object.hash(
-        passwordError,
-        confirmError,
-        isSubmitting,
-        errorMessage,
-        passwordChanged,
-      );
+    passwordError,
+    confirmError,
+    isSubmitting,
+    errorMessage,
+    passwordChanged,
+    isOffline,
+  );
 }

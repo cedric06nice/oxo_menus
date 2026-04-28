@@ -1,14 +1,19 @@
+import 'dart:async';
+
 import 'package:oxo_menus/core/architecture/view_model.dart';
+import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/features/auth/domain/use_cases/confirm_password_reset_use_case.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/reset_password_router.dart';
 import 'package:oxo_menus/features/auth/presentation/state/reset_password_state.dart';
+import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 
 /// View model that owns the reset-password screen's form state.
 ///
 /// Performs local validation, drives the [ConfirmPasswordResetUseCase], and
-/// delegates navigation to the injected [ResetPasswordRouter]. Knows nothing
-/// about widgets, `BuildContext`, or Riverpod.
+/// delegates navigation to the injected [ResetPasswordRouter]. Tracks
+/// connectivity through [ConnectivityGateway] so the screen can render an
+/// offline banner without reaching into Riverpod or `BuildContext`.
 ///
 /// The reset [token] is captured at construction time from the deep-link query
 /// parameter. A null or empty token leaves the screen in a "missing token"
@@ -18,15 +23,28 @@ class ResetPasswordViewModel extends ViewModel<ResetPasswordState> {
   ResetPasswordViewModel({
     required ConfirmPasswordResetUseCase confirmPasswordReset,
     required ResetPasswordRouter router,
+    required ConnectivityGateway connectivityGateway,
     required String? token,
-  })  : _confirmPasswordReset = confirmPasswordReset,
-        _router = router,
-        _token = token,
-        super(const ResetPasswordState());
+  }) : _confirmPasswordReset = confirmPasswordReset,
+       _router = router,
+       _connectivityGateway = connectivityGateway,
+       _token = token,
+       super(
+         ResetPasswordState(
+           isOffline:
+               connectivityGateway.currentStatus == ConnectivityStatus.offline,
+         ),
+       ) {
+    _connectivitySubscription = _connectivityGateway.statusStream.listen(
+      _onConnectivityChanged,
+    );
+  }
 
   final ConfirmPasswordResetUseCase _confirmPasswordReset;
   final ResetPasswordRouter _router;
+  final ConnectivityGateway _connectivityGateway;
   final String? _token;
+  StreamSubscription<ConnectivityStatus>? _connectivitySubscription;
 
   /// The reset token captured at construction time, or `null` when the deep
   /// link was opened without one.
@@ -68,7 +86,7 @@ class ResetPasswordViewModel extends ViewModel<ResetPasswordState> {
       return;
     }
     emit(
-      const ResetPasswordState(
+      state.copyWith(
         passwordError: null,
         confirmError: null,
         isSubmitting: true,
@@ -81,7 +99,7 @@ class ResetPasswordViewModel extends ViewModel<ResetPasswordState> {
     result.fold(
       onSuccess: (_) {
         emit(
-          const ResetPasswordState(
+          state.copyWith(
             passwordError: null,
             confirmError: null,
             isSubmitting: false,
@@ -91,7 +109,7 @@ class ResetPasswordViewModel extends ViewModel<ResetPasswordState> {
         );
       },
       onFailure: (error) {
-        emit(ResetPasswordState(errorMessage: error.message));
+        emit(state.copyWith(isSubmitting: false, errorMessage: error.message));
       },
     );
   }
@@ -99,6 +117,19 @@ class ResetPasswordViewModel extends ViewModel<ResetPasswordState> {
   void goToLogin() => _router.goToLogin();
 
   void goToForgotPassword() => _router.goToForgotPassword();
+
+  void _onConnectivityChanged(ConnectivityStatus next) {
+    if (isDisposed) {
+      return;
+    }
+    emit(state.copyWith(isOffline: next == ConnectivityStatus.offline));
+  }
+
+  @override
+  void onDispose() {
+    unawaited(_connectivitySubscription?.cancel());
+    _connectivitySubscription = null;
+  }
 
   String? _validatePassword(String password) {
     if (password.isEmpty) {

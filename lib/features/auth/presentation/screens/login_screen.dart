@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/features/auth/presentation/state/login_state.dart';
 import 'package:oxo_menus/features/auth/presentation/view_models/login_view_model.dart';
+import 'package:oxo_menus/features/connectivity/presentation/widgets/offline_banner.dart';
 import 'package:oxo_menus/shared/presentation/theme/app_spacing.dart';
 import 'package:oxo_menus/shared/presentation/utils/platform_detection.dart';
 
@@ -180,99 +181,107 @@ class _LoginScreenState extends State<LoginScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [colorScheme.primaryContainer, colorScheme.surface],
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    key: const Key('tower_logo'),
-                    theme.brightness == Brightness.dark
-                        ? 'assets/images/OXOTowerDrawingWhite.png'
-                        : 'assets/images/OXOTowerDrawingBlack.png',
-                    height: 120,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Text.rich(
-                    TextSpan(
+      body: Column(
+        children: [
+          if (state.isOffline) const OfflineBanner(),
+          Expanded(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [colorScheme.primaryContainer, colorScheme.surface],
+                ),
+              ),
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        TextSpan(
-                          text: 'OXO',
-                          style: theme.textTheme.headlineLarge?.copyWith(
-                            color: colorScheme.tertiary,
-                            fontWeight: FontWeight.w700,
+                        Image.asset(
+                          key: const Key('tower_logo'),
+                          theme.brightness == Brightness.dark
+                              ? 'assets/images/OXOTowerDrawingWhite.png'
+                              : 'assets/images/OXOTowerDrawingBlack.png',
+                          height: 120,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'OXO',
+                                style: theme.textTheme.headlineLarge?.copyWith(
+                                  color: colorScheme.tertiary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              TextSpan(
+                                text: ' Menus',
+                                style: theme.textTheme.headlineLarge?.copyWith(
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        TextSpan(
-                          text: ' Menus',
-                          style: theme.textTheme.headlineLarge?.copyWith(
-                            color: colorScheme.primary,
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          'Menu Template Builder',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'Menu Template Builder',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxxl),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
-                      child: Column(
-                        children: [
-                          AutofillGroup(
+                        const SizedBox(height: AppSpacing.xxxl),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.xl),
                             child: Column(
                               children: [
-                                _buildEmailField(state),
-                                const SizedBox(height: AppSpacing.lg),
-                                _buildPasswordField(state),
-                                const SizedBox(height: AppSpacing.xl),
+                                AutofillGroup(
+                                  child: Column(
+                                    children: [
+                                      _buildEmailField(state),
+                                      const SizedBox(height: AppSpacing.lg),
+                                      _buildPasswordField(state),
+                                      const SizedBox(height: AppSpacing.xl),
+                                    ],
+                                  ),
+                                ),
+                                _buildLoginButton(state, theme),
+                                const SizedBox(height: AppSpacing.sm),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton(
+                                    key: const Key('forgot_password_link'),
+                                    onPressed:
+                                        widget.viewModel.goToForgotPassword,
+                                    child: const Text('Forgot password?'),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
-                          _buildLoginButton(state, theme),
-                          const SizedBox(height: AppSpacing.sm),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              key: const Key('forgot_password_link'),
-                              onPressed: widget.viewModel.goToForgotPassword,
-                              child: const Text('Forgot password?'),
+                        ),
+                        if (state.errorMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.lg),
+                            child: Text(
+                              state.errorMessage!,
+                              style: TextStyle(color: colorScheme.error),
                             ),
                           ),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
-                  if (state.errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.lg),
-                      child: Text(
-                        state.errorMessage!,
-                        style: TextStyle(color: colorScheme.error),
-                      ),
-                    ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

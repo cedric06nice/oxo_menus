@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/features/auth/presentation/state/reset_password_state.dart';
 import 'package:oxo_menus/features/auth/presentation/view_models/reset_password_view_model.dart';
+import 'package:oxo_menus/features/connectivity/presentation/widgets/offline_banner.dart';
 import 'package:oxo_menus/shared/presentation/theme/app_spacing.dart';
 import 'package:oxo_menus/shared/presentation/utils/platform_detection.dart';
 
@@ -58,63 +59,63 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
-    if (!widget.viewModel.hasToken) {
-      return _buildMissingTokenScreen(theme, colorScheme);
-    }
+    final state = widget.viewModel.state;
 
     return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [colorScheme.primaryContainer, colorScheme.surface],
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: widget.viewModel.state.passwordChanged
-                  ? _buildSuccessContent(theme, colorScheme)
-                  : _buildFormContent(theme, colorScheme),
+      body: Column(
+        children: [
+          if (state.isOffline) const OfflineBanner(),
+          Expanded(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [colorScheme.primaryContainer, colorScheme.surface],
+                ),
+              ),
+              child: _buildBranchContent(theme, colorScheme),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBranchContent(ThemeData theme, ColorScheme colorScheme) {
+    if (!widget.viewModel.hasToken) {
+      return _buildMissingTokenContent(theme, colorScheme);
+    }
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: widget.viewModel.state.passwordChanged
+              ? _buildSuccessContent(theme, colorScheme)
+              : _buildFormContent(theme, colorScheme),
         ),
       ),
     );
   }
 
-  Widget _buildMissingTokenScreen(ThemeData theme, ColorScheme colorScheme) {
-    return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [colorScheme.primaryContainer, colorScheme.surface],
+  Widget _buildMissingTokenContent(ThemeData theme, ColorScheme colorScheme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Invalid or missing reset token',
+            style: theme.textTheme.titleLarge,
           ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: colorScheme.error),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                'Invalid or missing reset token',
-                style: theme.textTheme.titleLarge,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TextButton(
-                onPressed: widget.viewModel.goToForgotPassword,
-                child: const Text('Request a new link'),
-              ),
-            ],
+          const SizedBox(height: AppSpacing.lg),
+          TextButton(
+            onPressed: widget.viewModel.goToForgotPassword,
+            child: const Text('Request a new link'),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:oxo_menus/features/auth/presentation/state/forgot_password_state.dart';
 import 'package:oxo_menus/features/auth/presentation/view_models/forgot_password_view_model.dart';
+import 'package:oxo_menus/features/connectivity/presentation/widgets/offline_banner.dart';
 import 'package:oxo_menus/shared/presentation/theme/app_spacing.dart';
 import 'package:oxo_menus/shared/presentation/utils/platform_detection.dart';
 
@@ -132,79 +133,90 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [colorScheme.primaryContainer, colorScheme.surface],
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.lock_reset, size: 64, color: colorScheme.primary),
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                    'Forgot Password',
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
+      body: Column(
+        children: [
+          if (state.isOffline) const OfflineBanner(),
+          Expanded(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [colorScheme.primaryContainer, colorScheme.surface],
+                ),
+              ),
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.lock_reset,
+                          size: 64,
+                          color: colorScheme.primary,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Text(
+                          'Forgot Password',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          "Enter your email address and we'll send you a "
+                          'link to reset your password.',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xxxl),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.xl),
+                            child: Column(
+                              children: [
+                                _buildEmailField(state),
+                                const SizedBox(height: AppSpacing.xl),
+                                _buildSendButton(state, theme),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (state.emailSent)
+                          Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.lg),
+                            child: Text(
+                              'Check your email for a reset link',
+                              style: TextStyle(color: colorScheme.primary),
+                            ),
+                          ),
+                        if (state.errorMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.lg),
+                            child: Text(
+                              state.errorMessage!,
+                              style: TextStyle(color: colorScheme.error),
+                            ),
+                          ),
+                        const SizedBox(height: AppSpacing.lg),
+                        TextButton(
+                          key: const Key('back_to_login'),
+                          onPressed: widget.viewModel.goBackToLogin,
+                          child: const Text('Back to Login'),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    "Enter your email address and we'll send you a link to "
-                    'reset your password.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxxl),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
-                      child: Column(
-                        children: [
-                          _buildEmailField(state),
-                          const SizedBox(height: AppSpacing.xl),
-                          _buildSendButton(state, theme),
-                        ],
-                      ),
-                    ),
-                  ),
-                  if (state.emailSent)
-                    Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.lg),
-                      child: Text(
-                        'Check your email for a reset link',
-                        style: TextStyle(color: colorScheme.primary),
-                      ),
-                    ),
-                  if (state.errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.lg),
-                      child: Text(
-                        state.errorMessage!,
-                        style: TextStyle(color: colorScheme.error),
-                      ),
-                    ),
-                  const SizedBox(height: AppSpacing.lg),
-                  TextButton(
-                    key: const Key('back_to_login'),
-                    onPressed: widget.viewModel.goBackToLogin,
-                    child: const Text('Back to Login'),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

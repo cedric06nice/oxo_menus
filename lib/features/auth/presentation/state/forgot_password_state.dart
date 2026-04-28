@@ -1,13 +1,15 @@
 /// Immutable state of the forgot-password form.
 ///
-/// Defaults to "no error / not submitting / no email sent yet", which is the
-/// state shown the first time the screen renders.
+/// All field-level errors default to "no error", `isSubmitting` to `false`,
+/// `emailSent` to `false`, and `isOffline` to `false` — the state shown the
+/// first time the screen renders for a user with a working connection.
 final class ForgotPasswordState {
   const ForgotPasswordState({
     this.emailError,
     this.isSubmitting = false,
     this.errorMessage,
     this.emailSent = false,
+    this.isOffline = false,
   });
 
   /// Field-level message for the email input, or `null` when valid.
@@ -23,11 +25,16 @@ final class ForgotPasswordState {
   /// terminal success state of the screen.
   final bool emailSent;
 
+  /// `true` when the device is currently offline. Drives the offline banner
+  /// at the top of the screen.
+  final bool isOffline;
+
   ForgotPasswordState copyWith({
     Object? emailError = _sentinel,
     bool? isSubmitting,
     Object? errorMessage = _sentinel,
     bool? emailSent,
+    bool? isOffline,
   }) {
     return ForgotPasswordState(
       emailError: identical(emailError, _sentinel)
@@ -38,6 +45,7 @@ final class ForgotPasswordState {
           ? this.errorMessage
           : errorMessage as String?,
       emailSent: emailSent ?? this.emailSent,
+      isOffline: isOffline ?? this.isOffline,
     );
   }
 
@@ -49,9 +57,10 @@ final class ForgotPasswordState {
       other.emailError == emailError &&
       other.isSubmitting == isSubmitting &&
       other.errorMessage == errorMessage &&
-      other.emailSent == emailSent;
+      other.emailSent == emailSent &&
+      other.isOffline == isOffline;
 
   @override
   int get hashCode =>
-      Object.hash(emailError, isSubmitting, errorMessage, emailSent);
+      Object.hash(emailError, isSubmitting, errorMessage, emailSent, isOffline);
 }

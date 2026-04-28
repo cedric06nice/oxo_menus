@@ -39,6 +39,7 @@ class ForgotPasswordRoutePage extends RoutePage {
         gateway: container.authGateway,
       ),
       router: router,
+      connectivityGateway: container.connectivityGateway,
       resetUrl: _resolveResetUrl(),
     );
     return ForgotPasswordScreen(viewModel: vm);

@@ -545,33 +545,27 @@ void main() {
       },
     );
 
-    test(
-      'round-trips a ResetPasswordRouteConfig with a token to '
-      '/app/reset-password?token=…',
-      () {
-        final restored = parser.restoreRouteInformation(
-          const ResetPasswordRouteConfig('tk-77'),
-        );
+    test('round-trips a ResetPasswordRouteConfig with a token to '
+        '/app/reset-password?token=…', () {
+      final restored = parser.restoreRouteInformation(
+        const ResetPasswordRouteConfig('tk-77'),
+      );
 
-        expect(restored, isNotNull);
-        expect(restored!.uri.path, '/app/reset-password');
-        expect(restored.uri.queryParameters['token'], 'tk-77');
-      },
-    );
+      expect(restored, isNotNull);
+      expect(restored!.uri.path, '/app/reset-password');
+      expect(restored.uri.queryParameters['token'], 'tk-77');
+    });
 
-    test(
-      'round-trips a token-less ResetPasswordRouteConfig to '
-      '/app/reset-password',
-      () {
-        final restored = parser.restoreRouteInformation(
-          const ResetPasswordRouteConfig(null),
-        );
+    test('round-trips a token-less ResetPasswordRouteConfig to '
+        '/app/reset-password', () {
+      final restored = parser.restoreRouteInformation(
+        const ResetPasswordRouteConfig(null),
+      );
 
-        expect(restored, isNotNull);
-        expect(restored!.uri.path, '/app/reset-password');
-        expect(restored.uri.hasQuery, isFalse);
-      },
-    );
+      expect(restored, isNotNull);
+      expect(restored!.uri.path, '/app/reset-password');
+      expect(restored.uri.hasQuery, isFalse);
+    });
 
     test('handles root path', () async {
       final config = await parser.parseRouteInformation(
