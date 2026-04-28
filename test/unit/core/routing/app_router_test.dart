@@ -17,8 +17,10 @@ import 'package:oxo_menus/features/auth/presentation/screens/reset_password_scre
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/features/home/presentation/screens/home_screen.dart';
 import 'package:oxo_menus/features/menu/domain/entities/menu.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu_bundle.dart';
 import 'package:oxo_menus/features/menu/domain/entities/size.dart'
     as size_entity;
+import 'package:oxo_menus/features/menu/domain/repositories/menu_bundle_repository.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/create_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/delete_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/list_menus_for_viewer_use_case.dart';
@@ -38,6 +40,15 @@ import 'package:oxo_menus/features/admin_sizes/domain/use_cases/update_size_use_
 import 'package:oxo_menus/features/admin_sizes/presentation/routing/legacy_admin_sizes_router.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/screens/admin_sizes_screen.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/view_models/admin_sizes_view_model.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/create_menu_bundle_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/delete_menu_bundle_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/list_available_menus_for_bundles_use_case.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/list_menu_bundles_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/publish_menu_bundle_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/update_menu_bundle_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/legacy_admin_exportable_menus_router.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/screens/admin_exportable_menus_screen.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/view_models/admin_exportable_menus_view_model.dart';
 import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/create_template_use_case.dart';
 import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/list_areas_for_creator_use_case.dart';
 import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/list_sizes_for_creator_use_case.dart';
@@ -341,6 +352,76 @@ PdfPreviewViewModel _buildLegacyPdfPreviewVm(
   );
 }
 
+/// Empty-list / no-op use cases used by [_buildLegacyAdminExportableMenusVm]
+/// so the legacy `/admin/exportable_menus` host can stand up an
+/// [AdminExportableMenusViewModel] without touching a real
+/// `DirectusDataSource`. Each stub returns a [Failure] or an empty [Success]
+/// — enough for the cutover assertion that the screen mounts.
+class _StubListMenuBundlesForAdminUseCase
+    implements ListMenuBundlesForAdminUseCase {
+  @override
+  Future<Result<List<MenuBundle>, DomainError>> execute(NoInput input) async =>
+      const Success(<MenuBundle>[]);
+}
+
+class _StubListAvailableMenusForBundlesUseCase
+    implements ListAvailableMenusForBundlesUseCase {
+  @override
+  Future<Result<List<Menu>, DomainError>> execute(NoInput input) async =>
+      const Success(<Menu>[]);
+}
+
+class _StubCreateMenuBundleForAdminUseCase
+    implements CreateMenuBundleForAdminUseCase {
+  @override
+  Future<Result<MenuBundle, DomainError>> execute(
+    CreateMenuBundleInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubUpdateMenuBundleForAdminUseCase
+    implements UpdateMenuBundleForAdminUseCase {
+  @override
+  Future<Result<MenuBundle, DomainError>> execute(
+    UpdateMenuBundleInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubDeleteMenuBundleForAdminUseCase
+    implements DeleteMenuBundleForAdminUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(int input) async =>
+      const Success(null);
+}
+
+class _StubPublishMenuBundleForAdminUseCase
+    implements PublishMenuBundleForAdminUseCase {
+  @override
+  Future<Result<MenuBundle, DomainError>> execute(int input) async =>
+      const Failure(UnauthorizedError());
+}
+
+/// Builds an [AdminExportableMenusViewModel] backed entirely by stubs — used
+/// by the router tests so the Phase 23 legacy `/admin/exportable_menus` host
+/// can mount [AdminExportableMenusScreen] without spinning up a real
+/// `DirectusDataSource`.
+AdminExportableMenusViewModel _buildLegacyAdminExportableMenusVm(
+  BuildContext context,
+  AppContainer container,
+) {
+  return AdminExportableMenusViewModel(
+    listBundles: _StubListMenuBundlesForAdminUseCase(),
+    listAvailableMenus: _StubListAvailableMenusForBundlesUseCase(),
+    createBundle: _StubCreateMenuBundleForAdminUseCase(),
+    updateBundle: _StubUpdateMenuBundleForAdminUseCase(),
+    deleteBundle: _StubDeleteMenuBundleForAdminUseCase(),
+    publishBundle: _StubPublishMenuBundleForAdminUseCase(),
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyAdminExportableMenusRouter(GoRouterLegacyNavigator(context)),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -410,6 +491,13 @@ Widget _buildApp({
       // so the router tests can mount the screen without one.
       legacyPdfPreviewViewModelBuilderProvider.overrideWithValue(
         _buildLegacyPdfPreviewVm,
+      ),
+      // Phase 23 — the legacy /admin/exportable_menus GoRoute mounts
+      // AdminExportableMenusScreen, whose ViewModel needs a live
+      // DirectusDataSource. Override the builder so the router tests can
+      // mount the screen without one.
+      legacyAdminExportableMenusViewModelBuilderProvider.overrideWithValue(
+        _buildLegacyAdminExportableMenusVm,
       ),
       ...extraOverrides.cast(),
     ],
@@ -1086,6 +1174,38 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(PdfPreviewScreen), findsOneWidget);
+    });
+  });
+
+  // Phase 23 — the legacy /admin/exportable_menus GoRoute now hosts the MVVM
+  // AdminExportableMenusScreen directly instead of the retired
+  // AdminExportableMenusPage widget. This test pins the cutover so the screen
+  // cannot silently regress.
+  group('AppRouter — legacy /admin/exportable_menus hosts MVVM screen', () {
+    testWidgets('/admin/exportable_menus mounts AdminExportableMenusScreen', (
+      tester,
+    ) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
+
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/admin/exportable_menus');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AdminExportableMenusScreen), findsOneWidget);
     });
   });
 

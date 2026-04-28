@@ -8,7 +8,18 @@ import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/routing/migration/main_router_host.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
-import 'package:oxo_menus/features/admin_exportable_menus/presentation/admin_exportable_menus_page.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/create_menu_bundle_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/delete_menu_bundle_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/list_available_menus_for_bundles_use_case.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/list_menu_bundles_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/publish_menu_bundle_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/update_menu_bundle_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/legacy_admin_exportable_menus_router.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/screens/admin_exportable_menus_screen.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/view_models/admin_exportable_menus_view_model.dart';
+import 'package:oxo_menus/features/menu/data/repositories/menu_bundle_repository_impl.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/pdf_document_builder.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/publish_menu_bundle_usecase.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/create_size_use_case.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/delete_size_use_case.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/list_sizes_for_admin_use_case.dart';
@@ -296,7 +307,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.adminExportableMenus,
             name: 'admin-exportable-menus',
-            builder: (context, state) => const AdminExportableMenusPage(),
+            builder: (context, state) {
+              final container = ref.watch(appContainerProvider);
+              final builder = ref.read(
+                legacyAdminExportableMenusViewModelBuilderProvider,
+              );
+              return _LegacyAdminExportableMenusRouteHost(
+                container: container,
+                builder: builder,
+              );
+            },
           ),
           GoRoute(
             path: AppRoutes.adminTemplates,
@@ -1100,5 +1120,142 @@ class _LegacyPdfPreviewRouteHostState
   @override
   Widget build(BuildContext context) {
     return PdfPreviewScreen(viewModel: _viewModel);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 23 — legacy /admin/exportable_menus route host
+//
+// Owns the AdminExportableMenusViewModel for the lifetime of the legacy
+// GoRoute under the AppShell. The MVVM AdminExportableMenusScreen is pure (no
+// Riverpod, no BuildContext reads) so this host bridges go_router into it via
+// LegacyAdminExportableMenusRouter. The screen is a navigation leaf — the
+// router only exposes "back" — so no deep-link forwarding is needed. Will be
+// deleted when the admin exportable menus list is fully cut over to the
+// MainRouter stack.
+//
+// The view-model construction is exposed as a Riverpod-overridable builder so
+// router tests can swap in fake use cases without standing up a real
+// DirectusDataSource. Production wiring is the default and lives in
+// [_defaultLegacyAdminExportableMenusViewModelBuilder].
+// ---------------------------------------------------------------------------
+
+/// Factory used by the legacy `/admin/exportable_menus` route host to
+/// construct the [AdminExportableMenusViewModel] from the live [AppContainer].
+/// The [BuildContext] is the route's context and is used by the default
+/// builder to bridge into `go_router` via [GoRouterLegacyNavigator].
+typedef LegacyAdminExportableMenusViewModelBuilder =
+    AdminExportableMenusViewModel Function(
+      BuildContext context,
+      AppContainer container,
+    );
+
+/// Riverpod entry point for the legacy `/admin/exportable_menus` view-model
+/// builder.
+///
+/// Defaults to [_defaultLegacyAdminExportableMenusViewModelBuilder] which
+/// wires the live menu / bundle / file repositories from the container's
+/// `DirectusDataSource`. Tests override this with a stub builder that returns
+/// an [AdminExportableMenusViewModel] backed by fake use cases.
+final legacyAdminExportableMenusViewModelBuilderProvider =
+    Provider<LegacyAdminExportableMenusViewModelBuilder>(
+      (ref) => _defaultLegacyAdminExportableMenusViewModelBuilder,
+    );
+
+AdminExportableMenusViewModel
+_defaultLegacyAdminExportableMenusViewModelBuilder(
+  BuildContext context,
+  AppContainer container,
+) {
+  final dataSource = container.directusDataSource;
+  final bundleRepository = MenuBundleRepositoryImpl(dataSource: dataSource);
+  final menuRepository = MenuRepositoryImpl(dataSource: dataSource);
+  final pageRepository = PageRepositoryImpl(dataSource: dataSource);
+  final containerRepository = ContainerRepositoryImpl(dataSource: dataSource);
+  final columnRepository = ColumnRepositoryImpl(dataSource: dataSource);
+  final widgetRepository = WidgetRepositoryImpl(dataSource: dataSource);
+  final fileRepository = FileRepositoryImpl(dataSource);
+  final assetLoader = AssetLoaderRepositoryImpl();
+  final fetchMenuTreeUseCase = FetchMenuTreeUseCase(
+    menuRepository: menuRepository,
+    pageRepository: pageRepository,
+    containerRepository: containerRepository,
+    columnRepository: columnRepository,
+    widgetRepository: widgetRepository,
+  );
+  final publishUseCase = PublishMenuBundleUseCase(
+    repository: bundleRepository,
+    fetchMenuTreeUseCase: fetchMenuTreeUseCase,
+    fileRepository: fileRepository,
+    assetLoader: assetLoader,
+    pdfBuilder: const PdfDocumentBuilder(),
+  );
+  return AdminExportableMenusViewModel(
+    listBundles: ListMenuBundlesForAdminUseCase(
+      authGateway: container.authGateway,
+      bundleRepository: bundleRepository,
+    ),
+    listAvailableMenus: ListAvailableMenusForBundlesUseCase(
+      authGateway: container.authGateway,
+      menuRepository: menuRepository,
+    ),
+    createBundle: CreateMenuBundleForAdminUseCase(
+      authGateway: container.authGateway,
+      bundleRepository: bundleRepository,
+    ),
+    updateBundle: UpdateMenuBundleForAdminUseCase(
+      authGateway: container.authGateway,
+      bundleRepository: bundleRepository,
+    ),
+    deleteBundle: DeleteMenuBundleForAdminUseCase(
+      authGateway: container.authGateway,
+      bundleRepository: bundleRepository,
+    ),
+    publishBundle: PublishMenuBundleForAdminUseCase(
+      authGateway: container.authGateway,
+      publishMenuBundleUseCase: publishUseCase,
+    ),
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyAdminExportableMenusRouter(GoRouterLegacyNavigator(context)),
+  );
+}
+
+class _LegacyAdminExportableMenusRouteHost extends StatefulWidget {
+  const _LegacyAdminExportableMenusRouteHost({
+    required this.container,
+    required this.builder,
+  });
+
+  final AppContainer container;
+  final LegacyAdminExportableMenusViewModelBuilder builder;
+
+  @override
+  State<_LegacyAdminExportableMenusRouteHost> createState() =>
+      _LegacyAdminExportableMenusRouteHostState();
+}
+
+class _LegacyAdminExportableMenusRouteHostState
+    extends State<_LegacyAdminExportableMenusRouteHost> {
+  late final AdminExportableMenusViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = widget.builder(context, widget.container);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AdminExportableMenusScreen(
+      viewModel: _viewModel,
+      directusBaseUrl: widget.container.directusBaseUrl ?? '',
+    );
   }
 }
