@@ -26,7 +26,15 @@ import 'package:oxo_menus/features/auth/presentation/view_models/reset_password_
 import 'package:oxo_menus/features/home/presentation/pages/home_page.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/pages/pdf_preview_page.dart';
 import 'package:oxo_menus/features/menu_list/presentation/pages/menu_list_page.dart';
-import 'package:oxo_menus/features/settings/presentation/pages/settings_page.dart';
+import 'package:oxo_menus/features/settings/domain/use_cases/get_app_version_use_case.dart';
+import 'package:oxo_menus/features/settings/domain/use_cases/get_settings_overview_use_case.dart';
+import 'package:oxo_menus/features/settings/domain/use_cases/logout_use_case.dart';
+import 'package:oxo_menus/features/settings/domain/use_cases/request_password_reset_use_case.dart'
+    as settings_request_password_reset;
+import 'package:oxo_menus/features/settings/domain/use_cases/set_admin_view_as_user_use_case.dart';
+import 'package:oxo_menus/features/settings/presentation/routing/legacy_settings_router.dart';
+import 'package:oxo_menus/features/settings/presentation/screens/settings_screen.dart';
+import 'package:oxo_menus/features/settings/presentation/view_models/settings_view_model.dart';
 import 'package:oxo_menus/shared/presentation/providers/auth_provider.dart';
 import 'package:oxo_menus/features/connectivity/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/shared/presentation/widgets/adaptive_loading_indicator.dart';
@@ -193,7 +201,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.settings,
             name: 'settings',
-            builder: (context, state) => const SettingsPage(),
+            builder: (context, state) {
+              final container = ref.watch(appContainerProvider);
+              return _LegacySettingsRouteHost(container: container);
+            },
           ),
           GoRoute(
             path: AppRoutes.menus,
@@ -388,4 +399,63 @@ String? _resolveLegacyResetUrl() {
     return '$resetUrlBase${AppRoutes.resetPassword}';
   }
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// Phase 16 — legacy /settings route host
+//
+// Owns the SettingsViewModel for the lifetime of the legacy GoRoute under the
+// AppShell. The MVVM SettingsScreen is pure (no Riverpod, no BuildContext use)
+// so this host bridges go_router into it via LegacySettingsRouter. Will be
+// deleted when the settings feature is fully cut over to the MainRouter stack.
+// ---------------------------------------------------------------------------
+
+class _LegacySettingsRouteHost extends StatefulWidget {
+  const _LegacySettingsRouteHost({required this.container});
+
+  final AppContainer container;
+
+  @override
+  State<_LegacySettingsRouteHost> createState() =>
+      _LegacySettingsRouteHostState();
+}
+
+class _LegacySettingsRouteHostState extends State<_LegacySettingsRouteHost> {
+  late final SettingsViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    final container = widget.container;
+    _viewModel = SettingsViewModel(
+      getOverview: GetSettingsOverviewUseCase(
+        authGateway: container.authGateway,
+        adminViewAsUserGateway: container.adminViewAsUserGateway,
+      ),
+      getAppVersion: GetAppVersionUseCase(
+        gateway: container.appVersionGateway,
+      ),
+      requestPasswordReset:
+          settings_request_password_reset.RequestPasswordResetUseCase(
+            authGateway: container.authGateway,
+          ),
+      logout: LogoutUseCase(authGateway: container.authGateway),
+      setAdminViewAsUser: SetAdminViewAsUserUseCase(
+        gateway: container.adminViewAsUserGateway,
+      ),
+      adminViewAsUserGateway: container.adminViewAsUserGateway,
+      router: LegacySettingsRouter(GoRouterLegacyNavigator(context)),
+    );
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsScreen(viewModel: _viewModel);
+  }
 }

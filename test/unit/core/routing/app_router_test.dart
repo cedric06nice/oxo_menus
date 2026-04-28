@@ -7,10 +7,12 @@ import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
 import 'package:oxo_menus/core/types/result.dart';
+import 'package:oxo_menus/core/gateways/app_version_gateway.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/login_screen.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
+import 'package:oxo_menus/features/settings/presentation/screens/settings_screen.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/pages/admin_template_creator_page.dart';
 import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
@@ -110,6 +112,14 @@ class _ThrowSizeRepository implements SizeRepository {
   );
 }
 
+/// Static [AppVersionGateway] used by router tests that mount the MVVM
+/// Settings screen — avoids invoking the real `package_info_plus` plugin which
+/// is not available in the unit-test sandbox.
+class _FakeAppVersionGateway implements AppVersionGateway {
+  @override
+  Future<String> read() async => '1.0.0';
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -125,6 +135,7 @@ Widget _buildApp({
   required FakeMenuRepository fakeMenu,
   List<dynamic> extraOverrides = const [],
   void Function(GoRouter)? onRouter,
+  AppVersionGateway? appVersionGateway,
 }) {
   return ProviderScope(
     overrides: [
@@ -144,6 +155,7 @@ Widget _buildApp({
             repository: FakeConnectivityRepository()
               ..whenCheckConnectivity(ConnectivityStatus.online),
           ),
+          appVersionGateway: appVersionGateway,
         ),
       ),
       ...extraOverrides.cast(),
@@ -551,6 +563,36 @@ void main() {
 
       expect(find.byType(ResetPasswordScreen), findsOneWidget);
       expect(find.text('Invalid or missing reset token'), findsOneWidget);
+    });
+  });
+
+  // Phase 16 — the legacy /settings GoRoute now hosts the MVVM SettingsScreen
+  // directly instead of the retired SettingsPage widget. This test pins the
+  // cutover so the screen cannot silently regress.
+  group('AppRouter — legacy /settings hosts MVVM screen', () {
+    testWidgets('/settings mounts SettingsScreen', (tester) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
+
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          appVersionGateway: _FakeAppVersionGateway(),
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/settings');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SettingsScreen), findsOneWidget);
     });
   });
 
