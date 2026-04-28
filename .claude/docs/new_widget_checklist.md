@@ -59,8 +59,8 @@ All paths below are relative to the repo root and assume the feature-first layou
 
 ## Step 5 — Registration
 
-- [ ] Add the import + `{type}WidgetDefinition` entry to `allWidgetDefinitions` in `lib/features/widget_system/presentation/providers/widget_registry_provider.dart`
-- [ ] Run `flutter test test/unit/features/widget_system/presentation/providers/widget_registry_provider_test.dart` — update count assertions if needed
+- [ ] Add the import + `{type}WidgetDefinition` entry to `allWidgetDefinitions` in `lib/features/widget_system/presentation/widget_system/built_in_widget_definitions.dart` (consumed by `AppContainer.widgetRegistry`).
+- [ ] Run `flutter test test/unit/features/widget_system/presentation/widget_system/presentable_widget_registry_test.dart` — update count assertions if needed.
 
 ## Step 6 — PDF Rendering (TDD)
 

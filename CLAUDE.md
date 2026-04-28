@@ -10,18 +10,18 @@ SDK >=3.8.0 <4.0.0 | Flutter 3.41.7 | Dart 3.11.5
 Feature-first Clean Architecture. Top of `lib/`:
 
 - `lib/core/` — cross-cutting infra (types, errors, routing, utils). No feature code.
-- `lib/shared/` — domain/data/presentation reused across features (auth, file/area/asset repos, theme, common providers, common widgets, mixins).
+- `lib/shared/` — domain/data/presentation reused across features (auth, file/area/asset repos, theme, shared `ChangeNotifier` controllers, common widgets, helpers).
 - `lib/features/<feature>/` — feature modules. Each has the layers it needs:
   - **Full** (`menu`, `collaboration`, `connectivity`): `domain/` + `data/` + `presentation/`
-  - **Domain + presentation** (`allergens`, `editor_tree`, `menu_editor`, `widget_system`): `domain/` + `presentation/`
-  - **Presentation-only** (`auth`, `home`, `menu_list`, `settings`, all `admin_*`): `presentation/` only
+  - **Domain + presentation** (everything else: `allergens`, `widget_system`, `auth`, `home`, `menu_editor`, `menu_list`, `settings`, all `admin_*`): `domain/` + `presentation/`. Each MVVM screen has a ViewModel + use cases; data dependencies are reused from `lib/shared/data/` or `lib/features/menu/data/`.
 - Dependency direction: features → shared → core. Features must not import from each other.
 
 Key fixed locations:
 
 - **lib/core/types/result.dart** — sealed `Result<T, E>` (Success | Failure), railway-oriented error handling
 - **lib/core/errors/domain_errors.dart** — sealed `DomainError` hierarchy (InvalidCredentials, TokenExpired, Unauthorized, Network, NetworkUnavailable, NotFound, Validation, Server, Unknown, RateLimit)
-- **lib/core/routing/app_router.dart** — GoRouter with auth guards, 11 routes
+- **lib/core/routing/oxo_router.dart** — in-house `OxoRouter` (`RouterDelegate` + `RouteInformationParser` + `OxoRouterScope` `InheritedWidget`); replaces `go_router` (Phase 29)
+- **lib/core/routing/app_router.dart** — `AppRouter.build()` constructs the production `OxoRouter` with auth/admin guards and 14 routes
 - **lib/core/routing/app_routes.dart** — centralized route path constants (`AppRoutes`)
 - **lib/core/utils/directus_url_resolver.dart** — environment-aware URL resolution (dart-define → web hostname → localhost)
 - Repositories return `Result<T, DomainError>`, never throw
@@ -70,7 +70,7 @@ Lives under `lib/features/connectivity/` (full domain + data + presentation).
 - `ConnectivityStatus` enum: `online`, `offline`
 - Periodic probes: 30s when online, 5s recovery when offline
 - `OfflineBanner` / `OfflineErrorPage` (`presentation/widgets/`)
-- `ConnectivityRetryMixin` for auto-retry lives at `lib/shared/presentation/mixins/connectivity_retry_mixin.dart`
+- Connectivity-aware retry: `MenuEditorViewModel.retryConnectivity()` calls `ConnectivityGateway.recheck()` and surfaces `isOffline` through state; the matching screen reacts via `ListenableBuilder` (the legacy `ConnectivityRetryMixin` was retired in Phase 28).
 
 ## Allergens
 
@@ -114,11 +114,11 @@ In-house `OxoRouter` (`lib/core/routing/oxo_router.dart`) — `go_router` was re
 - All route paths use `AppRoutes` constants (no hardcoded strings).
 - Feature ViewModels never touch the router directly: each adapter uses `RouteNavigator` (`OxoRouterRouteNavigator(context)` in production), which resolves the surrounding `OxoRouter` via `OxoRouterScope.of(context)`. `RouteNavigator.go(...)` resets the stack; `push(...)` appends.
 
-## Pages
+## Screens
 
-Pages live at `lib/features/<feature>/presentation/pages/<feature>_page.dart` (a few admin pages sit directly under `presentation/`). Current set:
+MVVM screens live at `lib/features/<feature>/presentation/screens/<feature>_screen.dart` (a screen is a passive view bound to a `ViewModel<S>`; the `*_page.dart` widgets were retired in Phases 15–25). Current set:
 
-`login`, `home`, `menu_list`, `menu_editor`, `pdf_preview`, `admin_templates`, `admin_template_creator`, `admin_template_editor`, `admin_sizes`, `settings`
+`login`, `forgot_password`, `reset_password`, `home`, `menu_list`, `menu_editor`, `pdf_preview`, `admin_templates`, `admin_template_creator`, `admin_template_editor`, `admin_sizes`, `admin_exportable_menus`, `settings`
 
 ## Testing
 
@@ -130,7 +130,7 @@ flutter test test/widget/       # widget only
 
 - Structure mirrors `lib/`: `test/unit/{core,shared,features}/`, `test/widget/{shared,features}/`, `test/integration/`, `test/fakes/`, `test/helpers/`
 - Legacy paths (`test/unit/{data,domain,presentation}/`, `test/widget/{pages,presentation,widgets}/`) still exist — tests are mid-migration to the feature layout
-- 261 test files (163 unit, 75 widget, 1 integration, 22 fake-tests under `test/fakes/`), ~4445 test cases
+- 317 test files (225 unit, 69 widget, 1 integration, 22 fake-tests under `test/fakes/`), ~4506 test cases
 - No mocking library — `mocktail` was removed. Use hand-rolled fakes in `test/fakes/` and either inject dependencies through ViewModels (preferred) or wrap widgets in `AppScope` via `wrapInTestAppScope` in `test/helpers/build_app_scope_test_harness.dart`
 - CI enforces 75% coverage, `dart format`, `flutter analyze --fatal-infos`
 
@@ -182,7 +182,7 @@ Treat as a hard constraint. If TDD cannot be followed, state the conflict and as
 
 - Entities: freezed, named fields, `const factory`, private `_` constructor
 - Repos: abstract in `domain/repositories/`, impl in `data/repositories/` suffixed `Impl`
-- Use cases: class with `execute()` method, injected repos via constructor
-- Providers: manual `final xxxProvider = Provider<Xxx>((ref) { ... });`
+- Use cases: extend `UseCase<I, O>` with an `execute(I input)` method; inject repos / gateways via constructor
+- ViewModels: extend `ViewModel<S>` (a `ChangeNotifier`); each screen has a matching `*RouteAdapter` implementing a feature `Router` interface; the route host wires the adapter to the live `OxoRouter`
 - Currency: GBP (£)
 - NEVER add the message "Co-Authored-By: Claude" or any other co-authing message on git
