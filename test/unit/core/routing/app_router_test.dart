@@ -25,6 +25,11 @@ import 'package:oxo_menus/features/menu_list/presentation/view_models/menu_list_
 import 'package:oxo_menus/features/settings/presentation/screens/settings_screen.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/pages/admin_template_creator_page.dart';
+import 'package:oxo_menus/features/admin_templates/domain/use_cases/delete_template_use_case.dart';
+import 'package:oxo_menus/features/admin_templates/domain/use_cases/list_templates_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_templates/presentation/routing/legacy_admin_templates_router.dart';
+import 'package:oxo_menus/features/admin_templates/presentation/screens/admin_templates_screen.dart';
+import 'package:oxo_menus/features/admin_templates/presentation/view_models/admin_templates_view_model.dart';
 import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/shared/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/features/menu/domain/repositories/column_repository.dart';
@@ -170,6 +175,39 @@ MenuListViewModel _buildLegacyMenuListVm(
   );
 }
 
+/// No-op [ListTemplatesForAdminUseCase] used by [_buildLegacyAdminTemplatesVm]
+/// so the legacy `/admin/templates` host can stand up an
+/// [AdminTemplatesViewModel] without touching a real `DirectusDataSource`.
+class _StubListTemplatesForAdminUseCase
+    implements ListTemplatesForAdminUseCase {
+  @override
+  Future<Result<List<Menu>, DomainError>> execute(
+    ListTemplatesForAdminInput input,
+  ) async => const Success(<Menu>[]);
+}
+
+class _StubDeleteTemplateUseCase implements DeleteTemplateUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(int input) async =>
+      const Success(null);
+}
+
+/// Builds an [AdminTemplatesViewModel] backed entirely by stubs — used by the
+/// router tests so the Phase 19 legacy `/admin/templates` host can mount
+/// [AdminTemplatesScreen] without spinning up a real `DirectusDataSource`.
+AdminTemplatesViewModel _buildLegacyAdminTemplatesVm(
+  BuildContext context,
+  AppContainer container,
+) {
+  return AdminTemplatesViewModel(
+    listTemplates: _StubListTemplatesForAdminUseCase(),
+    deleteTemplate: _StubDeleteTemplateUseCase(),
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyAdminTemplatesRouter(GoRouterLegacyNavigator(context)),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -213,6 +251,13 @@ Widget _buildApp({
       // the router tests can mount the screen without one.
       legacyMenuListViewModelBuilderProvider.overrideWithValue(
         _buildLegacyMenuListVm,
+      ),
+      // Phase 19 — the legacy /admin/templates GoRoute mounts
+      // AdminTemplatesScreen, whose ViewModel needs a live DirectusDataSource.
+      // Override the builder so the router tests can mount the screen
+      // without one.
+      legacyAdminTemplatesViewModelBuilderProvider.overrideWithValue(
+        _buildLegacyAdminTemplatesVm,
       ),
       ...extraOverrides.cast(),
     ],
@@ -677,6 +722,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(MenuListScreen), findsOneWidget);
+    });
+  });
+
+  // Phase 19 — the legacy /admin/templates GoRoute now hosts the MVVM
+  // AdminTemplatesScreen directly instead of the retired AdminTemplatesPage
+  // widget. This test pins the cutover so the screen cannot silently regress.
+  group('AppRouter — legacy /admin/templates hosts MVVM screen', () {
+    testWidgets('/admin/templates mounts AdminTemplatesScreen', (tester) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
+
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/admin/templates');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AdminTemplatesScreen), findsOneWidget);
     });
   });
 
