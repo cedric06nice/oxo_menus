@@ -34,7 +34,6 @@ dependencies:
   directus_api_manager: ^1.16.1
 
   # Routing
-  go_router: ^17.0.1
 
   # HTTP & Networking
   http: ^1.2.0

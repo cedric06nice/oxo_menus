@@ -6,8 +6,7 @@ import 'package:oxo_menus/core/types/result.dart';
 /// Logs the current user out via [AuthGateway].
 ///
 /// The gateway flips its status to [AuthStatusUnauthenticated], which the
-/// `go_router` auth redirect observes to send the user back to the login
-/// screen.
+/// router's auth redirect observes to send the user back to the login screen.
 class LogoutUseCase extends UseCase<NoInput, void> {
   LogoutUseCase({required AuthGateway authGateway})
     : _authGateway = authGateway;

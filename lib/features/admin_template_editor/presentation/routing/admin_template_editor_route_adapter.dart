@@ -3,12 +3,12 @@ import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/routing/admin_template_editor_router.dart';
 
 /// Adapter that fulfills [AdminTemplateEditorRouter] by forwarding to the
-/// `go_router` tree via a [RouteNavigator]. [goBack] returns to
+/// `OxoRouter` via a [RouteNavigator]. [goBack] returns to
 /// `/admin/templates`, [goToAdminSizes] forwards to `/admin/sizes`, and
 /// [goToPdfPreview] deep-links to `/menus/pdf/:id`.
 ///
 /// Wired by `_AdminTemplateEditorRouteHost` in `app_router.dart` for
-/// the `/admin/templates/:id` GoRoute.
+/// the `/admin/templates/:id` route.
 class AdminTemplateEditorRouteAdapter implements AdminTemplateEditorRouter {
   AdminTemplateEditorRouteAdapter(this._navigator);
 

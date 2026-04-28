@@ -3,7 +3,7 @@
 /// Each feature defines its own router interface (e.g. `MenuListRouter`,
 /// `AuthRouter`) extending [FeatureRouter] and exposes only the navigation
 /// methods that feature's ViewModels need. The production implementation is
-/// the feature's `*RouteAdapter`, which forwards to `go_router` via
+/// the feature's `*RouteAdapter`, which forwards to the router via
 /// [RouteNavigator]; tests inject hand-rolled fakes.
 ///
 /// Feature routers must NEVER expose `BuildContext`, `Navigator`, or any

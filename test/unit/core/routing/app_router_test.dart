@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/di/app_scope.dart';
+import 'package:oxo_menus/core/routing/oxo_router.dart';
 import 'package:oxo_menus/core/architecture/use_case.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
@@ -245,7 +245,7 @@ MenuListViewModel _buildMenuListVm(
     duplicateMenu: _FakeDuplicateMenuUseCase(),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: MenuListRouteAdapter(GoRouterRouteNavigator(context)),
+    router: MenuListRouteAdapter(OxoRouterRouteNavigator(context)),
   );
 }
 
@@ -278,7 +278,7 @@ AdminTemplatesViewModel _buildAdminTemplatesVm(
     deleteTemplate: _StubDeleteTemplateUseCase(),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: AdminTemplatesRouteAdapter(GoRouterRouteNavigator(context)),
+    router: AdminTemplatesRouteAdapter(OxoRouterRouteNavigator(context)),
   );
 }
 
@@ -326,7 +326,7 @@ AdminSizesViewModel _buildAdminSizesVm(
     deleteSize: _StubDeleteSizeUseCase(),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: AdminSizesRouteAdapter(GoRouterRouteNavigator(context)),
+    router: AdminSizesRouteAdapter(OxoRouterRouteNavigator(context)),
   );
 }
 
@@ -367,7 +367,7 @@ AdminTemplateCreatorViewModel _buildAdminTemplateCreatorVm(
     createTemplate: _StubCreateTemplateUseCase(),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: AdminTemplateCreatorRouteAdapter(GoRouterRouteNavigator(context)),
+    router: AdminTemplateCreatorRouteAdapter(OxoRouterRouteNavigator(context)),
   );
 }
 
@@ -393,7 +393,7 @@ PdfPreviewViewModel _buildPdfPreviewVm(
   return PdfPreviewViewModel(
     menuId: menuId,
     generatePdf: _StubGenerateMenuPdfUseCase(),
-    router: PdfPreviewRouteAdapter(GoRouterRouteNavigator(context)),
+    router: PdfPreviewRouteAdapter(OxoRouterRouteNavigator(context)),
   );
 }
 
@@ -567,7 +567,7 @@ MenuEditorViewModel _buildMenuEditorVm(
     menuId: menuId,
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: MenuEditorRouteAdapter(GoRouterRouteNavigator(context)),
+    router: MenuEditorRouteAdapter(OxoRouterRouteNavigator(context)),
     registry: PresentableWidgetRegistry(),
     loadMenu: _StubLoadMenuForEditorUseCase(),
     createWidget: _StubCreateWidgetInMenuUseCase(),
@@ -728,7 +728,7 @@ AdminTemplateEditorViewModel _buildAdminTemplateEditorVm(
     menuId: menuId,
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: AdminTemplateEditorRouteAdapter(GoRouterRouteNavigator(context)),
+    router: AdminTemplateEditorRouteAdapter(OxoRouterRouteNavigator(context)),
     registry: PresentableWidgetRegistry(),
     loadTemplate: _StubLoadTemplateForEditorUseCase(),
     createPage: _StubCreatePageInTemplateUseCase(),
@@ -768,7 +768,7 @@ AdminExportableMenusViewModel _buildAdminExportableMenusVm(
     publishBundle: _StubPublishMenuBundleForAdminUseCase(),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: AdminExportableMenusRouteAdapter(GoRouterRouteNavigator(context)),
+    router: AdminExportableMenusRouteAdapter(OxoRouterRouteNavigator(context)),
   );
 }
 
@@ -787,7 +787,7 @@ AdminExportableMenusViewModel _buildAdminExportableMenusVm(
 Widget _buildApp({
   required FakeAuthRepository fakeAuth,
   required FakeMenuRepository fakeMenu,
-  void Function(GoRouter)? onRouter,
+  void Function(OxoRouter)? onRouter,
   AppVersionGateway? appVersionGateway,
 }) {
   // Wire fakeMenu through the menu-list / templates use cases via stub
@@ -818,14 +818,14 @@ class _RouterTestHarness extends StatefulWidget {
   const _RouterTestHarness({required this.container, this.onRouter});
 
   final AppContainer container;
-  final void Function(GoRouter)? onRouter;
+  final void Function(OxoRouter)? onRouter;
 
   @override
   State<_RouterTestHarness> createState() => _RouterTestHarnessState();
 }
 
 class _RouterTestHarnessState extends State<_RouterTestHarness> {
-  GoRouter? _router;
+  OxoRouter? _router;
 
   @override
   void didChangeDependencies() {
@@ -849,8 +849,17 @@ class _RouterTestHarnessState extends State<_RouterTestHarness> {
   }
 
   @override
+  void dispose() {
+    _router?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(routerConfig: _router!);
+    return OxoRouterScope(
+      router: _router!,
+      child: MaterialApp.router(routerConfig: _router!),
+    );
   }
 }
 
@@ -914,7 +923,7 @@ void main() {
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
 
-        late GoRouter router;
+        late OxoRouter router;
 
         await tester.pumpWidget(
           _buildApp(
@@ -942,7 +951,7 @@ void main() {
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
 
-        late GoRouter router;
+        late OxoRouter router;
 
         await tester.pumpWidget(
           _buildApp(
@@ -971,7 +980,7 @@ void main() {
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
 
-        late GoRouter router;
+        late OxoRouter router;
 
         await tester.pumpWidget(
           _buildApp(
@@ -999,7 +1008,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1025,7 +1034,7 @@ void main() {
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
 
-        late GoRouter router;
+        late OxoRouter router;
 
         await tester.pumpWidget(
           _buildApp(
@@ -1052,7 +1061,7 @@ void main() {
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
 
-        late GoRouter router;
+        late OxoRouter router;
 
         await tester.pumpWidget(
           _buildApp(
@@ -1083,7 +1092,7 @@ void main() {
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
 
-        late GoRouter router;
+        late OxoRouter router;
 
         await tester.pumpWidget(
           _buildApp(
@@ -1112,7 +1121,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1145,7 +1154,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1171,7 +1180,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1199,7 +1208,7 @@ void main() {
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
 
-        late GoRouter router;
+        late OxoRouter router;
 
         await tester.pumpWidget(
           _buildApp(
@@ -1231,7 +1240,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1261,7 +1270,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1290,7 +1299,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1319,7 +1328,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1348,7 +1357,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1377,7 +1386,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1406,7 +1415,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1432,7 +1441,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1463,7 +1472,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1493,7 +1502,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1523,7 +1532,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1552,7 +1561,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1584,7 +1593,7 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      late GoRouter router;
+      late OxoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
@@ -1614,7 +1623,7 @@ void main() {
         final fakeMenu = FakeMenuRepository();
         _configureMenuRepository(fakeMenu);
 
-        late GoRouter router;
+        late OxoRouter router;
 
         await tester.pumpWidget(
           _buildApp(

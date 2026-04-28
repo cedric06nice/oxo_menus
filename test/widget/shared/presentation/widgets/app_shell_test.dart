@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/oxo_router.dart';
 import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/shared/presentation/widgets/app_shell.dart';
 
@@ -10,44 +10,48 @@ void main() {
     bool isOffline = false,
     String initialLocation = '/home',
   }) {
-    final router = GoRouter(
+    final router = OxoRouter(
       initialLocation: initialLocation,
-      routes: [
-        ShellRoute(
-          builder: (context, state, child) => AppShell(
-            navigator: GoRouterRouteNavigator(context),
-            currentLocation: state.matchedLocation,
-            isAdmin: isAdmin,
-            isOffline: isOffline,
-            child: child,
-          ),
-          routes: [
-            GoRoute(
-              path: '/home',
-              builder: (_, _) => const Center(child: Text('Home Content')),
-            ),
-            GoRoute(
-              path: '/menus',
-              builder: (_, _) => const Center(child: Text('Menus Content')),
-            ),
-            GoRoute(
-              path: '/admin/templates',
-              builder: (_, _) => const Center(child: Text('Templates Content')),
-            ),
-            GoRoute(
-              path: '/admin/sizes',
-              builder: (_, _) => const Center(child: Text('Sizes Content')),
-            ),
-            GoRoute(
-              path: '/settings',
-              builder: (_, _) => const Center(child: Text('Settings Content')),
-            ),
-          ],
+      shellBuilder: (context, currentLocation, child) => AppShell(
+        navigator: OxoRouterRouteNavigator(context),
+        currentLocation: currentLocation,
+        isAdmin: isAdmin,
+        isOffline: isOffline,
+        child: child,
+      ),
+      routes: <OxoRoute>[
+        OxoRoute(
+          pattern: '/home',
+          inShell: true,
+          builder: (_, _) => const Center(child: Text('Home Content')),
+        ),
+        OxoRoute(
+          pattern: '/menus',
+          inShell: true,
+          builder: (_, _) => const Center(child: Text('Menus Content')),
+        ),
+        OxoRoute(
+          pattern: '/admin/templates',
+          inShell: true,
+          builder: (_, _) => const Center(child: Text('Templates Content')),
+        ),
+        OxoRoute(
+          pattern: '/admin/sizes',
+          inShell: true,
+          builder: (_, _) => const Center(child: Text('Sizes Content')),
+        ),
+        OxoRoute(
+          pattern: '/settings',
+          inShell: true,
+          builder: (_, _) => const Center(child: Text('Settings Content')),
         ),
       ],
     );
 
-    return MaterialApp.router(routerConfig: router);
+    return OxoRouterScope(
+      router: router,
+      child: MaterialApp.router(routerConfig: router),
+    );
   }
 
   void setScreenSize(WidgetTester tester, double width, double height) {

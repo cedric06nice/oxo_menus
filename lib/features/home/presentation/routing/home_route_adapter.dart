@@ -3,10 +3,10 @@ import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
 
 /// Adapter that fulfills [HomeRouter] by forwarding quick-action taps to the
-/// `go_router` tree via a [RouteNavigator].
+/// `OxoRouter` via a [RouteNavigator].
 ///
 /// Wired by `_HomeRouteHost` in `app_router.dart` for the `/home`
-/// GoRoute.
+/// route.
 class HomeRouteAdapter implements HomeRouter {
   HomeRouteAdapter(this._navigator);
 

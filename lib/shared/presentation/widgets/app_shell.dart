@@ -11,8 +11,8 @@ import 'package:oxo_menus/shared/presentation/theme/app_spacing.dart';
 /// - **Desktop/Web (>1200px)**: Permanent `NavigationDrawer` (icons + labels)
 ///
 /// Pure widget — receives [navigator], [currentLocation], [isAdmin], and
-/// [isOffline] from the parent (`ShellRoute.builder`). No Riverpod, no
-/// `go_router` import.
+/// [isOffline] from the parent (the `OxoRouter` shell builder). No Riverpod,
+/// no router import.
 class AppShell extends StatelessWidget {
   final Widget child;
   final RouteNavigator navigator;

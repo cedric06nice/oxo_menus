@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/di/app_scope.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
+import 'package:oxo_menus/core/routing/oxo_router.dart';
 import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/create_menu_bundle_for_admin_use_case.dart';
@@ -126,7 +126,7 @@ import 'package:oxo_menus/shared/presentation/widgets/adaptive_loading_indicator
 import 'package:oxo_menus/shared/presentation/widgets/app_shell.dart';
 import 'package:oxo_menus/features/connectivity/presentation/widgets/offline_banner.dart';
 
-/// Builds the production [GoRouter] for the app.
+/// Builds the production [OxoRouter] for the app.
 ///
 /// Owns the per-route view-model builders and references the
 /// [AppScopeData] supplied by the surrounding [AppScope]. Production wiring
@@ -175,21 +175,22 @@ class AppRouter {
 
   AppContainer get container => scope.container;
 
-  /// Construct the [GoRouter]. Subscribers (e.g. `MaterialApp.router`) take
+  /// Construct the [OxoRouter]. Subscribers (e.g. `MaterialApp.router`) take
   /// the returned router and own its lifetime.
-  GoRouter build() {
-    return GoRouter(
+  OxoRouter build() {
+    return OxoRouter(
       initialLocation: AppRoutes.splash,
       refreshListenable: Listenable.merge(<Listenable>[
         scope.auth,
         scope.adminViewAsUser,
       ]),
       redirect: _redirect,
+      shellBuilder: _buildShell,
       routes: _buildRoutes(),
     );
   }
 
-  String? _redirect(BuildContext context, GoRouterState state) {
+  String? _redirect(OxoRouteState state) {
     final status = scope.auth.status;
     final isLoading =
         status is AuthStatusInitial || status is AuthStatusLoading;
@@ -199,9 +200,10 @@ class AppRouter {
         status.user.role == UserRole.admin &&
         !scope.adminViewAsUser.value;
 
-    final isGoingToSplash = state.matchedLocation == AppRoutes.splash;
-    final isGoingToLogin = state.matchedLocation == AppRoutes.login;
-    final isGoingToAdminRoute = state.matchedLocation.startsWith('/admin');
+    final matchedLocation = state.matchedLocation;
+    final isGoingToSplash = matchedLocation == AppRoutes.splash;
+    final isGoingToLogin = matchedLocation == AppRoutes.login;
+    final isGoingToAdminRoute = matchedLocation.startsWith('/admin');
 
     if (isLoading) {
       return isGoingToSplash ? null : AppRoutes.splash;
@@ -213,8 +215,8 @@ class AppRouter {
 
     final isGoingToPublicRoute =
         isGoingToLogin ||
-        state.matchedLocation == AppRoutes.forgotPassword ||
-        state.matchedLocation == AppRoutes.resetPassword;
+        matchedLocation == AppRoutes.forgotPassword ||
+        matchedLocation == AppRoutes.resetPassword;
     if (!isAuthenticated && !isGoingToPublicRoute) {
       return AppRoutes.login;
     }
@@ -230,116 +232,112 @@ class AppRouter {
     return null;
   }
 
-  List<RouteBase> _buildRoutes() {
-    return [
-      GoRoute(
-        path: AppRoutes.splash,
-        name: 'splash',
-        builder: (context, state) => const _SplashScreen(),
+  Widget _buildShell(
+    BuildContext context,
+    String currentLocation,
+    Widget child,
+  ) {
+    return _AppShellHost(currentLocation: currentLocation, child: child);
+  }
+
+  List<OxoRoute> _buildRoutes() {
+    return <OxoRoute>[
+      OxoRoute(
+        pattern: AppRoutes.splash,
+        builder: (context, match) => const _SplashScreen(),
       ),
       // Auth screens are served by the MVVM stack at the canonical paths.
       // Each host owns the ViewModel and disposes it when the route leaves
       // the stack.
-      GoRoute(
-        path: AppRoutes.login,
-        name: 'login',
-        builder: (context, state) => const _LoginRouteHost(),
+      OxoRoute(
+        pattern: AppRoutes.login,
+        builder: (context, match) => const _LoginRouteHost(),
       ),
-      GoRoute(
-        path: AppRoutes.forgotPassword,
-        name: 'forgot-password',
-        builder: (context, state) => const _ForgotPasswordRouteHost(),
+      OxoRoute(
+        pattern: AppRoutes.forgotPassword,
+        builder: (context, match) => const _ForgotPasswordRouteHost(),
       ),
-      GoRoute(
-        path: AppRoutes.resetPassword,
-        name: 'reset-password',
-        builder: (context, state) =>
-            _ResetPasswordRouteHost(token: state.uri.queryParameters['token']),
+      OxoRoute(
+        pattern: AppRoutes.resetPassword,
+        builder: (context, match) =>
+            _ResetPasswordRouteHost(token: match.queryParameters['token']),
       ),
-      ShellRoute(
-        builder: (context, state, child) =>
-            _AppShellHost(currentLocation: state.matchedLocation, child: child),
-        routes: [
-          GoRoute(
-            path: AppRoutes.home,
-            name: 'home',
-            builder: (context, state) => const _HomeRouteHost(),
-          ),
-          GoRoute(
-            path: AppRoutes.settings,
-            name: 'settings',
-            builder: (context, state) => const _SettingsRouteHost(),
-          ),
-          GoRoute(
-            path: AppRoutes.menus,
-            name: 'menus',
-            builder: (context, state) =>
-                _MenuListRouteHost(builder: menuListBuilder),
-            routes: [
-              GoRoute(
-                path: 'pdf/:id',
-                name: 'menu-pdf',
-                builder: (context, state) {
-                  final menuId = int.parse(state.pathParameters['id']!);
-                  return _PdfPreviewRouteHost(
-                    builder: pdfPreviewBuilder,
-                    menuId: menuId,
-                  );
-                },
-              ),
-              GoRoute(
-                path: ':id',
-                name: 'menu-editor',
-                builder: (context, state) {
-                  final menuId = int.parse(state.pathParameters['id']!);
-                  return _MenuEditorRouteHost(
-                    builder: menuEditorBuilder,
-                    menuId: menuId,
-                  );
-                },
-              ),
-            ],
-          ),
-          GoRoute(
-            path: AppRoutes.adminSizes,
-            name: 'admin-sizes',
-            builder: (context, state) =>
-                _AdminSizesRouteHost(builder: adminSizesBuilder),
-          ),
-          GoRoute(
-            path: AppRoutes.adminExportableMenus,
-            name: 'admin-exportable-menus',
-            builder: (context, state) => _AdminExportableMenusRouteHost(
-              builder: adminExportableMenusBuilder,
-            ),
-          ),
-          GoRoute(
-            path: AppRoutes.adminTemplates,
-            name: 'admin-templates',
-            builder: (context, state) =>
-                _AdminTemplatesRouteHost(builder: adminTemplatesBuilder),
-            routes: [
-              GoRoute(
-                path: 'create',
-                name: 'admin-template-create',
-                builder: (context, state) => _AdminTemplateCreatorRouteHost(
-                  builder: adminTemplateCreatorBuilder,
-                ),
-              ),
-              GoRoute(
-                path: ':id',
-                name: 'admin-template-editor',
-                builder: (context, state) {
-                  final menuId = int.parse(state.pathParameters['id']!);
-                  return _AdminTemplateEditorRouteHost(
-                    builder: adminTemplateEditorBuilder,
-                    menuId: menuId,
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
+      // Shell-bound routes — the OxoRouter wraps each of these in the
+      // shellBuilder above before mounting the page.
+      OxoRoute(
+        pattern: AppRoutes.home,
+        inShell: true,
+        builder: (context, match) => const _HomeRouteHost(),
+      ),
+      OxoRoute(
+        pattern: AppRoutes.settings,
+        inShell: true,
+        builder: (context, match) => const _SettingsRouteHost(),
+      ),
+      OxoRoute(
+        pattern: AppRoutes.menus,
+        inShell: true,
+        builder: (context, match) =>
+            _MenuListRouteHost(builder: menuListBuilder),
+      ),
+      OxoRoute(
+        pattern: '/menus/pdf/:id',
+        inShell: true,
+        builder: (context, match) {
+          final menuId = int.parse(match.pathParameters['id']!);
+          return _PdfPreviewRouteHost(
+            builder: pdfPreviewBuilder,
+            menuId: menuId,
+          );
+        },
+      ),
+      OxoRoute(
+        pattern: '/menus/:id',
+        inShell: true,
+        builder: (context, match) {
+          final menuId = int.parse(match.pathParameters['id']!);
+          return _MenuEditorRouteHost(
+            builder: menuEditorBuilder,
+            menuId: menuId,
+          );
+        },
+      ),
+      OxoRoute(
+        pattern: AppRoutes.adminSizes,
+        inShell: true,
+        builder: (context, match) =>
+            _AdminSizesRouteHost(builder: adminSizesBuilder),
+      ),
+      OxoRoute(
+        pattern: AppRoutes.adminExportableMenus,
+        inShell: true,
+        builder: (context, match) => _AdminExportableMenusRouteHost(
+          builder: adminExportableMenusBuilder,
+        ),
+      ),
+      OxoRoute(
+        pattern: AppRoutes.adminTemplateCreate,
+        inShell: true,
+        builder: (context, match) => _AdminTemplateCreatorRouteHost(
+          builder: adminTemplateCreatorBuilder,
+        ),
+      ),
+      OxoRoute(
+        pattern: AppRoutes.adminTemplates,
+        inShell: true,
+        builder: (context, match) =>
+            _AdminTemplatesRouteHost(builder: adminTemplatesBuilder),
+      ),
+      OxoRoute(
+        pattern: '/admin/templates/:id',
+        inShell: true,
+        builder: (context, match) {
+          final menuId = int.parse(match.pathParameters['id']!);
+          return _AdminTemplateEditorRouteHost(
+            builder: adminTemplateEditorBuilder,
+            menuId: menuId,
+          );
+        },
       ),
     ];
   }
@@ -393,7 +391,7 @@ class _AppShellHost extends StatelessWidget {
             status.user.role == UserRole.admin &&
             !scope.adminViewAsUser.value;
         return AppShell(
-          navigator: GoRouterRouteNavigator(context),
+          navigator: OxoRouterRouteNavigator(context),
           currentLocation: currentLocation,
           isAdmin: isAdmin,
           isOffline: scope.connectivity.isOffline,
@@ -408,9 +406,9 @@ class _AppShellHost extends StatelessWidget {
 // Phase 15 — auth route hosts
 //
 // Each host is a small StatefulWidget that owns the ViewModel for its screen
-// for the lifetime of the GoRoute. The MVVM auth screens are pure
-// (no Riverpod, no BuildContext use), so the host is the single place that
-// bridges go_router's `BuildContext` into the screen via `AuthRouteAdapter`.
+// for the lifetime of the route. The MVVM auth screens are pure (no Riverpod,
+// no BuildContext use), so the host is the single place that bridges the
+// router's `BuildContext` into the screen via `AuthRouteAdapter`.
 // ---------------------------------------------------------------------------
 
 class _LoginRouteHost extends StatefulWidget {
@@ -429,7 +427,7 @@ class _LoginRouteHostState extends State<_LoginRouteHost> {
     final container = AppScope.read(context).container;
     _viewModel = LoginViewModel(
       login: LoginUseCase(gateway: container.authGateway),
-      router: AuthRouteAdapter(GoRouterRouteNavigator(context)),
+      router: AuthRouteAdapter(OxoRouterRouteNavigator(context)),
       connectivityGateway: container.connectivityGateway,
     );
   }
@@ -465,7 +463,7 @@ class _ForgotPasswordRouteHostState extends State<_ForgotPasswordRouteHost> {
       requestPasswordReset: RequestPasswordResetUseCase(
         gateway: container.authGateway,
       ),
-      router: AuthRouteAdapter(GoRouterRouteNavigator(context)),
+      router: AuthRouteAdapter(OxoRouterRouteNavigator(context)),
       connectivityGateway: container.connectivityGateway,
       resetUrl: _resolveResetUrl(),
     );
@@ -504,7 +502,7 @@ class _ResetPasswordRouteHostState extends State<_ResetPasswordRouteHost> {
       confirmPasswordReset: ConfirmPasswordResetUseCase(
         gateway: container.authGateway,
       ),
-      router: AuthRouteAdapter(GoRouterRouteNavigator(context)),
+      router: AuthRouteAdapter(OxoRouterRouteNavigator(context)),
       connectivityGateway: container.connectivityGateway,
       token: widget.token,
     );
@@ -556,7 +554,7 @@ class _HomeRouteHostState extends State<_HomeRouteHost> {
     final container = AppScope.read(context).container;
     _viewModel = HomeViewModel(
       getHomeOverview: GetHomeOverviewUseCase(gateway: container.authGateway),
-      router: HomeRouteAdapter(GoRouterRouteNavigator(context)),
+      router: HomeRouteAdapter(OxoRouterRouteNavigator(context)),
       clock: DateTime.now,
     );
   }
@@ -606,7 +604,7 @@ class _SettingsRouteHostState extends State<_SettingsRouteHost> {
         gateway: container.adminViewAsUserGateway,
       ),
       adminViewAsUserGateway: container.adminViewAsUserGateway,
-      router: SettingsRouteAdapter(GoRouterRouteNavigator(context)),
+      router: SettingsRouteAdapter(OxoRouterRouteNavigator(context)),
     );
   }
 
@@ -628,8 +626,8 @@ class _SettingsRouteHostState extends State<_SettingsRouteHost> {
 
 /// Factory used by the `/menus` route host to construct the
 /// [MenuListViewModel] from the live [AppContainer]. The [BuildContext] is the
-/// route's context and is used by the default builder to bridge into
-/// `go_router` via [GoRouterRouteNavigator].
+/// route's context and is used by the default builder to bridge into the
+/// [OxoRouter] via [OxoRouterRouteNavigator].
 typedef MenuListViewModelBuilder =
     MenuListViewModel Function(BuildContext context, AppContainer container);
 
@@ -670,7 +668,7 @@ MenuListViewModel _defaultMenuListViewModelBuilder(
     duplicateMenu: duplicateMenuUseCase,
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: MenuListRouteAdapter(GoRouterRouteNavigator(context)),
+    router: MenuListRouteAdapter(OxoRouterRouteNavigator(context)),
   );
 }
 
@@ -730,7 +728,7 @@ AdminTemplatesViewModel _defaultAdminTemplatesViewModelBuilder(
     deleteTemplate: DeleteTemplateUseCase(menuRepository: menuRepository),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: AdminTemplatesRouteAdapter(GoRouterRouteNavigator(context)),
+    router: AdminTemplatesRouteAdapter(OxoRouterRouteNavigator(context)),
   );
 }
 
@@ -799,7 +797,7 @@ AdminSizesViewModel _defaultAdminSizesViewModelBuilder(
     ),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: AdminSizesRouteAdapter(GoRouterRouteNavigator(context)),
+    router: AdminSizesRouteAdapter(OxoRouterRouteNavigator(context)),
   );
 }
 
@@ -867,7 +865,7 @@ AdminTemplateCreatorViewModel _defaultAdminTemplateCreatorViewModelBuilder(
     ),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: AdminTemplateCreatorRouteAdapter(GoRouterRouteNavigator(context)),
+    router: AdminTemplateCreatorRouteAdapter(OxoRouterRouteNavigator(context)),
   );
 }
 
@@ -948,7 +946,7 @@ PdfPreviewViewModel _defaultPdfPreviewViewModelBuilder(
   return PdfPreviewViewModel(
     menuId: menuId,
     generatePdf: generateMenuPdfUseCase,
-    router: PdfPreviewRouteAdapter(GoRouterRouteNavigator(context)),
+    router: PdfPreviewRouteAdapter(OxoRouterRouteNavigator(context)),
   );
 }
 
@@ -1048,7 +1046,7 @@ AdminExportableMenusViewModel _defaultAdminExportableMenusViewModelBuilder(
     ),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: AdminExportableMenusRouteAdapter(GoRouterRouteNavigator(context)),
+    router: AdminExportableMenusRouteAdapter(OxoRouterRouteNavigator(context)),
   );
 }
 
@@ -1141,7 +1139,7 @@ MenuEditorViewModel _defaultMenuEditorViewModelBuilder(
     menuId: menuId,
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: MenuEditorRouteAdapter(GoRouterRouteNavigator(context)),
+    router: MenuEditorRouteAdapter(OxoRouterRouteNavigator(context)),
     registry: container.widgetRegistry,
     imageGateway: container.imageGateway,
     loadMenu: LoadMenuForEditorUseCase(
@@ -1249,7 +1247,7 @@ AdminTemplateEditorViewModel _defaultAdminTemplateEditorViewModelBuilder(
     menuId: menuId,
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: AdminTemplateEditorRouteAdapter(GoRouterRouteNavigator(context)),
+    router: AdminTemplateEditorRouteAdapter(OxoRouterRouteNavigator(context)),
     registry: container.widgetRegistry,
     imageGateway: container.imageGateway,
     loadTemplate: LoadTemplateForEditorUseCase(

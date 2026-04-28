@@ -5,12 +5,12 @@ import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/reset_password_router.dart';
 
 /// Adapter that fulfills [LoginRouter], [ForgotPasswordRouter], and
-/// [ResetPasswordRouter] by forwarding to the `go_router` tree via a
+/// [ResetPasswordRouter] by forwarding to the `OxoRouter` via a
 /// [RouteNavigator].
 ///
 /// Wired by the `_LoginRouteHost`, `_ForgotPasswordRouteHost`, and
 /// `_ResetPasswordRouteHost` in `app_router.dart` for the `/login`,
-/// `/forgot-password`, and `/reset-password` GoRoutes.
+/// `/forgot-password`, and `/reset-password` routes.
 class AuthRouteAdapter
     implements LoginRouter, ForgotPasswordRouter, ResetPasswordRouter {
   AuthRouteAdapter(this._navigator);

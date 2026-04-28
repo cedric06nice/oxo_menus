@@ -2,7 +2,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
-import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/di/app_scope.dart';
 import 'package:oxo_menus/core/gateways/admin_view_as_user_gateway.dart';
@@ -10,6 +9,7 @@ import 'package:oxo_menus/core/gateways/app_version_gateway.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
+import 'package:oxo_menus/core/routing/oxo_router.dart';
 import 'package:oxo_menus/core/utils/directus_url_resolver.dart';
 import 'package:oxo_menus/features/connectivity/data/repositories/connectivity_repository_impl.dart';
 import 'package:oxo_menus/shared/data/datasources/directus_data_source.dart';
@@ -58,7 +58,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  GoRouter? _router;
+  OxoRouter? _router;
 
   @override
   void didChangeDependencies() {
@@ -67,12 +67,21 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
+  void dispose() {
+    _router?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'OXO Menus',
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      routerConfig: _router!,
+    return OxoRouterScope(
+      router: _router!,
+      child: MaterialApp.router(
+        title: 'OXO Menus',
+        theme: AppTheme.light,
+        darkTheme: AppTheme.dark,
+        routerConfig: _router!,
+      ),
     );
   }
 }

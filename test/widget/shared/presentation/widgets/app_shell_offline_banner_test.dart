@@ -1,34 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/oxo_router.dart';
 import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/shared/presentation/widgets/app_shell.dart';
 import 'package:oxo_menus/features/connectivity/presentation/widgets/offline_banner.dart';
 
 void main() {
   Widget buildTestApp({required bool isOffline}) {
-    final router = GoRouter(
+    final router = OxoRouter(
       initialLocation: '/home',
-      routes: [
-        ShellRoute(
-          builder: (context, state, child) => AppShell(
-            navigator: GoRouterRouteNavigator(context),
-            currentLocation: state.matchedLocation,
-            isAdmin: false,
-            isOffline: isOffline,
-            child: child,
-          ),
-          routes: [
-            GoRoute(
-              path: '/home',
-              builder: (context, state) => const Text('Home'),
-            ),
-          ],
+      shellBuilder: (context, currentLocation, child) => AppShell(
+        navigator: OxoRouterRouteNavigator(context),
+        currentLocation: currentLocation,
+        isAdmin: false,
+        isOffline: isOffline,
+        child: child,
+      ),
+      routes: <OxoRoute>[
+        OxoRoute(
+          pattern: '/home',
+          inShell: true,
+          builder: (_, _) => const Text('Home'),
         ),
       ],
     );
 
-    return MaterialApp.router(routerConfig: router);
+    return OxoRouterScope(
+      router: router,
+      child: MaterialApp.router(routerConfig: router),
+    );
   }
 
   group('AppShell offline banner', () {

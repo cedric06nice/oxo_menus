@@ -2,12 +2,12 @@ import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_router.dart';
 
-/// Adapter that fulfills [MenuListRouter] by forwarding to the `go_router`
+/// Adapter that fulfills [MenuListRouter] by forwarding to the `OxoRouter`
 /// tree via a [RouteNavigator]. The editor methods deep-link into
 /// `/menus/:id` and `/admin/templates/:id`.
 ///
 /// Wired by `_MenuListRouteHost` in `app_router.dart` for the `/menus`
-/// GoRoute.
+/// route.
 class MenuListRouteAdapter implements MenuListRouter {
   MenuListRouteAdapter(this._navigator);
 

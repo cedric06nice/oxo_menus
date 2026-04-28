@@ -4,7 +4,7 @@ The presentation layer is split between `lib/shared/presentation/` (cross-featur
 
 ## Routing (`lib/core/routing/`)
 
-`GoRouter` with auth guards via `refreshListenable` (watches `authProvider`). Route constants live in `app_routes.dart` (`AppRoutes` class).
+In-house `OxoRouter` (`oxo_router.dart`) with auth guards. The `redirect` closure consults `AppScope.of(context).auth.status` (and the `adminViewAsUser` controller for admin gating); both feed `refreshListenable` so the redirect re-runs on auth state changes. `go_router` and `flutter_riverpod` were both retired in Phases 28–29. Route constants live in `app_routes.dart` (`AppRoutes` class).
 
 ### Routes (defined in `app_routes.dart`)
 

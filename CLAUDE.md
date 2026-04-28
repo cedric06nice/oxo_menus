@@ -106,11 +106,13 @@ flutter pub run build_runner build --delete-conflicting-outputs
 
 ## Routing
 
-`go_router` — routes in `lib/core/routing/app_router.dart`, constants in `lib/core/routing/app_routes.dart`
+In-house `OxoRouter` (`lib/core/routing/oxo_router.dart`) — `go_router` was retired in Phase 29. Routes are declared in `lib/core/routing/app_router.dart` (`AppRouter.build()`), constants live in `lib/core/routing/app_routes.dart`.
 
-- Auth-guarded redirect (unauthenticated → `/login`, non-admin blocked from `/admin/*`)
-- All route paths use `AppRoutes` constants (no hardcoded strings)
-- Web uses `context.go()` for deep-linking, native uses `context.push()`
+- `OxoRouter` is a `RouterConfig<OxoRouteState>` with an `OxoRouterDelegate` (stack of `OxoRouteEntry`), `OxoRouteInformationParser`, and a `redirect`/`refreshListenable` pair that mirror the previous GoRouter contract.
+- Auth-guarded redirect (unauthenticated → `/login`, non-admin blocked from `/admin/*`); fires on every navigation and on `AuthController` / `AdminViewAsUserController` change.
+- Shell-bound routes (`inShell: true`) are wrapped by the `shellBuilder` (the `AppShell` in production); auth screens (`/login`, `/forgot-password`, `/reset-password`) and `/splash` sit outside the shell.
+- All route paths use `AppRoutes` constants (no hardcoded strings).
+- Feature ViewModels never touch the router directly: each adapter uses `RouteNavigator` (`OxoRouterRouteNavigator(context)` in production), which resolves the surrounding `OxoRouter` via `OxoRouterScope.of(context)`. `RouteNavigator.go(...)` resets the stack; `push(...)` appends.
 
 ## Pages
 

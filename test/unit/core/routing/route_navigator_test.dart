@@ -1,42 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/routing/oxo_router.dart';
 import 'package:oxo_menus/core/routing/route_navigator.dart';
 
 void main() {
-  group('GoRouterRouteNavigator', () {
-    Future<({GoRouter router, BuildContext context})> pumpRouter(
+  group('OxoRouterRouteNavigator', () {
+    Future<({OxoRouter router, BuildContext context})> pumpRouter(
       WidgetTester tester,
     ) async {
       late BuildContext capturedContext;
-      final router = GoRouter(
+      final router = OxoRouter(
         initialLocation: '/a',
-        routes: [
-          GoRoute(
-            path: '/a',
+        routes: <OxoRoute>[
+          OxoRoute(
+            pattern: '/a',
             builder: (context, _) {
               capturedContext = context;
               return const Scaffold(body: Text('A'));
             },
           ),
-          GoRoute(
-            path: '/b',
+          OxoRoute(
+            pattern: '/b',
             builder: (_, _) => const Scaffold(body: Text('B')),
           ),
-          GoRoute(
-            path: '/c',
+          OxoRoute(
+            pattern: '/c',
             builder: (_, _) => const Scaffold(body: Text('C')),
           ),
         ],
       );
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        OxoRouterScope(
+          router: router,
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
       await tester.pumpAndSettle();
       return (router: router, context: capturedContext);
     }
 
     testWidgets('go replaces the top of the navigation stack', (tester) async {
       final pumped = await pumpRouter(tester);
-      final navigator = GoRouterRouteNavigator(pumped.context);
+      final navigator = OxoRouterRouteNavigator(pumped.context);
 
       navigator.go('/b');
       await tester.pumpAndSettle();
@@ -47,7 +53,7 @@ void main() {
 
     testWidgets('push pushes a new route on top of the stack', (tester) async {
       final pumped = await pumpRouter(tester);
-      final navigator = GoRouterRouteNavigator(pumped.context);
+      final navigator = OxoRouterRouteNavigator(pumped.context);
 
       navigator.push('/c');
       await tester.pumpAndSettle();
@@ -62,15 +68,16 @@ void main() {
       expect(find.text('A'), findsOneWidget);
     });
 
-    testWidgets('push forwards extra to go_router', (tester) async {
+    testWidgets('push preserves extra on the route entry', (tester) async {
       final pumped = await pumpRouter(tester);
-      final navigator = GoRouterRouteNavigator(pumped.context);
+      final navigator = OxoRouterRouteNavigator(pumped.context);
 
       navigator.push('/b', extra: const _Payload(42));
       await tester.pumpAndSettle();
 
-      final state = GoRouterState.of(tester.element(find.text('B')));
-      expect(state.extra, const _Payload(42));
+      final stack = pumped.router.routerDelegate.currentConfiguration!.stack;
+      expect(stack.last.location, '/b');
+      expect(stack.last.extra, const _Payload(42));
     });
   });
 }

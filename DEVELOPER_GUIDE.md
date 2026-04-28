@@ -55,7 +55,7 @@ OXO Menus follows **Clean Architecture** principles with strict layer separation
 
 | Layer | Technologies |
 |-------|-------------|
-| **Presentation** | Flutter, Riverpod, go_router |
+| **Presentation** | Flutter, AppScope (`InheritedWidget`) + per-feature `ChangeNotifier` ViewModels, in-house OxoRouter |
 | **Domain** | Pure Dart (no dependencies) |
 | **Data** | directus_api_manager, freezed, json_serializable |
 | **Testing** | flutter_test, mocktail, integration_test |
