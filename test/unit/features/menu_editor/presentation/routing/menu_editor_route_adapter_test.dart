@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
-import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
-import 'package:oxo_menus/features/menu_editor/presentation/routing/legacy_menu_editor_router.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/menu_editor_route_adapter.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/routing/menu_editor_router.dart';
 
-class _RecordingLegacyNavigator implements LegacyNavigator {
+class _RecordingRouteNavigator implements RouteNavigator {
   final List<({String location, Object? extra})> calls = [];
 
   @override
@@ -14,13 +14,13 @@ class _RecordingLegacyNavigator implements LegacyNavigator {
 }
 
 void main() {
-  group('LegacyMenuEditorRouter', () {
-    late _RecordingLegacyNavigator navigator;
-    late LegacyMenuEditorRouter router;
+  group('MenuEditorRouteAdapter', () {
+    late _RecordingRouteNavigator navigator;
+    late MenuEditorRouteAdapter router;
 
     setUp(() {
-      navigator = _RecordingLegacyNavigator();
-      router = LegacyMenuEditorRouter(navigator);
+      navigator = _RecordingRouteNavigator();
+      router = MenuEditorRouteAdapter(navigator);
     });
 
     test('implements MenuEditorRouter', () {

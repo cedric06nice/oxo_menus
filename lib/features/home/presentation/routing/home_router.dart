@@ -2,7 +2,7 @@ import 'package:oxo_menus/core/routing/feature_router.dart';
 
 /// Navigation contract for the home feature.
 ///
-/// `LegacyHomeRouter` implements this in production; the [HomeViewModel]
+/// `HomeRouteAdapter` implements this in production; the [HomeViewModel]
 /// depends on it so the view model never sees `BuildContext` or any concrete
 /// router.
 abstract class HomeRouter implements FeatureRouter {

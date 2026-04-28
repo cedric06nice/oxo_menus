@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
-import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/forgot_password_router.dart';
-import 'package:oxo_menus/features/auth/presentation/routing/legacy_auth_router.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/auth_route_adapter.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/login_router.dart';
 import 'package:oxo_menus/features/auth/presentation/routing/reset_password_router.dart';
 
-class _RecordingLegacyNavigator implements LegacyNavigator {
+class _RecordingRouteNavigator implements RouteNavigator {
   final List<({String location, Object? extra})> calls = [];
 
   @override
@@ -16,13 +16,13 @@ class _RecordingLegacyNavigator implements LegacyNavigator {
 }
 
 void main() {
-  group('LegacyAuthRouter', () {
-    late _RecordingLegacyNavigator navigator;
-    late LegacyAuthRouter router;
+  group('AuthRouteAdapter', () {
+    late _RecordingRouteNavigator navigator;
+    late AuthRouteAdapter router;
 
     setUp(() {
-      navigator = _RecordingLegacyNavigator();
-      router = LegacyAuthRouter(navigator);
+      navigator = _RecordingRouteNavigator();
+      router = AuthRouteAdapter(navigator);
     });
 
     test(

@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
-import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
-import 'package:oxo_menus/features/menu_editor/presentation/routing/legacy_pdf_preview_router.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_route_adapter.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_router.dart';
 
-class _RecordingLegacyNavigator implements LegacyNavigator {
+class _RecordingRouteNavigator implements RouteNavigator {
   final List<({String location, Object? extra})> calls = [];
 
   @override
@@ -14,13 +14,13 @@ class _RecordingLegacyNavigator implements LegacyNavigator {
 }
 
 void main() {
-  group('LegacyPdfPreviewRouter', () {
-    late _RecordingLegacyNavigator navigator;
-    late LegacyPdfPreviewRouter router;
+  group('PdfPreviewRouteAdapter', () {
+    late _RecordingRouteNavigator navigator;
+    late PdfPreviewRouteAdapter router;
 
     setUp(() {
-      navigator = _RecordingLegacyNavigator();
-      router = LegacyPdfPreviewRouter(navigator);
+      navigator = _RecordingRouteNavigator();
+      router = PdfPreviewRouteAdapter(navigator);
     });
 
     test('implements PdfPreviewRouter', () {

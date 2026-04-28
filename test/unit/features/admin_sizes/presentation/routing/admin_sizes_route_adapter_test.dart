@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
-import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_router.dart';
-import 'package:oxo_menus/features/admin_sizes/presentation/routing/legacy_admin_sizes_router.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_route_adapter.dart';
 
-class _RecordingLegacyNavigator implements LegacyNavigator {
+class _RecordingRouteNavigator implements RouteNavigator {
   final List<({String location, Object? extra})> calls = [];
 
   @override
@@ -14,13 +14,13 @@ class _RecordingLegacyNavigator implements LegacyNavigator {
 }
 
 void main() {
-  group('LegacyAdminSizesRouter', () {
-    late _RecordingLegacyNavigator navigator;
-    late LegacyAdminSizesRouter router;
+  group('AdminSizesRouteAdapter', () {
+    late _RecordingRouteNavigator navigator;
+    late AdminSizesRouteAdapter router;
 
     setUp(() {
-      navigator = _RecordingLegacyNavigator();
-      router = LegacyAdminSizesRouter(navigator);
+      navigator = _RecordingRouteNavigator();
+      router = AdminSizesRouteAdapter(navigator);
     });
 
     test('implements AdminSizesRouter', () {

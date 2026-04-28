@@ -2,7 +2,7 @@ import 'package:oxo_menus/core/routing/feature_router.dart';
 
 /// Navigation contract for the consumer-facing menu editor feature.
 ///
-/// `LegacyMenuEditorRouter` implements this in production; the
+/// `MenuEditorRouteAdapter` implements this in production; the
 /// [MenuEditorViewModel] depends on it so the view model never sees
 /// `BuildContext` or any concrete router.
 abstract class MenuEditorRouter implements FeatureRouter {

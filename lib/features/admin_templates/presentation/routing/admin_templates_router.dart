@@ -2,7 +2,7 @@ import 'package:oxo_menus/core/routing/feature_router.dart';
 
 /// Navigation contract for the admin-templates feature.
 ///
-/// `LegacyAdminTemplatesRouter` implements this in production; the
+/// `AdminTemplatesRouteAdapter` implements this in production; the
 /// [AdminTemplatesViewModel] depends on it so the view model never sees
 /// `BuildContext` or any concrete router.
 abstract class AdminTemplatesRouter implements FeatureRouter {

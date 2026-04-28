@@ -7,7 +7,7 @@ import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
-import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/core/gateways/app_version_gateway.dart';
 import 'package:oxo_menus/shared/domain/entities/area.dart';
@@ -35,7 +35,7 @@ import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update
 import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_container_in_template_use_case.dart';
 import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_template_menu_use_case.dart';
 import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_widget_in_template_use_case.dart';
-import 'package:oxo_menus/features/admin_template_editor/presentation/routing/legacy_admin_template_editor_router.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/routing/admin_template_editor_route_adapter.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/screens/admin_template_editor_screen.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/view_models/admin_template_editor_view_model.dart';
 import 'package:oxo_menus/features/collaboration/domain/entities/menu_change_event.dart';
@@ -64,26 +64,26 @@ import 'package:oxo_menus/features/menu_editor/domain/use_cases/save_menu_use_ca
 import 'package:oxo_menus/features/menu_editor/domain/use_cases/unlock_widget_use_case.dart';
 import 'package:oxo_menus/features/menu_editor/domain/use_cases/update_widget_in_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_editor/domain/use_cases/watch_menu_changes_use_case.dart';
-import 'package:oxo_menus/features/menu_editor/presentation/routing/legacy_menu_editor_router.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/menu_editor_route_adapter.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/screens/menu_editor_screen.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/view_models/menu_editor_view_model.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/create_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/delete_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/list_menus_for_viewer_use_case.dart';
-import 'package:oxo_menus/features/menu_list/presentation/routing/legacy_menu_list_router.dart';
+import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_route_adapter.dart';
 import 'package:oxo_menus/features/menu_list/presentation/screens/menu_list_screen.dart';
 import 'package:oxo_menus/features/menu_list/presentation/view_models/menu_list_view_model.dart';
 import 'package:oxo_menus/features/settings/presentation/screens/settings_screen.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/features/menu_editor/domain/use_cases/generate_menu_pdf_use_case.dart';
-import 'package:oxo_menus/features/menu_editor/presentation/routing/legacy_pdf_preview_router.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_route_adapter.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/screens/pdf_preview_screen.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/view_models/pdf_preview_view_model.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/create_size_use_case.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/delete_size_use_case.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/list_sizes_for_admin_use_case.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/update_size_use_case.dart';
-import 'package:oxo_menus/features/admin_sizes/presentation/routing/legacy_admin_sizes_router.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_route_adapter.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/screens/admin_sizes_screen.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/view_models/admin_sizes_view_model.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/create_menu_bundle_for_admin_use_case.dart';
@@ -92,18 +92,18 @@ import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/list_
 import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/list_menu_bundles_for_admin_use_case.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/publish_menu_bundle_for_admin_use_case.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/update_menu_bundle_for_admin_use_case.dart';
-import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/legacy_admin_exportable_menus_router.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/admin_exportable_menus_route_adapter.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/presentation/screens/admin_exportable_menus_screen.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/presentation/view_models/admin_exportable_menus_view_model.dart';
 import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/create_template_use_case.dart';
 import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/list_areas_for_creator_use_case.dart';
 import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/list_sizes_for_creator_use_case.dart';
-import 'package:oxo_menus/features/admin_template_creator/presentation/routing/legacy_admin_template_creator_router.dart';
+import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_route_adapter.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/screens/admin_template_creator_screen.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/view_models/admin_template_creator_view_model.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/delete_template_use_case.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/list_templates_for_admin_use_case.dart';
-import 'package:oxo_menus/features/admin_templates/presentation/routing/legacy_admin_templates_router.dart';
+import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_adapter.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/screens/admin_templates_screen.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/view_models/admin_templates_view_model.dart';
 import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
@@ -209,8 +209,8 @@ class _FakeAppVersionGateway implements AppVersionGateway {
   Future<String> read() async => '1.0.0';
 }
 
-/// No-op [ListMenusForViewerUseCase] used by [_buildLegacyMenuListVm] so the
-/// legacy `/menus` host can stand up a [MenuListViewModel] without touching a
+/// No-op [ListMenusForViewerUseCase] used by [_buildMenuListVm] so the
+/// `/menus` host can stand up a [MenuListViewModel] without touching a
 /// real `DirectusDataSource`.
 class _StubListMenusForViewerUseCase implements ListMenusForViewerUseCase {
   @override
@@ -231,10 +231,10 @@ class _StubDeleteMenuUseCase implements DeleteMenuUseCase {
 }
 
 /// Builds a [MenuListViewModel] backed entirely by stubs — used by the router
-/// tests so the Phase 18 legacy `/menus` host can mount [MenuListScreen]
+/// tests so the Phase 18 `/menus` host can mount [MenuListScreen]
 /// without spinning up a real `DirectusDataSource`. Mirrors the existing
 /// [`_FakeDuplicateMenuUseCase`] pattern above.
-MenuListViewModel _buildLegacyMenuListVm(
+MenuListViewModel _buildMenuListVm(
   BuildContext context,
   AppContainer container,
 ) {
@@ -245,12 +245,12 @@ MenuListViewModel _buildLegacyMenuListVm(
     duplicateMenu: _FakeDuplicateMenuUseCase(),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyMenuListRouter(GoRouterLegacyNavigator(context)),
+    router: MenuListRouteAdapter(GoRouterRouteNavigator(context)),
   );
 }
 
-/// No-op [ListTemplatesForAdminUseCase] used by [_buildLegacyAdminTemplatesVm]
-/// so the legacy `/admin/templates` host can stand up an
+/// No-op [ListTemplatesForAdminUseCase] used by [_buildAdminTemplatesVm]
+/// so the `/admin/templates` host can stand up an
 /// [AdminTemplatesViewModel] without touching a real `DirectusDataSource`.
 class _StubListTemplatesForAdminUseCase
     implements ListTemplatesForAdminUseCase {
@@ -267,9 +267,9 @@ class _StubDeleteTemplateUseCase implements DeleteTemplateUseCase {
 }
 
 /// Builds an [AdminTemplatesViewModel] backed entirely by stubs — used by the
-/// router tests so the Phase 19 legacy `/admin/templates` host can mount
+/// router tests so the Phase 19 `/admin/templates` host can mount
 /// [AdminTemplatesScreen] without spinning up a real `DirectusDataSource`.
-AdminTemplatesViewModel _buildLegacyAdminTemplatesVm(
+AdminTemplatesViewModel _buildAdminTemplatesVm(
   BuildContext context,
   AppContainer container,
 ) {
@@ -278,12 +278,12 @@ AdminTemplatesViewModel _buildLegacyAdminTemplatesVm(
     deleteTemplate: _StubDeleteTemplateUseCase(),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyAdminTemplatesRouter(GoRouterLegacyNavigator(context)),
+    router: AdminTemplatesRouteAdapter(GoRouterRouteNavigator(context)),
   );
 }
 
-/// Empty-list [ListSizesForAdminUseCase] used by [_buildLegacyAdminSizesVm] so
-/// the legacy `/admin/sizes` host can stand up an [AdminSizesViewModel]
+/// Empty-list [ListSizesForAdminUseCase] used by [_buildAdminSizesVm] so
+/// the `/admin/sizes` host can stand up an [AdminSizesViewModel]
 /// without touching a real `DirectusDataSource`.
 class _StubListSizesForAdminUseCase implements ListSizesForAdminUseCase {
   @override
@@ -313,9 +313,9 @@ class _StubDeleteSizeUseCase implements DeleteSizeUseCase {
 }
 
 /// Builds an [AdminSizesViewModel] backed entirely by stubs — used by the
-/// router tests so the Phase 20 legacy `/admin/sizes` host can mount
+/// router tests so the Phase 20 `/admin/sizes` host can mount
 /// [AdminSizesScreen] without spinning up a real `DirectusDataSource`.
-AdminSizesViewModel _buildLegacyAdminSizesVm(
+AdminSizesViewModel _buildAdminSizesVm(
   BuildContext context,
   AppContainer container,
 ) {
@@ -326,14 +326,13 @@ AdminSizesViewModel _buildLegacyAdminSizesVm(
     deleteSize: _StubDeleteSizeUseCase(),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyAdminSizesRouter(GoRouterLegacyNavigator(context)),
+    router: AdminSizesRouteAdapter(GoRouterRouteNavigator(context)),
   );
 }
 
 /// Empty-list [ListSizesForCreatorUseCase] used by
-/// [_buildLegacyAdminTemplateCreatorVm] so the legacy
-/// `/admin/templates/create` host can stand up an
-/// [AdminTemplateCreatorViewModel] without touching a real
+/// [_buildAdminTemplateCreatorVm] so the `/admin/templates/create` host can
+/// stand up an [AdminTemplateCreatorViewModel] without touching a real
 /// `DirectusDataSource`.
 class _StubListSizesForCreatorUseCase implements ListSizesForCreatorUseCase {
   @override
@@ -355,10 +354,10 @@ class _StubCreateTemplateUseCase implements CreateTemplateUseCase {
 }
 
 /// Builds an [AdminTemplateCreatorViewModel] backed entirely by stubs — used
-/// by the router tests so the Phase 21 legacy `/admin/templates/create` host
+/// by the router tests so the Phase 21 `/admin/templates/create` host
 /// can mount [AdminTemplateCreatorScreen] without spinning up a real
 /// `DirectusDataSource`.
-AdminTemplateCreatorViewModel _buildLegacyAdminTemplateCreatorVm(
+AdminTemplateCreatorViewModel _buildAdminTemplateCreatorVm(
   BuildContext context,
   AppContainer container,
 ) {
@@ -368,12 +367,12 @@ AdminTemplateCreatorViewModel _buildLegacyAdminTemplateCreatorVm(
     createTemplate: _StubCreateTemplateUseCase(),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyAdminTemplateCreatorRouter(GoRouterLegacyNavigator(context)),
+    router: AdminTemplateCreatorRouteAdapter(GoRouterRouteNavigator(context)),
   );
 }
 
 /// [GenerateMenuPdfUseCase] that always fails. Used by the Phase 22 router
-/// test so the legacy `/menus/pdf/:id` host can mount [PdfPreviewScreen]
+/// test so the `/menus/pdf/:id` host can mount [PdfPreviewScreen]
 /// without spinning up a real `DirectusDataSource` — the screen settles into
 /// its error state immediately, which is enough for the cutover assertion.
 class _StubGenerateMenuPdfUseCase implements GenerateMenuPdfUseCase {
@@ -384,9 +383,9 @@ class _StubGenerateMenuPdfUseCase implements GenerateMenuPdfUseCase {
 }
 
 /// Builds a [PdfPreviewViewModel] backed entirely by stubs — used by the
-/// router tests so the Phase 22 legacy `/menus/pdf/:id` host can mount
+/// router tests so the Phase 22 `/menus/pdf/:id` host can mount
 /// [PdfPreviewScreen] without spinning up a real `DirectusDataSource`.
-PdfPreviewViewModel _buildLegacyPdfPreviewVm(
+PdfPreviewViewModel _buildPdfPreviewVm(
   BuildContext context,
   AppContainer container,
   int menuId,
@@ -394,12 +393,12 @@ PdfPreviewViewModel _buildLegacyPdfPreviewVm(
   return PdfPreviewViewModel(
     menuId: menuId,
     generatePdf: _StubGenerateMenuPdfUseCase(),
-    router: LegacyPdfPreviewRouter(GoRouterLegacyNavigator(context)),
+    router: PdfPreviewRouteAdapter(GoRouterRouteNavigator(context)),
   );
 }
 
-/// Empty-list / no-op use cases used by [_buildLegacyAdminExportableMenusVm]
-/// so the legacy `/admin/exportable_menus` host can stand up an
+/// Empty-list / no-op use cases used by [_buildAdminExportableMenusVm]
+/// so the `/admin/exportable_menus` host can stand up an
 /// [AdminExportableMenusViewModel] without touching a real
 /// `DirectusDataSource`. Each stub returns a [Failure] or an empty [Success]
 /// — enough for the cutover assertion that the screen mounts.
@@ -448,12 +447,12 @@ class _StubPublishMenuBundleForAdminUseCase
 }
 
 // ---------------------------------------------------------------------------
-// Phase 24 — stubs for legacy /menus/:id and /admin/templates/:id hosts
+// Phase 24 — stubs for /menus/:id and /admin/templates/:id hosts
 // ---------------------------------------------------------------------------
 //
 // MenuEditorViewModel and AdminTemplateEditorViewModel each take a long list
 // of use cases as constructor arguments. The cutover assertion is just "the
-// MVVM screen mounts at the legacy path" — the screen settles into its error
+// MVVM screen mounts at the canonical path" — the screen settles into its error
 // or empty state immediately, which is enough. Each stub `implements` the
 // concrete use case and returns Failure / empty Success / empty Stream so no
 // repository, websocket, or timer is touched.
@@ -557,9 +556,9 @@ class _StubMenuPresenceUseCase implements MenuPresenceUseCase {
 }
 
 /// Builds a [MenuEditorViewModel] backed entirely by stubs — used by the
-/// router tests so the Phase 24 legacy `/menus/:id` host can mount
+/// router tests so the Phase 24 `/menus/:id` host can mount
 /// [MenuEditorScreen] without spinning up a real `DirectusDataSource`.
-MenuEditorViewModel _buildLegacyMenuEditorVm(
+MenuEditorViewModel _buildMenuEditorVm(
   BuildContext context,
   AppContainer container,
   int menuId,
@@ -568,7 +567,7 @@ MenuEditorViewModel _buildLegacyMenuEditorVm(
     menuId: menuId,
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyMenuEditorRouter(GoRouterLegacyNavigator(context)),
+    router: MenuEditorRouteAdapter(GoRouterRouteNavigator(context)),
     loadMenu: _StubLoadMenuForEditorUseCase(),
     createWidget: _StubCreateWidgetInMenuUseCase(),
     updateWidget: _StubUpdateWidgetInMenuUseCase(),
@@ -716,10 +715,10 @@ class _StubListSizesForTemplateUseCase implements ListSizesForTemplateUseCase {
 }
 
 /// Builds an [AdminTemplateEditorViewModel] backed entirely by stubs — used by
-/// the router tests so the Phase 24 legacy `/admin/templates/:id` host can
+/// the router tests so the Phase 24 `/admin/templates/:id` host can
 /// mount [AdminTemplateEditorScreen] without spinning up a real
 /// `DirectusDataSource`.
-AdminTemplateEditorViewModel _buildLegacyAdminTemplateEditorVm(
+AdminTemplateEditorViewModel _buildAdminTemplateEditorVm(
   BuildContext context,
   AppContainer container,
   int menuId,
@@ -728,7 +727,7 @@ AdminTemplateEditorViewModel _buildLegacyAdminTemplateEditorVm(
     menuId: menuId,
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyAdminTemplateEditorRouter(GoRouterLegacyNavigator(context)),
+    router: AdminTemplateEditorRouteAdapter(GoRouterRouteNavigator(context)),
     loadTemplate: _StubLoadTemplateForEditorUseCase(),
     createPage: _StubCreatePageInTemplateUseCase(),
     deletePage: _StubDeletePageInTemplateUseCase(),
@@ -751,10 +750,10 @@ AdminTemplateEditorViewModel _buildLegacyAdminTemplateEditorVm(
 }
 
 /// Builds an [AdminExportableMenusViewModel] backed entirely by stubs — used
-/// by the router tests so the Phase 23 legacy `/admin/exportable_menus` host
+/// by the router tests so the Phase 23 `/admin/exportable_menus` host
 /// can mount [AdminExportableMenusScreen] without spinning up a real
 /// `DirectusDataSource`.
-AdminExportableMenusViewModel _buildLegacyAdminExportableMenusVm(
+AdminExportableMenusViewModel _buildAdminExportableMenusVm(
   BuildContext context,
   AppContainer container,
 ) {
@@ -767,7 +766,7 @@ AdminExportableMenusViewModel _buildLegacyAdminExportableMenusVm(
     publishBundle: _StubPublishMenuBundleForAdminUseCase(),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyAdminExportableMenusRouter(GoRouterLegacyNavigator(context)),
+    router: AdminExportableMenusRouteAdapter(GoRouterRouteNavigator(context)),
   );
 }
 
@@ -795,7 +794,7 @@ Widget _buildApp({
       duplicateMenuUseCaseProvider.overrideWithValue(
         _FakeDuplicateMenuUseCase(),
       ),
-      // Phase 15 — the legacy /login, /forgot-password, /reset-password
+      // Phase 15 — the /login, /forgot-password, /reset-password
       // GoRoutes mount the MVVM screens directly, which read use cases and
       // gateways through the AppContainer. Wire it up so the same
       // AuthGateway backs the auth state machine and the auth screens.
@@ -809,57 +808,49 @@ Widget _buildApp({
           appVersionGateway: appVersionGateway,
         ),
       ),
-      // Phase 18 — the legacy /menus GoRoute mounts MenuListScreen, whose
+      // Phase 18 — the /menus GoRoute mounts MenuListScreen, whose
       // ViewModel needs a live DirectusDataSource. Override the builder so
       // the router tests can mount the screen without one.
-      legacyMenuListViewModelBuilderProvider.overrideWithValue(
-        _buildLegacyMenuListVm,
-      ),
-      // Phase 19 — the legacy /admin/templates GoRoute mounts
+      menuListViewModelBuilderProvider.overrideWithValue(_buildMenuListVm),
+      // Phase 19 — the /admin/templates GoRoute mounts
       // AdminTemplatesScreen, whose ViewModel needs a live DirectusDataSource.
       // Override the builder so the router tests can mount the screen
       // without one.
-      legacyAdminTemplatesViewModelBuilderProvider.overrideWithValue(
-        _buildLegacyAdminTemplatesVm,
+      adminTemplatesViewModelBuilderProvider.overrideWithValue(
+        _buildAdminTemplatesVm,
       ),
-      // Phase 20 — the legacy /admin/sizes GoRoute mounts AdminSizesScreen,
+      // Phase 20 — the /admin/sizes GoRoute mounts AdminSizesScreen,
       // whose ViewModel needs a live DirectusDataSource. Override the builder
       // so the router tests can mount the screen without one.
-      legacyAdminSizesViewModelBuilderProvider.overrideWithValue(
-        _buildLegacyAdminSizesVm,
-      ),
-      // Phase 21 — the legacy /admin/templates/create GoRoute mounts
+      adminSizesViewModelBuilderProvider.overrideWithValue(_buildAdminSizesVm),
+      // Phase 21 — the /admin/templates/create GoRoute mounts
       // AdminTemplateCreatorScreen, whose ViewModel needs a live
       // DirectusDataSource. Override the builder so the router tests can mount
       // the screen without one.
-      legacyAdminTemplateCreatorViewModelBuilderProvider.overrideWithValue(
-        _buildLegacyAdminTemplateCreatorVm,
+      adminTemplateCreatorViewModelBuilderProvider.overrideWithValue(
+        _buildAdminTemplateCreatorVm,
       ),
-      // Phase 22 — the legacy /menus/pdf/:id GoRoute mounts PdfPreviewScreen,
+      // Phase 22 — the /menus/pdf/:id GoRoute mounts PdfPreviewScreen,
       // whose ViewModel needs a live DirectusDataSource. Override the builder
       // so the router tests can mount the screen without one.
-      legacyPdfPreviewViewModelBuilderProvider.overrideWithValue(
-        _buildLegacyPdfPreviewVm,
-      ),
-      // Phase 23 — the legacy /admin/exportable_menus GoRoute mounts
+      pdfPreviewViewModelBuilderProvider.overrideWithValue(_buildPdfPreviewVm),
+      // Phase 23 — the /admin/exportable_menus GoRoute mounts
       // AdminExportableMenusScreen, whose ViewModel needs a live
       // DirectusDataSource. Override the builder so the router tests can
       // mount the screen without one.
-      legacyAdminExportableMenusViewModelBuilderProvider.overrideWithValue(
-        _buildLegacyAdminExportableMenusVm,
+      adminExportableMenusViewModelBuilderProvider.overrideWithValue(
+        _buildAdminExportableMenusVm,
       ),
-      // Phase 24 — the legacy /menus/:id GoRoute mounts MenuEditorScreen,
+      // Phase 24 — the /menus/:id GoRoute mounts MenuEditorScreen,
       // whose ViewModel needs a live DirectusDataSource. Override the builder
       // so the router tests can mount the screen without one.
-      legacyMenuEditorViewModelBuilderProvider.overrideWithValue(
-        _buildLegacyMenuEditorVm,
-      ),
-      // Phase 24 — the legacy /admin/templates/:id GoRoute mounts
+      menuEditorViewModelBuilderProvider.overrideWithValue(_buildMenuEditorVm),
+      // Phase 24 — the /admin/templates/:id GoRoute mounts
       // AdminTemplateEditorScreen, whose ViewModel needs a live
       // DirectusDataSource. Override the builder so the router tests can
       // mount the screen without one.
-      legacyAdminTemplateEditorViewModelBuilderProvider.overrideWithValue(
-        _buildLegacyAdminTemplateEditorVm,
+      adminTemplateEditorViewModelBuilderProvider.overrideWithValue(
+        _buildAdminTemplateEditorVm,
       ),
       ...extraOverrides.cast(),
     ],
@@ -1150,11 +1141,11 @@ void main() {
     });
   });
 
-  // Phase 15 — the legacy /login, /forgot-password, /reset-password GoRoutes
+  // Phase 15 — the /login, /forgot-password, /reset-password GoRoutes
   // now host the MVVM screens directly (LoginScreen, ForgotPasswordScreen,
   // ResetPasswordScreen) instead of the retired *_page.dart widgets. These
   // tests pin the cutover so the screens cannot silently regress.
-  group('AppRouter — legacy auth paths host MVVM screens', () {
+  group('AppRouter — auth paths host MVVM screens', () {
     testWidgets('/login mounts LoginScreen', (tester) async {
       final fakeAuth = FakeAuthRepository();
       fakeAuth.defaultTryRestoreSessionResponse = const Failure(
@@ -1269,10 +1260,10 @@ void main() {
     });
   });
 
-  // Phase 17 — the legacy /home GoRoute now hosts the MVVM HomeScreen
+  // Phase 17 — the /home GoRoute now hosts the MVVM HomeScreen
   // directly instead of the retired HomePage widget. This test pins the
   // cutover so the screen cannot silently regress.
-  group('AppRouter — legacy /home hosts MVVM screen', () {
+  group('AppRouter — /home hosts MVVM screen', () {
     testWidgets('/home mounts HomeScreen', (tester) async {
       final fakeAuth = FakeAuthRepository();
       fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
@@ -1298,10 +1289,10 @@ void main() {
     });
   });
 
-  // Phase 18 — the legacy /menus GoRoute now hosts the MVVM MenuListScreen
+  // Phase 18 — the /menus GoRoute now hosts the MVVM MenuListScreen
   // directly instead of the retired MenuListPage widget. This test pins the
   // cutover so the screen cannot silently regress.
-  group('AppRouter — legacy /menus hosts MVVM screen', () {
+  group('AppRouter — /menus hosts MVVM screen', () {
     testWidgets('/menus mounts MenuListScreen', (tester) async {
       final fakeAuth = FakeAuthRepository();
       fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
@@ -1327,10 +1318,10 @@ void main() {
     });
   });
 
-  // Phase 19 — the legacy /admin/templates GoRoute now hosts the MVVM
+  // Phase 19 — the /admin/templates GoRoute now hosts the MVVM
   // AdminTemplatesScreen directly instead of the retired AdminTemplatesPage
   // widget. This test pins the cutover so the screen cannot silently regress.
-  group('AppRouter — legacy /admin/templates hosts MVVM screen', () {
+  group('AppRouter — /admin/templates hosts MVVM screen', () {
     testWidgets('/admin/templates mounts AdminTemplatesScreen', (tester) async {
       final fakeAuth = FakeAuthRepository();
       fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
@@ -1356,10 +1347,10 @@ void main() {
     });
   });
 
-  // Phase 20 — the legacy /admin/sizes GoRoute now hosts the MVVM
+  // Phase 20 — the /admin/sizes GoRoute now hosts the MVVM
   // AdminSizesScreen directly instead of the retired AdminSizesPage widget.
   // This test pins the cutover so the screen cannot silently regress.
-  group('AppRouter — legacy /admin/sizes hosts MVVM screen', () {
+  group('AppRouter — /admin/sizes hosts MVVM screen', () {
     testWidgets('/admin/sizes mounts AdminSizesScreen', (tester) async {
       final fakeAuth = FakeAuthRepository();
       fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
@@ -1385,10 +1376,10 @@ void main() {
     });
   });
 
-  // Phase 16 — the legacy /settings GoRoute now hosts the MVVM SettingsScreen
+  // Phase 16 — the /settings GoRoute now hosts the MVVM SettingsScreen
   // directly instead of the retired SettingsPage widget. This test pins the
   // cutover so the screen cannot silently regress.
-  group('AppRouter — legacy /settings hosts MVVM screen', () {
+  group('AppRouter — /settings hosts MVVM screen', () {
     testWidgets('/settings mounts SettingsScreen', (tester) async {
       final fakeAuth = FakeAuthRepository();
       fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
@@ -1474,7 +1465,7 @@ void main() {
 
   // /menus/:id hosts the MVVM MenuEditorScreen directly. Pins the cutover so
   // the screen cannot silently regress.
-  group('AppRouter — legacy /menus/:id hosts MVVM screen', () {
+  group('AppRouter — /menus/:id hosts MVVM screen', () {
     testWidgets('/menus/2 mounts MenuEditorScreen', (tester) async {
       final fakeAuth = FakeAuthRepository();
       fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
@@ -1502,7 +1493,7 @@ void main() {
 
   // /admin/templates/:id hosts the MVVM AdminTemplateEditorScreen directly.
   // Pins the cutover so the screen cannot silently regress.
-  group('AppRouter — legacy /admin/templates/:id hosts MVVM screen', () {
+  group('AppRouter — /admin/templates/:id hosts MVVM screen', () {
     testWidgets('/admin/templates/3 mounts AdminTemplateEditorScreen', (
       tester,
     ) async {
@@ -1532,7 +1523,7 @@ void main() {
 
   // /admin/templates/create hosts the MVVM AdminTemplateCreatorScreen
   // directly. Pins the cutover so the screen cannot silently regress.
-  group('AppRouter — legacy /admin/templates/create hosts MVVM screen', () {
+  group('AppRouter — /admin/templates/create hosts MVVM screen', () {
     testWidgets('/admin/templates/create mounts AdminTemplateCreatorScreen', (
       tester,
     ) async {
@@ -1560,10 +1551,10 @@ void main() {
     });
   });
 
-  // Phase 22 — the legacy /menus/pdf/:id GoRoute now hosts the MVVM
+  // Phase 22 — the /menus/pdf/:id GoRoute now hosts the MVVM
   // PdfPreviewScreen directly instead of the retired PdfPreviewPage widget.
   // This test pins the cutover so the screen cannot silently regress.
-  group('AppRouter — legacy /menus/pdf/:id hosts MVVM screen', () {
+  group('AppRouter — /menus/pdf/:id hosts MVVM screen', () {
     testWidgets('/menus/pdf/1 mounts PdfPreviewScreen', (tester) async {
       final fakeAuth = FakeAuthRepository();
       fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
@@ -1589,11 +1580,11 @@ void main() {
     });
   });
 
-  // Phase 23 — the legacy /admin/exportable_menus GoRoute now hosts the MVVM
+  // Phase 23 — the /admin/exportable_menus GoRoute now hosts the MVVM
   // AdminExportableMenusScreen directly instead of the retired
   // AdminExportableMenusPage widget. This test pins the cutover so the screen
   // cannot silently regress.
-  group('AppRouter — legacy /admin/exportable_menus hosts MVVM screen', () {
+  group('AppRouter — /admin/exportable_menus hosts MVVM screen', () {
     testWidgets('/admin/exportable_menus mounts AdminExportableMenusScreen', (
       tester,
     ) async {

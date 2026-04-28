@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
-import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
-import 'package:oxo_menus/features/menu_list/presentation/routing/legacy_menu_list_router.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
+import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_route_adapter.dart';
 import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_router.dart';
 
-class _RecordingLegacyNavigator implements LegacyNavigator {
+class _RecordingRouteNavigator implements RouteNavigator {
   final List<({String location, Object? extra})> calls = [];
 
   @override
@@ -14,20 +14,20 @@ class _RecordingLegacyNavigator implements LegacyNavigator {
 }
 
 void main() {
-  group('LegacyMenuListRouter', () {
-    late _RecordingLegacyNavigator navigator;
-    late LegacyMenuListRouter router;
+  group('MenuListRouteAdapter', () {
+    late _RecordingRouteNavigator navigator;
+    late MenuListRouteAdapter router;
 
     setUp(() {
-      navigator = _RecordingLegacyNavigator();
-      router = LegacyMenuListRouter(navigator);
+      navigator = _RecordingRouteNavigator();
+      router = MenuListRouteAdapter(navigator);
     });
 
     test('implements MenuListRouter', () {
       expect(router, isA<MenuListRouter>());
     });
 
-    test('goToMenuEditor forwards to the legacy /menus/{id} path', () {
+    test('goToMenuEditor forwards to the /menus/{id} path', () {
       router.goToMenuEditor(42);
 
       expect(navigator.calls, hasLength(1));
@@ -35,7 +35,7 @@ void main() {
       expect(navigator.calls.single.extra, isNull);
     });
 
-    test('goToAdminTemplateEditor forwards to the legacy '
+    test('goToAdminTemplateEditor forwards to the '
         '/admin/templates/{id} path', () {
       router.goToAdminTemplateEditor(7);
 

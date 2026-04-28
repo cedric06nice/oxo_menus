@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
-import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/create_menu_bundle_for_admin_use_case.dart';
@@ -13,7 +13,7 @@ import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/list_
 import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/list_menu_bundles_for_admin_use_case.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/publish_menu_bundle_for_admin_use_case.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/update_menu_bundle_for_admin_use_case.dart';
-import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/legacy_admin_exportable_menus_router.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/admin_exportable_menus_route_adapter.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/presentation/screens/admin_exportable_menus_screen.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/presentation/view_models/admin_exportable_menus_view_model.dart';
 import 'package:oxo_menus/features/menu/data/repositories/menu_bundle_repository_impl.dart';
@@ -23,13 +23,13 @@ import 'package:oxo_menus/features/admin_sizes/domain/use_cases/create_size_use_
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/delete_size_use_case.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/list_sizes_for_admin_use_case.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/update_size_use_case.dart';
-import 'package:oxo_menus/features/admin_sizes/presentation/routing/legacy_admin_sizes_router.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/routing/admin_sizes_route_adapter.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/screens/admin_sizes_screen.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/view_models/admin_sizes_view_model.dart';
 import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/create_template_use_case.dart';
 import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/list_areas_for_creator_use_case.dart';
 import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/list_sizes_for_creator_use_case.dart';
-import 'package:oxo_menus/features/admin_template_creator/presentation/routing/legacy_admin_template_creator_router.dart';
+import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_route_adapter.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/screens/admin_template_creator_screen.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/view_models/admin_template_creator_view_model.dart';
 import 'package:oxo_menus/shared/data/repositories/area_repository_impl.dart';
@@ -51,12 +51,12 @@ import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update
 import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_container_in_template_use_case.dart';
 import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_template_menu_use_case.dart';
 import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_widget_in_template_use_case.dart';
-import 'package:oxo_menus/features/admin_template_editor/presentation/routing/legacy_admin_template_editor_router.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/routing/admin_template_editor_route_adapter.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/screens/admin_template_editor_screen.dart';
 import 'package:oxo_menus/features/admin_template_editor/presentation/view_models/admin_template_editor_view_model.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/delete_template_use_case.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/list_templates_for_admin_use_case.dart';
-import 'package:oxo_menus/features/admin_templates/presentation/routing/legacy_admin_templates_router.dart';
+import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_adapter.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/screens/admin_templates_screen.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/view_models/admin_templates_view_model.dart';
 import 'package:oxo_menus/features/collaboration/data/repositories/menu_subscription_repository_impl.dart';
@@ -64,7 +64,7 @@ import 'package:oxo_menus/features/collaboration/data/repositories/presence_repo
 import 'package:oxo_menus/features/auth/domain/use_cases/confirm_password_reset_use_case.dart';
 import 'package:oxo_menus/features/auth/domain/use_cases/login_use_case.dart';
 import 'package:oxo_menus/features/auth/domain/use_cases/request_password_reset_use_case.dart';
-import 'package:oxo_menus/features/auth/presentation/routing/legacy_auth_router.dart';
+import 'package:oxo_menus/features/auth/presentation/routing/auth_route_adapter.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/login_screen.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/reset_password_screen.dart';
@@ -72,7 +72,7 @@ import 'package:oxo_menus/features/auth/presentation/view_models/forgot_password
 import 'package:oxo_menus/features/auth/presentation/view_models/login_view_model.dart';
 import 'package:oxo_menus/features/auth/presentation/view_models/reset_password_view_model.dart';
 import 'package:oxo_menus/features/home/domain/use_cases/get_home_overview_use_case.dart';
-import 'package:oxo_menus/features/home/presentation/routing/legacy_home_router.dart';
+import 'package:oxo_menus/features/home/presentation/routing/home_route_adapter.dart';
 import 'package:oxo_menus/features/home/presentation/screens/home_screen.dart';
 import 'package:oxo_menus/features/home/presentation/view_models/home_view_model.dart';
 import 'package:oxo_menus/features/menu/data/repositories/column_repository_impl.dart';
@@ -99,8 +99,8 @@ import 'package:oxo_menus/features/menu_editor/domain/use_cases/save_menu_use_ca
 import 'package:oxo_menus/features/menu_editor/domain/use_cases/unlock_widget_use_case.dart';
 import 'package:oxo_menus/features/menu_editor/domain/use_cases/update_widget_in_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_editor/domain/use_cases/watch_menu_changes_use_case.dart';
-import 'package:oxo_menus/features/menu_editor/presentation/routing/legacy_menu_editor_router.dart';
-import 'package:oxo_menus/features/menu_editor/presentation/routing/legacy_pdf_preview_router.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/menu_editor_route_adapter.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/pdf_preview_route_adapter.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/screens/menu_editor_screen.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/screens/pdf_preview_screen.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/view_models/menu_editor_view_model.dart';
@@ -110,7 +110,7 @@ import 'package:oxo_menus/shared/data/repositories/file_repository_impl.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/create_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/delete_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/list_menus_for_viewer_use_case.dart';
-import 'package:oxo_menus/features/menu_list/presentation/routing/legacy_menu_list_router.dart';
+import 'package:oxo_menus/features/menu_list/presentation/routing/menu_list_route_adapter.dart';
 import 'package:oxo_menus/features/menu_list/presentation/screens/menu_list_screen.dart';
 import 'package:oxo_menus/features/menu_list/presentation/view_models/menu_list_view_model.dart';
 import 'package:oxo_menus/features/settings/domain/use_cases/get_app_version_use_case.dart';
@@ -119,7 +119,7 @@ import 'package:oxo_menus/features/settings/domain/use_cases/logout_use_case.dar
 import 'package:oxo_menus/features/settings/domain/use_cases/request_password_reset_use_case.dart'
     as settings_request_password_reset;
 import 'package:oxo_menus/features/settings/domain/use_cases/set_admin_view_as_user_use_case.dart';
-import 'package:oxo_menus/features/settings/presentation/routing/legacy_settings_router.dart';
+import 'package:oxo_menus/features/settings/presentation/routing/settings_route_adapter.dart';
 import 'package:oxo_menus/features/settings/presentation/screens/settings_screen.dart';
 import 'package:oxo_menus/features/settings/presentation/view_models/settings_view_model.dart';
 import 'package:oxo_menus/shared/presentation/providers/auth_provider.dart';
@@ -235,15 +235,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'splash',
         builder: (context, state) => const _SplashScreen(),
       ),
-      // Phase 15 — auth screens are served by the MVVM stack at the legacy
-      // paths. The retired `*_page.dart` widgets used to live here. Each host
-      // owns the ViewModel and disposes it when the route leaves the stack.
+      // Auth screens are served by the MVVM stack at the canonical paths.
+      // Each host owns the ViewModel and disposes it when the route leaves
+      // the stack.
       GoRoute(
         path: AppRoutes.login,
         name: 'login',
         builder: (context, state) {
           final container = ref.watch(appContainerProvider);
-          return _LegacyLoginRouteHost(container: container);
+          return _LoginRouteHost(container: container);
         },
       ),
       GoRoute(
@@ -251,7 +251,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'forgot-password',
         builder: (context, state) {
           final container = ref.watch(appContainerProvider);
-          return _LegacyForgotPasswordRouteHost(container: container);
+          return _ForgotPasswordRouteHost(container: container);
         },
       ),
       GoRoute(
@@ -259,7 +259,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'reset-password',
         builder: (context, state) {
           final container = ref.watch(appContainerProvider);
-          return _LegacyResetPasswordRouteHost(
+          return _ResetPasswordRouteHost(
             container: container,
             token: state.uri.queryParameters['token'],
           );
@@ -274,7 +274,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'home',
             builder: (context, state) {
               final container = ref.watch(appContainerProvider);
-              return _LegacyHomeRouteHost(container: container);
+              return _HomeRouteHost(container: container);
             },
           ),
           GoRoute(
@@ -282,7 +282,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'settings',
             builder: (context, state) {
               final container = ref.watch(appContainerProvider);
-              return _LegacySettingsRouteHost(container: container);
+              return _SettingsRouteHost(container: container);
             },
           ),
           GoRoute(
@@ -290,11 +290,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'menus',
             builder: (context, state) {
               final container = ref.watch(appContainerProvider);
-              final builder = ref.read(legacyMenuListViewModelBuilderProvider);
-              return _LegacyMenuListRouteHost(
-                container: container,
-                builder: builder,
-              );
+              final builder = ref.read(menuListViewModelBuilderProvider);
+              return _MenuListRouteHost(container: container, builder: builder);
             },
             routes: [
               GoRoute(
@@ -303,10 +300,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final int menuId = int.parse(state.pathParameters['id']!);
                   final container = ref.watch(appContainerProvider);
-                  final builder = ref.read(
-                    legacyPdfPreviewViewModelBuilderProvider,
-                  );
-                  return _LegacyPdfPreviewRouteHost(
+                  final builder = ref.read(pdfPreviewViewModelBuilderProvider);
+                  return _PdfPreviewRouteHost(
                     container: container,
                     builder: builder,
                     menuId: menuId,
@@ -314,17 +309,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 },
               ),
               // /menus/:id hosts the MVVM MenuEditorScreen directly via
-              // _LegacyMenuEditorRouteHost.
+              // _MenuEditorRouteHost.
               GoRoute(
                 path: ':id',
                 name: 'menu-editor',
                 builder: (context, state) {
                   final int menuId = int.parse(state.pathParameters['id']!);
                   final container = ref.watch(appContainerProvider);
-                  final builder = ref.read(
-                    legacyMenuEditorViewModelBuilderProvider,
-                  );
-                  return _LegacyMenuEditorRouteHost(
+                  final builder = ref.read(menuEditorViewModelBuilderProvider);
+                  return _MenuEditorRouteHost(
                     container: container,
                     builder: builder,
                     menuId: menuId,
@@ -338,10 +331,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'admin-sizes',
             builder: (context, state) {
               final container = ref.watch(appContainerProvider);
-              final builder = ref.read(
-                legacyAdminSizesViewModelBuilderProvider,
-              );
-              return _LegacyAdminSizesRouteHost(
+              final builder = ref.read(adminSizesViewModelBuilderProvider);
+              return _AdminSizesRouteHost(
                 container: container,
                 builder: builder,
               );
@@ -353,9 +344,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final container = ref.watch(appContainerProvider);
               final builder = ref.read(
-                legacyAdminExportableMenusViewModelBuilderProvider,
+                adminExportableMenusViewModelBuilderProvider,
               );
-              return _LegacyAdminExportableMenusRouteHost(
+              return _AdminExportableMenusRouteHost(
                 container: container,
                 builder: builder,
               );
@@ -366,10 +357,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'admin-templates',
             builder: (context, state) {
               final container = ref.watch(appContainerProvider);
-              final builder = ref.read(
-                legacyAdminTemplatesViewModelBuilderProvider,
-              );
-              return _LegacyAdminTemplatesRouteHost(
+              final builder = ref.read(adminTemplatesViewModelBuilderProvider);
+              return _AdminTemplatesRouteHost(
                 container: container,
                 builder: builder,
               );
@@ -381,9 +370,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final container = ref.watch(appContainerProvider);
                   final builder = ref.read(
-                    legacyAdminTemplateCreatorViewModelBuilderProvider,
+                    adminTemplateCreatorViewModelBuilderProvider,
                   );
-                  return _LegacyAdminTemplateCreatorRouteHost(
+                  return _AdminTemplateCreatorRouteHost(
                     container: container,
                     builder: builder,
                   );
@@ -391,7 +380,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
               // /admin/templates/:id hosts the MVVM
               // AdminTemplateEditorScreen directly via
-              // _LegacyAdminTemplateEditorRouteHost.
+              // _AdminTemplateEditorRouteHost.
               GoRoute(
                 path: ':id',
                 name: 'admin-template-editor',
@@ -399,9 +388,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   final int menuId = int.parse(state.pathParameters['id']!);
                   final container = ref.watch(appContainerProvider);
                   final builder = ref.read(
-                    legacyAdminTemplateEditorViewModelBuilderProvider,
+                    adminTemplateEditorViewModelBuilderProvider,
                   );
-                  return _LegacyAdminTemplateEditorRouteHost(
+                  return _AdminTemplateEditorRouteHost(
                     container: container,
                     builder: builder,
                     menuId: menuId,
@@ -417,24 +406,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 });
 
 // ---------------------------------------------------------------------------
-// Phase 15 — legacy auth route hosts
+// Phase 15 — auth route hosts
 //
 // Each host is a small StatefulWidget that owns the ViewModel for its screen
-// for the lifetime of the legacy GoRoute. The MVVM auth screens are pure
+// for the lifetime of the GoRoute. The MVVM auth screens are pure
 // (no Riverpod, no BuildContext use), so the host is the single place that
-// bridges go_router's `BuildContext` into the screen via `LegacyAuthRouter`.
+// bridges go_router's `BuildContext` into the screen via `AuthRouteAdapter`.
 // ---------------------------------------------------------------------------
 
-class _LegacyLoginRouteHost extends StatefulWidget {
-  const _LegacyLoginRouteHost({required this.container});
+class _LoginRouteHost extends StatefulWidget {
+  const _LoginRouteHost({required this.container});
 
   final AppContainer container;
 
   @override
-  State<_LegacyLoginRouteHost> createState() => _LegacyLoginRouteHostState();
+  State<_LoginRouteHost> createState() => _LoginRouteHostState();
 }
 
-class _LegacyLoginRouteHostState extends State<_LegacyLoginRouteHost> {
+class _LoginRouteHostState extends State<_LoginRouteHost> {
   late final LoginViewModel _viewModel;
 
   @override
@@ -442,7 +431,7 @@ class _LegacyLoginRouteHostState extends State<_LegacyLoginRouteHost> {
     super.initState();
     _viewModel = LoginViewModel(
       login: LoginUseCase(gateway: widget.container.authGateway),
-      router: LegacyAuthRouter(GoRouterLegacyNavigator(context)),
+      router: AuthRouteAdapter(GoRouterRouteNavigator(context)),
       connectivityGateway: widget.container.connectivityGateway,
     );
   }
@@ -459,18 +448,17 @@ class _LegacyLoginRouteHostState extends State<_LegacyLoginRouteHost> {
   }
 }
 
-class _LegacyForgotPasswordRouteHost extends StatefulWidget {
-  const _LegacyForgotPasswordRouteHost({required this.container});
+class _ForgotPasswordRouteHost extends StatefulWidget {
+  const _ForgotPasswordRouteHost({required this.container});
 
   final AppContainer container;
 
   @override
-  State<_LegacyForgotPasswordRouteHost> createState() =>
-      _LegacyForgotPasswordRouteHostState();
+  State<_ForgotPasswordRouteHost> createState() =>
+      _ForgotPasswordRouteHostState();
 }
 
-class _LegacyForgotPasswordRouteHostState
-    extends State<_LegacyForgotPasswordRouteHost> {
+class _ForgotPasswordRouteHostState extends State<_ForgotPasswordRouteHost> {
   late final ForgotPasswordViewModel _viewModel;
 
   @override
@@ -480,9 +468,9 @@ class _LegacyForgotPasswordRouteHostState
       requestPasswordReset: RequestPasswordResetUseCase(
         gateway: widget.container.authGateway,
       ),
-      router: LegacyAuthRouter(GoRouterLegacyNavigator(context)),
+      router: AuthRouteAdapter(GoRouterRouteNavigator(context)),
       connectivityGateway: widget.container.connectivityGateway,
-      resetUrl: _resolveLegacyResetUrl(),
+      resetUrl: _resolveResetUrl(),
     );
   }
 
@@ -498,22 +486,18 @@ class _LegacyForgotPasswordRouteHostState
   }
 }
 
-class _LegacyResetPasswordRouteHost extends StatefulWidget {
-  const _LegacyResetPasswordRouteHost({
-    required this.container,
-    required this.token,
-  });
+class _ResetPasswordRouteHost extends StatefulWidget {
+  const _ResetPasswordRouteHost({required this.container, required this.token});
 
   final AppContainer container;
   final String? token;
 
   @override
-  State<_LegacyResetPasswordRouteHost> createState() =>
-      _LegacyResetPasswordRouteHostState();
+  State<_ResetPasswordRouteHost> createState() =>
+      _ResetPasswordRouteHostState();
 }
 
-class _LegacyResetPasswordRouteHostState
-    extends State<_LegacyResetPasswordRouteHost> {
+class _ResetPasswordRouteHostState extends State<_ResetPasswordRouteHost> {
   late final ResetPasswordViewModel _viewModel;
 
   @override
@@ -523,7 +507,7 @@ class _LegacyResetPasswordRouteHostState
       confirmPasswordReset: ConfirmPasswordResetUseCase(
         gateway: widget.container.authGateway,
       ),
-      router: LegacyAuthRouter(GoRouterLegacyNavigator(context)),
+      router: AuthRouteAdapter(GoRouterRouteNavigator(context)),
       connectivityGateway: widget.container.connectivityGateway,
       token: widget.token,
     );
@@ -541,11 +525,10 @@ class _LegacyResetPasswordRouteHostState
   }
 }
 
-/// Resolves the deep-link URL embedded in the password-reset email when the
-/// forgot-password screen is mounted under the legacy go_router tree. Mirrors
-/// the resolver inside `ForgotPasswordRoutePage` so the legacy and migrated
-/// hosts emit identical reset links.
-String? _resolveLegacyResetUrl() {
+/// Resolves the deep-link URL embedded in the password-reset email. On web,
+/// the URL is derived from the current origin; on native, the
+/// `RESET_URL_BASE` build define supplies it (or `null` if absent).
+String? _resolveResetUrl() {
   if (kIsWeb) {
     return Uri.base.resolve(AppRoutes.resetPassword).toString();
   }
@@ -557,23 +540,23 @@ String? _resolveLegacyResetUrl() {
 }
 
 // ---------------------------------------------------------------------------
-// Phase 17 — legacy /home route host
+// Phase 17 — /home route host
 //
-// Owns the HomeViewModel for the lifetime of the legacy GoRoute under the
+// Owns the HomeViewModel for the lifetime of the GoRoute under the
 // AppShell. The MVVM HomeScreen is pure (no Riverpod, no BuildContext use) so
-// this host bridges go_router into it via LegacyHomeRouter.
+// this host bridges go_router into it via HomeRouteAdapter.
 // ---------------------------------------------------------------------------
 
-class _LegacyHomeRouteHost extends StatefulWidget {
-  const _LegacyHomeRouteHost({required this.container});
+class _HomeRouteHost extends StatefulWidget {
+  const _HomeRouteHost({required this.container});
 
   final AppContainer container;
 
   @override
-  State<_LegacyHomeRouteHost> createState() => _LegacyHomeRouteHostState();
+  State<_HomeRouteHost> createState() => _HomeRouteHostState();
 }
 
-class _LegacyHomeRouteHostState extends State<_LegacyHomeRouteHost> {
+class _HomeRouteHostState extends State<_HomeRouteHost> {
   late final HomeViewModel _viewModel;
 
   @override
@@ -583,7 +566,7 @@ class _LegacyHomeRouteHostState extends State<_LegacyHomeRouteHost> {
       getHomeOverview: GetHomeOverviewUseCase(
         gateway: widget.container.authGateway,
       ),
-      router: LegacyHomeRouter(GoRouterLegacyNavigator(context)),
+      router: HomeRouteAdapter(GoRouterRouteNavigator(context)),
       clock: DateTime.now,
     );
   }
@@ -601,24 +584,23 @@ class _LegacyHomeRouteHostState extends State<_LegacyHomeRouteHost> {
 }
 
 // ---------------------------------------------------------------------------
-// Phase 16 — legacy /settings route host
+// Phase 16 — /settings route host
 //
-// Owns the SettingsViewModel for the lifetime of the legacy GoRoute under the
+// Owns the SettingsViewModel for the lifetime of the GoRoute under the
 // AppShell. The MVVM SettingsScreen is pure (no Riverpod, no BuildContext use)
-// so this host bridges go_router into it via LegacySettingsRouter.
+// so this host bridges go_router into it via SettingsRouteAdapter.
 // ---------------------------------------------------------------------------
 
-class _LegacySettingsRouteHost extends StatefulWidget {
-  const _LegacySettingsRouteHost({required this.container});
+class _SettingsRouteHost extends StatefulWidget {
+  const _SettingsRouteHost({required this.container});
 
   final AppContainer container;
 
   @override
-  State<_LegacySettingsRouteHost> createState() =>
-      _LegacySettingsRouteHostState();
+  State<_SettingsRouteHost> createState() => _SettingsRouteHostState();
 }
 
-class _LegacySettingsRouteHostState extends State<_LegacySettingsRouteHost> {
+class _SettingsRouteHostState extends State<_SettingsRouteHost> {
   late final SettingsViewModel _viewModel;
 
   @override
@@ -640,7 +622,7 @@ class _LegacySettingsRouteHostState extends State<_LegacySettingsRouteHost> {
         gateway: container.adminViewAsUserGateway,
       ),
       adminViewAsUserGateway: container.adminViewAsUserGateway,
-      router: LegacySettingsRouter(GoRouterLegacyNavigator(context)),
+      router: SettingsRouteAdapter(GoRouterRouteNavigator(context)),
     );
   }
 
@@ -657,38 +639,37 @@ class _LegacySettingsRouteHostState extends State<_LegacySettingsRouteHost> {
 }
 
 // ---------------------------------------------------------------------------
-// Phase 18 — legacy /menus route host
+// Phase 18 — /menus route host
 //
-// Owns the MenuListViewModel for the lifetime of the legacy GoRoute under the
+// Owns the MenuListViewModel for the lifetime of the GoRoute under the
 // AppShell. The MVVM MenuListScreen is pure (no Riverpod, no BuildContext
-// reads) so this host bridges go_router into it via LegacyMenuListRouter,
+// reads) so this host bridges go_router into it via MenuListRouteAdapter,
 // which deep-links into `/menus/:id` and `/admin/templates/:id`.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
 // DirectusDataSource. Production wiring is the default and lives in
-// [_defaultLegacyMenuListViewModelBuilder].
+// [_defaultMenuListViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the legacy `/menus` route host to construct the
+/// Factory used by the `/menus` route host to construct the
 /// [MenuListViewModel] from the live [AppContainer]. The [BuildContext] is the
 /// route's context and is used by the default builder to bridge into
-/// `go_router` via [GoRouterLegacyNavigator].
-typedef LegacyMenuListViewModelBuilder =
+/// `go_router` via [GoRouterRouteNavigator].
+typedef MenuListViewModelBuilder =
     MenuListViewModel Function(BuildContext context, AppContainer container);
 
-/// Riverpod entry point for the legacy `/menus` view-model builder.
+/// Riverpod entry point for the `/menus` view-model builder.
 ///
-/// Defaults to [_defaultLegacyMenuListViewModelBuilder] which wires the live
+/// Defaults to [_defaultMenuListViewModelBuilder] which wires the live
 /// menu repositories from the container's `DirectusDataSource`. Tests override
 /// this with a stub builder that returns a [MenuListViewModel] backed by fake
 /// use cases.
-final legacyMenuListViewModelBuilderProvider =
-    Provider<LegacyMenuListViewModelBuilder>(
-      (ref) => _defaultLegacyMenuListViewModelBuilder,
-    );
+final menuListViewModelBuilderProvider = Provider<MenuListViewModelBuilder>(
+  (ref) => _defaultMenuListViewModelBuilder,
+);
 
-MenuListViewModel _defaultLegacyMenuListViewModelBuilder(
+MenuListViewModel _defaultMenuListViewModelBuilder(
   BuildContext context,
   AppContainer container,
 ) {
@@ -725,25 +706,21 @@ MenuListViewModel _defaultLegacyMenuListViewModelBuilder(
     duplicateMenu: duplicateMenuUseCase,
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyMenuListRouter(GoRouterLegacyNavigator(context)),
+    router: MenuListRouteAdapter(GoRouterRouteNavigator(context)),
   );
 }
 
-class _LegacyMenuListRouteHost extends StatefulWidget {
-  const _LegacyMenuListRouteHost({
-    required this.container,
-    required this.builder,
-  });
+class _MenuListRouteHost extends StatefulWidget {
+  const _MenuListRouteHost({required this.container, required this.builder});
 
   final AppContainer container;
-  final LegacyMenuListViewModelBuilder builder;
+  final MenuListViewModelBuilder builder;
 
   @override
-  State<_LegacyMenuListRouteHost> createState() =>
-      _LegacyMenuListRouteHostState();
+  State<_MenuListRouteHost> createState() => _MenuListRouteHostState();
 }
 
-class _LegacyMenuListRouteHostState extends State<_LegacyMenuListRouteHost> {
+class _MenuListRouteHostState extends State<_MenuListRouteHost> {
   late final MenuListViewModel _viewModel;
 
   @override
@@ -765,42 +742,42 @@ class _LegacyMenuListRouteHostState extends State<_LegacyMenuListRouteHost> {
 }
 
 // ---------------------------------------------------------------------------
-// Phase 19 — legacy /admin/templates route host
+// Phase 19 — /admin/templates route host
 //
-// Owns the AdminTemplatesViewModel for the lifetime of the legacy GoRoute
+// Owns the AdminTemplatesViewModel for the lifetime of the GoRoute
 // under the AppShell. The MVVM AdminTemplatesScreen is pure (no Riverpod, no
 // BuildContext reads) so this host bridges go_router into it via
-// LegacyAdminTemplatesRouter, which deep-links into
+// AdminTemplatesRouteAdapter, which deep-links into
 // `/admin/templates/:id` for the editor.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
 // DirectusDataSource. Production wiring is the default and lives in
-// [_defaultLegacyAdminTemplatesViewModelBuilder].
+// [_defaultAdminTemplatesViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the legacy `/admin/templates` route host to construct the
+/// Factory used by the `/admin/templates` route host to construct the
 /// [AdminTemplatesViewModel] from the live [AppContainer]. The [BuildContext]
 /// is the route's context and is used by the default builder to bridge into
-/// `go_router` via [GoRouterLegacyNavigator].
-typedef LegacyAdminTemplatesViewModelBuilder =
+/// `go_router` via [GoRouterRouteNavigator].
+typedef AdminTemplatesViewModelBuilder =
     AdminTemplatesViewModel Function(
       BuildContext context,
       AppContainer container,
     );
 
-/// Riverpod entry point for the legacy `/admin/templates` view-model builder.
+/// Riverpod entry point for the `/admin/templates` view-model builder.
 ///
-/// Defaults to [_defaultLegacyAdminTemplatesViewModelBuilder] which wires the
+/// Defaults to [_defaultAdminTemplatesViewModelBuilder] which wires the
 /// live menu repository from the container's `DirectusDataSource`. Tests
 /// override this with a stub builder that returns an
 /// [AdminTemplatesViewModel] backed by fake use cases.
-final legacyAdminTemplatesViewModelBuilderProvider =
-    Provider<LegacyAdminTemplatesViewModelBuilder>(
-      (ref) => _defaultLegacyAdminTemplatesViewModelBuilder,
+final adminTemplatesViewModelBuilderProvider =
+    Provider<AdminTemplatesViewModelBuilder>(
+      (ref) => _defaultAdminTemplatesViewModelBuilder,
     );
 
-AdminTemplatesViewModel _defaultLegacyAdminTemplatesViewModelBuilder(
+AdminTemplatesViewModel _defaultAdminTemplatesViewModelBuilder(
   BuildContext context,
   AppContainer container,
 ) {
@@ -815,26 +792,25 @@ AdminTemplatesViewModel _defaultLegacyAdminTemplatesViewModelBuilder(
     deleteTemplate: DeleteTemplateUseCase(menuRepository: menuRepository),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyAdminTemplatesRouter(GoRouterLegacyNavigator(context)),
+    router: AdminTemplatesRouteAdapter(GoRouterRouteNavigator(context)),
   );
 }
 
-class _LegacyAdminTemplatesRouteHost extends StatefulWidget {
-  const _LegacyAdminTemplatesRouteHost({
+class _AdminTemplatesRouteHost extends StatefulWidget {
+  const _AdminTemplatesRouteHost({
     required this.container,
     required this.builder,
   });
 
   final AppContainer container;
-  final LegacyAdminTemplatesViewModelBuilder builder;
+  final AdminTemplatesViewModelBuilder builder;
 
   @override
-  State<_LegacyAdminTemplatesRouteHost> createState() =>
-      _LegacyAdminTemplatesRouteHostState();
+  State<_AdminTemplatesRouteHost> createState() =>
+      _AdminTemplatesRouteHostState();
 }
 
-class _LegacyAdminTemplatesRouteHostState
-    extends State<_LegacyAdminTemplatesRouteHost> {
+class _AdminTemplatesRouteHostState extends State<_AdminTemplatesRouteHost> {
   late final AdminTemplatesViewModel _viewModel;
 
   @override
@@ -856,39 +832,38 @@ class _LegacyAdminTemplatesRouteHostState
 }
 
 // ---------------------------------------------------------------------------
-// Phase 20 — legacy /admin/sizes route host
+// Phase 20 — /admin/sizes route host
 //
-// Owns the AdminSizesViewModel for the lifetime of the legacy GoRoute under
+// Owns the AdminSizesViewModel for the lifetime of the GoRoute under
 // the AppShell. The MVVM AdminSizesScreen is pure (no Riverpod, no
 // BuildContext reads) so this host bridges go_router into it via
-// LegacyAdminSizesRouter. The screen is a navigation leaf — the router only
+// AdminSizesRouteAdapter. The screen is a navigation leaf — the router only
 // exposes "back" — so no deep-link forwarding is needed.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
 // DirectusDataSource. Production wiring is the default and lives in
-// [_defaultLegacyAdminSizesViewModelBuilder].
+// [_defaultAdminSizesViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the legacy `/admin/sizes` route host to construct the
+/// Factory used by the `/admin/sizes` route host to construct the
 /// [AdminSizesViewModel] from the live [AppContainer]. The [BuildContext] is
 /// the route's context and is used by the default builder to bridge into
-/// `go_router` via [GoRouterLegacyNavigator].
-typedef LegacyAdminSizesViewModelBuilder =
+/// `go_router` via [GoRouterRouteNavigator].
+typedef AdminSizesViewModelBuilder =
     AdminSizesViewModel Function(BuildContext context, AppContainer container);
 
-/// Riverpod entry point for the legacy `/admin/sizes` view-model builder.
+/// Riverpod entry point for the `/admin/sizes` view-model builder.
 ///
-/// Defaults to [_defaultLegacyAdminSizesViewModelBuilder] which wires the live
+/// Defaults to [_defaultAdminSizesViewModelBuilder] which wires the live
 /// size repository from the container's `DirectusDataSource`. Tests override
 /// this with a stub builder that returns an [AdminSizesViewModel] backed by
 /// fake use cases.
-final legacyAdminSizesViewModelBuilderProvider =
-    Provider<LegacyAdminSizesViewModelBuilder>(
-      (ref) => _defaultLegacyAdminSizesViewModelBuilder,
-    );
+final adminSizesViewModelBuilderProvider = Provider<AdminSizesViewModelBuilder>(
+  (ref) => _defaultAdminSizesViewModelBuilder,
+);
 
-AdminSizesViewModel _defaultLegacyAdminSizesViewModelBuilder(
+AdminSizesViewModel _defaultAdminSizesViewModelBuilder(
   BuildContext context,
   AppContainer container,
 ) {
@@ -914,26 +889,21 @@ AdminSizesViewModel _defaultLegacyAdminSizesViewModelBuilder(
     ),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyAdminSizesRouter(GoRouterLegacyNavigator(context)),
+    router: AdminSizesRouteAdapter(GoRouterRouteNavigator(context)),
   );
 }
 
-class _LegacyAdminSizesRouteHost extends StatefulWidget {
-  const _LegacyAdminSizesRouteHost({
-    required this.container,
-    required this.builder,
-  });
+class _AdminSizesRouteHost extends StatefulWidget {
+  const _AdminSizesRouteHost({required this.container, required this.builder});
 
   final AppContainer container;
-  final LegacyAdminSizesViewModelBuilder builder;
+  final AdminSizesViewModelBuilder builder;
 
   @override
-  State<_LegacyAdminSizesRouteHost> createState() =>
-      _LegacyAdminSizesRouteHostState();
+  State<_AdminSizesRouteHost> createState() => _AdminSizesRouteHostState();
 }
 
-class _LegacyAdminSizesRouteHostState
-    extends State<_LegacyAdminSizesRouteHost> {
+class _AdminSizesRouteHostState extends State<_AdminSizesRouteHost> {
   late final AdminSizesViewModel _viewModel;
 
   @override
@@ -955,45 +925,44 @@ class _LegacyAdminSizesRouteHostState
 }
 
 // ---------------------------------------------------------------------------
-// Phase 21 — legacy /admin/templates/create route host
+// Phase 21 — /admin/templates/create route host
 //
-// Owns the AdminTemplateCreatorViewModel for the lifetime of the legacy
-// GoRoute under the AppShell. The MVVM AdminTemplateCreatorScreen is pure (no
+// Owns the AdminTemplateCreatorViewModel for the lifetime of the GoRoute
+// under the AppShell. The MVVM AdminTemplateCreatorScreen is pure (no
 // Riverpod, no BuildContext reads) so this host bridges go_router into it via
-// LegacyAdminTemplateCreatorRouter, which deep-links into
+// AdminTemplateCreatorRouteAdapter, which deep-links into
 // `/admin/templates/:id` for the editor. The "Manage Page Sizes" CTA resolves
-// to the legacy `/admin/sizes` GoRoute.
+// to the `/admin/sizes` GoRoute.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
 // DirectusDataSource. Production wiring is the default and lives in
-// [_defaultLegacyAdminTemplateCreatorViewModelBuilder].
+// [_defaultAdminTemplateCreatorViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the legacy `/admin/templates/create` route host to construct
+/// Factory used by the `/admin/templates/create` route host to construct
 /// the [AdminTemplateCreatorViewModel] from the live [AppContainer]. The
 /// [BuildContext] is the route's context and is used by the default builder to
-/// bridge into `go_router` via [GoRouterLegacyNavigator].
-typedef LegacyAdminTemplateCreatorViewModelBuilder =
+/// bridge into `go_router` via [GoRouterRouteNavigator].
+typedef AdminTemplateCreatorViewModelBuilder =
     AdminTemplateCreatorViewModel Function(
       BuildContext context,
       AppContainer container,
     );
 
-/// Riverpod entry point for the legacy `/admin/templates/create` view-model
+/// Riverpod entry point for the `/admin/templates/create` view-model
 /// builder.
 ///
-/// Defaults to [_defaultLegacyAdminTemplateCreatorViewModelBuilder] which
+/// Defaults to [_defaultAdminTemplateCreatorViewModelBuilder] which
 /// wires the live menu / size / area repositories from the container's
 /// `DirectusDataSource`. Tests override this with a stub builder that returns
 /// an [AdminTemplateCreatorViewModel] backed by fake use cases.
-final legacyAdminTemplateCreatorViewModelBuilderProvider =
-    Provider<LegacyAdminTemplateCreatorViewModelBuilder>(
-      (ref) => _defaultLegacyAdminTemplateCreatorViewModelBuilder,
+final adminTemplateCreatorViewModelBuilderProvider =
+    Provider<AdminTemplateCreatorViewModelBuilder>(
+      (ref) => _defaultAdminTemplateCreatorViewModelBuilder,
     );
 
-AdminTemplateCreatorViewModel
-_defaultLegacyAdminTemplateCreatorViewModelBuilder(
+AdminTemplateCreatorViewModel _defaultAdminTemplateCreatorViewModelBuilder(
   BuildContext context,
   AppContainer container,
 ) {
@@ -1016,26 +985,26 @@ _defaultLegacyAdminTemplateCreatorViewModelBuilder(
     ),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyAdminTemplateCreatorRouter(GoRouterLegacyNavigator(context)),
+    router: AdminTemplateCreatorRouteAdapter(GoRouterRouteNavigator(context)),
   );
 }
 
-class _LegacyAdminTemplateCreatorRouteHost extends StatefulWidget {
-  const _LegacyAdminTemplateCreatorRouteHost({
+class _AdminTemplateCreatorRouteHost extends StatefulWidget {
+  const _AdminTemplateCreatorRouteHost({
     required this.container,
     required this.builder,
   });
 
   final AppContainer container;
-  final LegacyAdminTemplateCreatorViewModelBuilder builder;
+  final AdminTemplateCreatorViewModelBuilder builder;
 
   @override
-  State<_LegacyAdminTemplateCreatorRouteHost> createState() =>
-      _LegacyAdminTemplateCreatorRouteHostState();
+  State<_AdminTemplateCreatorRouteHost> createState() =>
+      _AdminTemplateCreatorRouteHostState();
 }
 
-class _LegacyAdminTemplateCreatorRouteHostState
-    extends State<_LegacyAdminTemplateCreatorRouteHost> {
+class _AdminTemplateCreatorRouteHostState
+    extends State<_AdminTemplateCreatorRouteHost> {
   late final AdminTemplateCreatorViewModel _viewModel;
 
   @override
@@ -1057,44 +1026,43 @@ class _LegacyAdminTemplateCreatorRouteHostState
 }
 
 // ---------------------------------------------------------------------------
-// Phase 22 — legacy /menus/pdf/:id route host
+// Phase 22 — /menus/pdf/:id route host
 //
-// Owns the PdfPreviewViewModel for the lifetime of the legacy GoRoute under
+// Owns the PdfPreviewViewModel for the lifetime of the GoRoute under
 // the AppShell. The MVVM PdfPreviewScreen is pure (no Riverpod, no
 // BuildContext reads) so this host bridges go_router into it via
-// LegacyPdfPreviewRouter. The screen is a navigation leaf — the router only
+// PdfPreviewRouteAdapter. The screen is a navigation leaf — the router only
 // exposes "back" — so no deep-link forwarding is needed.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
 // DirectusDataSource. Production wiring is the default and lives in
-// [_defaultLegacyPdfPreviewViewModelBuilder].
+// [_defaultPdfPreviewViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the legacy `/menus/pdf/:id` route host to construct the
+/// Factory used by the `/menus/pdf/:id` route host to construct the
 /// [PdfPreviewViewModel] from the live [AppContainer]. The [BuildContext] is
 /// the route's context and is used by the default builder to bridge into
-/// `go_router` via [GoRouterLegacyNavigator]. The `menuId` is the path
+/// `go_router` via [GoRouterRouteNavigator]. The `menuId` is the path
 /// parameter the user navigated to.
-typedef LegacyPdfPreviewViewModelBuilder =
+typedef PdfPreviewViewModelBuilder =
     PdfPreviewViewModel Function(
       BuildContext context,
       AppContainer container,
       int menuId,
     );
 
-/// Riverpod entry point for the legacy `/menus/pdf/:id` view-model builder.
+/// Riverpod entry point for the `/menus/pdf/:id` view-model builder.
 ///
-/// Defaults to [_defaultLegacyPdfPreviewViewModelBuilder] which wires the live
+/// Defaults to [_defaultPdfPreviewViewModelBuilder] which wires the live
 /// menu / file repositories from the container's `DirectusDataSource`. Tests
 /// override this with a stub builder that returns a [PdfPreviewViewModel]
 /// backed by fake use cases.
-final legacyPdfPreviewViewModelBuilderProvider =
-    Provider<LegacyPdfPreviewViewModelBuilder>(
-      (ref) => _defaultLegacyPdfPreviewViewModelBuilder,
-    );
+final pdfPreviewViewModelBuilderProvider = Provider<PdfPreviewViewModelBuilder>(
+  (ref) => _defaultPdfPreviewViewModelBuilder,
+);
 
-PdfPreviewViewModel _defaultLegacyPdfPreviewViewModelBuilder(
+PdfPreviewViewModel _defaultPdfPreviewViewModelBuilder(
   BuildContext context,
   AppContainer container,
   int menuId,
@@ -1127,28 +1095,26 @@ PdfPreviewViewModel _defaultLegacyPdfPreviewViewModelBuilder(
   return PdfPreviewViewModel(
     menuId: menuId,
     generatePdf: generateMenuPdfUseCase,
-    router: LegacyPdfPreviewRouter(GoRouterLegacyNavigator(context)),
+    router: PdfPreviewRouteAdapter(GoRouterRouteNavigator(context)),
   );
 }
 
-class _LegacyPdfPreviewRouteHost extends StatefulWidget {
-  const _LegacyPdfPreviewRouteHost({
+class _PdfPreviewRouteHost extends StatefulWidget {
+  const _PdfPreviewRouteHost({
     required this.container,
     required this.builder,
     required this.menuId,
   });
 
   final AppContainer container;
-  final LegacyPdfPreviewViewModelBuilder builder;
+  final PdfPreviewViewModelBuilder builder;
   final int menuId;
 
   @override
-  State<_LegacyPdfPreviewRouteHost> createState() =>
-      _LegacyPdfPreviewRouteHostState();
+  State<_PdfPreviewRouteHost> createState() => _PdfPreviewRouteHostState();
 }
 
-class _LegacyPdfPreviewRouteHostState
-    extends State<_LegacyPdfPreviewRouteHost> {
+class _PdfPreviewRouteHostState extends State<_PdfPreviewRouteHost> {
   late final PdfPreviewViewModel _viewModel;
 
   @override
@@ -1170,44 +1136,43 @@ class _LegacyPdfPreviewRouteHostState
 }
 
 // ---------------------------------------------------------------------------
-// Phase 23 — legacy /admin/exportable_menus route host
+// Phase 23 — /admin/exportable_menus route host
 //
-// Owns the AdminExportableMenusViewModel for the lifetime of the legacy
-// GoRoute under the AppShell. The MVVM AdminExportableMenusScreen is pure (no
+// Owns the AdminExportableMenusViewModel for the lifetime of the GoRoute
+// under the AppShell. The MVVM AdminExportableMenusScreen is pure (no
 // Riverpod, no BuildContext reads) so this host bridges go_router into it via
-// LegacyAdminExportableMenusRouter. The screen is a navigation leaf — the
+// AdminExportableMenusRouteAdapter. The screen is a navigation leaf — the
 // router only exposes "back" — so no deep-link forwarding is needed.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
 // DirectusDataSource. Production wiring is the default and lives in
-// [_defaultLegacyAdminExportableMenusViewModelBuilder].
+// [_defaultAdminExportableMenusViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the legacy `/admin/exportable_menus` route host to
+/// Factory used by the `/admin/exportable_menus` route host to
 /// construct the [AdminExportableMenusViewModel] from the live [AppContainer].
 /// The [BuildContext] is the route's context and is used by the default
-/// builder to bridge into `go_router` via [GoRouterLegacyNavigator].
-typedef LegacyAdminExportableMenusViewModelBuilder =
+/// builder to bridge into `go_router` via [GoRouterRouteNavigator].
+typedef AdminExportableMenusViewModelBuilder =
     AdminExportableMenusViewModel Function(
       BuildContext context,
       AppContainer container,
     );
 
-/// Riverpod entry point for the legacy `/admin/exportable_menus` view-model
+/// Riverpod entry point for the `/admin/exportable_menus` view-model
 /// builder.
 ///
-/// Defaults to [_defaultLegacyAdminExportableMenusViewModelBuilder] which
+/// Defaults to [_defaultAdminExportableMenusViewModelBuilder] which
 /// wires the live menu / bundle / file repositories from the container's
 /// `DirectusDataSource`. Tests override this with a stub builder that returns
 /// an [AdminExportableMenusViewModel] backed by fake use cases.
-final legacyAdminExportableMenusViewModelBuilderProvider =
-    Provider<LegacyAdminExportableMenusViewModelBuilder>(
-      (ref) => _defaultLegacyAdminExportableMenusViewModelBuilder,
+final adminExportableMenusViewModelBuilderProvider =
+    Provider<AdminExportableMenusViewModelBuilder>(
+      (ref) => _defaultAdminExportableMenusViewModelBuilder,
     );
 
-AdminExportableMenusViewModel
-_defaultLegacyAdminExportableMenusViewModelBuilder(
+AdminExportableMenusViewModel _defaultAdminExportableMenusViewModelBuilder(
   BuildContext context,
   AppContainer container,
 ) {
@@ -1261,26 +1226,26 @@ _defaultLegacyAdminExportableMenusViewModelBuilder(
     ),
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyAdminExportableMenusRouter(GoRouterLegacyNavigator(context)),
+    router: AdminExportableMenusRouteAdapter(GoRouterRouteNavigator(context)),
   );
 }
 
-class _LegacyAdminExportableMenusRouteHost extends StatefulWidget {
-  const _LegacyAdminExportableMenusRouteHost({
+class _AdminExportableMenusRouteHost extends StatefulWidget {
+  const _AdminExportableMenusRouteHost({
     required this.container,
     required this.builder,
   });
 
   final AppContainer container;
-  final LegacyAdminExportableMenusViewModelBuilder builder;
+  final AdminExportableMenusViewModelBuilder builder;
 
   @override
-  State<_LegacyAdminExportableMenusRouteHost> createState() =>
-      _LegacyAdminExportableMenusRouteHostState();
+  State<_AdminExportableMenusRouteHost> createState() =>
+      _AdminExportableMenusRouteHostState();
 }
 
-class _LegacyAdminExportableMenusRouteHostState
-    extends State<_LegacyAdminExportableMenusRouteHost> {
+class _AdminExportableMenusRouteHostState
+    extends State<_AdminExportableMenusRouteHost> {
   late final AdminExportableMenusViewModel _viewModel;
 
   @override
@@ -1305,45 +1270,44 @@ class _LegacyAdminExportableMenusRouteHostState
 }
 
 // ---------------------------------------------------------------------------
-// Phase 24 — legacy /menus/:id route host
+// Phase 24 — /menus/:id route host
 //
-// Owns the MenuEditorViewModel for the lifetime of the legacy GoRoute under
+// Owns the MenuEditorViewModel for the lifetime of the GoRoute under
 // the AppShell. The MVVM MenuEditorScreen is pure (no Riverpod, no
 // BuildContext reads) so this host bridges go_router into it via
-// LegacyMenuEditorRouter, which deep-links `goToPdfPreview` into the
+// MenuEditorRouteAdapter, which deep-links `goToPdfPreview` into the
 // `/menus/pdf/:id` GoRoute.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
 // DirectusDataSource. Production wiring is the default and lives in
-// [_defaultLegacyMenuEditorViewModelBuilder].
+// [_defaultMenuEditorViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the legacy `/menus/:id` route host to construct the
+/// Factory used by the `/menus/:id` route host to construct the
 /// [MenuEditorViewModel] from the live [AppContainer]. The [BuildContext] is
 /// the route's context and is used by the default builder to bridge into
-/// `go_router` via [GoRouterLegacyNavigator]. The `menuId` is the path
+/// `go_router` via [GoRouterRouteNavigator]. The `menuId` is the path
 /// parameter the user navigated to.
-typedef LegacyMenuEditorViewModelBuilder =
+typedef MenuEditorViewModelBuilder =
     MenuEditorViewModel Function(
       BuildContext context,
       AppContainer container,
       int menuId,
     );
 
-/// Riverpod entry point for the legacy `/menus/:id` view-model builder.
+/// Riverpod entry point for the `/menus/:id` view-model builder.
 ///
-/// Defaults to [_defaultLegacyMenuEditorViewModelBuilder] which wires the
+/// Defaults to [_defaultMenuEditorViewModelBuilder] which wires the
 /// live menu / page / container / column / widget / bundle repositories and
 /// the collaboration / presence repositories from the container's
 /// `DirectusDataSource`. Tests override this with a stub builder that returns
 /// a [MenuEditorViewModel] backed by fake use cases.
-final legacyMenuEditorViewModelBuilderProvider =
-    Provider<LegacyMenuEditorViewModelBuilder>(
-      (ref) => _defaultLegacyMenuEditorViewModelBuilder,
-    );
+final menuEditorViewModelBuilderProvider = Provider<MenuEditorViewModelBuilder>(
+  (ref) => _defaultMenuEditorViewModelBuilder,
+);
 
-MenuEditorViewModel _defaultLegacyMenuEditorViewModelBuilder(
+MenuEditorViewModel _defaultMenuEditorViewModelBuilder(
   BuildContext context,
   AppContainer container,
   int menuId,
@@ -1383,7 +1347,7 @@ MenuEditorViewModel _defaultLegacyMenuEditorViewModelBuilder(
     menuId: menuId,
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyMenuEditorRouter(GoRouterLegacyNavigator(context)),
+    router: MenuEditorRouteAdapter(GoRouterRouteNavigator(context)),
     loadMenu: LoadMenuForEditorUseCase(
       authGateway: container.authGateway,
       menuRepository: menuRepository,
@@ -1429,24 +1393,22 @@ MenuEditorViewModel _defaultLegacyMenuEditorViewModelBuilder(
   );
 }
 
-class _LegacyMenuEditorRouteHost extends StatefulWidget {
-  const _LegacyMenuEditorRouteHost({
+class _MenuEditorRouteHost extends StatefulWidget {
+  const _MenuEditorRouteHost({
     required this.container,
     required this.builder,
     required this.menuId,
   });
 
   final AppContainer container;
-  final LegacyMenuEditorViewModelBuilder builder;
+  final MenuEditorViewModelBuilder builder;
   final int menuId;
 
   @override
-  State<_LegacyMenuEditorRouteHost> createState() =>
-      _LegacyMenuEditorRouteHostState();
+  State<_MenuEditorRouteHost> createState() => _MenuEditorRouteHostState();
 }
 
-class _LegacyMenuEditorRouteHostState
-    extends State<_LegacyMenuEditorRouteHost> {
+class _MenuEditorRouteHostState extends State<_MenuEditorRouteHost> {
   late final MenuEditorViewModel _viewModel;
 
   @override
@@ -1468,46 +1430,46 @@ class _LegacyMenuEditorRouteHostState
 }
 
 // ---------------------------------------------------------------------------
-// Phase 24 — legacy /admin/templates/:id route host
+// Phase 24 — /admin/templates/:id route host
 //
-// Owns the AdminTemplateEditorViewModel for the lifetime of the legacy
-// GoRoute under the AppShell. The MVVM AdminTemplateEditorScreen is pure (no
+// Owns the AdminTemplateEditorViewModel for the lifetime of the GoRoute
+// under the AppShell. The MVVM AdminTemplateEditorScreen is pure (no
 // Riverpod, no BuildContext reads) so this host bridges go_router into it
-// via LegacyAdminTemplateEditorRouter, which deep-links `goToPdfPreview` and
+// via AdminTemplateEditorRouteAdapter, which deep-links `goToPdfPreview` and
 // `goToAdminSizes` into the `/menus/pdf/:id` and `/admin/sizes` GoRoutes.
 //
 // The view-model construction is exposed as a Riverpod-overridable builder so
 // router tests can swap in fake use cases without standing up a real
 // DirectusDataSource. Production wiring is the default and lives in
-// [_defaultLegacyAdminTemplateEditorViewModelBuilder].
+// [_defaultAdminTemplateEditorViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the legacy `/admin/templates/:id` route host to construct
+/// Factory used by the `/admin/templates/:id` route host to construct
 /// the [AdminTemplateEditorViewModel] from the live [AppContainer]. The
 /// [BuildContext] is the route's context and is used by the default builder
-/// to bridge into `go_router` via [GoRouterLegacyNavigator]. The `menuId` is
+/// to bridge into `go_router` via [GoRouterRouteNavigator]. The `menuId` is
 /// the path parameter the user navigated to.
-typedef LegacyAdminTemplateEditorViewModelBuilder =
+typedef AdminTemplateEditorViewModelBuilder =
     AdminTemplateEditorViewModel Function(
       BuildContext context,
       AppContainer container,
       int menuId,
     );
 
-/// Riverpod entry point for the legacy `/admin/templates/:id` view-model
+/// Riverpod entry point for the `/admin/templates/:id` view-model
 /// builder.
 ///
-/// Defaults to [_defaultLegacyAdminTemplateEditorViewModelBuilder] which
+/// Defaults to [_defaultAdminTemplateEditorViewModelBuilder] which
 /// wires the live menu / page / container / column / widget / size / area
 /// repositories from the container's `DirectusDataSource`. Tests override
 /// this with a stub builder that returns an [AdminTemplateEditorViewModel]
 /// backed by fake use cases.
-final legacyAdminTemplateEditorViewModelBuilderProvider =
-    Provider<LegacyAdminTemplateEditorViewModelBuilder>(
-      (ref) => _defaultLegacyAdminTemplateEditorViewModelBuilder,
+final adminTemplateEditorViewModelBuilderProvider =
+    Provider<AdminTemplateEditorViewModelBuilder>(
+      (ref) => _defaultAdminTemplateEditorViewModelBuilder,
     );
 
-AdminTemplateEditorViewModel _defaultLegacyAdminTemplateEditorViewModelBuilder(
+AdminTemplateEditorViewModel _defaultAdminTemplateEditorViewModelBuilder(
   BuildContext context,
   AppContainer container,
   int menuId,
@@ -1524,7 +1486,7 @@ AdminTemplateEditorViewModel _defaultLegacyAdminTemplateEditorViewModelBuilder(
     menuId: menuId,
     authGateway: container.authGateway,
     connectivityGateway: container.connectivityGateway,
-    router: LegacyAdminTemplateEditorRouter(GoRouterLegacyNavigator(context)),
+    router: AdminTemplateEditorRouteAdapter(GoRouterRouteNavigator(context)),
     loadTemplate: LoadTemplateForEditorUseCase(
       authGateway: container.authGateway,
       menuRepository: menuRepository,
@@ -1610,24 +1572,24 @@ AdminTemplateEditorViewModel _defaultLegacyAdminTemplateEditorViewModelBuilder(
   );
 }
 
-class _LegacyAdminTemplateEditorRouteHost extends StatefulWidget {
-  const _LegacyAdminTemplateEditorRouteHost({
+class _AdminTemplateEditorRouteHost extends StatefulWidget {
+  const _AdminTemplateEditorRouteHost({
     required this.container,
     required this.builder,
     required this.menuId,
   });
 
   final AppContainer container;
-  final LegacyAdminTemplateEditorViewModelBuilder builder;
+  final AdminTemplateEditorViewModelBuilder builder;
   final int menuId;
 
   @override
-  State<_LegacyAdminTemplateEditorRouteHost> createState() =>
-      _LegacyAdminTemplateEditorRouteHostState();
+  State<_AdminTemplateEditorRouteHost> createState() =>
+      _AdminTemplateEditorRouteHostState();
 }
 
-class _LegacyAdminTemplateEditorRouteHostState
-    extends State<_LegacyAdminTemplateEditorRouteHost> {
+class _AdminTemplateEditorRouteHostState
+    extends State<_AdminTemplateEditorRouteHost> {
   late final AdminTemplateEditorViewModel _viewModel;
 
   @override

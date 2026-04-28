@@ -10,7 +10,7 @@ import 'package:oxo_menus/shared/data/datasources/directus_data_source.dart';
 /// Holds the singletons that outlive any single screen — gateways, the
 /// Directus data source, and long-lived services. Constructed once in
 /// `main.dart` before `runApp` and exposed via [appContainerProvider]; each
-/// `_Legacy*RouteHost` in `app_router.dart` reads it from Riverpod and uses
+/// `_*RouteHost` in `app_router.dart` reads it from Riverpod and uses
 /// it to wire use cases → view models → screens.
 class AppContainer {
   AppContainer({

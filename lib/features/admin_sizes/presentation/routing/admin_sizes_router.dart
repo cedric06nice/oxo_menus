@@ -2,7 +2,7 @@ import 'package:oxo_menus/core/routing/feature_router.dart';
 
 /// Navigation contract for the admin-sizes feature.
 ///
-/// `LegacyAdminSizesRouter` implements this in production; the
+/// `AdminSizesRouteAdapter` implements this in production; the
 /// [AdminSizesViewModel] depends on it so the view model never sees
 /// `BuildContext` or any concrete router. The admin-sizes screen is a leaf —
 /// its only navigation is "back" — so the contract intentionally exposes

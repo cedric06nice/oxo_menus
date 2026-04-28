@@ -2,7 +2,7 @@ import 'package:oxo_menus/core/routing/feature_router.dart';
 
 /// Navigation contract for the reset-password feature.
 ///
-/// `LegacyAuthRouter` implements this in production; the
+/// `AuthRouteAdapter` implements this in production; the
 /// [ResetPasswordViewModel] depends on it so the view model never sees
 /// `BuildContext` or any concrete router.
 ///

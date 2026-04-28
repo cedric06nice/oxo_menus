@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
-import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_router.dart';
-import 'package:oxo_menus/features/admin_templates/presentation/routing/legacy_admin_templates_router.dart';
+import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_adapter.dart';
 
-class _RecordingLegacyNavigator implements LegacyNavigator {
+class _RecordingRouteNavigator implements RouteNavigator {
   final List<({String location, Object? extra})> calls = [];
 
   @override
@@ -14,13 +14,13 @@ class _RecordingLegacyNavigator implements LegacyNavigator {
 }
 
 void main() {
-  group('LegacyAdminTemplatesRouter', () {
-    late _RecordingLegacyNavigator navigator;
-    late LegacyAdminTemplatesRouter router;
+  group('AdminTemplatesRouteAdapter', () {
+    late _RecordingRouteNavigator navigator;
+    late AdminTemplatesRouteAdapter router;
 
     setUp(() {
-      navigator = _RecordingLegacyNavigator();
-      router = LegacyAdminTemplatesRouter(navigator);
+      navigator = _RecordingRouteNavigator();
+      router = AdminTemplatesRouteAdapter(navigator);
     });
 
     test('implements AdminTemplatesRouter', () {
@@ -38,7 +38,7 @@ void main() {
       },
     );
 
-    test('goToAdminTemplateEditor forwards to the legacy '
+    test('goToAdminTemplateEditor forwards to the '
         '/admin/templates/{id} path', () {
       router.goToAdminTemplateEditor(7);
 

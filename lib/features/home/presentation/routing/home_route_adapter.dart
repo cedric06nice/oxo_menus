@@ -1,16 +1,16 @@
 import 'package:oxo_menus/core/routing/app_routes.dart';
-import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/features/home/presentation/routing/home_router.dart';
 
 /// Adapter that fulfills [HomeRouter] by forwarding quick-action taps to the
-/// `go_router` tree via a [LegacyNavigator].
+/// `go_router` tree via a [RouteNavigator].
 ///
-/// Wired by `_LegacyHomeRouteHost` in `app_router.dart` for the `/home`
+/// Wired by `_HomeRouteHost` in `app_router.dart` for the `/home`
 /// GoRoute.
-class LegacyHomeRouter implements HomeRouter {
-  LegacyHomeRouter(this._navigator);
+class HomeRouteAdapter implements HomeRouter {
+  HomeRouteAdapter(this._navigator);
 
-  final LegacyNavigator _navigator;
+  final RouteNavigator _navigator;
 
   @override
   void goToMenus() => _navigator.go(AppRoutes.menus);

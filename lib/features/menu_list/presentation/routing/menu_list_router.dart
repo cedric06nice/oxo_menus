@@ -2,7 +2,7 @@ import 'package:oxo_menus/core/routing/feature_router.dart';
 
 /// Navigation contract for the menu-list feature.
 ///
-/// `LegacyMenuListRouter` implements this in production; the
+/// `MenuListRouteAdapter` implements this in production; the
 /// [MenuListViewModel] depends on it so the view model never sees
 /// `BuildContext` or any concrete router.
 abstract class MenuListRouter implements FeatureRouter {

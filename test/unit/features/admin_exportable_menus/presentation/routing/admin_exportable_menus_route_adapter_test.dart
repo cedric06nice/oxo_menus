@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
-import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
+import 'package:oxo_menus/core/routing/route_navigator.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/admin_exportable_menus_router.dart';
-import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/legacy_admin_exportable_menus_router.dart';
+import 'package:oxo_menus/features/admin_exportable_menus/presentation/routing/admin_exportable_menus_route_adapter.dart';
 
-class _RecordingLegacyNavigator implements LegacyNavigator {
+class _RecordingRouteNavigator implements RouteNavigator {
   final List<({String location, Object? extra})> calls = [];
 
   @override
@@ -14,13 +14,13 @@ class _RecordingLegacyNavigator implements LegacyNavigator {
 }
 
 void main() {
-  group('LegacyAdminExportableMenusRouter', () {
-    late _RecordingLegacyNavigator navigator;
-    late LegacyAdminExportableMenusRouter router;
+  group('AdminExportableMenusRouteAdapter', () {
+    late _RecordingRouteNavigator navigator;
+    late AdminExportableMenusRouteAdapter router;
 
     setUp(() {
-      navigator = _RecordingLegacyNavigator();
-      router = LegacyAdminExportableMenusRouter(navigator);
+      navigator = _RecordingRouteNavigator();
+      router = AdminExportableMenusRouteAdapter(navigator);
     });
 
     test('implements AdminExportableMenusRouter', () {
