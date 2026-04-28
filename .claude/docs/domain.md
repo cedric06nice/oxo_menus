@@ -1,164 +1,130 @@
 # Domain Layer Reference
 
-## Entities (`lib/domain/entities/`)
+Domain code is split between `lib/shared/domain/` (cross-feature entities, repos, use cases) and `lib/features/<feature>/domain/` (feature-owned domain code). All repositories return `Result<T, DomainError>` and never throw.
 
-### Core Hierarchy
+## Shared Domain (`lib/shared/domain/`)
 
-**Menu** — `id`, `name`, `status` (Status enum), `version`, `dateCreated`, `dateUpdated`, `userCreated`, `userUpdated`, `styleConfig` (StyleConfig?), `pageSize` (PageSize?), `area` (Area?), `displayOptions` (MenuDisplayOptions?), `allowedWidgetTypes` (List\<String\>)
+### Entities (`shared/domain/entities/`)
 
-**Page** — `id`, `menuId`, `name`, `index`, `type` (PageType: content|header|footer), `dateCreated`, `dateUpdated`
-
-**Container** — `id`, `pageId`, `index`, `name?`, `layout` (LayoutConfig?), `styleConfig?`, `dateCreated`, `dateUpdated`
-
-**Column** — `id`, `containerId`, `index`, `flex?`, `width?`, `styleConfig?`, `isDroppable` (default: true), `dateCreated`, `dateUpdated`
-
-**WidgetInstance** — `id`, `columnId`, `type` (String), `version`, `index`, `props` (Map\<String, dynamic\>), `style` (WidgetStyle?), `isTemplate` (default: false), `dateCreated`, `dateUpdated`, `editingBy` (String?), `editingSince` (DateTime?)
-
-### Supporting Entities
-
-- **User** — `id`, `email`, `firstName?`, `lastName?`, `role` (UserRole: admin|user), `avatar?`, `areas` (List\<Area\>)
+- **User** — `id`, `email`, `firstName?`, `lastName?`, `role` (`UserRole`: admin|user), `avatar?`, `areas` (`List<Area>`)
 - **Area** — `id` (int), `name` (String)
-- **Size** — `id`, `name`, `width`, `height`, `status`, `direction`
 - **ImageFileInfo** — `id`, `title?`, `type?`
+- **Status** — `draft`, `published`, `archived`
+- **BorderType** — `none`, `plainThin`, `plainThick`, `doubleOffset`, `dropShadow` (with labels)
+- **VerticalAlignment** — vertical alignment enum used by widget styles
 
-### Configuration Types
+### Repositories (`shared/domain/repositories/`)
 
-- **Status**: `draft`, `published`, `archived`
-- **BorderType**: `none`, `plainThin`, `plainThick`, `doubleOffset`, `dropShadow` (with labels)
-- **PageType**: `content`, `header`, `footer`
-- **ConnectivityStatus**: `online`, `offline`
-- **StyleConfig**: fontFamily, fontSize, primaryColor, secondaryColor, backgroundColor, margin/padding (per-side), borderType
-- **LayoutConfig**: direction, alignment, spacing
-- **PageSize**: name, width, height
-- **MenuDisplayOptions**: showPrices (default: true), showAllergens (default: true)
-- **WidgetStyle**: fontFamily, fontSize, color, backgroundColor, border, padding
+- **AuthRepository** — `login`, `logout`, `getCurrentUser`, `refreshSession`, `tryRestoreSession`, `requestPasswordReset(email, {resetUrl})`, `confirmPasswordReset({token, password})`
+- **AreaRepository** — `getAll()` → `List<Area>`
+- **FileRepository** — `upload(bytes, filename)` → file ID, `listImageFiles()`, `downloadFile(fileId)` → bytes
+- **AssetLoaderRepository** — `loadAsset(assetPath)` → `ByteData` (pure, framework-agnostic font/asset loading)
 
-### Real-Time Entities
+### Use Cases (`shared/domain/usecases/`)
+
+- **ListImageFilesUseCase** — thin wrapper around `FileRepository.listImageFiles()`
+
+## Menu Feature (`lib/features/menu/domain/`)
+
+### Hierarchy entities (`features/menu/domain/entities/`)
+
+```
+Menu → Page → Container → Column → WidgetInstance
+```
+
+- **Menu** — `id`, `name`, `status`, `version`, `dateCreated`, `dateUpdated`, `userCreated`, `userUpdated`, `styleConfig?` (`StyleConfig`), `pageSize?` (`PageSize`), `area?`, `displayOptions?` (`MenuDisplayOptions`), `allowedWidgetTypes` (`List<String>`)
+- **Page** — `id`, `menuId`, `name`, `index`, `type` (`PageType`: content|header|footer), `dateCreated`, `dateUpdated`
+- **Container** — `id`, `pageId`, `index`, `name?`, `layout?` (`LayoutConfig`), `styleConfig?`, `dateCreated`, `dateUpdated`
+- **Column** — `id`, `containerId`, `index`, `flex?`, `width?`, `styleConfig?`, `isDroppable` (default: true), `dateCreated`, `dateUpdated`
+- **WidgetInstance** — `id`, `columnId`, `type` (String), `version`, `index`, `props` (`Map<String, dynamic>`), `style?` (`WidgetStyle`), `isTemplate` (default: false), `dateCreated`, `dateUpdated`, `editingBy?`, `editingSince?`
+- **Size** — `id`, `name`, `width`, `height`, `status`, `direction`
+- **MenuBundle** — `id`, `menuId`, `name`, `status`, `version`, …  (publishable export bundle for a menu)
+
+### Configuration types (also under `features/menu/domain/entities/`)
+
+- **StyleConfig** — fontFamily, fontSize, primaryColor, secondaryColor, backgroundColor, per-side margin/padding, borderType
+- **LayoutConfig** — direction, alignment, spacing
+- **PageSize** — name, width, height
+- **MenuDisplayOptions** — `showPrices` (true), `showAllergens` (true)
+- **WidgetStyle** — fontFamily, fontSize, color, backgroundColor, border, padding
+
+### Repositories (`features/menu/domain/repositories/`)
+
+- **MenuRepository** — `create(CreateMenuInput)`, `listAll({onlyPublished, areaIds})`, `getById(id)`, `update(UpdateMenuInput)`, `delete(id)`
+- **PageRepository** — `create(CreatePageInput)`, `getAllForMenu(menuId)`, `getById(id)`, `update(UpdatePageInput)`, `delete(id)`, `reorder(pageId, newIndex)`
+- **ContainerRepository** — `create(CreateContainerInput)`, `getAllForPage(pageId)`, `getById(id)`, `update(UpdateContainerInput)`, `delete(id)`, `reorder(containerId, newIndex)`, `moveTo(containerId, newPageId, index)`
+- **ColumnRepository** — `create(CreateColumnInput)`, `getAllForContainer(containerId)`, `getById(id)`, `update(UpdateColumnInput)`, `delete(id)`, `reorder(columnId, newIndex)`
+- **WidgetRepository** — `create(CreateWidgetInput)`, `getAllForColumn(columnId)`, `getById(id)`, `update(UpdateWidgetInput)`, `delete(id)`, `reorder(widgetId, newIndex)`, `moveTo(widgetId, newColumnId, index)`, `lockForEditing(widgetId, userId)`, `unlockEditing(widgetId)`
+- **SizeRepository** — `getAll()`, `getById(id)`, `create(CreateSizeInput)`, `update(UpdateSizeInput)`, `delete(id)`
+- **MenuBundleRepository** — CRUD + publish for `MenuBundle`
+
+### Use Cases (`features/menu/domain/usecases/`)
+
+- **FetchMenuTreeUseCase** — fetches complete `MenuTree` (menu + all pages/containers/columns/widgets sorted by index). Separates content, header, footer pages. Parallel fetches at each hierarchy level. Output graph: `MenuTree` → `PageWithContainers` → `ContainerWithColumns` → `ColumnWithWidgets`.
+- **GeneratePdfUseCase** — renders `MenuTree` to PDF bytes in a background isolate. Pre-fetches images from `FileRepository`. Supports all 8 widget types. Respects `MenuDisplayOptions`.
+- **DuplicateMenuUseCase** — deep-copies a menu with all children. Appends " (copy)", creates as draft. Resolves pageSize → sizeId. Tracks created IDs and rolls back on failure.
+- **DuplicateContainerUseCase** — deep-copies a single container (with columns + widgets) within a page.
+- **ReorderContainerUseCase** — moves a container to a new index, shifting siblings.
+- **ListTemplatesUseCase** — `menuRepository.listAll(onlyPublished: false)` filtered by status.
+- **ListSizesUseCase** — `sizeRepository.getAll()` filtered by status.
+- **PdfDocumentBuilder** — isolate-safe `buildDocument(menuTree, baseFontData, boldFontData, imageCache)`. Renders containers as columns or multi-column grids, with header/footer page support.
+- **PdfStyleResolver** — resolves `StyleConfig` + `PageSize` → PDF values. Page formats (A4, Letter, Legal, A3, custom). Per-side margin/padding. 5 border render styles. Default base font size 11.0.
+- **MenuBundle use cases** — `Create…`, `Get…`, `Update…`, `Delete…`, `List…`, `PublishMenuBundleUseCase`, `PublishBundlesForMenuUseCase` (publish flow for exportable menus).
+
+## Collaboration Feature (`lib/features/collaboration/domain/`)
+
+### Entities (`collaboration/domain/entities/`)
 
 - **MenuPresence** — `id`, `userId`, `menuId`, `lastSeen`, `userName?`, `userAvatar?`
-- **MenuChangeEvent** (sealed) → **WidgetChangedEvent**: `eventType`, `data?`, `ids?`
+- **MenuChangeEvent** (sealed) → **WidgetChangedEvent** with `eventType`, `data?`, `ids?`
 
-## Repositories (`lib/domain/repositories/`)
+### Repositories (`collaboration/domain/repositories/`)
 
-All return `Result<T, DomainError>`, never throw. Input DTOs are freezed classes.
+- **MenuSubscriptionRepository** — `subscribeToMenuChanges(menuId)` → `Stream<MenuChangeEvent>`, `unsubscribe(menuId)`
+- **PresenceRepository** — `joinMenu(menuId, userId, {userName?, userAvatar?})`, `leaveMenu(menuId, userId)`, `heartbeat(menuId, userId)`, `getActiveUsers(menuId)`, `watchActiveUsers(menuId)` → `Stream`, `unsubscribePresence(menuId)`
 
-### AuthRepository
-`login(email, password)`, `logout()`, `getCurrentUser()`, `refreshSession()`, `tryRestoreSession()`
+`WidgetInstance.editingBy` / `WidgetInstance.editingSince` (defined on the menu entity) are the per-widget editing locks driven by this feature.
 
-### MenuRepository
-`create(CreateMenuInput)`, `listAll({onlyPublished, areaIds})`, `getById(id)`, `update(UpdateMenuInput)`, `delete(id)`
+## Connectivity Feature (`lib/features/connectivity/domain/`)
 
-### PageRepository
-`create(CreatePageInput)`, `getAllForMenu(menuId)`, `getById(id)`, `update(UpdatePageInput)`, `delete(id)`, `reorder(pageId, newIndex)`
+- **ConnectivityStatus** (`entities/connectivity_status.dart`) — `online`, `offline`
+- **ConnectivityRepository** (`repositories/connectivity_repository.dart`) — `checkConnectivity()` → `ConnectivityStatus`, `watchConnectivity()` → `Stream<ConnectivityStatus>` (DNS-probe based; periodic 30 s online, 5 s recovery offline)
 
-### ContainerRepository
-`create(CreateContainerInput)`, `getAllForPage(pageId)`, `getById(id)`, `update(UpdateContainerInput)`, `delete(id)`, `reorder(containerId, newIndex)`, `moveTo(containerId, newPageId, index)`
+## Allergens Feature (`lib/features/allergens/domain/`)
 
-### ColumnRepository
-`create(CreateColumnInput)`, `getAllForContainer(containerId)`, `getById(id)`, `update(UpdateColumnInput)`, `delete(id)`, `reorder(columnId, newIndex)`
+- **UkAllergen** — UK FSA 14 allergens (`celery`, `gluten`, `crustaceans`, `eggs`, `fish`, `lupin`, `milk`, `molluscs`, `mustard`, `nuts`, `peanuts`, `sesame`, `soya`, `sulphites`). Properties: `displayName`, `shortName` (CAPS), `supportsDetails` (`gluten`, `nuts`).
+- **AllergenInfo** (freezed) — `allergen`, `mayContain` (default false), `details?`
+- **AllergenDetailOptions** — option lists for allergens that support details (e.g. wheat/oats for gluten)
+- **AllergenFormatter.formatForDisplay()** — UK display: definite first (alphabetical, CAPS, details in brackets), then `MAY CONTAIN` group → e.g. `GLUTEN [wheat], MILK, MAY CONTAIN EGGS`
 
-### WidgetRepository
-`create(CreateWidgetInput)`, `getAllForColumn(columnId)`, `getById(id)`, `update(UpdateWidgetInput)`, `delete(id)`, `reorder(widgetId, newIndex)`, `moveTo(widgetId, newColumnId, index)`, `lockForEditing(widgetId, userId)`, `unlockEditing(widgetId)`
+## Widget System (`lib/features/widget_system/domain/`)
 
-### SizeRepository
-`getAll()`, `getById(id)`, `create(CreateSizeInput)`, `update(UpdateSizeInput)`, `delete(id)`
+### Plugin core (`widget_system/domain/`)
 
-### AreaRepository
-`getAll()` → List\<Area\>
+- **WidgetDefinition\<P\>** (`widget_definition.dart`) — `type`, `version`, `parseProps`, `render`, `defaultProps`, `migrate?`, `displayName?`, `materialIcon?`, `cupertinoIcon?`. `renderDynamic()` for type-erased dispatch. Also defines **WidgetContext** — runtime state (`isEditable`, `onUpdate`, `onDelete`, `onEditStarted?`, `onEditEnded?`, `displayOptions?`).
+- **WidgetRegistry** (`widget_registry.dart`) — `register<P>(definition)`, `getDefinition(type)`, `registeredTypes`, `isRegistered(type)`, `count` (O(1) lookup).
+- **WidgetMigrator** (`widget_migrator.dart`) — `migrate(instance, definition)`, `needsMigration(instance, definition)` (compares versions).
+- **WidgetTypeConfig** (`entities/widget_type_config.dart`) — per-type configuration metadata.
 
-### FileRepository
-`upload(bytes, filename)` → file ID, `listImageFiles()`, `downloadFile(fileId)` → bytes
+### Widget props (`widget_system/domain/widgets/<type>/<type>_props.dart`)
 
-### MenuSubscriptionRepository
-`subscribeToMenuChanges(menuId)` → Stream\<MenuChangeEvent\>, `unsubscribe(menuId)`
+8 widget types: `dish`, `dish_to_share`, `image`, `section`, `set_menu_dish`, `set_menu_title`, `text`, `wine`.
 
-### PresenceRepository
-`joinMenu(menuId, userId, {userName?, userAvatar?})`, `leaveMenu(menuId, userId)`, `heartbeat(menuId, userId)`, `getActiveUsers(menuId)`, `watchActiveUsers(menuId)` → Stream, `unsubscribePresence(menuId)`
+- **DishProps** — `name`, `price` (£), `description?`, `calories?`, `allergenInfo` (`List<AllergenInfo>`), `dietary?` (`DietaryType`), price variants. `displayName` → uppercase + dietary abbreviation.
+- **WineProps** — `name`, `price` (£), `description?`, `vintage?`, `dietary?`, `containsSulphites` (default false).
+- **SectionProps** — `title`, `uppercase` (false), `showDivider` (true).
+- **TextProps** — `text`, `fontSize` (default 10.0), `align` (left|center|right), `bold` (false), `italic` (false).
+- **ImageProps** — `fileId`, `align`, `fit` (contain|cover|fill|fitwidth|fitheight), `width?`, `height?`.
+- **DishToShareProps** — Dish + `servings?`.
+- **SetMenuDishProps** — dish without price; `hasSupplement` (false), `supplementPrice?`.
+- **SetMenuTitleProps** — `title`, `subtitle?`, `uppercase` (false), 1–2 price labels with prices.
 
-### ConnectivityRepository
-`checkConnectivity()` → ConnectivityStatus, `watchConnectivity()` → Stream\<ConnectivityStatus\>
+### Shared widget utilities (`widget_system/domain/widgets/shared/`)
 
-### AssetLoaderRepository
-`loadAsset(assetPath)` → ByteData — pure, framework-agnostic font/asset loading
+- **DietaryType** — `vegetarian` → "(V)", `vegan` → "(Ve)"
+- **PriceFormatter** — GBP formatting helpers
+- **WidgetAlignment** — alignment enum used by props (`left`, `center`, `right`)
 
-## Use Cases (`lib/domain/usecases/`)
+### Per-type sub-entities
 
-### FetchMenuTreeUseCase
-Fetches complete `MenuTree` (menu + all pages/containers/columns/widgets sorted by index). Separates content, header, and footer pages. Parallel fetches at each hierarchy level.
-
-**Output:** `MenuTree` → `PageWithContainers` → `ContainerWithColumns` → `ColumnWithWidgets`
-
-### GeneratePdfUseCase
-Renders `MenuTree` to PDF bytes in background isolate. Pre-fetches images from `FileRepository`. Supports all 8 widget types. Respects `MenuDisplayOptions` for price/allergen visibility.
-
-### DuplicateMenuUseCase
-Deep-copies a menu with all children. Appends " (copy)" to name. Creates as draft. Resolves pageSize to sizeId. Implements rollback on failure (tracks all created IDs).
-
-### ListTemplatesUseCase
-Lists all templates (menus) with optional status filtering. Fetches via `menuRepository.listAll(onlyPublished: false)`, filters by `status.name` if filter is not `null` or `'all'`.
-
-### ListSizesUseCase
-Lists sizes with optional status filtering. Fetches via `sizeRepository.getAll()`, filters by `status.name`.
-
-### ListImageFilesUseCase
-Lists all image files. Thin wrapper around `fileRepository.listImageFiles()`.
-
-### PdfDocumentBuilder
-Isolate-safe builder: `buildDocument(menuTree, baseFontData, boldFontData, imageCache)`. Renders containers as columns or multi-column grids. Supports header/footer pages.
-
-### PdfStyleResolver
-Resolves `StyleConfig` + `PageSize` → PDF values. Page formats (A4, Letter, Legal, A3, custom). Per-side margin/padding. Border rendering (5 types). Base font size (default: 11.0).
-
-## Widget System (`lib/domain/widget_system/`)
-
-### WidgetDefinition\<P\>
-Generic definition: `type`, `version`, `parseProps`, `render`, `defaultProps`, `migrate?`, `displayName?`, `materialIcon?`, `cupertinoIcon?`. Method `renderDynamic()` for type-erased dispatch.
-
-### WidgetRegistry
-`register<P>(definition)`, `getDefinition(type)`, `registeredTypes`, `isRegistered(type)`, `count`
-
-### WidgetMigrator
-Static: `migrate(instance, definition)`, `needsMigration(instance, definition)` — compares versions.
-
-### WidgetContext
-Runtime state: `isEditable`, `onUpdate`, `onDelete`, `onEditStarted?`, `onEditEnded?`, `displayOptions?`
-
-## Widget Props (`lib/domain/widgets/`)
-
-### DishProps
-`name`, `price` (£), `description?`, `calories?`, `allergens` (legacy List\<String\>), `allergenInfo` (List\<AllergenInfo\>), `dietary` (DietaryType?). `effectiveAllergenInfo` migrates legacy format. `displayName` → uppercase + dietary abbreviation.
-
-### WineProps
-`name`, `price` (£), `description?`, `vintage?`, `dietary?`, `containsSulphites` (default: false). `displayName` → uppercase + dietary abbreviation.
-
-### SectionProps
-`title`, `uppercase` (default: false), `showDivider` (default: true)
-
-### TextProps
-`text`, `fontSize` (default: 10.0), `align` (left|center|right), `bold` (false), `italic` (false)
-
-### ImageProps
-`fileId`, `align` (left|center|right), `fit` (contain|cover|fill|fitwidth|fitheight), `width?`, `height?`
-
-### DishToShareProps
-`name`, `price` (£), `description?`, `calories?`, `allergens`, `allergenInfo`, `dietary?`, `servings?`
-
-### SetMenuDishProps
-`name`, `description?`, `calories?`, `allergens`, `allergenInfo`, `dietary?`, `hasSupplement` (false), `supplementPrice?`
-
-### SetMenuTitleProps
-`title`, `subtitle?`, `uppercase` (false), `priceLabel1?`, `price1?`, `priceLabel2?`, `price2?`
-
-### DietaryType
-`vegetarian` → "(V)", `vegan` → "(Ve)"
-
-## Allergen System (`lib/domain/allergens/`)
-
-### UkAllergen
-14 FSA allergens: celery, gluten, crustaceans, eggs, fish, lupin, milk, molluscs, mustard, nuts, peanuts, sesame, soya, sulphites. Properties: `displayName`, `shortName` (CAPITALS), `supportsDetails` (gluten, nuts).
-
-### AllergenInfo (freezed)
-`allergen`, `mayContain` (false), `details?`. Factory `fromLegacyString()` maps common strings (e.g., 'dairy'→milk, 'wheat'→gluten).
-
-### AllergenFormatter
-`formatForDisplay()` → UK format: definite first (alphabetical, CAPS, details in brackets), then "MAY CONTAIN" group.
+- `widgets/dish/price_variant.dart` — multi-price variant model used by `DishProps`.
