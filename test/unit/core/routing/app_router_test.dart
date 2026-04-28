@@ -16,6 +16,8 @@ import 'package:oxo_menus/features/auth/presentation/screens/reset_password_scre
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/features/home/presentation/screens/home_screen.dart';
 import 'package:oxo_menus/features/menu/domain/entities/menu.dart';
+import 'package:oxo_menus/features/menu/domain/entities/size.dart'
+    as size_entity;
 import 'package:oxo_menus/features/menu_list/domain/use_cases/create_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/delete_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/list_menus_for_viewer_use_case.dart';
@@ -24,6 +26,13 @@ import 'package:oxo_menus/features/menu_list/presentation/screens/menu_list_scre
 import 'package:oxo_menus/features/menu_list/presentation/view_models/menu_list_view_model.dart';
 import 'package:oxo_menus/features/settings/presentation/screens/settings_screen.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/duplicate_menu_usecase.dart';
+import 'package:oxo_menus/features/admin_sizes/domain/use_cases/create_size_use_case.dart';
+import 'package:oxo_menus/features/admin_sizes/domain/use_cases/delete_size_use_case.dart';
+import 'package:oxo_menus/features/admin_sizes/domain/use_cases/list_sizes_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_sizes/domain/use_cases/update_size_use_case.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/routing/legacy_admin_sizes_router.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/screens/admin_sizes_screen.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/view_models/admin_sizes_view_model.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/pages/admin_template_creator_page.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/delete_template_use_case.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/list_templates_for_admin_use_case.dart';
@@ -208,6 +217,54 @@ AdminTemplatesViewModel _buildLegacyAdminTemplatesVm(
   );
 }
 
+/// Empty-list [ListSizesForAdminUseCase] used by [_buildLegacyAdminSizesVm] so
+/// the legacy `/admin/sizes` host can stand up an [AdminSizesViewModel]
+/// without touching a real `DirectusDataSource`.
+class _StubListSizesForAdminUseCase implements ListSizesForAdminUseCase {
+  @override
+  Future<Result<List<size_entity.Size>, DomainError>> execute(
+    ListSizesForAdminInput input,
+  ) async => const Success(<size_entity.Size>[]);
+}
+
+class _StubCreateSizeUseCase implements CreateSizeUseCase {
+  @override
+  Future<Result<size_entity.Size, DomainError>> execute(
+    CreateSizeInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubUpdateSizeUseCase implements UpdateSizeUseCase {
+  @override
+  Future<Result<size_entity.Size, DomainError>> execute(
+    UpdateSizeInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubDeleteSizeUseCase implements DeleteSizeUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(int input) async =>
+      const Success(null);
+}
+
+/// Builds an [AdminSizesViewModel] backed entirely by stubs — used by the
+/// router tests so the Phase 20 legacy `/admin/sizes` host can mount
+/// [AdminSizesScreen] without spinning up a real `DirectusDataSource`.
+AdminSizesViewModel _buildLegacyAdminSizesVm(
+  BuildContext context,
+  AppContainer container,
+) {
+  return AdminSizesViewModel(
+    listSizes: _StubListSizesForAdminUseCase(),
+    createSize: _StubCreateSizeUseCase(),
+    updateSize: _StubUpdateSizeUseCase(),
+    deleteSize: _StubDeleteSizeUseCase(),
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyAdminSizesRouter(GoRouterLegacyNavigator(context)),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -258,6 +315,12 @@ Widget _buildApp({
       // without one.
       legacyAdminTemplatesViewModelBuilderProvider.overrideWithValue(
         _buildLegacyAdminTemplatesVm,
+      ),
+      // Phase 20 — the legacy /admin/sizes GoRoute mounts AdminSizesScreen,
+      // whose ViewModel needs a live DirectusDataSource. Override the builder
+      // so the router tests can mount the screen without one.
+      legacyAdminSizesViewModelBuilderProvider.overrideWithValue(
+        _buildLegacyAdminSizesVm,
       ),
       ...extraOverrides.cast(),
     ],
@@ -751,6 +814,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(AdminTemplatesScreen), findsOneWidget);
+    });
+  });
+
+  // Phase 20 — the legacy /admin/sizes GoRoute now hosts the MVVM
+  // AdminSizesScreen directly instead of the retired AdminSizesPage widget.
+  // This test pins the cutover so the screen cannot silently regress.
+  group('AppRouter — legacy /admin/sizes hosts MVVM screen', () {
+    testWidgets('/admin/sizes mounts AdminSizesScreen', (tester) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
+
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/admin/sizes');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AdminSizesScreen), findsOneWidget);
     });
   });
 

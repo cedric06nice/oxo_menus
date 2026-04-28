@@ -10,7 +10,13 @@ import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_sta
 import 'package:oxo_menus/features/menu/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/presentation/admin_exportable_menus_page.dart';
-import 'package:oxo_menus/features/admin_sizes/presentation/admin_sizes_page.dart';
+import 'package:oxo_menus/features/admin_sizes/domain/use_cases/create_size_use_case.dart';
+import 'package:oxo_menus/features/admin_sizes/domain/use_cases/delete_size_use_case.dart';
+import 'package:oxo_menus/features/admin_sizes/domain/use_cases/list_sizes_for_admin_use_case.dart';
+import 'package:oxo_menus/features/admin_sizes/domain/use_cases/update_size_use_case.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/routing/legacy_admin_sizes_router.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/screens/admin_sizes_screen.dart';
+import 'package:oxo_menus/features/admin_sizes/presentation/view_models/admin_sizes_view_model.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/pages/admin_template_creator_page.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/delete_template_use_case.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/list_templates_for_admin_use_case.dart';
@@ -261,7 +267,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.adminSizes,
             name: 'admin-sizes',
-            builder: (context, state) => const AdminSizesPage(),
+            builder: (context, state) {
+              final container = ref.watch(appContainerProvider);
+              final builder = ref.read(
+                legacyAdminSizesViewModelBuilderProvider,
+              );
+              return _LegacyAdminSizesRouteHost(
+                container: container,
+                builder: builder,
+              );
+            },
           ),
           GoRoute(
             path: AppRoutes.adminExportableMenus,
@@ -743,5 +758,105 @@ class _LegacyAdminTemplatesRouteHostState
   @override
   Widget build(BuildContext context) {
     return AdminTemplatesScreen(viewModel: _viewModel);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 20 — legacy /admin/sizes route host
+//
+// Owns the AdminSizesViewModel for the lifetime of the legacy GoRoute under
+// the AppShell. The MVVM AdminSizesScreen is pure (no Riverpod, no
+// BuildContext reads) so this host bridges go_router into it via
+// LegacyAdminSizesRouter. The screen is a navigation leaf — the router only
+// exposes "back" — so no deep-link forwarding is needed. Will be deleted when
+// the admin sizes list is fully cut over to the MainRouter stack.
+//
+// The view-model construction is exposed as a Riverpod-overridable builder so
+// router tests can swap in fake use cases without standing up a real
+// DirectusDataSource. Production wiring is the default and lives in
+// [_defaultLegacyAdminSizesViewModelBuilder].
+// ---------------------------------------------------------------------------
+
+/// Factory used by the legacy `/admin/sizes` route host to construct the
+/// [AdminSizesViewModel] from the live [AppContainer]. The [BuildContext] is
+/// the route's context and is used by the default builder to bridge into
+/// `go_router` via [GoRouterLegacyNavigator].
+typedef LegacyAdminSizesViewModelBuilder =
+    AdminSizesViewModel Function(BuildContext context, AppContainer container);
+
+/// Riverpod entry point for the legacy `/admin/sizes` view-model builder.
+///
+/// Defaults to [_defaultLegacyAdminSizesViewModelBuilder] which wires the live
+/// size repository from the container's `DirectusDataSource`. Tests override
+/// this with a stub builder that returns an [AdminSizesViewModel] backed by
+/// fake use cases.
+final legacyAdminSizesViewModelBuilderProvider =
+    Provider<LegacyAdminSizesViewModelBuilder>(
+      (ref) => _defaultLegacyAdminSizesViewModelBuilder,
+    );
+
+AdminSizesViewModel _defaultLegacyAdminSizesViewModelBuilder(
+  BuildContext context,
+  AppContainer container,
+) {
+  final sizeRepository = SizeRepositoryImpl(
+    dataSource: container.directusDataSource,
+  );
+  return AdminSizesViewModel(
+    listSizes: ListSizesForAdminUseCase(
+      authGateway: container.authGateway,
+      sizeRepository: sizeRepository,
+    ),
+    createSize: CreateSizeUseCase(
+      authGateway: container.authGateway,
+      sizeRepository: sizeRepository,
+    ),
+    updateSize: UpdateSizeUseCase(
+      authGateway: container.authGateway,
+      sizeRepository: sizeRepository,
+    ),
+    deleteSize: DeleteSizeUseCase(
+      authGateway: container.authGateway,
+      sizeRepository: sizeRepository,
+    ),
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyAdminSizesRouter(GoRouterLegacyNavigator(context)),
+  );
+}
+
+class _LegacyAdminSizesRouteHost extends StatefulWidget {
+  const _LegacyAdminSizesRouteHost({
+    required this.container,
+    required this.builder,
+  });
+
+  final AppContainer container;
+  final LegacyAdminSizesViewModelBuilder builder;
+
+  @override
+  State<_LegacyAdminSizesRouteHost> createState() =>
+      _LegacyAdminSizesRouteHostState();
+}
+
+class _LegacyAdminSizesRouteHostState
+    extends State<_LegacyAdminSizesRouteHost> {
+  late final AdminSizesViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = widget.builder(context, widget.container);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AdminSizesScreen(viewModel: _viewModel);
   }
 }
