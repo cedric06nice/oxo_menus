@@ -17,7 +17,13 @@ import 'package:oxo_menus/features/admin_sizes/domain/use_cases/update_size_use_
 import 'package:oxo_menus/features/admin_sizes/presentation/routing/legacy_admin_sizes_router.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/screens/admin_sizes_screen.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/view_models/admin_sizes_view_model.dart';
-import 'package:oxo_menus/features/admin_template_creator/presentation/pages/admin_template_creator_page.dart';
+import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/create_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/list_areas_for_creator_use_case.dart';
+import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/list_sizes_for_creator_use_case.dart';
+import 'package:oxo_menus/features/admin_template_creator/presentation/routing/legacy_admin_template_creator_router.dart';
+import 'package:oxo_menus/features/admin_template_creator/presentation/screens/admin_template_creator_screen.dart';
+import 'package:oxo_menus/features/admin_template_creator/presentation/view_models/admin_template_creator_view_model.dart';
+import 'package:oxo_menus/shared/data/repositories/area_repository_impl.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/delete_template_use_case.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/list_templates_for_admin_use_case.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/legacy_admin_templates_router.dart';
@@ -300,7 +306,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'create',
                 name: 'admin-template-create',
-                builder: (context, state) => const AdminTemplateCreatorPage(),
+                builder: (context, state) {
+                  final container = ref.watch(appContainerProvider);
+                  final builder = ref.read(
+                    legacyAdminTemplateCreatorViewModelBuilderProvider,
+                  );
+                  return _LegacyAdminTemplateCreatorRouteHost(
+                    container: container,
+                    builder: builder,
+                  );
+                },
               ),
               // The admin template editor is served by the migrated MainRouter
               // at `/app/admin/templates/{id}/edit` (Phase 11). The legacy
@@ -858,5 +873,109 @@ class _LegacyAdminSizesRouteHostState
   @override
   Widget build(BuildContext context) {
     return AdminSizesScreen(viewModel: _viewModel);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 21 — legacy /admin/templates/create route host
+//
+// Owns the AdminTemplateCreatorViewModel for the lifetime of the legacy
+// GoRoute under the AppShell. The MVVM AdminTemplateCreatorScreen is pure (no
+// Riverpod, no BuildContext reads) so this host bridges go_router into it via
+// LegacyAdminTemplateCreatorRouter. The downstream admin template editor is
+// already served by the migrated MainRouter (Phase 11), so the router
+// deep-links straight into `/app/admin/templates/{id}/edit`. The "Manage Page
+// Sizes" CTA still resolves to the legacy `/admin/sizes` GoRoute. Will be
+// deleted when the create flow is fully cut over to the MainRouter stack.
+//
+// The view-model construction is exposed as a Riverpod-overridable builder so
+// router tests can swap in fake use cases without standing up a real
+// DirectusDataSource. Production wiring is the default and lives in
+// [_defaultLegacyAdminTemplateCreatorViewModelBuilder].
+// ---------------------------------------------------------------------------
+
+/// Factory used by the legacy `/admin/templates/create` route host to construct
+/// the [AdminTemplateCreatorViewModel] from the live [AppContainer]. The
+/// [BuildContext] is the route's context and is used by the default builder to
+/// bridge into `go_router` via [GoRouterLegacyNavigator].
+typedef LegacyAdminTemplateCreatorViewModelBuilder =
+    AdminTemplateCreatorViewModel Function(
+      BuildContext context,
+      AppContainer container,
+    );
+
+/// Riverpod entry point for the legacy `/admin/templates/create` view-model
+/// builder.
+///
+/// Defaults to [_defaultLegacyAdminTemplateCreatorViewModelBuilder] which
+/// wires the live menu / size / area repositories from the container's
+/// `DirectusDataSource`. Tests override this with a stub builder that returns
+/// an [AdminTemplateCreatorViewModel] backed by fake use cases.
+final legacyAdminTemplateCreatorViewModelBuilderProvider =
+    Provider<LegacyAdminTemplateCreatorViewModelBuilder>(
+      (ref) => _defaultLegacyAdminTemplateCreatorViewModelBuilder,
+    );
+
+AdminTemplateCreatorViewModel
+_defaultLegacyAdminTemplateCreatorViewModelBuilder(
+  BuildContext context,
+  AppContainer container,
+) {
+  final dataSource = container.directusDataSource;
+  final menuRepository = MenuRepositoryImpl(dataSource: dataSource);
+  final sizeRepository = SizeRepositoryImpl(dataSource: dataSource);
+  final areaRepository = AreaRepositoryImpl(dataSource: dataSource);
+  return AdminTemplateCreatorViewModel(
+    listSizes: ListSizesForCreatorUseCase(
+      authGateway: container.authGateway,
+      sizeRepository: sizeRepository,
+    ),
+    listAreas: ListAreasForCreatorUseCase(
+      authGateway: container.authGateway,
+      areaRepository: areaRepository,
+    ),
+    createTemplate: CreateTemplateUseCase(
+      authGateway: container.authGateway,
+      menuRepository: menuRepository,
+    ),
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyAdminTemplateCreatorRouter(GoRouterLegacyNavigator(context)),
+  );
+}
+
+class _LegacyAdminTemplateCreatorRouteHost extends StatefulWidget {
+  const _LegacyAdminTemplateCreatorRouteHost({
+    required this.container,
+    required this.builder,
+  });
+
+  final AppContainer container;
+  final LegacyAdminTemplateCreatorViewModelBuilder builder;
+
+  @override
+  State<_LegacyAdminTemplateCreatorRouteHost> createState() =>
+      _LegacyAdminTemplateCreatorRouteHostState();
+}
+
+class _LegacyAdminTemplateCreatorRouteHostState
+    extends State<_LegacyAdminTemplateCreatorRouteHost> {
+  late final AdminTemplateCreatorViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = widget.builder(context, widget.container);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AdminTemplateCreatorScreen(viewModel: _viewModel);
   }
 }

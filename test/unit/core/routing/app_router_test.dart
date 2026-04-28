@@ -10,6 +10,7 @@ import 'package:oxo_menus/core/routing/app_router.dart';
 import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/core/gateways/app_version_gateway.dart';
+import 'package:oxo_menus/shared/domain/entities/area.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/login_screen.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/reset_password_screen.dart';
@@ -33,7 +34,12 @@ import 'package:oxo_menus/features/admin_sizes/domain/use_cases/update_size_use_
 import 'package:oxo_menus/features/admin_sizes/presentation/routing/legacy_admin_sizes_router.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/screens/admin_sizes_screen.dart';
 import 'package:oxo_menus/features/admin_sizes/presentation/view_models/admin_sizes_view_model.dart';
-import 'package:oxo_menus/features/admin_template_creator/presentation/pages/admin_template_creator_page.dart';
+import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/create_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/list_areas_for_creator_use_case.dart';
+import 'package:oxo_menus/features/admin_template_creator/domain/use_cases/list_sizes_for_creator_use_case.dart';
+import 'package:oxo_menus/features/admin_template_creator/presentation/routing/legacy_admin_template_creator_router.dart';
+import 'package:oxo_menus/features/admin_template_creator/presentation/screens/admin_template_creator_screen.dart';
+import 'package:oxo_menus/features/admin_template_creator/presentation/view_models/admin_template_creator_view_model.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/delete_template_use_case.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/list_templates_for_admin_use_case.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/legacy_admin_templates_router.dart';
@@ -50,10 +56,8 @@ import 'package:oxo_menus/features/menu/domain/repositories/widget_repository.da
 import 'package:oxo_menus/features/menu/domain/usecases/fetch_menu_tree_usecase.dart';
 
 import '../../../fakes/fake_auth_repository.dart';
-import '../../../fakes/fake_area_repository.dart';
 import '../../../fakes/fake_connectivity_repository.dart';
 import '../../../fakes/fake_menu_repository.dart';
-import '../../../fakes/fake_size_repository.dart';
 import '../../../fakes/builders/user_builder.dart';
 import '../../../fakes/reflectable_bootstrap.dart';
 
@@ -265,6 +269,48 @@ AdminSizesViewModel _buildLegacyAdminSizesVm(
   );
 }
 
+/// Empty-list [ListSizesForCreatorUseCase] used by
+/// [_buildLegacyAdminTemplateCreatorVm] so the legacy
+/// `/admin/templates/create` host can stand up an
+/// [AdminTemplateCreatorViewModel] without touching a real
+/// `DirectusDataSource`.
+class _StubListSizesForCreatorUseCase implements ListSizesForCreatorUseCase {
+  @override
+  Future<Result<List<size_entity.Size>, DomainError>> execute(
+    NoInput input,
+  ) async => const Success(<size_entity.Size>[]);
+}
+
+class _StubListAreasForCreatorUseCase implements ListAreasForCreatorUseCase {
+  @override
+  Future<Result<List<Area>, DomainError>> execute(NoInput input) async =>
+      const Success(<Area>[]);
+}
+
+class _StubCreateTemplateUseCase implements CreateTemplateUseCase {
+  @override
+  Future<Result<Menu, DomainError>> execute(CreateTemplateInput input) async =>
+      const Failure(UnauthorizedError());
+}
+
+/// Builds an [AdminTemplateCreatorViewModel] backed entirely by stubs — used
+/// by the router tests so the Phase 21 legacy `/admin/templates/create` host
+/// can mount [AdminTemplateCreatorScreen] without spinning up a real
+/// `DirectusDataSource`.
+AdminTemplateCreatorViewModel _buildLegacyAdminTemplateCreatorVm(
+  BuildContext context,
+  AppContainer container,
+) {
+  return AdminTemplateCreatorViewModel(
+    listSizes: _StubListSizesForCreatorUseCase(),
+    listAreas: _StubListAreasForCreatorUseCase(),
+    createTemplate: _StubCreateTemplateUseCase(),
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyAdminTemplateCreatorRouter(GoRouterLegacyNavigator(context)),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -321,6 +367,13 @@ Widget _buildApp({
       // so the router tests can mount the screen without one.
       legacyAdminSizesViewModelBuilderProvider.overrideWithValue(
         _buildLegacyAdminSizesVm,
+      ),
+      // Phase 21 — the legacy /admin/templates/create GoRoute mounts
+      // AdminTemplateCreatorScreen, whose ViewModel needs a live
+      // DirectusDataSource. Override the builder so the router tests can mount
+      // the screen without one.
+      legacyAdminTemplateCreatorViewModelBuilderProvider.overrideWithValue(
+        _buildLegacyAdminTemplateCreatorVm,
       ),
       ...extraOverrides.cast(),
     ],
@@ -934,8 +987,17 @@ void main() {
     // the MenuEditor* tests under features/menu_editor/.
   });
 
-  group('AppRouter — admin template routes', () {
-    testWidgets('should render /admin/templates/create page for admin user', (
+  // Phase 21 — the legacy /admin/templates/create GoRoute now hosts the MVVM
+  // AdminTemplateCreatorScreen directly instead of the retired
+  // AdminTemplateCreatorPage widget. This test pins the cutover so the screen
+  // cannot silently regress.
+  //
+  // The /admin/templates/:id legacy route was removed in Phase 11. The
+  // template editor is now served by MainRouter at
+  // /app/admin/templates/{id}/edit (see main_router_test.dart and
+  // route_config_test.dart).
+  group('AppRouter — legacy /admin/templates/create hosts MVVM screen', () {
+    testWidgets('/admin/templates/create mounts AdminTemplateCreatorScreen', (
       tester,
     ) async {
       final fakeAuth = FakeAuthRepository();
@@ -944,22 +1006,12 @@ void main() {
       final fakeMenu = FakeMenuRepository();
       _configureMenuRepository(fakeMenu);
 
-      final fakeSize = FakeSizeRepository();
-      fakeSize.whenGetAll(const Success([]));
-
-      final fakeArea = FakeAreaRepository();
-      fakeArea.whenGetAll(const Success([]));
-
       late GoRouter router;
 
       await tester.pumpWidget(
         _buildApp(
           fakeAuth: fakeAuth,
           fakeMenu: fakeMenu,
-          extraOverrides: [
-            sizeRepositoryProvider.overrideWithValue(fakeSize),
-            areaRepositoryProvider.overrideWithValue(fakeArea),
-          ],
           onRouter: (r) => router = r,
         ),
       );
@@ -968,13 +1020,8 @@ void main() {
       router.go('/admin/templates/create');
       await tester.pumpAndSettle();
 
-      expect(find.byType(AdminTemplateCreatorPage), findsOneWidget);
+      expect(find.byType(AdminTemplateCreatorScreen), findsOneWidget);
     });
-
-    // The /admin/templates/:id legacy route was removed in Phase 11. The
-    // template editor is now served by MainRouter at
-    // /app/admin/templates/{id}/edit (see main_router_test.dart and
-    // route_config_test.dart).
   });
 
   group('AppRouter — deep linking', () {
