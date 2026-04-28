@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/architecture/use_case.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
+import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/types/result.dart';
 import 'package:oxo_menus/core/gateways/app_version_gateway.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/forgot_password_screen.dart';
@@ -13,6 +15,13 @@ import 'package:oxo_menus/features/auth/presentation/screens/login_screen.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/features/home/presentation/screens/home_screen.dart';
+import 'package:oxo_menus/features/menu/domain/entities/menu.dart';
+import 'package:oxo_menus/features/menu_list/domain/use_cases/create_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_list/domain/use_cases/delete_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_list/domain/use_cases/list_menus_for_viewer_use_case.dart';
+import 'package:oxo_menus/features/menu_list/presentation/routing/legacy_menu_list_router.dart';
+import 'package:oxo_menus/features/menu_list/presentation/screens/menu_list_screen.dart';
+import 'package:oxo_menus/features/menu_list/presentation/view_models/menu_list_view_model.dart';
 import 'package:oxo_menus/features/settings/presentation/screens/settings_screen.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/pages/admin_template_creator_page.dart';
@@ -121,6 +130,46 @@ class _FakeAppVersionGateway implements AppVersionGateway {
   Future<String> read() async => '1.0.0';
 }
 
+/// No-op [ListMenusForViewerUseCase] used by [_buildLegacyMenuListVm] so the
+/// legacy `/menus` host can stand up a [MenuListViewModel] without touching a
+/// real `DirectusDataSource`.
+class _StubListMenusForViewerUseCase implements ListMenusForViewerUseCase {
+  @override
+  Future<Result<List<Menu>, DomainError>> execute(NoInput input) async =>
+      const Success(<Menu>[]);
+}
+
+class _StubCreateMenuUseCase implements CreateMenuUseCase {
+  @override
+  Future<Result<Menu, DomainError>> execute(CreateMenuInput input) async =>
+      const Failure(UnauthorizedError());
+}
+
+class _StubDeleteMenuUseCase implements DeleteMenuUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(int input) async =>
+      const Success(null);
+}
+
+/// Builds a [MenuListViewModel] backed entirely by stubs — used by the router
+/// tests so the Phase 18 legacy `/menus` host can mount [MenuListScreen]
+/// without spinning up a real `DirectusDataSource`. Mirrors the existing
+/// [`_FakeDuplicateMenuUseCase`] pattern above.
+MenuListViewModel _buildLegacyMenuListVm(
+  BuildContext context,
+  AppContainer container,
+) {
+  return MenuListViewModel(
+    listMenusForViewer: _StubListMenusForViewerUseCase(),
+    createMenu: _StubCreateMenuUseCase(),
+    deleteMenu: _StubDeleteMenuUseCase(),
+    duplicateMenu: _FakeDuplicateMenuUseCase(),
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyMenuListRouter(GoRouterLegacyNavigator(context)),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -158,6 +207,12 @@ Widget _buildApp({
           ),
           appVersionGateway: appVersionGateway,
         ),
+      ),
+      // Phase 18 — the legacy /menus GoRoute mounts MenuListScreen, whose
+      // ViewModel needs a live DirectusDataSource. Override the builder so
+      // the router tests can mount the screen without one.
+      legacyMenuListViewModelBuilderProvider.overrideWithValue(
+        _buildLegacyMenuListVm,
       ),
       ...extraOverrides.cast(),
     ],
@@ -593,6 +648,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(HomeScreen), findsOneWidget);
+    });
+  });
+
+  // Phase 18 — the legacy /menus GoRoute now hosts the MVVM MenuListScreen
+  // directly instead of the retired MenuListPage widget. This test pins the
+  // cutover so the screen cannot silently regress.
+  group('AppRouter — legacy /menus hosts MVVM screen', () {
+    testWidgets('/menus mounts MenuListScreen', (tester) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
+
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/menus');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MenuListScreen), findsOneWidget);
     });
   });
 

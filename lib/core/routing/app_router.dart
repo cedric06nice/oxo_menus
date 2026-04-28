@@ -27,8 +27,21 @@ import 'package:oxo_menus/features/home/domain/use_cases/get_home_overview_use_c
 import 'package:oxo_menus/features/home/presentation/routing/legacy_home_router.dart';
 import 'package:oxo_menus/features/home/presentation/screens/home_screen.dart';
 import 'package:oxo_menus/features/home/presentation/view_models/home_view_model.dart';
+import 'package:oxo_menus/features/menu/data/repositories/column_repository_impl.dart';
+import 'package:oxo_menus/features/menu/data/repositories/container_repository_impl.dart';
+import 'package:oxo_menus/features/menu/data/repositories/menu_repository_impl.dart';
+import 'package:oxo_menus/features/menu/data/repositories/page_repository_impl.dart';
+import 'package:oxo_menus/features/menu/data/repositories/size_repository_impl.dart';
+import 'package:oxo_menus/features/menu/data/repositories/widget_repository_impl.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/duplicate_menu_usecase.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/pages/pdf_preview_page.dart';
-import 'package:oxo_menus/features/menu_list/presentation/pages/menu_list_page.dart';
+import 'package:oxo_menus/features/menu_list/domain/use_cases/create_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_list/domain/use_cases/delete_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_list/domain/use_cases/list_menus_for_viewer_use_case.dart';
+import 'package:oxo_menus/features/menu_list/presentation/routing/legacy_menu_list_router.dart';
+import 'package:oxo_menus/features/menu_list/presentation/screens/menu_list_screen.dart';
+import 'package:oxo_menus/features/menu_list/presentation/view_models/menu_list_view_model.dart';
 import 'package:oxo_menus/features/settings/domain/use_cases/get_app_version_use_case.dart';
 import 'package:oxo_menus/features/settings/domain/use_cases/get_settings_overview_use_case.dart';
 import 'package:oxo_menus/features/settings/domain/use_cases/logout_use_case.dart';
@@ -215,7 +228,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.menus,
             name: 'menus',
-            builder: (context, state) => const MenuListPage(),
+            builder: (context, state) {
+              final container = ref.watch(appContainerProvider);
+              final builder = ref.read(legacyMenuListViewModelBuilderProvider);
+              return _LegacyMenuListRouteHost(
+                container: container,
+                builder: builder,
+              );
+            },
             routes: [
               GoRoute(
                 path: 'pdf/:id',
@@ -506,5 +526,116 @@ class _LegacySettingsRouteHostState extends State<_LegacySettingsRouteHost> {
   @override
   Widget build(BuildContext context) {
     return SettingsScreen(viewModel: _viewModel);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 18 — legacy /menus route host
+//
+// Owns the MenuListViewModel for the lifetime of the legacy GoRoute under the
+// AppShell. The MVVM MenuListScreen is pure (no Riverpod, no BuildContext
+// reads) so this host bridges go_router into it via LegacyMenuListRouter. The
+// downstream menu editor and admin template editor are already served by the
+// migrated MainRouter (Phases 11 & 12), so the router deep-links straight into
+// `/app/...` paths. Will be deleted when the menu list is fully cut over to
+// the MainRouter stack.
+//
+// The view-model construction is exposed as a Riverpod-overridable builder so
+// router tests can swap in fake use cases without standing up a real
+// DirectusDataSource. Production wiring is the default and lives in
+// [_defaultLegacyMenuListViewModelBuilder].
+// ---------------------------------------------------------------------------
+
+/// Factory used by the legacy `/menus` route host to construct the
+/// [MenuListViewModel] from the live [AppContainer]. The [BuildContext] is the
+/// route's context and is used by the default builder to bridge into
+/// `go_router` via [GoRouterLegacyNavigator].
+typedef LegacyMenuListViewModelBuilder =
+    MenuListViewModel Function(BuildContext context, AppContainer container);
+
+/// Riverpod entry point for the legacy `/menus` view-model builder.
+///
+/// Defaults to [_defaultLegacyMenuListViewModelBuilder] which wires the live
+/// menu repositories from the container's `DirectusDataSource`. Tests override
+/// this with a stub builder that returns a [MenuListViewModel] backed by fake
+/// use cases.
+final legacyMenuListViewModelBuilderProvider =
+    Provider<LegacyMenuListViewModelBuilder>(
+      (ref) => _defaultLegacyMenuListViewModelBuilder,
+    );
+
+MenuListViewModel _defaultLegacyMenuListViewModelBuilder(
+  BuildContext context,
+  AppContainer container,
+) {
+  final dataSource = container.directusDataSource;
+  final menuRepository = MenuRepositoryImpl(dataSource: dataSource);
+  final pageRepository = PageRepositoryImpl(dataSource: dataSource);
+  final containerRepository = ContainerRepositoryImpl(dataSource: dataSource);
+  final columnRepository = ColumnRepositoryImpl(dataSource: dataSource);
+  final widgetRepository = WidgetRepositoryImpl(dataSource: dataSource);
+  final sizeRepository = SizeRepositoryImpl(dataSource: dataSource);
+  final fetchMenuTreeUseCase = FetchMenuTreeUseCase(
+    menuRepository: menuRepository,
+    pageRepository: pageRepository,
+    containerRepository: containerRepository,
+    columnRepository: columnRepository,
+    widgetRepository: widgetRepository,
+  );
+  final duplicateMenuUseCase = DuplicateMenuUseCase(
+    fetchMenuTreeUseCase: fetchMenuTreeUseCase,
+    menuRepository: menuRepository,
+    pageRepository: pageRepository,
+    containerRepository: containerRepository,
+    columnRepository: columnRepository,
+    widgetRepository: widgetRepository,
+    sizeRepository: sizeRepository,
+  );
+  return MenuListViewModel(
+    listMenusForViewer: ListMenusForViewerUseCase(
+      authGateway: container.authGateway,
+      menuRepository: menuRepository,
+    ),
+    createMenu: CreateMenuUseCase(menuRepository: menuRepository),
+    deleteMenu: DeleteMenuUseCase(menuRepository: menuRepository),
+    duplicateMenu: duplicateMenuUseCase,
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyMenuListRouter(GoRouterLegacyNavigator(context)),
+  );
+}
+
+class _LegacyMenuListRouteHost extends StatefulWidget {
+  const _LegacyMenuListRouteHost({
+    required this.container,
+    required this.builder,
+  });
+
+  final AppContainer container;
+  final LegacyMenuListViewModelBuilder builder;
+
+  @override
+  State<_LegacyMenuListRouteHost> createState() =>
+      _LegacyMenuListRouteHostState();
+}
+
+class _LegacyMenuListRouteHostState extends State<_LegacyMenuListRouteHost> {
+  late final MenuListViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = widget.builder(context, widget.container);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MenuListScreen(viewModel: _viewModel);
   }
 }
