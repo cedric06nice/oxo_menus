@@ -27,23 +27,20 @@ void main() {
       expect(router, isA<MenuListRouter>());
     });
 
-    test(
-      'goToMenuEditor forwards to the migrated /app/menus/{id}/edit path',
-      () {
-        router.goToMenuEditor(42);
+    test('goToMenuEditor forwards to the legacy /menus/{id} path', () {
+      router.goToMenuEditor(42);
 
-        expect(navigator.calls, hasLength(1));
-        expect(navigator.calls.single.location, '/app/menus/42/edit');
-        expect(navigator.calls.single.extra, isNull);
-      },
-    );
+      expect(navigator.calls, hasLength(1));
+      expect(navigator.calls.single.location, AppRoutes.menuEditor(42));
+      expect(navigator.calls.single.extra, isNull);
+    });
 
-    test('goToAdminTemplateEditor forwards to the migrated '
-        '/app/admin/templates/{id}/edit path', () {
+    test('goToAdminTemplateEditor forwards to the legacy '
+        '/admin/templates/{id} path', () {
       router.goToAdminTemplateEditor(7);
 
       expect(navigator.calls, hasLength(1));
-      expect(navigator.calls.single.location, '/app/admin/templates/7/edit');
+      expect(navigator.calls.single.location, AppRoutes.adminTemplateEditor(7));
     });
 
     test('goBack navigates to AppRoutes.home', () {
@@ -59,8 +56,8 @@ void main() {
       router.goBack();
 
       expect(navigator.calls.map((c) => c.location).toList(), <String>[
-        '/app/menus/1/edit',
-        '/app/admin/templates/2/edit',
+        AppRoutes.menuEditor(1),
+        AppRoutes.adminTemplateEditor(2),
         AppRoutes.home,
       ]);
     });

@@ -38,12 +38,12 @@ void main() {
       },
     );
 
-    test('goToAdminTemplateEditor forwards to the migrated '
-        '/app/admin/templates/{id}/edit path', () {
+    test('goToAdminTemplateEditor forwards to the legacy '
+        '/admin/templates/{id} path', () {
       router.goToAdminTemplateEditor(7);
 
       expect(navigator.calls, hasLength(1));
-      expect(navigator.calls.single.location, '/app/admin/templates/7/edit');
+      expect(navigator.calls.single.location, AppRoutes.adminTemplateEditor(7));
     });
 
     test('goBack navigates to AppRoutes.home', () {
@@ -60,7 +60,7 @@ void main() {
 
       expect(navigator.calls.map((c) => c.location).toList(), <String>[
         AppRoutes.adminTemplateCreate,
-        '/app/admin/templates/2/edit',
+        AppRoutes.adminTemplateEditor(2),
         AppRoutes.home,
       ]);
     });

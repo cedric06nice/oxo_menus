@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
-import 'package:oxo_menus/features/admin_template_creator/presentation/routing/admin_template_creator_router.dart';
-import 'package:oxo_menus/features/admin_template_creator/presentation/routing/legacy_admin_template_creator_router.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/routing/admin_template_editor_router.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/routing/legacy_admin_template_editor_router.dart';
 
 class _RecordingLegacyNavigator implements LegacyNavigator {
   final List<({String location, Object? extra})> calls = [];
@@ -14,20 +14,20 @@ class _RecordingLegacyNavigator implements LegacyNavigator {
 }
 
 void main() {
-  group('LegacyAdminTemplateCreatorRouter', () {
+  group('LegacyAdminTemplateEditorRouter', () {
     late _RecordingLegacyNavigator navigator;
-    late LegacyAdminTemplateCreatorRouter router;
+    late LegacyAdminTemplateEditorRouter router;
 
     setUp(() {
       navigator = _RecordingLegacyNavigator();
-      router = LegacyAdminTemplateCreatorRouter(navigator);
+      router = LegacyAdminTemplateEditorRouter(navigator);
     });
 
-    test('implements AdminTemplateCreatorRouter', () {
-      expect(router, isA<AdminTemplateCreatorRouter>());
+    test('implements AdminTemplateEditorRouter', () {
+      expect(router, isA<AdminTemplateEditorRouter>());
     });
 
-    test('goBack forwards to AppRoutes.adminTemplates', () {
+    test('goBack navigates to AppRoutes.adminTemplates', () {
       router.goBack();
 
       expect(navigator.calls, hasLength(1));
@@ -43,22 +43,22 @@ void main() {
       expect(navigator.calls.single.extra, isNull);
     });
 
-    test('goToAdminTemplateEditor forwards to the legacy '
-        '/admin/templates/{id} path', () {
-      router.goToAdminTemplateEditor(7);
+    test('goToPdfPreview forwards to AppRoutes.menuPdf(id)', () {
+      router.goToPdfPreview(7);
 
       expect(navigator.calls, hasLength(1));
-      expect(navigator.calls.single.location, AppRoutes.adminTemplateEditor(7));
+      expect(navigator.calls.single.location, AppRoutes.menuPdf(7));
+      expect(navigator.calls.single.extra, isNull);
     });
 
     test('subsequent navigations record in order', () {
       router.goToAdminSizes();
-      router.goToAdminTemplateEditor(2);
+      router.goToPdfPreview(2);
       router.goBack();
 
       expect(navigator.calls.map((c) => c.location).toList(), <String>[
         AppRoutes.adminSizes,
-        AppRoutes.adminTemplateEditor(2),
+        AppRoutes.menuPdf(2),
         AppRoutes.adminTemplates,
       ]);
     });

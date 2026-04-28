@@ -16,11 +16,57 @@ import 'package:oxo_menus/features/auth/presentation/screens/login_screen.dart';
 import 'package:oxo_menus/features/auth/presentation/screens/reset_password_screen.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/features/home/presentation/screens/home_screen.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/create_column_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/create_container_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/create_page_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/create_widget_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/delete_column_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/delete_container_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/delete_page_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/delete_widget_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/duplicate_container_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/list_areas_for_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/list_sizes_for_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/load_template_for_editor_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/move_widget_in_template_use_case.dart'
+    as admin_template_move;
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/reorder_container_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_column_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_container_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_template_menu_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_widget_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/routing/legacy_admin_template_editor_router.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/screens/admin_template_editor_screen.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/view_models/admin_template_editor_view_model.dart';
+import 'package:oxo_menus/features/collaboration/domain/entities/menu_change_event.dart';
+import 'package:oxo_menus/features/collaboration/domain/entities/menu_presence.dart';
+import 'package:oxo_menus/features/menu/domain/entities/column.dart'
+    as col_entity;
+import 'package:oxo_menus/features/menu/domain/entities/container.dart'
+    as container_entity;
+import 'package:oxo_menus/features/menu/domain/entities/editor_tree_data.dart';
 import 'package:oxo_menus/features/menu/domain/entities/menu.dart';
 import 'package:oxo_menus/features/menu/domain/entities/menu_bundle.dart';
+import 'package:oxo_menus/features/menu/domain/entities/page.dart'
+    as page_entity;
 import 'package:oxo_menus/features/menu/domain/entities/size.dart'
     as size_entity;
+import 'package:oxo_menus/features/menu/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/features/menu/domain/repositories/menu_bundle_repository.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/create_widget_in_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/delete_widget_in_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/load_menu_for_editor_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/lock_widget_for_editing_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/menu_presence_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/move_widget_in_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/publish_exportable_bundles_for_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/save_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/unlock_widget_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/update_widget_in_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/watch_menu_changes_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/legacy_menu_editor_router.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/screens/menu_editor_screen.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/view_models/menu_editor_view_model.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/create_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/delete_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/list_menus_for_viewer_use_case.dart';
@@ -401,6 +447,309 @@ class _StubPublishMenuBundleForAdminUseCase
       const Failure(UnauthorizedError());
 }
 
+// ---------------------------------------------------------------------------
+// Phase 24 — stubs for legacy /menus/:id and /admin/templates/:id hosts
+// ---------------------------------------------------------------------------
+//
+// MenuEditorViewModel and AdminTemplateEditorViewModel each take a long list
+// of use cases as constructor arguments. The cutover assertion is just "the
+// MVVM screen mounts at the legacy path" — the screen settles into its error
+// or empty state immediately, which is enough. Each stub `implements` the
+// concrete use case and returns Failure / empty Success / empty Stream so no
+// repository, websocket, or timer is touched.
+
+class _StubLoadMenuForEditorUseCase implements LoadMenuForEditorUseCase {
+  @override
+  Future<Result<EditorTreeData, DomainError>> execute(int input) async =>
+      const Failure(NetworkError('stub'));
+}
+
+class _StubCreateWidgetInMenuUseCase implements CreateWidgetInMenuUseCase {
+  @override
+  Future<Result<WidgetInstance, DomainError>> execute(
+    CreateWidgetInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubUpdateWidgetInMenuUseCase implements UpdateWidgetInMenuUseCase {
+  @override
+  Future<Result<WidgetInstance, DomainError>> execute(
+    UpdateWidgetInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubDeleteWidgetInMenuUseCase implements DeleteWidgetInMenuUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(int input) async =>
+      const Success(null);
+}
+
+class _StubMoveWidgetInMenuUseCase implements MoveWidgetInMenuUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(MoveWidgetInput input) async =>
+      const Failure(UnauthorizedError());
+}
+
+class _StubLockWidgetForEditingUseCase implements LockWidgetForEditingUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(
+    LockWidgetForEditingInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubUnlockWidgetUseCase implements UnlockWidgetUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(int input) async =>
+      const Success(null);
+}
+
+class _StubSaveMenuUseCase implements SaveMenuUseCase {
+  @override
+  Future<Result<Menu, DomainError>> execute(int input) async =>
+      const Failure(UnauthorizedError());
+}
+
+class _StubPublishExportableBundlesForMenuUseCase
+    implements PublishExportableBundlesForMenuUseCase {
+  @override
+  Future<List<Result<MenuBundle, DomainError>>> execute(int menuId) async =>
+      const <Result<MenuBundle, DomainError>>[];
+}
+
+class _StubWatchMenuChangesUseCase implements WatchMenuChangesUseCase {
+  @override
+  Stream<MenuChangeEvent> execute(int menuId) =>
+      const Stream<MenuChangeEvent>.empty();
+
+  @override
+  Future<void> cancel(int menuId) async {}
+}
+
+class _StubMenuPresenceUseCase implements MenuPresenceUseCase {
+  @override
+  Future<Result<void, DomainError>> join(
+    int menuId,
+    String userId, {
+    String? userName,
+    String? userAvatar,
+  }) async => const Success(null);
+
+  @override
+  Future<Result<void, DomainError>> leave(int menuId, String userId) async =>
+      const Success(null);
+
+  @override
+  Future<Result<void, DomainError>> heartbeat(
+    int menuId,
+    String userId,
+  ) async => const Success(null);
+
+  @override
+  Future<Result<List<MenuPresence>, DomainError>> getActive(int menuId) async =>
+      const Success(<MenuPresence>[]);
+
+  @override
+  Stream<List<MenuPresence>> watch(int menuId) =>
+      const Stream<List<MenuPresence>>.empty();
+
+  @override
+  Future<void> cancel(int menuId) async {}
+}
+
+/// Builds a [MenuEditorViewModel] backed entirely by stubs — used by the
+/// router tests so the Phase 24 legacy `/menus/:id` host can mount
+/// [MenuEditorScreen] without spinning up a real `DirectusDataSource`.
+MenuEditorViewModel _buildLegacyMenuEditorVm(
+  BuildContext context,
+  AppContainer container,
+  int menuId,
+) {
+  return MenuEditorViewModel(
+    menuId: menuId,
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyMenuEditorRouter(GoRouterLegacyNavigator(context)),
+    loadMenu: _StubLoadMenuForEditorUseCase(),
+    createWidget: _StubCreateWidgetInMenuUseCase(),
+    updateWidget: _StubUpdateWidgetInMenuUseCase(),
+    deleteWidget: _StubDeleteWidgetInMenuUseCase(),
+    moveWidget: _StubMoveWidgetInMenuUseCase(),
+    lockWidget: _StubLockWidgetForEditingUseCase(),
+    unlockWidget: _StubUnlockWidgetUseCase(),
+    saveMenu: _StubSaveMenuUseCase(),
+    publishBundles: _StubPublishExportableBundlesForMenuUseCase(),
+    watchChanges: _StubWatchMenuChangesUseCase(),
+    presence: _StubMenuPresenceUseCase(),
+  );
+}
+
+class _StubLoadTemplateForEditorUseCase
+    implements LoadTemplateForEditorUseCase {
+  @override
+  Future<Result<EditorTreeData, DomainError>> execute(int input) async =>
+      const Failure(NetworkError('stub'));
+}
+
+class _StubCreatePageInTemplateUseCase implements CreatePageInTemplateUseCase {
+  @override
+  Future<Result<page_entity.Page, DomainError>> execute(
+    CreatePageInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubDeletePageInTemplateUseCase implements DeletePageInTemplateUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(int input) async =>
+      const Success(null);
+}
+
+class _StubCreateContainerInTemplateUseCase
+    implements CreateContainerInTemplateUseCase {
+  @override
+  Future<Result<container_entity.Container, DomainError>> execute(
+    CreateContainerInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubUpdateContainerInTemplateUseCase
+    implements UpdateContainerInTemplateUseCase {
+  @override
+  Future<Result<container_entity.Container, DomainError>> execute(
+    UpdateContainerInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubDeleteContainerInTemplateUseCase
+    implements DeleteContainerInTemplateUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(int input) async =>
+      const Success(null);
+}
+
+class _StubReorderContainerInTemplateUseCase
+    implements ReorderContainerInTemplateUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(
+    ReorderContainerInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubDuplicateContainerInTemplateUseCase
+    implements DuplicateContainerInTemplateUseCase {
+  @override
+  Future<Result<container_entity.Container, DomainError>> execute(
+    int input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubCreateColumnInTemplateUseCase
+    implements CreateColumnInTemplateUseCase {
+  @override
+  Future<Result<col_entity.Column, DomainError>> execute(
+    CreateColumnInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubUpdateColumnInTemplateUseCase
+    implements UpdateColumnInTemplateUseCase {
+  @override
+  Future<Result<col_entity.Column, DomainError>> execute(
+    UpdateColumnInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubDeleteColumnInTemplateUseCase
+    implements DeleteColumnInTemplateUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(int input) async =>
+      const Success(null);
+}
+
+class _StubCreateWidgetInTemplateUseCase
+    implements CreateWidgetInTemplateUseCase {
+  @override
+  Future<Result<WidgetInstance, DomainError>> execute(
+    CreateWidgetInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubUpdateWidgetInTemplateUseCase
+    implements UpdateWidgetInTemplateUseCase {
+  @override
+  Future<Result<WidgetInstance, DomainError>> execute(
+    UpdateWidgetInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubDeleteWidgetInTemplateUseCase
+    implements DeleteWidgetInTemplateUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(int input) async =>
+      const Success(null);
+}
+
+class _StubMoveWidgetInTemplateUseCase
+    implements admin_template_move.MoveWidgetInTemplateUseCase {
+  @override
+  Future<Result<void, DomainError>> execute(
+    admin_template_move.MoveWidgetInput input,
+  ) async => const Failure(UnauthorizedError());
+}
+
+class _StubUpdateTemplateMenuUseCase implements UpdateTemplateMenuUseCase {
+  @override
+  Future<Result<Menu, DomainError>> execute(UpdateMenuInput input) async =>
+      const Failure(UnauthorizedError());
+}
+
+class _StubListAreasForTemplateUseCase implements ListAreasForTemplateUseCase {
+  @override
+  Future<Result<List<Area>, DomainError>> execute(NoInput input) async =>
+      const Success(<Area>[]);
+}
+
+class _StubListSizesForTemplateUseCase implements ListSizesForTemplateUseCase {
+  @override
+  Future<Result<List<size_entity.Size>, DomainError>> execute(
+    NoInput input,
+  ) async => const Success(<size_entity.Size>[]);
+}
+
+/// Builds an [AdminTemplateEditorViewModel] backed entirely by stubs — used by
+/// the router tests so the Phase 24 legacy `/admin/templates/:id` host can
+/// mount [AdminTemplateEditorScreen] without spinning up a real
+/// `DirectusDataSource`.
+AdminTemplateEditorViewModel _buildLegacyAdminTemplateEditorVm(
+  BuildContext context,
+  AppContainer container,
+  int menuId,
+) {
+  return AdminTemplateEditorViewModel(
+    menuId: menuId,
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyAdminTemplateEditorRouter(GoRouterLegacyNavigator(context)),
+    loadTemplate: _StubLoadTemplateForEditorUseCase(),
+    createPage: _StubCreatePageInTemplateUseCase(),
+    deletePage: _StubDeletePageInTemplateUseCase(),
+    createContainer: _StubCreateContainerInTemplateUseCase(),
+    updateContainer: _StubUpdateContainerInTemplateUseCase(),
+    deleteContainer: _StubDeleteContainerInTemplateUseCase(),
+    reorderContainer: _StubReorderContainerInTemplateUseCase(),
+    duplicateContainer: _StubDuplicateContainerInTemplateUseCase(),
+    createColumn: _StubCreateColumnInTemplateUseCase(),
+    updateColumn: _StubUpdateColumnInTemplateUseCase(),
+    deleteColumn: _StubDeleteColumnInTemplateUseCase(),
+    createWidget: _StubCreateWidgetInTemplateUseCase(),
+    updateWidget: _StubUpdateWidgetInTemplateUseCase(),
+    deleteWidget: _StubDeleteWidgetInTemplateUseCase(),
+    moveWidget: _StubMoveWidgetInTemplateUseCase(),
+    updateMenu: _StubUpdateTemplateMenuUseCase(),
+    listAreas: _StubListAreasForTemplateUseCase(),
+    listSizes: _StubListSizesForTemplateUseCase(),
+  );
+}
+
 /// Builds an [AdminExportableMenusViewModel] backed entirely by stubs — used
 /// by the router tests so the Phase 23 legacy `/admin/exportable_menus` host
 /// can mount [AdminExportableMenusScreen] without spinning up a real
@@ -498,6 +847,19 @@ Widget _buildApp({
       // mount the screen without one.
       legacyAdminExportableMenusViewModelBuilderProvider.overrideWithValue(
         _buildLegacyAdminExportableMenusVm,
+      ),
+      // Phase 24 — the legacy /menus/:id GoRoute mounts MenuEditorScreen,
+      // whose ViewModel needs a live DirectusDataSource. Override the builder
+      // so the router tests can mount the screen without one.
+      legacyMenuEditorViewModelBuilderProvider.overrideWithValue(
+        _buildLegacyMenuEditorVm,
+      ),
+      // Phase 24 — the legacy /admin/templates/:id GoRoute mounts
+      // AdminTemplateEditorScreen, whose ViewModel needs a live
+      // DirectusDataSource. Override the builder so the router tests can
+      // mount the screen without one.
+      legacyAdminTemplateEditorViewModelBuilderProvider.overrideWithValue(
+        _buildLegacyAdminTemplateEditorVm,
       ),
       ...extraOverrides.cast(),
     ],
@@ -1106,9 +1468,70 @@ void main() {
       expect(find.text('Settings'), findsAtLeast(1));
     });
 
-    // Phase 12 retired the legacy /menus/:id GoRoute — the menu editor lives
-    // on the migrated MainRouter at /app/menus/{id}/edit and is exercised by
-    // the MenuEditor* tests under features/menu_editor/.
+    // Phase 24 — restored at /menus/:id with the MVVM screen. Pinned by the
+    // dedicated cutover group below.
+  });
+
+  // Phase 24 — the legacy /menus/:id GoRoute (which Phase 12 had removed in
+  // favour of /app/menus/{id}/edit on the MainRouter) is reinstated, hosting
+  // the MVVM MenuEditorScreen directly. This test pins the cutover so the
+  // screen cannot silently regress.
+  group('AppRouter — legacy /menus/:id hosts MVVM screen', () {
+    testWidgets('/menus/2 mounts MenuEditorScreen', (tester) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
+
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/menus/2');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MenuEditorScreen), findsOneWidget);
+    });
+  });
+
+  // Phase 24 — the legacy /admin/templates/:id GoRoute (which Phase 11 had
+  // removed in favour of /app/admin/templates/{id}/edit on the MainRouter) is
+  // reinstated, hosting the MVVM AdminTemplateEditorScreen directly. This
+  // test pins the cutover so the screen cannot silently regress.
+  group('AppRouter — legacy /admin/templates/:id hosts MVVM screen', () {
+    testWidgets('/admin/templates/3 mounts AdminTemplateEditorScreen', (
+      tester,
+    ) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildAdminUser());
+
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/admin/templates/3');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AdminTemplateEditorScreen), findsOneWidget);
+    });
   });
 
   // Phase 21 — the legacy /admin/templates/create GoRoute now hosts the MVVM
@@ -1240,12 +1663,13 @@ void main() {
       },
     );
 
-    // Deep-link to /menus/:id was retired in Phase 12. The migrated equivalent
-    // (/app/menus/{id}/edit) is exercised by the MenuEditor route tests under
-    // features/menu_editor/.
+    // Deep-link to /menus/:id was retired in Phase 12 then reinstated in
+    // Phase 24, so the unauthenticated-redirect assertion above still applies
+    // (the auth guard fires before the route mounts the editor).
 
-    // The deep-link to /admin/templates/:id was retired in Phase 11. The
-    // migrated equivalent (/app/admin/templates/{id}/edit) is exercised in
-    // route_config_test.dart and main_router_test.dart.
+    // Deep-link to /admin/templates/:id was retired in Phase 11 then
+    // reinstated in Phase 24. The cutover group above pins the admin-only
+    // success path; admin-guard redirects are covered by the admin-guards
+    // group earlier in this file.
   });
 }

@@ -34,11 +34,34 @@ import 'package:oxo_menus/features/admin_template_creator/presentation/routing/l
 import 'package:oxo_menus/features/admin_template_creator/presentation/screens/admin_template_creator_screen.dart';
 import 'package:oxo_menus/features/admin_template_creator/presentation/view_models/admin_template_creator_view_model.dart';
 import 'package:oxo_menus/shared/data/repositories/area_repository_impl.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/create_column_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/create_container_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/create_page_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/create_widget_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/delete_column_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/delete_container_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/delete_page_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/delete_widget_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/duplicate_container_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/list_areas_for_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/list_sizes_for_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/load_template_for_editor_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/move_widget_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/reorder_container_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_column_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_container_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_template_menu_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/domain/use_cases/update_widget_in_template_use_case.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/routing/legacy_admin_template_editor_router.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/screens/admin_template_editor_screen.dart';
+import 'package:oxo_menus/features/admin_template_editor/presentation/view_models/admin_template_editor_view_model.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/delete_template_use_case.dart';
 import 'package:oxo_menus/features/admin_templates/domain/use_cases/list_templates_for_admin_use_case.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/routing/legacy_admin_templates_router.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/screens/admin_templates_screen.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/view_models/admin_templates_view_model.dart';
+import 'package:oxo_menus/features/collaboration/data/repositories/menu_subscription_repository_impl.dart';
+import 'package:oxo_menus/features/collaboration/data/repositories/presence_repository_impl.dart';
 import 'package:oxo_menus/features/auth/domain/use_cases/confirm_password_reset_use_case.dart';
 import 'package:oxo_menus/features/auth/domain/use_cases/login_use_case.dart';
 import 'package:oxo_menus/features/auth/domain/use_cases/request_password_reset_use_case.dart';
@@ -59,12 +82,29 @@ import 'package:oxo_menus/features/menu/data/repositories/menu_repository_impl.d
 import 'package:oxo_menus/features/menu/data/repositories/page_repository_impl.dart';
 import 'package:oxo_menus/features/menu/data/repositories/size_repository_impl.dart';
 import 'package:oxo_menus/features/menu/data/repositories/widget_repository_impl.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/duplicate_container_usecase.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/generate_pdf_usecase.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/publish_bundles_for_menu_usecase.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/reorder_container_usecase.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/create_widget_in_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/delete_widget_in_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_editor/domain/use_cases/generate_menu_pdf_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/load_menu_for_editor_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/lock_widget_for_editing_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/menu_presence_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/move_widget_in_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/publish_exportable_bundles_for_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/save_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/unlock_widget_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/update_widget_in_menu_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/watch_menu_changes_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/legacy_menu_editor_router.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/routing/legacy_pdf_preview_router.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/screens/menu_editor_screen.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/screens/pdf_preview_screen.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/view_models/menu_editor_view_model.dart';
 import 'package:oxo_menus/features/menu_editor/presentation/view_models/pdf_preview_view_model.dart';
 import 'package:oxo_menus/shared/data/repositories/asset_loader_repository_impl.dart';
 import 'package:oxo_menus/shared/data/repositories/file_repository_impl.dart';
@@ -285,9 +325,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   );
                 },
               ),
-              // The menu editor is served by the migrated MainRouter at
-              // `/app/menus/{id}/edit` (Phase 12). The legacy /menus/:id
-              // route is intentionally absent.
+              // Phase 24 — the legacy /menus/:id path was retired in Phase 12
+              // (the editor moved to MainRouter at /app/menus/{id}/edit) and
+              // is reinstated here, hosting the MVVM MenuEditorScreen
+              // directly via _LegacyMenuEditorRouteHost.
+              GoRoute(
+                path: ':id',
+                name: 'menu-editor',
+                builder: (context, state) {
+                  final int menuId = int.parse(state.pathParameters['id']!);
+                  final container = ref.watch(appContainerProvider);
+                  final builder = ref.read(
+                    legacyMenuEditorViewModelBuilderProvider,
+                  );
+                  return _LegacyMenuEditorRouteHost(
+                    container: container,
+                    builder: builder,
+                    menuId: menuId,
+                  );
+                },
+              ),
             ],
           ),
           GoRoute(
@@ -346,9 +403,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   );
                 },
               ),
-              // The admin template editor is served by the migrated MainRouter
-              // at `/app/admin/templates/{id}/edit` (Phase 11). The legacy
-              // /admin/templates/:id route is intentionally absent.
+              // Phase 24 — the legacy /admin/templates/:id path was retired
+              // in Phase 11 (the editor moved to MainRouter at
+              // /app/admin/templates/{id}/edit) and is reinstated here,
+              // hosting the MVVM AdminTemplateEditorScreen directly via
+              // _LegacyAdminTemplateEditorRouteHost.
+              GoRoute(
+                path: ':id',
+                name: 'admin-template-editor',
+                builder: (context, state) {
+                  final int menuId = int.parse(state.pathParameters['id']!);
+                  final container = ref.watch(appContainerProvider);
+                  final builder = ref.read(
+                    legacyAdminTemplateEditorViewModelBuilderProvider,
+                  );
+                  return _LegacyAdminTemplateEditorRouteHost(
+                    container: container,
+                    builder: builder,
+                    menuId: menuId,
+                  );
+                },
+              ),
             ],
           ),
         ],
@@ -1257,5 +1332,352 @@ class _LegacyAdminExportableMenusRouteHostState
       viewModel: _viewModel,
       directusBaseUrl: widget.container.directusBaseUrl ?? '',
     );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 24 — legacy /menus/:id route host
+//
+// Owns the MenuEditorViewModel for the lifetime of the legacy GoRoute under
+// the AppShell. The MVVM MenuEditorScreen is pure (no Riverpod, no
+// BuildContext reads) so this host bridges go_router into it via
+// LegacyMenuEditorRouter, which deep-links `goToPdfPreview` back into the
+// legacy `/menus/pdf/:id` GoRoute. Will be deleted when the menu editor is
+// fully cut over to the MainRouter stack.
+//
+// The view-model construction is exposed as a Riverpod-overridable builder so
+// router tests can swap in fake use cases without standing up a real
+// DirectusDataSource. Production wiring is the default and lives in
+// [_defaultLegacyMenuEditorViewModelBuilder].
+// ---------------------------------------------------------------------------
+
+/// Factory used by the legacy `/menus/:id` route host to construct the
+/// [MenuEditorViewModel] from the live [AppContainer]. The [BuildContext] is
+/// the route's context and is used by the default builder to bridge into
+/// `go_router` via [GoRouterLegacyNavigator]. The `menuId` is the path
+/// parameter the user navigated to.
+typedef LegacyMenuEditorViewModelBuilder =
+    MenuEditorViewModel Function(
+      BuildContext context,
+      AppContainer container,
+      int menuId,
+    );
+
+/// Riverpod entry point for the legacy `/menus/:id` view-model builder.
+///
+/// Defaults to [_defaultLegacyMenuEditorViewModelBuilder] which wires the
+/// live menu / page / container / column / widget / bundle repositories and
+/// the collaboration / presence repositories from the container's
+/// `DirectusDataSource`. Tests override this with a stub builder that returns
+/// a [MenuEditorViewModel] backed by fake use cases.
+final legacyMenuEditorViewModelBuilderProvider =
+    Provider<LegacyMenuEditorViewModelBuilder>(
+      (ref) => _defaultLegacyMenuEditorViewModelBuilder,
+    );
+
+MenuEditorViewModel _defaultLegacyMenuEditorViewModelBuilder(
+  BuildContext context,
+  AppContainer container,
+  int menuId,
+) {
+  final dataSource = container.directusDataSource;
+  final menuRepository = MenuRepositoryImpl(dataSource: dataSource);
+  final pageRepository = PageRepositoryImpl(dataSource: dataSource);
+  final containerRepository = ContainerRepositoryImpl(dataSource: dataSource);
+  final columnRepository = ColumnRepositoryImpl(dataSource: dataSource);
+  final widgetRepository = WidgetRepositoryImpl(dataSource: dataSource);
+  final menuBundleRepository = MenuBundleRepositoryImpl(dataSource: dataSource);
+  final fileRepository = FileRepositoryImpl(dataSource);
+  final assetLoader = AssetLoaderRepositoryImpl();
+  final fetchMenuTreeUseCase = FetchMenuTreeUseCase(
+    menuRepository: menuRepository,
+    pageRepository: pageRepository,
+    containerRepository: containerRepository,
+    columnRepository: columnRepository,
+    widgetRepository: widgetRepository,
+  );
+  final publishMenuBundleUseCase = PublishMenuBundleUseCase(
+    repository: menuBundleRepository,
+    fetchMenuTreeUseCase: fetchMenuTreeUseCase,
+    fileRepository: fileRepository,
+    assetLoader: assetLoader,
+    pdfBuilder: const PdfDocumentBuilder(),
+  );
+  final publishBundlesForMenuUseCase = PublishBundlesForMenuUseCase(
+    repository: menuBundleRepository,
+    publishMenuBundleUseCase: publishMenuBundleUseCase,
+  );
+  final subscriptionRepository = MenuSubscriptionRepositoryImpl(
+    dataSource: dataSource,
+  );
+  final presenceRepository = PresenceRepositoryImpl(dataSource: dataSource);
+  return MenuEditorViewModel(
+    menuId: menuId,
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyMenuEditorRouter(GoRouterLegacyNavigator(context)),
+    loadMenu: LoadMenuForEditorUseCase(
+      authGateway: container.authGateway,
+      menuRepository: menuRepository,
+      pageRepository: pageRepository,
+      containerRepository: containerRepository,
+      columnRepository: columnRepository,
+      widgetRepository: widgetRepository,
+    ),
+    createWidget: CreateWidgetInMenuUseCase(
+      authGateway: container.authGateway,
+      widgetRepository: widgetRepository,
+    ),
+    updateWidget: UpdateWidgetInMenuUseCase(
+      authGateway: container.authGateway,
+      widgetRepository: widgetRepository,
+    ),
+    deleteWidget: DeleteWidgetInMenuUseCase(
+      authGateway: container.authGateway,
+      widgetRepository: widgetRepository,
+    ),
+    moveWidget: MoveWidgetInMenuUseCase(
+      authGateway: container.authGateway,
+      widgetRepository: widgetRepository,
+    ),
+    lockWidget: LockWidgetForEditingUseCase(
+      authGateway: container.authGateway,
+      widgetRepository: widgetRepository,
+    ),
+    unlockWidget: UnlockWidgetUseCase(
+      authGateway: container.authGateway,
+      widgetRepository: widgetRepository,
+    ),
+    saveMenu: SaveMenuUseCase(
+      authGateway: container.authGateway,
+      menuRepository: menuRepository,
+    ),
+    publishBundles: PublishExportableBundlesForMenuUseCase(
+      authGateway: container.authGateway,
+      delegate: publishBundlesForMenuUseCase,
+    ),
+    watchChanges: WatchMenuChangesUseCase(repository: subscriptionRepository),
+    presence: MenuPresenceUseCase(repository: presenceRepository),
+  );
+}
+
+class _LegacyMenuEditorRouteHost extends StatefulWidget {
+  const _LegacyMenuEditorRouteHost({
+    required this.container,
+    required this.builder,
+    required this.menuId,
+  });
+
+  final AppContainer container;
+  final LegacyMenuEditorViewModelBuilder builder;
+  final int menuId;
+
+  @override
+  State<_LegacyMenuEditorRouteHost> createState() =>
+      _LegacyMenuEditorRouteHostState();
+}
+
+class _LegacyMenuEditorRouteHostState
+    extends State<_LegacyMenuEditorRouteHost> {
+  late final MenuEditorViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = widget.builder(context, widget.container, widget.menuId);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MenuEditorScreen(viewModel: _viewModel);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 24 — legacy /admin/templates/:id route host
+//
+// Owns the AdminTemplateEditorViewModel for the lifetime of the legacy
+// GoRoute under the AppShell. The MVVM AdminTemplateEditorScreen is pure (no
+// Riverpod, no BuildContext reads) so this host bridges go_router into it
+// via LegacyAdminTemplateEditorRouter, which deep-links `goToPdfPreview` and
+// `goToAdminSizes` back into the legacy `/menus/pdf/:id` and `/admin/sizes`
+// GoRoutes. Will be deleted when the admin template editor is fully cut over
+// to the MainRouter stack.
+//
+// The view-model construction is exposed as a Riverpod-overridable builder so
+// router tests can swap in fake use cases without standing up a real
+// DirectusDataSource. Production wiring is the default and lives in
+// [_defaultLegacyAdminTemplateEditorViewModelBuilder].
+// ---------------------------------------------------------------------------
+
+/// Factory used by the legacy `/admin/templates/:id` route host to construct
+/// the [AdminTemplateEditorViewModel] from the live [AppContainer]. The
+/// [BuildContext] is the route's context and is used by the default builder
+/// to bridge into `go_router` via [GoRouterLegacyNavigator]. The `menuId` is
+/// the path parameter the user navigated to.
+typedef LegacyAdminTemplateEditorViewModelBuilder =
+    AdminTemplateEditorViewModel Function(
+      BuildContext context,
+      AppContainer container,
+      int menuId,
+    );
+
+/// Riverpod entry point for the legacy `/admin/templates/:id` view-model
+/// builder.
+///
+/// Defaults to [_defaultLegacyAdminTemplateEditorViewModelBuilder] which
+/// wires the live menu / page / container / column / widget / size / area
+/// repositories from the container's `DirectusDataSource`. Tests override
+/// this with a stub builder that returns an [AdminTemplateEditorViewModel]
+/// backed by fake use cases.
+final legacyAdminTemplateEditorViewModelBuilderProvider =
+    Provider<LegacyAdminTemplateEditorViewModelBuilder>(
+      (ref) => _defaultLegacyAdminTemplateEditorViewModelBuilder,
+    );
+
+AdminTemplateEditorViewModel _defaultLegacyAdminTemplateEditorViewModelBuilder(
+  BuildContext context,
+  AppContainer container,
+  int menuId,
+) {
+  final dataSource = container.directusDataSource;
+  final menuRepository = MenuRepositoryImpl(dataSource: dataSource);
+  final pageRepository = PageRepositoryImpl(dataSource: dataSource);
+  final containerRepository = ContainerRepositoryImpl(dataSource: dataSource);
+  final columnRepository = ColumnRepositoryImpl(dataSource: dataSource);
+  final widgetRepository = WidgetRepositoryImpl(dataSource: dataSource);
+  final sizeRepository = SizeRepositoryImpl(dataSource: dataSource);
+  final areaRepository = AreaRepositoryImpl(dataSource: dataSource);
+  return AdminTemplateEditorViewModel(
+    menuId: menuId,
+    authGateway: container.authGateway,
+    connectivityGateway: container.connectivityGateway,
+    router: LegacyAdminTemplateEditorRouter(GoRouterLegacyNavigator(context)),
+    loadTemplate: LoadTemplateForEditorUseCase(
+      authGateway: container.authGateway,
+      menuRepository: menuRepository,
+      pageRepository: pageRepository,
+      containerRepository: containerRepository,
+      columnRepository: columnRepository,
+      widgetRepository: widgetRepository,
+    ),
+    createPage: CreatePageInTemplateUseCase(
+      authGateway: container.authGateway,
+      pageRepository: pageRepository,
+    ),
+    deletePage: DeletePageInTemplateUseCase(
+      authGateway: container.authGateway,
+      pageRepository: pageRepository,
+    ),
+    createContainer: CreateContainerInTemplateUseCase(
+      authGateway: container.authGateway,
+      containerRepository: containerRepository,
+    ),
+    updateContainer: UpdateContainerInTemplateUseCase(
+      authGateway: container.authGateway,
+      containerRepository: containerRepository,
+    ),
+    deleteContainer: DeleteContainerInTemplateUseCase(
+      authGateway: container.authGateway,
+      containerRepository: containerRepository,
+    ),
+    reorderContainer: ReorderContainerInTemplateUseCase(
+      authGateway: container.authGateway,
+      reorderContainerUseCase: ReorderContainerUseCase(
+        containerRepository: containerRepository,
+      ),
+    ),
+    duplicateContainer: DuplicateContainerInTemplateUseCase(
+      authGateway: container.authGateway,
+      duplicateContainerUseCase: DuplicateContainerUseCase(
+        containerRepository: containerRepository,
+        columnRepository: columnRepository,
+        widgetRepository: widgetRepository,
+      ),
+    ),
+    createColumn: CreateColumnInTemplateUseCase(
+      authGateway: container.authGateway,
+      columnRepository: columnRepository,
+    ),
+    updateColumn: UpdateColumnInTemplateUseCase(
+      authGateway: container.authGateway,
+      columnRepository: columnRepository,
+    ),
+    deleteColumn: DeleteColumnInTemplateUseCase(
+      authGateway: container.authGateway,
+      columnRepository: columnRepository,
+    ),
+    createWidget: CreateWidgetInTemplateUseCase(
+      authGateway: container.authGateway,
+      widgetRepository: widgetRepository,
+    ),
+    updateWidget: UpdateWidgetInTemplateUseCase(
+      authGateway: container.authGateway,
+      widgetRepository: widgetRepository,
+    ),
+    deleteWidget: DeleteWidgetInTemplateUseCase(
+      authGateway: container.authGateway,
+      widgetRepository: widgetRepository,
+    ),
+    moveWidget: MoveWidgetInTemplateUseCase(
+      authGateway: container.authGateway,
+      widgetRepository: widgetRepository,
+    ),
+    updateMenu: UpdateTemplateMenuUseCase(
+      authGateway: container.authGateway,
+      menuRepository: menuRepository,
+    ),
+    listAreas: ListAreasForTemplateUseCase(
+      authGateway: container.authGateway,
+      areaRepository: areaRepository,
+    ),
+    listSizes: ListSizesForTemplateUseCase(
+      authGateway: container.authGateway,
+      sizeRepository: sizeRepository,
+    ),
+  );
+}
+
+class _LegacyAdminTemplateEditorRouteHost extends StatefulWidget {
+  const _LegacyAdminTemplateEditorRouteHost({
+    required this.container,
+    required this.builder,
+    required this.menuId,
+  });
+
+  final AppContainer container;
+  final LegacyAdminTemplateEditorViewModelBuilder builder;
+  final int menuId;
+
+  @override
+  State<_LegacyAdminTemplateEditorRouteHost> createState() =>
+      _LegacyAdminTemplateEditorRouteHostState();
+}
+
+class _LegacyAdminTemplateEditorRouteHostState
+    extends State<_LegacyAdminTemplateEditorRouteHost> {
+  late final AdminTemplateEditorViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = widget.builder(context, widget.container, widget.menuId);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AdminTemplateEditorScreen(viewModel: _viewModel);
   }
 }
