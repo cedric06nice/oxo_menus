@@ -1,17 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/features/collaboration/presentation/widgets/editing_user_badge.dart';
+
+import '../../../../../helpers/build_app_scope_test_harness.dart';
 
 void main() {
   Widget buildWidget({String? userName, String? userAvatar}) {
-    return ProviderScope(
-      overrides: [
-        directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-        directusAccessTokenProvider.overrideWithValue('test-token'),
-      ],
+    return wrapInTestAppScope(
       child: MaterialApp(
         home: Scaffold(
           body: EditingUserBadge(userName: userName, userAvatar: userAvatar),

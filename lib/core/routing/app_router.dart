@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
+import 'package:oxo_menus/core/di/app_scope.dart';
+import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/route_navigator.dart';
-import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/create_menu_bundle_for_admin_use_case.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/domain/use_cases/delete_menu_bundle_for_admin_use_case.dart';
@@ -122,114 +122,116 @@ import 'package:oxo_menus/features/settings/domain/use_cases/set_admin_view_as_u
 import 'package:oxo_menus/features/settings/presentation/routing/settings_route_adapter.dart';
 import 'package:oxo_menus/features/settings/presentation/screens/settings_screen.dart';
 import 'package:oxo_menus/features/settings/presentation/view_models/settings_view_model.dart';
-import 'package:oxo_menus/shared/presentation/providers/auth_provider.dart';
-import 'package:oxo_menus/features/connectivity/presentation/providers/connectivity_provider.dart';
 import 'package:oxo_menus/shared/presentation/widgets/adaptive_loading_indicator.dart';
 import 'package:oxo_menus/shared/presentation/widgets/app_shell.dart';
 import 'package:oxo_menus/features/connectivity/presentation/widgets/offline_banner.dart';
 
-/// Listenable that notifies when auth state changes
-class AuthNotifierListenable extends ChangeNotifier {
-  AuthNotifierListenable(this._ref) {
-    _ref.listen(authProvider, (_, _) {
-      notifyListeners();
-    });
-  }
+/// Builds the production [GoRouter] for the app.
+///
+/// Owns the per-route view-model builders and references the
+/// [AppScopeData] supplied by the surrounding [AppScope]. Production wiring
+/// constructs an [AppRouter] with only [scope]; tests pass per-route builder
+/// overrides to swap in fake use cases without standing up a real
+/// [DirectusDataSource].
+class AppRouter {
+  AppRouter({
+    required this.scope,
+    MenuListViewModelBuilder? menuListBuilder,
+    AdminTemplatesViewModelBuilder? adminTemplatesBuilder,
+    AdminSizesViewModelBuilder? adminSizesBuilder,
+    AdminTemplateCreatorViewModelBuilder? adminTemplateCreatorBuilder,
+    PdfPreviewViewModelBuilder? pdfPreviewBuilder,
+    AdminExportableMenusViewModelBuilder? adminExportableMenusBuilder,
+    MenuEditorViewModelBuilder? menuEditorBuilder,
+    AdminTemplateEditorViewModelBuilder? adminTemplateEditorBuilder,
+  }) : menuListBuilder = menuListBuilder ?? _defaultMenuListViewModelBuilder,
+       adminTemplatesBuilder =
+           adminTemplatesBuilder ?? _defaultAdminTemplatesViewModelBuilder,
+       adminSizesBuilder =
+           adminSizesBuilder ?? _defaultAdminSizesViewModelBuilder,
+       adminTemplateCreatorBuilder =
+           adminTemplateCreatorBuilder ??
+           _defaultAdminTemplateCreatorViewModelBuilder,
+       pdfPreviewBuilder =
+           pdfPreviewBuilder ?? _defaultPdfPreviewViewModelBuilder,
+       adminExportableMenusBuilder =
+           adminExportableMenusBuilder ??
+           _defaultAdminExportableMenusViewModelBuilder,
+       menuEditorBuilder =
+           menuEditorBuilder ?? _defaultMenuEditorViewModelBuilder,
+       adminTemplateEditorBuilder =
+           adminTemplateEditorBuilder ??
+           _defaultAdminTemplateEditorViewModelBuilder;
 
-  final Ref _ref;
-}
+  final AppScopeData scope;
+  final MenuListViewModelBuilder menuListBuilder;
+  final AdminTemplatesViewModelBuilder adminTemplatesBuilder;
+  final AdminSizesViewModelBuilder adminSizesBuilder;
+  final AdminTemplateCreatorViewModelBuilder adminTemplateCreatorBuilder;
+  final PdfPreviewViewModelBuilder pdfPreviewBuilder;
+  final AdminExportableMenusViewModelBuilder adminExportableMenusBuilder;
+  final MenuEditorViewModelBuilder menuEditorBuilder;
+  final AdminTemplateEditorViewModelBuilder adminTemplateEditorBuilder;
 
-/// Provider for the auth listenable used by GoRouter
-final authListenableProvider = Provider<AuthNotifierListenable>((ref) {
-  return AuthNotifierListenable(ref);
-});
+  AppContainer get container => scope.container;
 
-/// Splash screen shown while checking authentication status
-class _SplashScreen extends ConsumerWidget {
-  const _SplashScreen();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isOffline =
-        ref.watch(connectivityProvider).value == ConnectivityStatus.offline;
-
-    return Scaffold(
-      body: Column(
-        children: [
-          if (isOffline) const OfflineBanner(),
-          const Expanded(child: Center(child: AdaptiveLoadingIndicator())),
-        ],
-      ),
+  /// Construct the [GoRouter]. Subscribers (e.g. `MaterialApp.router`) take
+  /// the returned router and own its lifetime.
+  GoRouter build() {
+    return GoRouter(
+      initialLocation: AppRoutes.splash,
+      refreshListenable: Listenable.merge(<Listenable>[
+        scope.auth,
+        scope.adminViewAsUser,
+      ]),
+      redirect: _redirect,
+      routes: _buildRoutes(),
     );
   }
-}
 
-/// App router configuration using go_router
-///
-/// Provides navigation with authentication guards and route management
-final appRouterProvider = Provider<GoRouter>((ref) {
-  final authListenable = ref.watch(authListenableProvider);
+  String? _redirect(BuildContext context, GoRouterState state) {
+    final status = scope.auth.status;
+    final isLoading =
+        status is AuthStatusInitial || status is AuthStatusLoading;
+    final isAuthenticated = status is AuthStatusAuthenticated;
+    final isAdmin =
+        status is AuthStatusAuthenticated &&
+        status.user.role == UserRole.admin &&
+        !scope.adminViewAsUser.value;
 
-  return GoRouter(
-    initialLocation: AppRoutes.splash,
-    refreshListenable: authListenable,
-    redirect: (context, state) {
-      final authState = ref.read(authProvider);
+    final isGoingToSplash = state.matchedLocation == AppRoutes.splash;
+    final isGoingToLogin = state.matchedLocation == AppRoutes.login;
+    final isGoingToAdminRoute = state.matchedLocation.startsWith('/admin');
 
-      // Check if still loading/checking auth
-      final isLoading = authState.maybeWhen(
-        initial: () => true,
-        loading: () => true,
-        orElse: () => false,
-      );
+    if (isLoading) {
+      return isGoingToSplash ? null : AppRoutes.splash;
+    }
 
-      final isAuthenticated = authState.maybeWhen(
-        authenticated: (_) => true,
-        orElse: () => false,
-      );
+    if (isGoingToSplash) {
+      return isAuthenticated ? AppRoutes.home : AppRoutes.login;
+    }
 
-      final isAdmin = authState.maybeWhen(
-        authenticated: (user) => user.role == UserRole.admin,
-        orElse: () => false,
-      );
+    final isGoingToPublicRoute =
+        isGoingToLogin ||
+        state.matchedLocation == AppRoutes.forgotPassword ||
+        state.matchedLocation == AppRoutes.resetPassword;
+    if (!isAuthenticated && !isGoingToPublicRoute) {
+      return AppRoutes.login;
+    }
 
-      final isGoingToSplash = state.matchedLocation == AppRoutes.splash;
-      final isGoingToLogin = state.matchedLocation == AppRoutes.login;
-      final isGoingToAdminRoute = state.matchedLocation.startsWith('/admin');
+    if (isAuthenticated && isGoingToLogin) {
+      return AppRoutes.home;
+    }
 
-      // If loading, stay on or go to splash
-      if (isLoading) {
-        return isGoingToSplash ? null : AppRoutes.splash;
-      }
+    if (isGoingToAdminRoute && !isAdmin) {
+      return AppRoutes.home;
+    }
 
-      // If on splash and not loading, redirect based on auth status
-      if (isGoingToSplash) {
-        return isAuthenticated ? AppRoutes.home : AppRoutes.login;
-      }
+    return null;
+  }
 
-      // If not authenticated and not going to a public route, redirect to login
-      final isGoingToPublicRoute =
-          isGoingToLogin ||
-          state.matchedLocation == AppRoutes.forgotPassword ||
-          state.matchedLocation == AppRoutes.resetPassword;
-      if (!isAuthenticated && !isGoingToPublicRoute) {
-        return AppRoutes.login;
-      }
-
-      // If authenticated and going to login, redirect to home
-      if (isAuthenticated && isGoingToLogin) {
-        return AppRoutes.home;
-      }
-
-      // If not admin and going to admin route, redirect to home
-      if (isGoingToAdminRoute && !isAdmin) {
-        return AppRoutes.home;
-      }
-
-      // No redirect needed
-      return null;
-    },
-    routes: [
+  List<RouteBase> _buildRoutes() {
+    return [
       GoRoute(
         path: AppRoutes.splash,
         name: 'splash',
@@ -241,96 +243,57 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.login,
         name: 'login',
-        builder: (context, state) {
-          final container = ref.watch(appContainerProvider);
-          return _LoginRouteHost(container: container);
-        },
+        builder: (context, state) => const _LoginRouteHost(),
       ),
       GoRoute(
         path: AppRoutes.forgotPassword,
         name: 'forgot-password',
-        builder: (context, state) {
-          final container = ref.watch(appContainerProvider);
-          return _ForgotPasswordRouteHost(container: container);
-        },
+        builder: (context, state) => const _ForgotPasswordRouteHost(),
       ),
       GoRoute(
         path: AppRoutes.resetPassword,
         name: 'reset-password',
-        builder: (context, state) {
-          final container = ref.watch(appContainerProvider);
-          return _ResetPasswordRouteHost(
-            container: container,
-            token: state.uri.queryParameters['token'],
-          );
-        },
+        builder: (context, state) =>
+            _ResetPasswordRouteHost(token: state.uri.queryParameters['token']),
       ),
-      // All authenticated routes wrapped in AppShell for persistent navigation
       ShellRoute(
-        builder: (context, state, child) => Consumer(
-          builder: (context, ref, _) {
-            final connectivity = ref.watch(connectivityProvider).value;
-            return AppShell(
-              navigator: GoRouterRouteNavigator(context),
-              currentLocation: state.matchedLocation,
-              isAdmin: ref.watch(isAdminProvider),
-              isOffline: connectivity == ConnectivityStatus.offline,
-              child: child,
-            );
-          },
-        ),
+        builder: (context, state, child) =>
+            _AppShellHost(currentLocation: state.matchedLocation, child: child),
         routes: [
           GoRoute(
             path: AppRoutes.home,
             name: 'home',
-            builder: (context, state) {
-              final container = ref.watch(appContainerProvider);
-              return _HomeRouteHost(container: container);
-            },
+            builder: (context, state) => const _HomeRouteHost(),
           ),
           GoRoute(
             path: AppRoutes.settings,
             name: 'settings',
-            builder: (context, state) {
-              final container = ref.watch(appContainerProvider);
-              return _SettingsRouteHost(container: container);
-            },
+            builder: (context, state) => const _SettingsRouteHost(),
           ),
           GoRoute(
             path: AppRoutes.menus,
             name: 'menus',
-            builder: (context, state) {
-              final container = ref.watch(appContainerProvider);
-              final builder = ref.read(menuListViewModelBuilderProvider);
-              return _MenuListRouteHost(container: container, builder: builder);
-            },
+            builder: (context, state) =>
+                _MenuListRouteHost(builder: menuListBuilder),
             routes: [
               GoRoute(
                 path: 'pdf/:id',
                 name: 'menu-pdf',
                 builder: (context, state) {
-                  final int menuId = int.parse(state.pathParameters['id']!);
-                  final container = ref.watch(appContainerProvider);
-                  final builder = ref.read(pdfPreviewViewModelBuilderProvider);
+                  final menuId = int.parse(state.pathParameters['id']!);
                   return _PdfPreviewRouteHost(
-                    container: container,
-                    builder: builder,
+                    builder: pdfPreviewBuilder,
                     menuId: menuId,
                   );
                 },
               ),
-              // /menus/:id hosts the MVVM MenuEditorScreen directly via
-              // _MenuEditorRouteHost.
               GoRoute(
                 path: ':id',
                 name: 'menu-editor',
                 builder: (context, state) {
-                  final int menuId = int.parse(state.pathParameters['id']!);
-                  final container = ref.watch(appContainerProvider);
-                  final builder = ref.read(menuEditorViewModelBuilderProvider);
+                  final menuId = int.parse(state.pathParameters['id']!);
                   return _MenuEditorRouteHost(
-                    container: container,
-                    builder: builder,
+                    builder: menuEditorBuilder,
                     menuId: menuId,
                   );
                 },
@@ -340,70 +303,36 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.adminSizes,
             name: 'admin-sizes',
-            builder: (context, state) {
-              final container = ref.watch(appContainerProvider);
-              final builder = ref.read(adminSizesViewModelBuilderProvider);
-              return _AdminSizesRouteHost(
-                container: container,
-                builder: builder,
-              );
-            },
+            builder: (context, state) =>
+                _AdminSizesRouteHost(builder: adminSizesBuilder),
           ),
           GoRoute(
             path: AppRoutes.adminExportableMenus,
             name: 'admin-exportable-menus',
-            builder: (context, state) {
-              final container = ref.watch(appContainerProvider);
-              final builder = ref.read(
-                adminExportableMenusViewModelBuilderProvider,
-              );
-              return _AdminExportableMenusRouteHost(
-                container: container,
-                builder: builder,
-              );
-            },
+            builder: (context, state) => _AdminExportableMenusRouteHost(
+              builder: adminExportableMenusBuilder,
+            ),
           ),
           GoRoute(
             path: AppRoutes.adminTemplates,
             name: 'admin-templates',
-            builder: (context, state) {
-              final container = ref.watch(appContainerProvider);
-              final builder = ref.read(adminTemplatesViewModelBuilderProvider);
-              return _AdminTemplatesRouteHost(
-                container: container,
-                builder: builder,
-              );
-            },
+            builder: (context, state) =>
+                _AdminTemplatesRouteHost(builder: adminTemplatesBuilder),
             routes: [
               GoRoute(
                 path: 'create',
                 name: 'admin-template-create',
-                builder: (context, state) {
-                  final container = ref.watch(appContainerProvider);
-                  final builder = ref.read(
-                    adminTemplateCreatorViewModelBuilderProvider,
-                  );
-                  return _AdminTemplateCreatorRouteHost(
-                    container: container,
-                    builder: builder,
-                  );
-                },
+                builder: (context, state) => _AdminTemplateCreatorRouteHost(
+                  builder: adminTemplateCreatorBuilder,
+                ),
               ),
-              // /admin/templates/:id hosts the MVVM
-              // AdminTemplateEditorScreen directly via
-              // _AdminTemplateEditorRouteHost.
               GoRoute(
                 path: ':id',
                 name: 'admin-template-editor',
                 builder: (context, state) {
-                  final int menuId = int.parse(state.pathParameters['id']!);
-                  final container = ref.watch(appContainerProvider);
-                  final builder = ref.read(
-                    adminTemplateEditorViewModelBuilderProvider,
-                  );
+                  final menuId = int.parse(state.pathParameters['id']!);
                   return _AdminTemplateEditorRouteHost(
-                    container: container,
-                    builder: builder,
+                    builder: adminTemplateEditorBuilder,
                     menuId: menuId,
                   );
                 },
@@ -412,9 +341,68 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-    ],
-  );
-});
+    ];
+  }
+}
+
+/// Splash screen shown while checking authentication status.
+class _SplashScreen extends StatelessWidget {
+  const _SplashScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final connectivity = AppScope.of(context).connectivity;
+    return ListenableBuilder(
+      listenable: connectivity,
+      builder: (context, _) {
+        return Scaffold(
+          body: Column(
+            children: [
+              if (connectivity.isOffline) const OfflineBanner(),
+              const Expanded(child: Center(child: AdaptiveLoadingIndicator())),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Hosts the [AppShell] inside the authenticated shell route. Listens to
+/// the auth, connectivity, and admin-view-as-user controllers so the shell
+/// rebuilds when navigation gating changes.
+class _AppShellHost extends StatelessWidget {
+  const _AppShellHost({required this.currentLocation, required this.child});
+
+  final String currentLocation;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final scope = AppScope.of(context);
+    return ListenableBuilder(
+      listenable: Listenable.merge(<Listenable>[
+        scope.auth,
+        scope.connectivity,
+        scope.adminViewAsUser,
+      ]),
+      builder: (context, _) {
+        final status = scope.auth.status;
+        final isAdmin =
+            status is AuthStatusAuthenticated &&
+            status.user.role == UserRole.admin &&
+            !scope.adminViewAsUser.value;
+        return AppShell(
+          navigator: GoRouterRouteNavigator(context),
+          currentLocation: currentLocation,
+          isAdmin: isAdmin,
+          isOffline: scope.connectivity.isOffline,
+          child: child,
+        );
+      },
+    );
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Phase 15 — auth route hosts
@@ -426,9 +414,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 // ---------------------------------------------------------------------------
 
 class _LoginRouteHost extends StatefulWidget {
-  const _LoginRouteHost({required this.container});
-
-  final AppContainer container;
+  const _LoginRouteHost();
 
   @override
   State<_LoginRouteHost> createState() => _LoginRouteHostState();
@@ -440,10 +426,11 @@ class _LoginRouteHostState extends State<_LoginRouteHost> {
   @override
   void initState() {
     super.initState();
+    final container = AppScope.read(context).container;
     _viewModel = LoginViewModel(
-      login: LoginUseCase(gateway: widget.container.authGateway),
+      login: LoginUseCase(gateway: container.authGateway),
       router: AuthRouteAdapter(GoRouterRouteNavigator(context)),
-      connectivityGateway: widget.container.connectivityGateway,
+      connectivityGateway: container.connectivityGateway,
     );
   }
 
@@ -460,9 +447,7 @@ class _LoginRouteHostState extends State<_LoginRouteHost> {
 }
 
 class _ForgotPasswordRouteHost extends StatefulWidget {
-  const _ForgotPasswordRouteHost({required this.container});
-
-  final AppContainer container;
+  const _ForgotPasswordRouteHost();
 
   @override
   State<_ForgotPasswordRouteHost> createState() =>
@@ -475,12 +460,13 @@ class _ForgotPasswordRouteHostState extends State<_ForgotPasswordRouteHost> {
   @override
   void initState() {
     super.initState();
+    final container = AppScope.read(context).container;
     _viewModel = ForgotPasswordViewModel(
       requestPasswordReset: RequestPasswordResetUseCase(
-        gateway: widget.container.authGateway,
+        gateway: container.authGateway,
       ),
       router: AuthRouteAdapter(GoRouterRouteNavigator(context)),
-      connectivityGateway: widget.container.connectivityGateway,
+      connectivityGateway: container.connectivityGateway,
       resetUrl: _resolveResetUrl(),
     );
   }
@@ -498,9 +484,8 @@ class _ForgotPasswordRouteHostState extends State<_ForgotPasswordRouteHost> {
 }
 
 class _ResetPasswordRouteHost extends StatefulWidget {
-  const _ResetPasswordRouteHost({required this.container, required this.token});
+  const _ResetPasswordRouteHost({required this.token});
 
-  final AppContainer container;
   final String? token;
 
   @override
@@ -514,12 +499,13 @@ class _ResetPasswordRouteHostState extends State<_ResetPasswordRouteHost> {
   @override
   void initState() {
     super.initState();
+    final container = AppScope.read(context).container;
     _viewModel = ResetPasswordViewModel(
       confirmPasswordReset: ConfirmPasswordResetUseCase(
-        gateway: widget.container.authGateway,
+        gateway: container.authGateway,
       ),
       router: AuthRouteAdapter(GoRouterRouteNavigator(context)),
-      connectivityGateway: widget.container.connectivityGateway,
+      connectivityGateway: container.connectivityGateway,
       token: widget.token,
     );
   }
@@ -552,16 +538,10 @@ String? _resolveResetUrl() {
 
 // ---------------------------------------------------------------------------
 // Phase 17 — /home route host
-//
-// Owns the HomeViewModel for the lifetime of the GoRoute under the
-// AppShell. The MVVM HomeScreen is pure (no Riverpod, no BuildContext use) so
-// this host bridges go_router into it via HomeRouteAdapter.
 // ---------------------------------------------------------------------------
 
 class _HomeRouteHost extends StatefulWidget {
-  const _HomeRouteHost({required this.container});
-
-  final AppContainer container;
+  const _HomeRouteHost();
 
   @override
   State<_HomeRouteHost> createState() => _HomeRouteHostState();
@@ -573,10 +553,9 @@ class _HomeRouteHostState extends State<_HomeRouteHost> {
   @override
   void initState() {
     super.initState();
+    final container = AppScope.read(context).container;
     _viewModel = HomeViewModel(
-      getHomeOverview: GetHomeOverviewUseCase(
-        gateway: widget.container.authGateway,
-      ),
+      getHomeOverview: GetHomeOverviewUseCase(gateway: container.authGateway),
       router: HomeRouteAdapter(GoRouterRouteNavigator(context)),
       clock: DateTime.now,
     );
@@ -596,16 +575,10 @@ class _HomeRouteHostState extends State<_HomeRouteHost> {
 
 // ---------------------------------------------------------------------------
 // Phase 16 — /settings route host
-//
-// Owns the SettingsViewModel for the lifetime of the GoRoute under the
-// AppShell. The MVVM SettingsScreen is pure (no Riverpod, no BuildContext use)
-// so this host bridges go_router into it via SettingsRouteAdapter.
 // ---------------------------------------------------------------------------
 
 class _SettingsRouteHost extends StatefulWidget {
-  const _SettingsRouteHost({required this.container});
-
-  final AppContainer container;
+  const _SettingsRouteHost();
 
   @override
   State<_SettingsRouteHost> createState() => _SettingsRouteHostState();
@@ -617,7 +590,7 @@ class _SettingsRouteHostState extends State<_SettingsRouteHost> {
   @override
   void initState() {
     super.initState();
-    final container = widget.container;
+    final container = AppScope.read(context).container;
     _viewModel = SettingsViewModel(
       getOverview: GetSettingsOverviewUseCase(
         authGateway: container.authGateway,
@@ -651,16 +624,6 @@ class _SettingsRouteHostState extends State<_SettingsRouteHost> {
 
 // ---------------------------------------------------------------------------
 // Phase 18 — /menus route host
-//
-// Owns the MenuListViewModel for the lifetime of the GoRoute under the
-// AppShell. The MVVM MenuListScreen is pure (no Riverpod, no BuildContext
-// reads) so this host bridges go_router into it via MenuListRouteAdapter,
-// which deep-links into `/menus/:id` and `/admin/templates/:id`.
-//
-// The view-model construction is exposed as a Riverpod-overridable builder so
-// router tests can swap in fake use cases without standing up a real
-// DirectusDataSource. Production wiring is the default and lives in
-// [_defaultMenuListViewModelBuilder].
 // ---------------------------------------------------------------------------
 
 /// Factory used by the `/menus` route host to construct the
@@ -669,16 +632,6 @@ class _SettingsRouteHostState extends State<_SettingsRouteHost> {
 /// `go_router` via [GoRouterRouteNavigator].
 typedef MenuListViewModelBuilder =
     MenuListViewModel Function(BuildContext context, AppContainer container);
-
-/// Riverpod entry point for the `/menus` view-model builder.
-///
-/// Defaults to [_defaultMenuListViewModelBuilder] which wires the live
-/// menu repositories from the container's `DirectusDataSource`. Tests override
-/// this with a stub builder that returns a [MenuListViewModel] backed by fake
-/// use cases.
-final menuListViewModelBuilderProvider = Provider<MenuListViewModelBuilder>(
-  (ref) => _defaultMenuListViewModelBuilder,
-);
 
 MenuListViewModel _defaultMenuListViewModelBuilder(
   BuildContext context,
@@ -722,9 +675,8 @@ MenuListViewModel _defaultMenuListViewModelBuilder(
 }
 
 class _MenuListRouteHost extends StatefulWidget {
-  const _MenuListRouteHost({required this.container, required this.builder});
+  const _MenuListRouteHost({required this.builder});
 
-  final AppContainer container;
   final MenuListViewModelBuilder builder;
 
   @override
@@ -737,7 +689,8 @@ class _MenuListRouteHostState extends State<_MenuListRouteHost> {
   @override
   void initState() {
     super.initState();
-    _viewModel = widget.builder(context, widget.container);
+    final container = AppScope.read(context).container;
+    _viewModel = widget.builder(context, container);
   }
 
   @override
@@ -754,38 +707,12 @@ class _MenuListRouteHostState extends State<_MenuListRouteHost> {
 
 // ---------------------------------------------------------------------------
 // Phase 19 — /admin/templates route host
-//
-// Owns the AdminTemplatesViewModel for the lifetime of the GoRoute
-// under the AppShell. The MVVM AdminTemplatesScreen is pure (no Riverpod, no
-// BuildContext reads) so this host bridges go_router into it via
-// AdminTemplatesRouteAdapter, which deep-links into
-// `/admin/templates/:id` for the editor.
-//
-// The view-model construction is exposed as a Riverpod-overridable builder so
-// router tests can swap in fake use cases without standing up a real
-// DirectusDataSource. Production wiring is the default and lives in
-// [_defaultAdminTemplatesViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the `/admin/templates` route host to construct the
-/// [AdminTemplatesViewModel] from the live [AppContainer]. The [BuildContext]
-/// is the route's context and is used by the default builder to bridge into
-/// `go_router` via [GoRouterRouteNavigator].
 typedef AdminTemplatesViewModelBuilder =
     AdminTemplatesViewModel Function(
       BuildContext context,
       AppContainer container,
-    );
-
-/// Riverpod entry point for the `/admin/templates` view-model builder.
-///
-/// Defaults to [_defaultAdminTemplatesViewModelBuilder] which wires the
-/// live menu repository from the container's `DirectusDataSource`. Tests
-/// override this with a stub builder that returns an
-/// [AdminTemplatesViewModel] backed by fake use cases.
-final adminTemplatesViewModelBuilderProvider =
-    Provider<AdminTemplatesViewModelBuilder>(
-      (ref) => _defaultAdminTemplatesViewModelBuilder,
     );
 
 AdminTemplatesViewModel _defaultAdminTemplatesViewModelBuilder(
@@ -808,12 +735,8 @@ AdminTemplatesViewModel _defaultAdminTemplatesViewModelBuilder(
 }
 
 class _AdminTemplatesRouteHost extends StatefulWidget {
-  const _AdminTemplatesRouteHost({
-    required this.container,
-    required this.builder,
-  });
+  const _AdminTemplatesRouteHost({required this.builder});
 
-  final AppContainer container;
   final AdminTemplatesViewModelBuilder builder;
 
   @override
@@ -827,7 +750,8 @@ class _AdminTemplatesRouteHostState extends State<_AdminTemplatesRouteHost> {
   @override
   void initState() {
     super.initState();
-    _viewModel = widget.builder(context, widget.container);
+    final container = AppScope.read(context).container;
+    _viewModel = widget.builder(context, container);
   }
 
   @override
@@ -844,35 +768,10 @@ class _AdminTemplatesRouteHostState extends State<_AdminTemplatesRouteHost> {
 
 // ---------------------------------------------------------------------------
 // Phase 20 — /admin/sizes route host
-//
-// Owns the AdminSizesViewModel for the lifetime of the GoRoute under
-// the AppShell. The MVVM AdminSizesScreen is pure (no Riverpod, no
-// BuildContext reads) so this host bridges go_router into it via
-// AdminSizesRouteAdapter. The screen is a navigation leaf — the router only
-// exposes "back" — so no deep-link forwarding is needed.
-//
-// The view-model construction is exposed as a Riverpod-overridable builder so
-// router tests can swap in fake use cases without standing up a real
-// DirectusDataSource. Production wiring is the default and lives in
-// [_defaultAdminSizesViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the `/admin/sizes` route host to construct the
-/// [AdminSizesViewModel] from the live [AppContainer]. The [BuildContext] is
-/// the route's context and is used by the default builder to bridge into
-/// `go_router` via [GoRouterRouteNavigator].
 typedef AdminSizesViewModelBuilder =
     AdminSizesViewModel Function(BuildContext context, AppContainer container);
-
-/// Riverpod entry point for the `/admin/sizes` view-model builder.
-///
-/// Defaults to [_defaultAdminSizesViewModelBuilder] which wires the live
-/// size repository from the container's `DirectusDataSource`. Tests override
-/// this with a stub builder that returns an [AdminSizesViewModel] backed by
-/// fake use cases.
-final adminSizesViewModelBuilderProvider = Provider<AdminSizesViewModelBuilder>(
-  (ref) => _defaultAdminSizesViewModelBuilder,
-);
 
 AdminSizesViewModel _defaultAdminSizesViewModelBuilder(
   BuildContext context,
@@ -905,9 +804,8 @@ AdminSizesViewModel _defaultAdminSizesViewModelBuilder(
 }
 
 class _AdminSizesRouteHost extends StatefulWidget {
-  const _AdminSizesRouteHost({required this.container, required this.builder});
+  const _AdminSizesRouteHost({required this.builder});
 
-  final AppContainer container;
   final AdminSizesViewModelBuilder builder;
 
   @override
@@ -920,7 +818,8 @@ class _AdminSizesRouteHostState extends State<_AdminSizesRouteHost> {
   @override
   void initState() {
     super.initState();
-    _viewModel = widget.builder(context, widget.container);
+    final container = AppScope.read(context).container;
+    _viewModel = widget.builder(context, container);
   }
 
   @override
@@ -937,40 +836,12 @@ class _AdminSizesRouteHostState extends State<_AdminSizesRouteHost> {
 
 // ---------------------------------------------------------------------------
 // Phase 21 — /admin/templates/create route host
-//
-// Owns the AdminTemplateCreatorViewModel for the lifetime of the GoRoute
-// under the AppShell. The MVVM AdminTemplateCreatorScreen is pure (no
-// Riverpod, no BuildContext reads) so this host bridges go_router into it via
-// AdminTemplateCreatorRouteAdapter, which deep-links into
-// `/admin/templates/:id` for the editor. The "Manage Page Sizes" CTA resolves
-// to the `/admin/sizes` GoRoute.
-//
-// The view-model construction is exposed as a Riverpod-overridable builder so
-// router tests can swap in fake use cases without standing up a real
-// DirectusDataSource. Production wiring is the default and lives in
-// [_defaultAdminTemplateCreatorViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the `/admin/templates/create` route host to construct
-/// the [AdminTemplateCreatorViewModel] from the live [AppContainer]. The
-/// [BuildContext] is the route's context and is used by the default builder to
-/// bridge into `go_router` via [GoRouterRouteNavigator].
 typedef AdminTemplateCreatorViewModelBuilder =
     AdminTemplateCreatorViewModel Function(
       BuildContext context,
       AppContainer container,
-    );
-
-/// Riverpod entry point for the `/admin/templates/create` view-model
-/// builder.
-///
-/// Defaults to [_defaultAdminTemplateCreatorViewModelBuilder] which
-/// wires the live menu / size / area repositories from the container's
-/// `DirectusDataSource`. Tests override this with a stub builder that returns
-/// an [AdminTemplateCreatorViewModel] backed by fake use cases.
-final adminTemplateCreatorViewModelBuilderProvider =
-    Provider<AdminTemplateCreatorViewModelBuilder>(
-      (ref) => _defaultAdminTemplateCreatorViewModelBuilder,
     );
 
 AdminTemplateCreatorViewModel _defaultAdminTemplateCreatorViewModelBuilder(
@@ -1001,12 +872,8 @@ AdminTemplateCreatorViewModel _defaultAdminTemplateCreatorViewModelBuilder(
 }
 
 class _AdminTemplateCreatorRouteHost extends StatefulWidget {
-  const _AdminTemplateCreatorRouteHost({
-    required this.container,
-    required this.builder,
-  });
+  const _AdminTemplateCreatorRouteHost({required this.builder});
 
-  final AppContainer container;
   final AdminTemplateCreatorViewModelBuilder builder;
 
   @override
@@ -1021,7 +888,8 @@ class _AdminTemplateCreatorRouteHostState
   @override
   void initState() {
     super.initState();
-    _viewModel = widget.builder(context, widget.container);
+    final container = AppScope.read(context).container;
+    _viewModel = widget.builder(context, container);
   }
 
   @override
@@ -1038,40 +906,14 @@ class _AdminTemplateCreatorRouteHostState
 
 // ---------------------------------------------------------------------------
 // Phase 22 — /menus/pdf/:id route host
-//
-// Owns the PdfPreviewViewModel for the lifetime of the GoRoute under
-// the AppShell. The MVVM PdfPreviewScreen is pure (no Riverpod, no
-// BuildContext reads) so this host bridges go_router into it via
-// PdfPreviewRouteAdapter. The screen is a navigation leaf — the router only
-// exposes "back" — so no deep-link forwarding is needed.
-//
-// The view-model construction is exposed as a Riverpod-overridable builder so
-// router tests can swap in fake use cases without standing up a real
-// DirectusDataSource. Production wiring is the default and lives in
-// [_defaultPdfPreviewViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the `/menus/pdf/:id` route host to construct the
-/// [PdfPreviewViewModel] from the live [AppContainer]. The [BuildContext] is
-/// the route's context and is used by the default builder to bridge into
-/// `go_router` via [GoRouterRouteNavigator]. The `menuId` is the path
-/// parameter the user navigated to.
 typedef PdfPreviewViewModelBuilder =
     PdfPreviewViewModel Function(
       BuildContext context,
       AppContainer container,
       int menuId,
     );
-
-/// Riverpod entry point for the `/menus/pdf/:id` view-model builder.
-///
-/// Defaults to [_defaultPdfPreviewViewModelBuilder] which wires the live
-/// menu / file repositories from the container's `DirectusDataSource`. Tests
-/// override this with a stub builder that returns a [PdfPreviewViewModel]
-/// backed by fake use cases.
-final pdfPreviewViewModelBuilderProvider = Provider<PdfPreviewViewModelBuilder>(
-  (ref) => _defaultPdfPreviewViewModelBuilder,
-);
 
 PdfPreviewViewModel _defaultPdfPreviewViewModelBuilder(
   BuildContext context,
@@ -1111,13 +953,8 @@ PdfPreviewViewModel _defaultPdfPreviewViewModelBuilder(
 }
 
 class _PdfPreviewRouteHost extends StatefulWidget {
-  const _PdfPreviewRouteHost({
-    required this.container,
-    required this.builder,
-    required this.menuId,
-  });
+  const _PdfPreviewRouteHost({required this.builder, required this.menuId});
 
-  final AppContainer container;
   final PdfPreviewViewModelBuilder builder;
   final int menuId;
 
@@ -1131,7 +968,8 @@ class _PdfPreviewRouteHostState extends State<_PdfPreviewRouteHost> {
   @override
   void initState() {
     super.initState();
-    _viewModel = widget.builder(context, widget.container, widget.menuId);
+    final container = AppScope.read(context).container;
+    _viewModel = widget.builder(context, container, widget.menuId);
   }
 
   @override
@@ -1148,39 +986,12 @@ class _PdfPreviewRouteHostState extends State<_PdfPreviewRouteHost> {
 
 // ---------------------------------------------------------------------------
 // Phase 23 — /admin/exportable_menus route host
-//
-// Owns the AdminExportableMenusViewModel for the lifetime of the GoRoute
-// under the AppShell. The MVVM AdminExportableMenusScreen is pure (no
-// Riverpod, no BuildContext reads) so this host bridges go_router into it via
-// AdminExportableMenusRouteAdapter. The screen is a navigation leaf — the
-// router only exposes "back" — so no deep-link forwarding is needed.
-//
-// The view-model construction is exposed as a Riverpod-overridable builder so
-// router tests can swap in fake use cases without standing up a real
-// DirectusDataSource. Production wiring is the default and lives in
-// [_defaultAdminExportableMenusViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the `/admin/exportable_menus` route host to
-/// construct the [AdminExportableMenusViewModel] from the live [AppContainer].
-/// The [BuildContext] is the route's context and is used by the default
-/// builder to bridge into `go_router` via [GoRouterRouteNavigator].
 typedef AdminExportableMenusViewModelBuilder =
     AdminExportableMenusViewModel Function(
       BuildContext context,
       AppContainer container,
-    );
-
-/// Riverpod entry point for the `/admin/exportable_menus` view-model
-/// builder.
-///
-/// Defaults to [_defaultAdminExportableMenusViewModelBuilder] which
-/// wires the live menu / bundle / file repositories from the container's
-/// `DirectusDataSource`. Tests override this with a stub builder that returns
-/// an [AdminExportableMenusViewModel] backed by fake use cases.
-final adminExportableMenusViewModelBuilderProvider =
-    Provider<AdminExportableMenusViewModelBuilder>(
-      (ref) => _defaultAdminExportableMenusViewModelBuilder,
     );
 
 AdminExportableMenusViewModel _defaultAdminExportableMenusViewModelBuilder(
@@ -1242,12 +1053,8 @@ AdminExportableMenusViewModel _defaultAdminExportableMenusViewModelBuilder(
 }
 
 class _AdminExportableMenusRouteHost extends StatefulWidget {
-  const _AdminExportableMenusRouteHost({
-    required this.container,
-    required this.builder,
-  });
+  const _AdminExportableMenusRouteHost({required this.builder});
 
-  final AppContainer container;
   final AdminExportableMenusViewModelBuilder builder;
 
   @override
@@ -1258,11 +1065,14 @@ class _AdminExportableMenusRouteHost extends StatefulWidget {
 class _AdminExportableMenusRouteHostState
     extends State<_AdminExportableMenusRouteHost> {
   late final AdminExportableMenusViewModel _viewModel;
+  late final String _directusBaseUrl;
 
   @override
   void initState() {
     super.initState();
-    _viewModel = widget.builder(context, widget.container);
+    final container = AppScope.read(context).container;
+    _viewModel = widget.builder(context, container);
+    _directusBaseUrl = container.directusBaseUrl ?? '';
   }
 
   @override
@@ -1275,48 +1085,21 @@ class _AdminExportableMenusRouteHostState
   Widget build(BuildContext context) {
     return AdminExportableMenusScreen(
       viewModel: _viewModel,
-      directusBaseUrl: widget.container.directusBaseUrl ?? '',
+      directusBaseUrl: _directusBaseUrl,
     );
   }
 }
 
 // ---------------------------------------------------------------------------
 // Phase 24 — /menus/:id route host
-//
-// Owns the MenuEditorViewModel for the lifetime of the GoRoute under
-// the AppShell. The MVVM MenuEditorScreen is pure (no Riverpod, no
-// BuildContext reads) so this host bridges go_router into it via
-// MenuEditorRouteAdapter, which deep-links `goToPdfPreview` into the
-// `/menus/pdf/:id` GoRoute.
-//
-// The view-model construction is exposed as a Riverpod-overridable builder so
-// router tests can swap in fake use cases without standing up a real
-// DirectusDataSource. Production wiring is the default and lives in
-// [_defaultMenuEditorViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the `/menus/:id` route host to construct the
-/// [MenuEditorViewModel] from the live [AppContainer]. The [BuildContext] is
-/// the route's context and is used by the default builder to bridge into
-/// `go_router` via [GoRouterRouteNavigator]. The `menuId` is the path
-/// parameter the user navigated to.
 typedef MenuEditorViewModelBuilder =
     MenuEditorViewModel Function(
       BuildContext context,
       AppContainer container,
       int menuId,
     );
-
-/// Riverpod entry point for the `/menus/:id` view-model builder.
-///
-/// Defaults to [_defaultMenuEditorViewModelBuilder] which wires the
-/// live menu / page / container / column / widget / bundle repositories and
-/// the collaboration / presence repositories from the container's
-/// `DirectusDataSource`. Tests override this with a stub builder that returns
-/// a [MenuEditorViewModel] backed by fake use cases.
-final menuEditorViewModelBuilderProvider = Provider<MenuEditorViewModelBuilder>(
-  (ref) => _defaultMenuEditorViewModelBuilder,
-);
 
 MenuEditorViewModel _defaultMenuEditorViewModelBuilder(
   BuildContext context,
@@ -1407,13 +1190,8 @@ MenuEditorViewModel _defaultMenuEditorViewModelBuilder(
 }
 
 class _MenuEditorRouteHost extends StatefulWidget {
-  const _MenuEditorRouteHost({
-    required this.container,
-    required this.builder,
-    required this.menuId,
-  });
+  const _MenuEditorRouteHost({required this.builder, required this.menuId});
 
-  final AppContainer container;
   final MenuEditorViewModelBuilder builder;
   final int menuId;
 
@@ -1427,7 +1205,8 @@ class _MenuEditorRouteHostState extends State<_MenuEditorRouteHost> {
   @override
   void initState() {
     super.initState();
-    _viewModel = widget.builder(context, widget.container, widget.menuId);
+    final container = AppScope.read(context).container;
+    _viewModel = widget.builder(context, container, widget.menuId);
   }
 
   @override
@@ -1444,42 +1223,13 @@ class _MenuEditorRouteHostState extends State<_MenuEditorRouteHost> {
 
 // ---------------------------------------------------------------------------
 // Phase 24 — /admin/templates/:id route host
-//
-// Owns the AdminTemplateEditorViewModel for the lifetime of the GoRoute
-// under the AppShell. The MVVM AdminTemplateEditorScreen is pure (no
-// Riverpod, no BuildContext reads) so this host bridges go_router into it
-// via AdminTemplateEditorRouteAdapter, which deep-links `goToPdfPreview` and
-// `goToAdminSizes` into the `/menus/pdf/:id` and `/admin/sizes` GoRoutes.
-//
-// The view-model construction is exposed as a Riverpod-overridable builder so
-// router tests can swap in fake use cases without standing up a real
-// DirectusDataSource. Production wiring is the default and lives in
-// [_defaultAdminTemplateEditorViewModelBuilder].
 // ---------------------------------------------------------------------------
 
-/// Factory used by the `/admin/templates/:id` route host to construct
-/// the [AdminTemplateEditorViewModel] from the live [AppContainer]. The
-/// [BuildContext] is the route's context and is used by the default builder
-/// to bridge into `go_router` via [GoRouterRouteNavigator]. The `menuId` is
-/// the path parameter the user navigated to.
 typedef AdminTemplateEditorViewModelBuilder =
     AdminTemplateEditorViewModel Function(
       BuildContext context,
       AppContainer container,
       int menuId,
-    );
-
-/// Riverpod entry point for the `/admin/templates/:id` view-model
-/// builder.
-///
-/// Defaults to [_defaultAdminTemplateEditorViewModelBuilder] which
-/// wires the live menu / page / container / column / widget / size / area
-/// repositories from the container's `DirectusDataSource`. Tests override
-/// this with a stub builder that returns an [AdminTemplateEditorViewModel]
-/// backed by fake use cases.
-final adminTemplateEditorViewModelBuilderProvider =
-    Provider<AdminTemplateEditorViewModelBuilder>(
-      (ref) => _defaultAdminTemplateEditorViewModelBuilder,
     );
 
 AdminTemplateEditorViewModel _defaultAdminTemplateEditorViewModelBuilder(
@@ -1589,12 +1339,10 @@ AdminTemplateEditorViewModel _defaultAdminTemplateEditorViewModelBuilder(
 
 class _AdminTemplateEditorRouteHost extends StatefulWidget {
   const _AdminTemplateEditorRouteHost({
-    required this.container,
     required this.builder,
     required this.menuId,
   });
 
-  final AppContainer container;
   final AdminTemplateEditorViewModelBuilder builder;
   final int menuId;
 
@@ -1610,7 +1358,8 @@ class _AdminTemplateEditorRouteHostState
   @override
   void initState() {
     super.initState();
-    _viewModel = widget.builder(context, widget.container, widget.menuId);
+    final container = AppScope.read(context).container;
+    _viewModel = widget.builder(context, container, widget.menuId);
   }
 
   @override

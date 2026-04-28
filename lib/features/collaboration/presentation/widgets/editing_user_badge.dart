@@ -1,23 +1,23 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
+import 'package:oxo_menus/core/di/app_scope.dart';
 import 'package:oxo_menus/shared/presentation/utils/platform_detection.dart';
 
 /// Badge showing the avatar/initials of the user currently editing a widget,
 /// with a small edit icon.
-class EditingUserBadge extends ConsumerWidget {
+class EditingUserBadge extends StatelessWidget {
   final String? userName;
   final String? userAvatar;
 
   const EditingUserBadge({super.key, this.userName, this.userAvatar});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isApple = isApplePlatform(context);
-    final baseUrl = ref.watch(directusBaseUrlProvider);
-    final token = ref.watch(directusAccessTokenProvider);
+    final container = AppScope.of(context).container;
+    final baseUrl = container.directusBaseUrl ?? '';
+    final token = container.directusAccessToken;
     final initials = _getInitials(userName);
 
     final initialsWidget = Text(

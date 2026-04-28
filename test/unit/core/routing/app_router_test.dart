@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:oxo_menus/core/di/app_scope.dart';
 import 'package:oxo_menus/core/architecture/use_case.dart';
 import 'package:oxo_menus/core/di/app_container.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
+import 'package:oxo_menus/core/gateways/auth_gateway.dart';
 import 'package:oxo_menus/core/gateways/connectivity_gateway.dart';
 import 'package:oxo_menus/core/routing/app_router.dart';
 import 'package:oxo_menus/core/routing/route_navigator.dart';
@@ -106,8 +107,6 @@ import 'package:oxo_menus/features/admin_templates/domain/use_cases/list_templat
 import 'package:oxo_menus/features/admin_templates/presentation/routing/admin_templates_route_adapter.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/screens/admin_templates_screen.dart';
 import 'package:oxo_menus/features/admin_templates/presentation/view_models/admin_templates_view_model.dart';
-import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
-import 'package:oxo_menus/shared/presentation/providers/usecases_provider.dart';
 import 'package:oxo_menus/features/menu/domain/repositories/column_repository.dart';
 import 'package:oxo_menus/features/menu/domain/repositories/container_repository.dart';
 import 'package:oxo_menus/features/menu/domain/repositories/menu_repository.dart';
@@ -777,94 +776,82 @@ AdminExportableMenusViewModel _buildAdminExportableMenusVm(
 // Helpers
 // ---------------------------------------------------------------------------
 
-/// Builds the minimal [ProviderScope] required for the router to
-/// function without hitting real infrastructure.
+/// Builds the minimal widget tree required for the router to function
+/// without hitting real infrastructure. Wraps [MaterialApp.router] in an
+/// [AppScope] backed by the supplied fakes; the [AppRouter] is constructed
+/// with stub view-model builders so screens can mount without a live
+/// `DirectusDataSource`.
 ///
 /// [fakeAuth] — pre-configured with a [defaultTryRestoreSessionResponse].
 /// [fakeMenu] — pre-configured with a listAll and getById response.
-/// [extraOverrides] — additional provider overrides appended after the defaults.
 Widget _buildApp({
   required FakeAuthRepository fakeAuth,
   required FakeMenuRepository fakeMenu,
-  List<dynamic> extraOverrides = const [],
   void Function(GoRouter)? onRouter,
   AppVersionGateway? appVersionGateway,
 }) {
-  return ProviderScope(
-    overrides: [
-      authRepositoryProvider.overrideWithValue(fakeAuth),
-      menuRepositoryProvider.overrideWithValue(fakeMenu),
-      duplicateMenuUseCaseProvider.overrideWithValue(
-        _FakeDuplicateMenuUseCase(),
-      ),
-      // Phase 15 — the /login, /forgot-password, /reset-password
-      // GoRoutes mount the MVVM screens directly, which read use cases and
-      // gateways through the AppContainer. Wire it up so the same
-      // AuthGateway backs the auth state machine and the auth screens.
-      appContainerProvider.overrideWith(
-        (ref) => AppContainer(
-          authGateway: ref.watch(authGatewayProvider),
-          connectivityGateway: ConnectivityGateway(
-            repository: FakeConnectivityRepository()
-              ..whenCheckConnectivity(ConnectivityStatus.online),
-          ),
-          appVersionGateway: appVersionGateway,
-        ),
-      ),
-      // Phase 18 — the /menus GoRoute mounts MenuListScreen, whose
-      // ViewModel needs a live DirectusDataSource. Override the builder so
-      // the router tests can mount the screen without one.
-      menuListViewModelBuilderProvider.overrideWithValue(_buildMenuListVm),
-      // Phase 19 — the /admin/templates GoRoute mounts
-      // AdminTemplatesScreen, whose ViewModel needs a live DirectusDataSource.
-      // Override the builder so the router tests can mount the screen
-      // without one.
-      adminTemplatesViewModelBuilderProvider.overrideWithValue(
-        _buildAdminTemplatesVm,
-      ),
-      // Phase 20 — the /admin/sizes GoRoute mounts AdminSizesScreen,
-      // whose ViewModel needs a live DirectusDataSource. Override the builder
-      // so the router tests can mount the screen without one.
-      adminSizesViewModelBuilderProvider.overrideWithValue(_buildAdminSizesVm),
-      // Phase 21 — the /admin/templates/create GoRoute mounts
-      // AdminTemplateCreatorScreen, whose ViewModel needs a live
-      // DirectusDataSource. Override the builder so the router tests can mount
-      // the screen without one.
-      adminTemplateCreatorViewModelBuilderProvider.overrideWithValue(
-        _buildAdminTemplateCreatorVm,
-      ),
-      // Phase 22 — the /menus/pdf/:id GoRoute mounts PdfPreviewScreen,
-      // whose ViewModel needs a live DirectusDataSource. Override the builder
-      // so the router tests can mount the screen without one.
-      pdfPreviewViewModelBuilderProvider.overrideWithValue(_buildPdfPreviewVm),
-      // Phase 23 — the /admin/exportable_menus GoRoute mounts
-      // AdminExportableMenusScreen, whose ViewModel needs a live
-      // DirectusDataSource. Override the builder so the router tests can
-      // mount the screen without one.
-      adminExportableMenusViewModelBuilderProvider.overrideWithValue(
-        _buildAdminExportableMenusVm,
-      ),
-      // Phase 24 — the /menus/:id GoRoute mounts MenuEditorScreen,
-      // whose ViewModel needs a live DirectusDataSource. Override the builder
-      // so the router tests can mount the screen without one.
-      menuEditorViewModelBuilderProvider.overrideWithValue(_buildMenuEditorVm),
-      // Phase 24 — the /admin/templates/:id GoRoute mounts
-      // AdminTemplateEditorScreen, whose ViewModel needs a live
-      // DirectusDataSource. Override the builder so the router tests can
-      // mount the screen without one.
-      adminTemplateEditorViewModelBuilderProvider.overrideWithValue(
-        _buildAdminTemplateEditorVm,
-      ),
-      ...extraOverrides.cast(),
-    ],
-    child: Consumer(
-      builder: (context, ref, _) {
-        final router = ref.watch(appRouterProvider);
-        onRouter?.call(router);
-        return MaterialApp.router(routerConfig: router);
-      },
-    ),
+  // Wire fakeMenu through the menu-list / templates use cases via stub
+  // implementations: those tests interact with the screens, not the menu
+  // repo directly. The auth gateway is shared so the auth redirect and the
+  // login screen see the same state machine.
+  final authGateway = AuthGateway(repository: fakeAuth);
+  final connectivityGateway = ConnectivityGateway(
+    repository: FakeConnectivityRepository()
+      ..whenCheckConnectivity(ConnectivityStatus.online),
   );
+  final container = AppContainer(
+    authGateway: authGateway,
+    connectivityGateway: connectivityGateway,
+    appVersionGateway: appVersionGateway,
+  );
+
+  return AppScope(
+    container: container,
+    child: _RouterTestHarness(container: container, onRouter: onRouter),
+  );
+}
+
+/// Stateful host for the router tests that builds the [AppRouter] once and
+/// keeps the same router instance across rebuilds — mirroring how
+/// `MyApp` wires the router in production.
+class _RouterTestHarness extends StatefulWidget {
+  const _RouterTestHarness({required this.container, this.onRouter});
+
+  final AppContainer container;
+  final void Function(GoRouter)? onRouter;
+
+  @override
+  State<_RouterTestHarness> createState() => _RouterTestHarnessState();
+}
+
+class _RouterTestHarnessState extends State<_RouterTestHarness> {
+  GoRouter? _router;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_router == null) {
+      final scope = AppScope.of(context);
+      final router = AppRouter(
+        scope: scope,
+        menuListBuilder: _buildMenuListVm,
+        adminTemplatesBuilder: _buildAdminTemplatesVm,
+        adminSizesBuilder: _buildAdminSizesVm,
+        adminTemplateCreatorBuilder: _buildAdminTemplateCreatorVm,
+        pdfPreviewBuilder: _buildPdfPreviewVm,
+        adminExportableMenusBuilder: _buildAdminExportableMenusVm,
+        menuEditorBuilder: _buildMenuEditorVm,
+        adminTemplateEditorBuilder: _buildAdminTemplateEditorVm,
+      ).build();
+      widget.onRouter?.call(router);
+      _router = router;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp.router(routerConfig: _router!);
+  }
 }
 
 /// Configures [FakeMenuRepository] with the empty-list defaults that

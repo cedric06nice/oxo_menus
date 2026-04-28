@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
@@ -169,11 +168,7 @@ void main() {
 
     final vm = await _makeVm(auth);
 
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(home: MenuEditorScreen(viewModel: vm)),
-      ),
-    );
+    await tester.pumpWidget(MaterialApp(home: MenuEditorScreen(viewModel: vm)));
     // Drain the load future + post-frame.
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 16));
@@ -198,11 +193,7 @@ void main() {
       configureMenuRepo: (repo) => repo.whenUpdate(const Success(_menu)),
     );
 
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(home: MenuEditorScreen(viewModel: vm)),
-      ),
-    );
+    await tester.pumpWidget(MaterialApp(home: MenuEditorScreen(viewModel: vm)));
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 16));
     }

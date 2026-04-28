@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/features/menu/domain/entities/column.dart' as entity;
 import 'package:oxo_menus/features/menu/domain/entities/widget_instance.dart';
@@ -21,22 +20,20 @@ void main() {
     VoidCallback? onTap,
     Widget Function(WidgetInstance widget, int columnId)? widgetItemBuilder,
   }) {
-    return ProviderScope(
-      child: MaterialApp(
-        home: Scaffold(
-          body: EditorColumnCard(
-            column:
-                column ?? const entity.Column(id: 1, containerId: 1, index: 0),
-            widgets: widgets,
-            registry: registry,
-            isSelected: isSelected,
-            header: header,
-            onTap: onTap,
-            onWidgetDrop: (type, colId, idx) async {},
-            onWidgetMove: (w, srcCol, tgtCol, idx) async {},
-            widgetItemBuilder:
-                widgetItemBuilder ?? (w, colId) => Text('Widget ${w.id}'),
-          ),
+    return MaterialApp(
+      home: Scaffold(
+        body: EditorColumnCard(
+          column:
+              column ?? const entity.Column(id: 1, containerId: 1, index: 0),
+          widgets: widgets,
+          registry: registry,
+          isSelected: isSelected,
+          header: header,
+          onTap: onTap,
+          onWidgetDrop: (type, colId, idx) async {},
+          onWidgetMove: (w, srcCol, tgtCol, idx) async {},
+          widgetItemBuilder:
+              widgetItemBuilder ?? (w, colId) => Text('Widget ${w.id}'),
         ),
       ),
     );

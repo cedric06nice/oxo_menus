@@ -17,11 +17,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # State Management
-  flutter_riverpod: ^3.1.0
-  # riverpod: ^3.1.0
-  # riverpod_annotation: ^4.0.0
-  # state_notifier: ^1.0.0
+  # State Management — controllers via ChangeNotifier + AppScope
+  # (flutter_riverpod removed in Phase 28)
 
   # Reflectable (required by directus_api_manager)
   reflectable: ^5.1.0

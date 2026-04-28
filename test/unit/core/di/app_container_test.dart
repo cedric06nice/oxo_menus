@@ -158,6 +158,37 @@ void main() {
       expect(container.adminViewAsUserGateway, isA<AdminViewAsUserGateway>());
     });
 
+    group('directus credentials', () {
+      test('directusBaseUrl returns the value injected at construction', () {
+        final container = AppContainer(
+          authGateway: AuthGateway(repository: _StubAuthRepository()),
+          connectivityGateway: ConnectivityGateway(
+            repository: _StubConnectivityRepository(),
+          ),
+          directusDataSource: DirectusDataSource(baseUrl: 'http://localhost'),
+          directusBaseUrl: 'https://example.com',
+        );
+
+        expect(container.directusBaseUrl, 'https://example.com');
+      });
+
+      test(
+        'directusAccessToken delegates to DirectusDataSource.currentAccessToken',
+        () {
+          final ds = DirectusDataSource(baseUrl: 'http://localhost');
+          final container = AppContainer(
+            authGateway: AuthGateway(repository: _StubAuthRepository()),
+            connectivityGateway: ConnectivityGateway(
+              repository: _StubConnectivityRepository(),
+            ),
+            directusDataSource: ds,
+          );
+
+          expect(container.directusAccessToken, ds.currentAccessToken);
+        },
+      );
+    });
+
     group('widgetRegistry', () {
       test('exposes a PresentableWidgetRegistry with all 8 widget types', () {
         final container = _makeContainer();
@@ -166,16 +197,19 @@ void main() {
 
         expect(registry, isA<PresentableWidgetRegistry>());
         expect(registry.count, 8);
-        expect(registry.registeredTypes, containsAll(<String>[
-          'dish',
-          'dish_to_share',
-          'image',
-          'section',
-          'set_menu_dish',
-          'set_menu_title',
-          'text',
-          'wine',
-        ]));
+        expect(
+          registry.registeredTypes,
+          containsAll(<String>[
+            'dish',
+            'dish_to_share',
+            'image',
+            'section',
+            'set_menu_dish',
+            'set_menu_title',
+            'text',
+            'wine',
+          ]),
+        );
       });
 
       test('returns the same instance on repeated access (lazy singleton)', () {

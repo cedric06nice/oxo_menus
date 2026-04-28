@@ -10,7 +10,7 @@ import 'package:oxo_menus/shared/domain/entities/vertical_alignment.dart';
 import 'package:oxo_menus/features/menu/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/fetch_menu_tree_usecase.dart';
 import 'package:oxo_menus/features/menu/presentation/widgets/canvas/template_canvas.dart';
-import 'package:oxo_menus/features/widget_system/presentation/providers/widget_registry_provider.dart';
+import 'package:oxo_menus/features/widget_system/presentation/widget_system/built_in_widget_definitions.dart';
 import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
 
 PresentableWidgetRegistry buildRegistry() {
@@ -38,7 +38,9 @@ void main() {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: TemplateCanvas(menuTree: menuTree, registry: buildRegistry())),
+          home: Scaffold(
+            body: TemplateCanvas(menuTree: menuTree, registry: buildRegistry()),
+          ),
         ),
       );
 
@@ -67,7 +69,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: TemplateCanvas(menuTree: menuTree, registry: buildRegistry(), isEditable: true),
+            body: TemplateCanvas(
+              menuTree: menuTree,
+              registry: buildRegistry(),
+              isEditable: true,
+            ),
           ),
         ),
       );
@@ -103,7 +109,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: TemplateCanvas(menuTree: menuTree, registry: buildRegistry(), isEditable: true),
+            body: TemplateCanvas(
+              menuTree: menuTree,
+              registry: buildRegistry(),
+              isEditable: true,
+            ),
           ),
         ),
       );
@@ -124,7 +134,13 @@ void main() {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: PageCanvas(page: pageData, registry: buildRegistry(), isEditable: true)),
+          home: Scaffold(
+            body: PageCanvas(
+              page: pageData,
+              registry: buildRegistry(),
+              isEditable: true,
+            ),
+          ),
         ),
       );
 
@@ -144,7 +160,13 @@ void main() {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: PageCanvas(page: pageData, registry: buildRegistry(), isEditable: false)),
+          home: Scaffold(
+            body: PageCanvas(
+              page: pageData,
+              registry: buildRegistry(),
+              isEditable: false,
+            ),
+          ),
         ),
       );
 
@@ -172,7 +194,13 @@ void main() {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: PageCanvas(page: pageData, registry: buildRegistry(), isEditable: true)),
+          home: Scaffold(
+            body: PageCanvas(
+              page: pageData,
+              registry: buildRegistry(),
+              isEditable: true,
+            ),
+          ),
         ),
       );
 
@@ -201,7 +229,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ContainerCanvas(container: containerData, registry: buildRegistry(), isEditable: true),
+            body: ContainerCanvas(
+              container: containerData,
+              registry: buildRegistry(),
+              isEditable: true,
+            ),
           ),
         ),
       );
@@ -261,7 +293,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ContainerCanvas(container: containerData, registry: buildRegistry(), isEditable: true),
+            body: ContainerCanvas(
+              container: containerData,
+              registry: buildRegistry(),
+              isEditable: true,
+            ),
           ),
         ),
       );
@@ -291,7 +327,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ContainerCanvas(container: containerData, registry: buildRegistry(), isEditable: true),
+            body: ContainerCanvas(
+              container: containerData,
+              registry: buildRegistry(),
+              isEditable: true,
+            ),
           ),
         ),
       );
@@ -320,7 +360,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ColumnCanvas(column: columnData, registry: buildRegistry(), isEditable: true),
+            body: ColumnCanvas(
+              column: columnData,
+              registry: buildRegistry(),
+              isEditable: true,
+            ),
           ),
         ),
       );
@@ -342,7 +386,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ColumnCanvas(column: columnData, registry: buildRegistry(), isEditable: false),
+            body: ColumnCanvas(
+              column: columnData,
+              registry: buildRegistry(),
+              isEditable: false,
+            ),
           ),
         ),
       );
@@ -362,7 +410,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ColumnCanvas(column: columnData, registry: buildRegistry(), isEditable: true),
+            body: ColumnCanvas(
+              column: columnData,
+              registry: buildRegistry(),
+              isEditable: true,
+            ),
           ),
         ),
       );
@@ -390,7 +442,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ColumnCanvas(column: columnData, registry: buildRegistry(), isEditable: false),
+            body: ColumnCanvas(
+              column: columnData,
+              registry: buildRegistry(),
+              isEditable: false,
+            ),
           ),
         ),
       );
@@ -422,7 +478,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ColumnCanvas(column: columnData, registry: buildRegistry(), isEditable: false),
+            body: ColumnCanvas(
+              column: columnData,
+              registry: buildRegistry(),
+              isEditable: false,
+            ),
           ),
         ),
       );
@@ -450,7 +510,11 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: ColumnCanvas(column: columnData, registry: buildRegistry(), isEditable: false),
+              body: ColumnCanvas(
+                column: columnData,
+                registry: buildRegistry(),
+                isEditable: false,
+              ),
             ),
           ),
         );
@@ -478,7 +542,11 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: ColumnCanvas(column: columnData, registry: buildRegistry(), isEditable: false),
+              body: ColumnCanvas(
+                column: columnData,
+                registry: buildRegistry(),
+                isEditable: false,
+              ),
             ),
           ),
         );
@@ -506,7 +574,11 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: ColumnCanvas(column: columnData, registry: buildRegistry(), isEditable: false),
+              body: ColumnCanvas(
+                column: columnData,
+                registry: buildRegistry(),
+                isEditable: false,
+              ),
             ),
           ),
         );
@@ -527,7 +599,11 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: ColumnCanvas(column: columnData, registry: buildRegistry(), isEditable: false),
+              body: ColumnCanvas(
+                column: columnData,
+                registry: buildRegistry(),
+                isEditable: false,
+              ),
             ),
           ),
         );
@@ -779,7 +855,11 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: ContainerCanvas(container: containerData, registry: buildRegistry(), isEditable: true),
+            body: ContainerCanvas(
+              container: containerData,
+              registry: buildRegistry(),
+              isEditable: true,
+            ),
           ),
         ),
       );
@@ -904,7 +984,13 @@ void main() {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(body: PageCanvas(page: pageData, registry: buildRegistry(), isEditable: true)),
+          home: Scaffold(
+            body: PageCanvas(
+              page: pageData,
+              registry: buildRegistry(),
+              isEditable: true,
+            ),
+          ),
         ),
       );
 

@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
-import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/shared/presentation/widgets/user_avatar_widget.dart';
+
+import '../../../../helpers/build_app_scope_test_harness.dart';
 
 void main() {
   group('UserAvatarWidget', () {
-    Widget buildWidget(User? user, {double radius = 20.0}) {
-      return ProviderScope(
-        overrides: [
-          directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-          directusAccessTokenProvider.overrideWithValue('test-token'),
-        ],
+    Widget buildWidget(
+      User? user, {
+      double radius = 20.0,
+      String? accessToken = 'test-token',
+    }) {
+      return wrapInTestAppScope(
+        directusAccessToken: accessToken,
         child: MaterialApp(
           home: Scaffold(
             body: UserAvatarWidget(user: user, radius: radius),
@@ -161,17 +162,7 @@ void main() {
         avatar: 'some-file-uuid',
       );
 
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-            directusAccessTokenProvider.overrideWithValue(null),
-          ],
-          child: const MaterialApp(
-            home: Scaffold(body: UserAvatarWidget(user: user)),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildWidget(user, accessToken: null));
 
       final image = tester.widget<Image>(find.byType(Image));
       final networkImage = image.image as NetworkImage;

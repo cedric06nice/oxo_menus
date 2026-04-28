@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oxo_menus/core/di/app_scope.dart';
 import 'package:oxo_menus/features/collaboration/domain/entities/menu_presence.dart';
-import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
 
 /// Displays avatar chips for other users currently editing the same menu.
-class PresenceBar extends ConsumerWidget {
+class PresenceBar extends StatelessWidget {
   final List<MenuPresence> presences;
   final String currentUserId;
 
@@ -15,7 +14,7 @@ class PresenceBar extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final now = DateTime.now();
     final activeOthers = presences.where((p) {
       if (p.userId == currentUserId) return false;
@@ -27,8 +26,9 @@ class PresenceBar extends ConsumerWidget {
 
     if (activeOthers.isEmpty) return const SizedBox.shrink();
 
-    final baseUrl = ref.watch(directusBaseUrlProvider);
-    final token = ref.watch(directusAccessTokenProvider);
+    final container = AppScope.of(context).container;
+    final baseUrl = container.directusBaseUrl ?? '';
+    final token = container.directusAccessToken;
 
     return Row(
       mainAxisSize: MainAxisSize.min,

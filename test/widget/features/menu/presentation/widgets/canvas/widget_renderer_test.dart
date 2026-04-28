@@ -85,51 +85,49 @@ void main() {
       expect(find.text('Unknown widget type: mystery'), findsOneWidget);
     });
 
-    testWidgets(
-      'resolves alignment from allowedWidgets matching widget type',
-      (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: WidgetRenderer(
-                widgetInstance: sectionWidget,
-                registry: buildRegistry(),
-                allowedWidgets: const [
-                  WidgetTypeConfig(
-                    type: 'section',
-                    alignment: WidgetAlignment.center,
-                  ),
-                ],
-              ),
+    testWidgets('resolves alignment from allowedWidgets matching widget type', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WidgetRenderer(
+              widgetInstance: sectionWidget,
+              registry: buildRegistry(),
+              allowedWidgets: const [
+                WidgetTypeConfig(
+                  type: 'section',
+                  alignment: WidgetAlignment.center,
+                ),
+              ],
             ),
           ),
-        );
+        ),
+      );
 
-        // Render succeeds; the alignment plumbed through is captured by the
-        // section's rendered Text widget alignment behavior.
-        expect(find.text('Test Section'), findsOneWidget);
-      },
-    );
+      // Render succeeds; the alignment plumbed through is captured by the
+      // section's rendered Text widget alignment behavior.
+      expect(find.text('Test Section'), findsOneWidget);
+    });
 
-    testWidgets(
-      'forwards displayOptions to the rendered widget',
-      (tester) async {
-        const options = MenuDisplayOptions(showPrices: false);
+    testWidgets('forwards displayOptions to the rendered widget', (
+      tester,
+    ) async {
+      const options = MenuDisplayOptions(showPrices: false);
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: WidgetRenderer(
-                widgetInstance: sectionWidget,
-                registry: buildRegistry(),
-                displayOptions: options,
-              ),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: WidgetRenderer(
+              widgetInstance: sectionWidget,
+              registry: buildRegistry(),
+              displayOptions: options,
             ),
           ),
-        );
+        ),
+      );
 
-        expect(find.text('Test Section'), findsOneWidget);
-      },
-    );
+      expect(find.text('Test Section'), findsOneWidget);
+    });
   });
 }

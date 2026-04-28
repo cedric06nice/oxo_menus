@@ -1,13 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:oxo_menus/shared/domain/entities/area.dart';
+import 'package:oxo_menus/core/di/app_scope.dart';
+import 'package:oxo_menus/features/menu/data/repositories/size_repository_impl.dart';
 import 'package:oxo_menus/features/menu/domain/entities/size.dart' as domain;
+import 'package:oxo_menus/features/menu/domain/repositories/size_repository.dart';
+import 'package:oxo_menus/features/menu_list/presentation/widgets/template_create_dialog_controller.dart';
+import 'package:oxo_menus/shared/data/repositories/area_repository_impl.dart';
+import 'package:oxo_menus/shared/domain/entities/area.dart';
 import 'package:oxo_menus/shared/domain/entities/status.dart';
+import 'package:oxo_menus/shared/domain/repositories/area_repository.dart';
 import 'package:oxo_menus/shared/presentation/helpers/cupertino_picker_helper.dart';
 import 'package:oxo_menus/shared/presentation/helpers/snackbar_helper.dart';
-import 'package:oxo_menus/features/menu/presentation/providers/menu_settings/menu_settings_provider.dart';
-import 'package:oxo_menus/features/menu/presentation/providers/menu_settings/menu_settings_state.dart';
 import 'package:oxo_menus/shared/presentation/utils/platform_detection.dart';
 
 /// Result from the template create dialog
@@ -27,7 +30,7 @@ class TemplateCreateResult {
   });
 }
 
-class TemplateCreateDialog extends ConsumerStatefulWidget {
+class TemplateCreateDialog extends StatefulWidget {
   final void Function(TemplateCreateResult) onSave;
 
   /// Invoked when the user taps the "Manage Sizes" CTA shown when no sizes
@@ -35,48 +38,86 @@ class TemplateCreateDialog extends ConsumerStatefulWidget {
   /// so the user can return to the dialog with back navigation.
   final VoidCallback? onOpenSizes;
 
+  /// Optional injection points for tests — production wiring builds these
+  /// from the surrounding [AppScope].
+  final SizeRepository? sizeRepository;
+  final AreaRepository? areaRepository;
+
   const TemplateCreateDialog({
     super.key,
     required this.onSave,
     this.onOpenSizes,
+    this.sizeRepository,
+    this.areaRepository,
   });
 
   @override
-  ConsumerState<TemplateCreateDialog> createState() =>
-      _TemplateCreateDialogState();
+  State<TemplateCreateDialog> createState() => _TemplateCreateDialogState();
 }
 
-class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
+class _TemplateCreateDialogState extends State<TemplateCreateDialog> {
   late TextEditingController _nameController;
   late TextEditingController _versionController;
+  late TemplateCreateDialogController _settingsController;
 
   domain.Size? _selectedSize;
   Area? _selectedArea;
+  bool _settingsBound = false;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
     _versionController = TextEditingController(text: '1.0.0');
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final notifier = ref.read(menuSettingsProvider.notifier);
-      notifier.loadSizes();
-      notifier.loadAreas();
-    });
-    _listenForSizesLoaded();
   }
 
-  void _listenForSizesLoaded() {
-    ref.listenManual(menuSettingsProvider, (prev, next) {
-      final hadNoSizes = prev?.sizes.isEmpty ?? true;
-      if (hadNoSizes && next.sizes.isNotEmpty && _selectedSize == null) {
-        setState(() => _selectedSize = next.sizes.first);
-      }
-    });
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_settingsBound) {
+      _settingsController = TemplateCreateDialogController(
+        sizeRepository: widget.sizeRepository ?? _resolveSizeRepository(),
+        areaRepository: widget.areaRepository ?? _resolveAreaRepository(),
+      );
+      _settingsController.addListener(_onSettingsChanged);
+      _settingsBound = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        _settingsController.loadSizes();
+        _settingsController.loadAreas();
+      });
+    }
+  }
+
+  SizeRepository _resolveSizeRepository() {
+    final dataSource = AppScope.read(context).container.directusDataSource;
+    return SizeRepositoryImpl(dataSource: dataSource);
+  }
+
+  AreaRepository _resolveAreaRepository() {
+    final dataSource = AppScope.read(context).container.directusDataSource;
+    return AreaRepositoryImpl(dataSource: dataSource);
+  }
+
+  void _onSettingsChanged() {
+    if (!mounted) {
+      return;
+    }
+    final state = _settingsController.state;
+    if (_selectedSize == null && state.sizes.isNotEmpty) {
+      setState(() => _selectedSize = state.sizes.first);
+    } else {
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
+    _settingsController
+      ..removeListener(_onSettingsChanged)
+      ..dispose();
     _nameController.dispose();
     _versionController.dispose();
     super.dispose();
@@ -84,7 +125,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final settingsState = ref.watch(menuSettingsProvider);
+    final settingsState = _settingsController.state;
 
     return isApplePlatform(context)
         ? _buildAppleForm(context, settingsState)
@@ -93,7 +134,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
 
   Widget _buildAppleForm(
     BuildContext context,
-    MenuSettingsState settingsState,
+    TemplateCreateDialogState settingsState,
   ) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
@@ -144,7 +185,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
     );
   }
 
-  Widget _buildAppleSizeSelector(MenuSettingsState settingsState) {
+  Widget _buildAppleSizeSelector(TemplateCreateDialogState settingsState) {
     if (settingsState.isLoadingSizes && settingsState.sizes.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16),
@@ -215,7 +256,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
     );
   }
 
-  Widget _buildAppleAreaSelector(MenuSettingsState settingsState) {
+  Widget _buildAppleAreaSelector(TemplateCreateDialogState settingsState) {
     if (settingsState.isLoadingAreas && settingsState.areas.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16),
@@ -251,7 +292,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
 
   Widget _buildMaterialDialog(
     BuildContext context,
-    MenuSettingsState settingsState,
+    TemplateCreateDialogState settingsState,
   ) {
     return AlertDialog(
       title: const Text('Create Template'),
@@ -298,7 +339,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
     );
   }
 
-  Widget _buildMaterialSizeDropdown(MenuSettingsState settingsState) {
+  Widget _buildMaterialSizeDropdown(TemplateCreateDialogState settingsState) {
     if (settingsState.isLoadingSizes && settingsState.sizes.isEmpty) {
       return const Row(
         children: [
@@ -361,7 +402,7 @@ class _TemplateCreateDialogState extends ConsumerState<TemplateCreateDialog> {
     );
   }
 
-  Widget _buildMaterialAreaDropdown(MenuSettingsState settingsState) {
+  Widget _buildMaterialAreaDropdown(TemplateCreateDialogState settingsState) {
     if (settingsState.isLoadingAreas && settingsState.areas.isEmpty) {
       return const Row(
         children: [

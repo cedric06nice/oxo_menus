@@ -87,10 +87,7 @@ void main() {
           ..downloadResults['x'] = const Failure(NotFoundError());
         final gateway = ImageGateway(repository: repo);
 
-        await expectLater(
-          gateway.getBytes('x'),
-          throwsA(isA<NotFoundError>()),
-        );
+        await expectLater(gateway.getBytes('x'), throwsA(isA<NotFoundError>()));
       });
 
       test('does not cache a failed future — next call re-fetches', () async {
@@ -124,21 +121,23 @@ void main() {
     });
 
     group('listImages', () {
-      test('forwards to repository.listImageFiles each call (no caching)',
-          () async {
-        final repo = _FakeFileRepository()
-          ..listResult = const Success([
-            ImageFileInfo(id: 'a', title: 'a.png'),
-          ]);
-        final gateway = ImageGateway(repository: repo);
+      test(
+        'forwards to repository.listImageFiles each call (no caching)',
+        () async {
+          final repo = _FakeFileRepository()
+            ..listResult = const Success([
+              ImageFileInfo(id: 'a', title: 'a.png'),
+            ]);
+          final gateway = ImageGateway(repository: repo);
 
-        final r1 = await gateway.listImages();
-        final r2 = await gateway.listImages();
+          final r1 = await gateway.listImages();
+          final r2 = await gateway.listImages();
 
-        expect(r1.isSuccess, isTrue);
-        expect(r2.isSuccess, isTrue);
-        expect(repo.listCalls, 2);
-      });
+          expect(r1.isSuccess, isTrue);
+          expect(r2.isSuccess, isTrue);
+          expect(repo.listCalls, 2);
+        },
+      );
     });
   });
 }

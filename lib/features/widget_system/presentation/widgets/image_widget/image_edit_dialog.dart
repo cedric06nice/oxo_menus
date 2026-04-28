@@ -288,9 +288,7 @@ class _ImageEditDialogState extends State<ImageEditDialog> {
     final gateway = widget.imageGateway;
     if (gateway == null) {
       return Icon(
-        isApplePlatform(context)
-            ? CupertinoIcons.photo
-            : Icons.broken_image,
+        isApplePlatform(context) ? CupertinoIcons.photo : Icons.broken_image,
       );
     }
     return FutureBuilder<Uint8List>(

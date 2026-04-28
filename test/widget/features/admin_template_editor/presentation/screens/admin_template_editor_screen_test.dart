@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/core/errors/domain_errors.dart';
 import 'package:oxo_menus/core/gateways/auth_gateway.dart';
@@ -281,9 +280,7 @@ void main() {
     addTearDown(ctx.connectivityGateway.dispose);
 
     await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(home: AdminTemplateEditorScreen(viewModel: ctx.vm)),
-      ),
+      MaterialApp(home: AdminTemplateEditorScreen(viewModel: ctx.vm)),
     );
     await tester.pumpAndSettle();
 
@@ -300,9 +297,7 @@ void main() {
     addTearDown(ctx.connectivityGateway.dispose);
 
     await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(home: AdminTemplateEditorScreen(viewModel: ctx.vm)),
-      ),
+      MaterialApp(home: AdminTemplateEditorScreen(viewModel: ctx.vm)),
     );
     await tester.pumpAndSettle();
 
@@ -316,9 +311,7 @@ void main() {
     addTearDown(ctx.connectivityGateway.dispose);
 
     await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(home: AdminTemplateEditorScreen(viewModel: ctx.vm)),
-      ),
+      MaterialApp(home: AdminTemplateEditorScreen(viewModel: ctx.vm)),
     );
     await tester.pumpAndSettle();
 
@@ -337,9 +330,7 @@ void main() {
     addTearDown(ctx.connectivityGateway.dispose);
 
     await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(home: AdminTemplateEditorScreen(viewModel: ctx.vm)),
-      ),
+      MaterialApp(home: AdminTemplateEditorScreen(viewModel: ctx.vm)),
     );
     await tester.pumpAndSettle();
 

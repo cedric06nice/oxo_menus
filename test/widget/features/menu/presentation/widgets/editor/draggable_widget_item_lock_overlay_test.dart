@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/features/menu/domain/entities/widget_instance.dart';
 import 'package:oxo_menus/features/widget_system/presentation/widget_system/presentable_widget_registry.dart';
-import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/features/widget_system/presentation/widgets/dish_widget/dish_widget_definition.dart';
 import 'package:oxo_menus/features/menu/presentation/widgets/editor/draggable_widget_item.dart';
+
+import '../../../../../../helpers/build_app_scope_test_harness.dart';
 
 void main() {
   late PresentableWidgetRegistry registry;
@@ -21,11 +21,7 @@ void main() {
     String? editingUserName,
     String? editingUserAvatar,
   }) {
-    return ProviderScope(
-      overrides: [
-        directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-        directusAccessTokenProvider.overrideWithValue('test-token'),
-      ],
+    return wrapInTestAppScope(
       child: MaterialApp(
         home: Scaffold(
           body: DraggableWidgetItem(

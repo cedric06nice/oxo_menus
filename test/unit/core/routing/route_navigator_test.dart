@@ -69,9 +69,7 @@ void main() {
       navigator.push('/b', extra: const _Payload(42));
       await tester.pumpAndSettle();
 
-      final state = GoRouterState.of(
-        tester.element(find.text('B')),
-      );
+      final state = GoRouterState.of(tester.element(find.text('B')));
       expect(state.extra, const _Payload(42));
     });
   });
@@ -82,8 +80,7 @@ class _Payload {
   final int value;
 
   @override
-  bool operator ==(Object other) =>
-      other is _Payload && other.value == value;
+  bool operator ==(Object other) => other is _Payload && other.value == value;
 
   @override
   int get hashCode => value.hashCode;

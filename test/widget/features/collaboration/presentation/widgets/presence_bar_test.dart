@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oxo_menus/features/collaboration/domain/entities/menu_presence.dart';
-import 'package:oxo_menus/shared/presentation/providers/repositories_provider.dart';
 import 'package:oxo_menus/features/collaboration/presentation/widgets/presence_bar.dart';
+
+import '../../../../../helpers/build_app_scope_test_harness.dart';
 
 void main() {
   Widget buildWidget({
     required List<MenuPresence> presences,
     String currentUserId = 'user-1',
   }) {
-    return ProviderScope(
-      overrides: [
-        directusBaseUrlProvider.overrideWithValue('http://localhost:8055'),
-        directusAccessTokenProvider.overrideWithValue('test-token'),
-      ],
+    return wrapInTestAppScope(
       child: MaterialApp(
         home: Scaffold(
           body: PresenceBar(presences: presences, currentUserId: currentUserId),

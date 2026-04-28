@@ -77,7 +77,8 @@ void main() {
     }) {
       final effectiveGateway = imageGateway ?? gateway;
       final effectiveContext =
-          context ?? WidgetContext(isEditable: false, imageGateway: effectiveGateway);
+          context ??
+          WidgetContext(isEditable: false, imageGateway: effectiveGateway);
       return MaterialApp(
         home: Scaffold(
           body: ImageWidget(props: props, context: effectiveContext),

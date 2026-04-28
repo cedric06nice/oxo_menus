@@ -78,13 +78,13 @@ Lives under `lib/features/allergens/domain/`. UK FSA 14 allergens (`UkAllergen` 
 
 ## State Management
 
-Riverpod with manual `Provider` declarations (not riverpod_generator):
+`AppScope` `InheritedWidget` + per-feature `ChangeNotifier` controllers.
+`flutter_riverpod` was retired in Phase 28.
 
-- `lib/shared/presentation/providers/repositories_provider.dart` — all repo providers watch `directusDataSourceProvider`
-- `lib/shared/presentation/providers/usecases_provider.dart` — use case providers
-- `lib/shared/presentation/providers/auth_provider.dart` — `AuthNotifier` + `isAdminProvider` (single source of truth for admin check)
-- `lib/features/widget_system/presentation/providers/widget_registry_provider.dart` — registers all 8 widget types
-- Page-level state lives per-feature in `lib/features/<feature>/presentation/state/` (freezed states) and `lib/features/<feature>/presentation/providers/` (Notifiers) — e.g., `admin_templates_*`, `admin_sizes_*`, `menu_list_*`, `editor_tree_*`, `menu_collaboration_*`
+- **`lib/core/di/app_container.dart`** — `AppContainer` holds singletons (gateways, `DirectusDataSource`, lazy `widgetRegistry` / `imageGateway`)
+- **`lib/core/di/app_scope.dart`** — `AppScope` `InheritedWidget` exposes the container plus four `ChangeNotifier` controllers (`AuthController`, `ConnectivityController`, `AdminViewAsUserController`, `AppLifecycleController`). `AppScope.of(context)` returns the snapshot; widgets that need to rebuild on a controller change wrap themselves in `ListenableBuilder(listenable: controller, ...)`.
+- **`lib/shared/presentation/controllers/`** — the four shared controllers; each subscribes to its gateway's stream and mirrors it into `notifyListeners()`.
+- **Per-feature ViewModels** — extend `ViewModel<S>` (a `ChangeNotifier`) and live in `lib/features/<feature>/presentation/view_models/`. Each route in `app_router.dart` is hosted by a small `_*RouteHost` `StatefulWidget` that constructs the ViewModel in `initState` (reading the container via `AppScope.read(context)`) and disposes it on `dispose`.
 
 ## Data Layer
 
@@ -129,7 +129,7 @@ flutter test test/widget/       # widget only
 - Structure mirrors `lib/`: `test/unit/{core,shared,features}/`, `test/widget/{shared,features}/`, `test/integration/`, `test/fakes/`, `test/helpers/`
 - Legacy paths (`test/unit/{data,domain,presentation}/`, `test/widget/{pages,presentation,widgets}/`) still exist — tests are mid-migration to the feature layout
 - 261 test files (163 unit, 75 widget, 1 integration, 22 fake-tests under `test/fakes/`), ~4445 test cases
-- No mocking library — `mocktail` was removed. Use hand-rolled fakes in `test/fakes/` and `ProviderScope` overrides
+- No mocking library — `mocktail` was removed. Use hand-rolled fakes in `test/fakes/` and either inject dependencies through ViewModels (preferred) or wrap widgets in `AppScope` via `wrapInTestAppScope` in `test/helpers/build_app_scope_test_harness.dart`
 - CI enforces 75% coverage, `dart format`, `flutter analyze --fatal-infos`
 
 ## Environment
