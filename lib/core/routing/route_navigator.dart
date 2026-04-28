@@ -19,20 +19,26 @@ abstract class RouteNavigator {
 }
 
 /// Default [RouteNavigator] that resolves the surrounding [OxoRouter] via
-/// [OxoRouterScope] and forwards `go`/`push` to it. Used by every
-/// `_*RouteHost` to bridge `BuildContext` into the feature's `*RouteAdapter`.
+/// [OxoRouterScope] at construction time and forwards `go`/`push` to it. Used
+/// by every `_*RouteHost` to bridge `BuildContext` into the feature's
+/// `*RouteAdapter`.
+///
+/// Resolving the router eagerly (rather than on every navigation) is what
+/// keeps post-await calls from ViewModels safe: even after the route host's
+/// element has been deactivated by a redirect or replacement, the navigator
+/// still holds a live router reference and never touches the original
+/// `BuildContext` again.
 class OxoRouterRouteNavigator implements RouteNavigator {
-  const OxoRouterRouteNavigator(this._context);
+  OxoRouterRouteNavigator(BuildContext context)
+    : _router = OxoRouterScope.read(context);
 
-  final BuildContext _context;
-
-  @override
-  void go(String location, {Object? extra}) {
-    OxoRouterScope.of(_context).go(location, extra: extra);
-  }
+  final OxoRouter _router;
 
   @override
-  void push(String location, {Object? extra}) {
-    OxoRouterScope.of(_context).push(location, extra: extra);
-  }
+  void go(String location, {Object? extra}) =>
+      _router.go(location, extra: extra);
+
+  @override
+  void push(String location, {Object? extra}) =>
+      _router.push(location, extra: extra);
 }

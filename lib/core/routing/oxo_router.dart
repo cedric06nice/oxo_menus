@@ -391,6 +391,17 @@ class OxoRouterScope extends InheritedWidget {
     return scope!.router;
   }
 
+  /// Same as [of] but does not register a dependency, so the calling widget
+  /// will not rebuild if the surrounding [OxoRouterScope] changes. Use from
+  /// one-shot lookups (e.g. constructing a router-bound navigator in
+  /// `initState`) where rebuild-on-change tracking is not needed.
+  static OxoRouter read(BuildContext context) {
+    final element = context
+        .getElementForInheritedWidgetOfExactType<OxoRouterScope>();
+    assert(element != null, 'No OxoRouterScope found in widget tree');
+    return (element!.widget as OxoRouterScope).router;
+  }
+
   @override
   bool updateShouldNotify(OxoRouterScope oldWidget) =>
       router != oldWidget.router;

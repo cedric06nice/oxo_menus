@@ -79,6 +79,28 @@ void main() {
       expect(stack.last.location, '/b');
       expect(stack.last.extra, const _Payload(42));
     });
+
+    testWidgets('go does not throw after the source context is deactivated', (
+      tester,
+    ) async {
+      final pumped = await pumpRouter(tester);
+      final navigator = OxoRouterRouteNavigator(pumped.context);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+
+      expect(() => navigator.go('/b'), returnsNormally);
+    });
+
+    testWidgets('push does not throw after the source context is deactivated', (
+      tester,
+    ) async {
+      final pumped = await pumpRouter(tester);
+      final navigator = OxoRouterRouteNavigator(pumped.context);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+
+      expect(() => navigator.push('/c'), returnsNormally);
+    });
   });
 }
 
