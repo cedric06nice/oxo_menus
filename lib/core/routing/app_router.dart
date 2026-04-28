@@ -7,7 +7,6 @@ import 'package:oxo_menus/core/routing/app_routes.dart';
 import 'package:oxo_menus/core/routing/migration/legacy_navigator.dart';
 import 'package:oxo_menus/core/routing/migration/main_router_host.dart';
 import 'package:oxo_menus/features/connectivity/domain/entities/connectivity_status.dart';
-import 'package:oxo_menus/features/menu/domain/entities/menu_display_options.dart';
 import 'package:oxo_menus/shared/domain/entities/user.dart';
 import 'package:oxo_menus/features/admin_exportable_menus/presentation/admin_exportable_menus_page.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/create_size_use_case.dart';
@@ -51,7 +50,13 @@ import 'package:oxo_menus/features/menu/data/repositories/size_repository_impl.d
 import 'package:oxo_menus/features/menu/data/repositories/widget_repository_impl.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/duplicate_menu_usecase.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/fetch_menu_tree_usecase.dart';
-import 'package:oxo_menus/features/menu_editor/presentation/pages/pdf_preview_page.dart';
+import 'package:oxo_menus/features/menu/domain/usecases/generate_pdf_usecase.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/generate_menu_pdf_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/legacy_pdf_preview_router.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/screens/pdf_preview_screen.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/view_models/pdf_preview_view_model.dart';
+import 'package:oxo_menus/shared/data/repositories/asset_loader_repository_impl.dart';
+import 'package:oxo_menus/shared/data/repositories/file_repository_impl.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/create_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/delete_menu_use_case.dart';
 import 'package:oxo_menus/features/menu_list/domain/use_cases/list_menus_for_viewer_use_case.dart';
@@ -258,10 +263,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'menu-pdf',
                 builder: (context, state) {
                   final int menuId = int.parse(state.pathParameters['id']!);
-                  final displayOptions = state.extra as MenuDisplayOptions?;
-                  return PdfPreviewPage(
+                  final container = ref.watch(appContainerProvider);
+                  final builder = ref.read(
+                    legacyPdfPreviewViewModelBuilderProvider,
+                  );
+                  return _LegacyPdfPreviewRouteHost(
+                    container: container,
+                    builder: builder,
                     menuId: menuId,
-                    displayOptions: displayOptions,
                   );
                 },
               ),
@@ -977,5 +986,119 @@ class _LegacyAdminTemplateCreatorRouteHostState
   @override
   Widget build(BuildContext context) {
     return AdminTemplateCreatorScreen(viewModel: _viewModel);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 22 — legacy /menus/pdf/:id route host
+//
+// Owns the PdfPreviewViewModel for the lifetime of the legacy GoRoute under
+// the AppShell. The MVVM PdfPreviewScreen is pure (no Riverpod, no
+// BuildContext reads) so this host bridges go_router into it via
+// LegacyPdfPreviewRouter. The screen is a navigation leaf — the router only
+// exposes "back" — so no deep-link forwarding is needed. Will be deleted when
+// the PDF-preview deep link is fully cut over to the MainRouter stack.
+//
+// The view-model construction is exposed as a Riverpod-overridable builder so
+// router tests can swap in fake use cases without standing up a real
+// DirectusDataSource. Production wiring is the default and lives in
+// [_defaultLegacyPdfPreviewViewModelBuilder].
+// ---------------------------------------------------------------------------
+
+/// Factory used by the legacy `/menus/pdf/:id` route host to construct the
+/// [PdfPreviewViewModel] from the live [AppContainer]. The [BuildContext] is
+/// the route's context and is used by the default builder to bridge into
+/// `go_router` via [GoRouterLegacyNavigator]. The `menuId` is the path
+/// parameter the user navigated to.
+typedef LegacyPdfPreviewViewModelBuilder =
+    PdfPreviewViewModel Function(
+      BuildContext context,
+      AppContainer container,
+      int menuId,
+    );
+
+/// Riverpod entry point for the legacy `/menus/pdf/:id` view-model builder.
+///
+/// Defaults to [_defaultLegacyPdfPreviewViewModelBuilder] which wires the live
+/// menu / file repositories from the container's `DirectusDataSource`. Tests
+/// override this with a stub builder that returns a [PdfPreviewViewModel]
+/// backed by fake use cases.
+final legacyPdfPreviewViewModelBuilderProvider =
+    Provider<LegacyPdfPreviewViewModelBuilder>(
+      (ref) => _defaultLegacyPdfPreviewViewModelBuilder,
+    );
+
+PdfPreviewViewModel _defaultLegacyPdfPreviewViewModelBuilder(
+  BuildContext context,
+  AppContainer container,
+  int menuId,
+) {
+  final dataSource = container.directusDataSource;
+  final menuRepository = MenuRepositoryImpl(dataSource: dataSource);
+  final pageRepository = PageRepositoryImpl(dataSource: dataSource);
+  final containerRepository = ContainerRepositoryImpl(dataSource: dataSource);
+  final columnRepository = ColumnRepositoryImpl(dataSource: dataSource);
+  final widgetRepository = WidgetRepositoryImpl(dataSource: dataSource);
+  final fileRepository = FileRepositoryImpl(dataSource);
+  final assetLoader = AssetLoaderRepositoryImpl();
+  final fetchMenuTreeUseCase = FetchMenuTreeUseCase(
+    menuRepository: menuRepository,
+    pageRepository: pageRepository,
+    containerRepository: containerRepository,
+    columnRepository: columnRepository,
+    widgetRepository: widgetRepository,
+  );
+  final generatePdfUseCase = GeneratePdfUseCase(
+    fileRepository: fileRepository,
+    assetLoader: assetLoader,
+    useIsolate: !kIsWeb,
+  );
+  final generateMenuPdfUseCase = GenerateMenuPdfUseCase(
+    authGateway: container.authGateway,
+    fetchMenuTree: fetchMenuTreeUseCase,
+    generatePdf: generatePdfUseCase,
+  );
+  return PdfPreviewViewModel(
+    menuId: menuId,
+    generatePdf: generateMenuPdfUseCase,
+    router: LegacyPdfPreviewRouter(GoRouterLegacyNavigator(context)),
+  );
+}
+
+class _LegacyPdfPreviewRouteHost extends StatefulWidget {
+  const _LegacyPdfPreviewRouteHost({
+    required this.container,
+    required this.builder,
+    required this.menuId,
+  });
+
+  final AppContainer container;
+  final LegacyPdfPreviewViewModelBuilder builder;
+  final int menuId;
+
+  @override
+  State<_LegacyPdfPreviewRouteHost> createState() =>
+      _LegacyPdfPreviewRouteHostState();
+}
+
+class _LegacyPdfPreviewRouteHostState
+    extends State<_LegacyPdfPreviewRouteHost> {
+  late final PdfPreviewViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = widget.builder(context, widget.container, widget.menuId);
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PdfPreviewScreen(viewModel: _viewModel);
   }
 }

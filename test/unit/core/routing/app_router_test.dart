@@ -27,6 +27,10 @@ import 'package:oxo_menus/features/menu_list/presentation/screens/menu_list_scre
 import 'package:oxo_menus/features/menu_list/presentation/view_models/menu_list_view_model.dart';
 import 'package:oxo_menus/features/settings/presentation/screens/settings_screen.dart';
 import 'package:oxo_menus/features/menu/domain/usecases/duplicate_menu_usecase.dart';
+import 'package:oxo_menus/features/menu_editor/domain/use_cases/generate_menu_pdf_use_case.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/routing/legacy_pdf_preview_router.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/screens/pdf_preview_screen.dart';
+import 'package:oxo_menus/features/menu_editor/presentation/view_models/pdf_preview_view_model.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/create_size_use_case.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/delete_size_use_case.dart';
 import 'package:oxo_menus/features/admin_sizes/domain/use_cases/list_sizes_for_admin_use_case.dart';
@@ -311,6 +315,32 @@ AdminTemplateCreatorViewModel _buildLegacyAdminTemplateCreatorVm(
   );
 }
 
+/// [GenerateMenuPdfUseCase] that always fails. Used by the Phase 22 router
+/// test so the legacy `/menus/pdf/:id` host can mount [PdfPreviewScreen]
+/// without spinning up a real `DirectusDataSource` — the screen settles into
+/// its error state immediately, which is enough for the cutover assertion.
+class _StubGenerateMenuPdfUseCase implements GenerateMenuPdfUseCase {
+  @override
+  Future<Result<GenerateMenuPdfOutput, DomainError>> execute(
+    GenerateMenuPdfInput input,
+  ) async => const Failure(NetworkError('stub'));
+}
+
+/// Builds a [PdfPreviewViewModel] backed entirely by stubs — used by the
+/// router tests so the Phase 22 legacy `/menus/pdf/:id` host can mount
+/// [PdfPreviewScreen] without spinning up a real `DirectusDataSource`.
+PdfPreviewViewModel _buildLegacyPdfPreviewVm(
+  BuildContext context,
+  AppContainer container,
+  int menuId,
+) {
+  return PdfPreviewViewModel(
+    menuId: menuId,
+    generatePdf: _StubGenerateMenuPdfUseCase(),
+    router: LegacyPdfPreviewRouter(GoRouterLegacyNavigator(context)),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -374,6 +404,12 @@ Widget _buildApp({
       // the screen without one.
       legacyAdminTemplateCreatorViewModelBuilderProvider.overrideWithValue(
         _buildLegacyAdminTemplateCreatorVm,
+      ),
+      // Phase 22 — the legacy /menus/pdf/:id GoRoute mounts PdfPreviewScreen,
+      // whose ViewModel needs a live DirectusDataSource. Override the builder
+      // so the router tests can mount the screen without one.
+      legacyPdfPreviewViewModelBuilderProvider.overrideWithValue(
+        _buildLegacyPdfPreviewVm,
       ),
       ...extraOverrides.cast(),
     ],
@@ -1021,6 +1057,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(AdminTemplateCreatorScreen), findsOneWidget);
+    });
+  });
+
+  // Phase 22 — the legacy /menus/pdf/:id GoRoute now hosts the MVVM
+  // PdfPreviewScreen directly instead of the retired PdfPreviewPage widget.
+  // This test pins the cutover so the screen cannot silently regress.
+  group('AppRouter — legacy /menus/pdf/:id hosts MVVM screen', () {
+    testWidgets('/menus/pdf/1 mounts PdfPreviewScreen', (tester) async {
+      final fakeAuth = FakeAuthRepository();
+      fakeAuth.defaultTryRestoreSessionResponse = Success(buildUser());
+
+      final fakeMenu = FakeMenuRepository();
+      _configureMenuRepository(fakeMenu);
+
+      late GoRouter router;
+
+      await tester.pumpWidget(
+        _buildApp(
+          fakeAuth: fakeAuth,
+          fakeMenu: fakeMenu,
+          onRouter: (r) => router = r,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      router.go('/menus/pdf/1');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PdfPreviewScreen), findsOneWidget);
     });
   });
 
